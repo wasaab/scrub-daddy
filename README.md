@@ -1,0 +1,2 @@
+# scrub-daddy
+Discord Bot
