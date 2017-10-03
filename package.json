@@ -1,0 +1,11 @@
+{
+  "name": "scrub-daddy",
+  "version": "1.0.0",
+  "description": "The scrubbiest bot of all time.",
+  "main": "bot.js",
+  "author": "Kent",
+  "dependencies": {
+    "discord.io": "^2.5.3",
+    "winston": "^2.3.1"
+  }
+}
