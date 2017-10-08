@@ -7,15 +7,23 @@
 const Discord = require('discord.io');
 const logger = require('winston');
 const auth = require('./auth.json'); 
-var votes = {};
-var alreadyVoted = {};
-//need to make this work for multiple votes going on at once as u did with already voted
-
 const util = require('util');
-const loopDelay = 1500;	// delay between each loop
-const botSpamChannelID = '261698738718900224';		
-const purgatoryChannelID = '363935969310670861';
-const serverID = '132944227163176960';
+const loopDelay = 1500;								//delay between each loop
+const botSpamChannelID = '261698738718900224';		//listen's to messages from this channel
+const purgatoryChannelID = '363935969310670861';	//sends kicked user's to this channel
+const serverID = '132944227163176960';				//Bed Bath Server ID
+const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const voteType =  {
+	KICK : "kick" ,
+	BAN : "ban",
+	PTT : "force Push To Talk",
+	REMOVE_ROLE : "remove role"
+}
+// Initialize Discord Bot
+const bot = new Discord.Client({
+   token: auth.token,
+   autorun: true
+});
 const channelIDToBanRoleID = {
 	'260886906437500928' : '363913248665370644',	//Beyond
 	'134557049374769152' : '363912027749482497',	//Str8 Chillin
@@ -29,43 +37,37 @@ const channelIDToBanRoleID = {
 	'280108491929157643' : '363913029630558209'		//Where he at doe?
 }
 var voteChannelMembers = {
-	'260886906437500928' : [],	//Beyond
-	'134557049374769152' : [],	//Str8 Chillin
-	'188111442770264065' : [],	//D. Va licious
-	'258062007499096064' : [],	//Spazzy's Scrub Shack
-	'258041915574845440' : [],	//Cartoon Network
-	'132944231583973376' : [],	//The Dream Team
-	'309106757110857729' : [],	//25pooky
-	'318081358364934151' : [],	//Cat People
-	'338468590716190722' : [],	//They'll fix that b4 release
-	'280108491929157643' : []	//Where he at doe?
+	'260886906437500928' : [],						//Beyond
+	'134557049374769152' : [],						//Str8 Chillin
+	'188111442770264065' : [],						//D. Va licious
+	'258062007499096064' : [],						//Spazzy's Scrub Shack
+	'258041915574845440' : [],						//Cartoon Network
+	'132944231583973376' : [],						//The Dream Team
+	'309106757110857729' : [],						//25pooky
+	'318081358364934151' : [],						//Cat People
+	'338468590716190722' : [],						//They'll fix that b4 release
+	'280108491929157643' : []						//Where he at doe?
 };
+var votes = {};										//map of targetConcat to number of votes
+var alreadyVoted = {};								//map of targetConcat to array of people who have voted for them
+var kickChannel = {};								//channel the kick is being initiated in (name, id)
 
-var kickChannel = {};
-const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-const voteType =  {
-	KICK : "kick" ,
-	BAN : "ban",
-	PTT : "force Push To Talk",
-	REMOVE_ROLE : "remove role"
+/**
+ * initializes the logger
+ */
+function initLogger() {
+	logger.remove(logger.transports.Console);
+	logger.add(logger.transports.Console, {
+    	colorize: true
+	});
+	logger.level = 'debug';
 }
-// Configure logger settings
-logger.remove(logger.transports.Console);
-logger.add(logger.transports.Console, {
-    colorize: true
-});
-logger.level = 'debug';
-// Initialize Discord Bot
-const bot = new Discord.Client({
-   token: auth.token,
-   autorun: true
-});
-bot.on('ready', function (evt) {
-    logger.info('Connected');
-    logger.info('Logged in as: ');
-    logger.info(bot.username + ' - (' + bot.id + ')');
-});
 
+/**
+ * Gets a timestamp representing the current time.
+ * 
+ * @return {String} properly formatted timestamp
+ */
 function getTimestamp() {
 	function pad(n) {
 			return (n < 10) ? '0' + n : n;
@@ -85,6 +87,12 @@ function getTimestamp() {
 	return day + ' ' + pad(hours) + ':' + pad(minutes);
 }
 
+/**
+ * Logs the response of an API request for Add Role or Move User.
+ * 
+ * @param {String} error - error returned from API request
+ * @param {Object} response - response returned from API request
+ */
 function log(error, response) {
 	if (undefined === response) {
 		if (null === error || undefined === error) {
@@ -97,15 +105,17 @@ function log(error, response) {
 	}
 }
 
+/**
+ * Gets the ID of the vote's target iff they are in the current vote's channel.
+ * 
+ * @param {Object} vote - the current vote 
+ * @returns {String} the id of the target if found and 'none' otherwise
+ */
 function getIDOfTargetInVoteChannel(vote) {
 	var result = 'none';
-	//logger.info('vote: ' + util.inspect(vote, false, null));
 	voteChannelMembers[vote.channelID].forEach(function(vMember) {
-		//logger.info('vMember: ' + util.inspect(vMember, false, null));		
 		const kickTarget = vote.targetConcat.split(':-:')[0];
-		//logger.info('kickTarget: ' + kickTarget + ' toID: ' + kickTarget.match(/\d/g).join(""));
 		if (vMember.name === kickTarget || vMember.id === kickTarget.match(/\d/g).join("")) {
-			//logger.info('returning: ' + vMember.id);
 			result = vMember.id;
 		}
 	});
@@ -113,6 +123,12 @@ function getIDOfTargetInVoteChannel(vote) {
 	return result;
 }
 
+/**
+ * Ends the vote and performs the relevant operation for the vote type.
+ * 
+ * @param {Object} vote - the current vote 
+ * @param {String} targetsID - the id of the vote's target
+ */
 function endVote(vote, targetsID) {
 	purgatoryMoveReq = {serverID: serverID, userID: targetsID, channelID: purgatoryChannelID};
 	switch (vote.targetConcat.split(':-:')[2]) {
@@ -120,34 +136,45 @@ function endVote(vote, targetsID) {
 			var roleReq = {serverID: serverID, roleID: channelIDToBanRoleID[vote.channelID], userID: targetsID};		
 			bot.addToRole(roleReq, log);
 			bot.moveUserTo(purgatoryMoveReq, log);
+			break;
 		case voteType.KICK:
 			bot.moveUserTo(purgatoryMoveReq. log);
 	}
 }
 
+/**
+ * Ends the vote if the necessary conditions have been met.
+ * 
+ * @param {Object} voteData - the current vote
+ */
 function maybeEndVote(voteData) {
 	const targetID = getIDOfTargetInVoteChannel(voteData);
-	//logger.info('targetID: ' + targetID);
 	if (targetID === 'none') {
 		return;
 	}
 
 	channelSize = voteChannelMembers[voteData.channelID].length;
 	const majority = channelSize/2;
-	//logger.info('channelSize: ' + channelSize);	
 	if (channelSize > 2 && votes[voteData.targetConcat] > majority) {
 		const target = voteData.targetConcat.split(':-:')[0];
-		logger.info('<KICK> ' + getTimestamp() + '  Kicking ' + target + ' from ' + voteData.channelName);					
 		endVote(voteData, targetID);
 
 		bot.sendMessage({
 			to: botSpamChannelID,
 			message: target + ' has been voted off the island, a.k.a. ' + voteData.channelName + '!' 
 		});
+		logger.info('<KICK> ' + getTimestamp() + '  Kicking ' + target + ' from ' + voteData.channelName);							
 	}
 }
 
-function addVoteChannelMembers(error, response) {
+/**
+ * Adds a member from the voice channel associated with a vote 
+ * to the voteChannelMembers array.
+ * 
+ * @param {String} error - error returned from API getUser request
+ * @param {Object} response - response returned from API getUser request
+ */
+function addVoteChannelMember(error, response) {
 	if (undefined === response) {
 		logger.info('<GetUser API RESPONSE> ' + getTimestamp() + '  ERROR: ' + error);
 	} else {
@@ -159,6 +186,12 @@ function addVoteChannelMembers(error, response) {
 
 var lockedBy = {voteID : ' '};
 
+/**
+ * Executes a 1.5 second wait before calling maybeEndVote(),
+ * so that a getUser request can finish.
+ * 
+ * @param {Boolean} retry - flag to signify first loop iteration 
+ */
 function maybeEndVoteAfterWaitingToGetUser(retry) {
 	setTimeout(function() {
 		if (!retry) {
@@ -170,30 +203,30 @@ function maybeEndVoteAfterWaitingToGetUser(retry) {
 	}, loopDelay);
 }
 
+/**
+ * Retrieves the name and id of members currently in the voice channel, who are eligible to vote.
+ * 
+ * @param {Object[]} kickChannelMembers - the members in the channel (not including names)
+ * @param {Number} i - number of members grabbed
+ * @param {Object} vote - the current vote
+ */
 function retrieveVoteMembers(kickChannelMembers, i, vote) {
 	if (lockedBy.voteID === ' ') {
 		lockedBy = vote;
 	}
-	
-	//stop if the members have all been stored
-	//the if locked will become an issue when i expect to get namne from voteMembers at successful kick.
-	//Is it really likely for the majority to be reached before ive finished grabbing the users names though?
-	if (lockedBy.voteID !== vote.voteID || Object.keys(kickChannelMembers).length == voteChannelMembers[vote.channelID].length) {
+	if (lockedBy.voteID !== vote.voteID) {
+		return;
+	}
+	if (voteChannelMembers[vote.channelID].length > 0 && Object.keys(kickChannelMembers).length == voteChannelMembers[vote.channelID].length) {
 		logger.info('<INFO> ' + getTimestamp() +  '  Not updating voteChannelMembers.');
-		//logger.info('condition1: ' + (lockedBy.voteID !== vote.voteID));
-		//logger.info('condition2: ' + (Object.keys(kickChannelMembers).length == voteChannelMembers[vote.channelID].length));
-		maybeEndVote(vote); //STOP CALLING THIS JUST BECAUSE VOTE ISNT LOCKED BY.
-							//why check for end condition if length isn't where it needs to be yet. 
-							//probably just want to call return in such a case.
-							//think carefully about this logic because u were assuming all kinds of shit about right side of ||
-							//based upon knowing left condition must have been false
+		maybeEndVote(vote);
 		return;
 	}
 
 	//Only allowed into this function if vote == lockedBy
 	setTimeout(function(){
 		const member = {userID : kickChannelMembers[Object.keys(kickChannelMembers)[i]].user_id};
-		bot.getUser(member, addVoteChannelMembers);
+		bot.getUser(member, addVoteChannelMember);
 		i++;
 		
 		//continue loop if members remain
@@ -205,6 +238,11 @@ function retrieveVoteMembers(kickChannelMembers, i, vote) {
 	}, loopDelay);
 }
 
+/**
+ * Determines which voice channel the vote has been initiated from.
+ * 
+ * @param {String} userID - id of the user initiating the vote
+ */
 function determineKickChannel(userID) {
 	const channels = bot.channels;
 	for (var c in channels) {
@@ -220,13 +258,25 @@ function determineKickChannel(userID) {
 	return 'none';
 };
 
-function uuid() {
+/**
+ * Builds the a unique vote id for the current vote.
+ */
+function buildVoteID() {
 	return 'xx-xx-yx'.replace(/[xy]/g, function(c) {
 	  var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
 	  return v.toString(16);
 	});
 }
 
+/**
+ * Conducts a vote to kick or ban the specified user from the channel provided.
+ * 
+ * @param {String} user - the user
+ * @param {String} userID - the user's ID
+ * @param {String} channelID - the channel's ID
+ * @param {String[]} args - target of the vote
+ * @param {String} type - vote type
+ */
 function conductVote(user, userID, channelID, args, type) {
 	const kickChannel = determineKickChannel(userID);	
 	//if voting user not in a voice channel
@@ -235,6 +285,7 @@ function conductVote(user, userID, channelID, args, type) {
 			to: channelID,
 			message: 'Sup ' + user + '! Tryna vote' + type + ' from nothing, ey dumbass?'
 		});
+		logger.info('<INFO> ' + getTimestamp() + '  ' + user + ' is trying to kick from nothing.');		
 		return;
 	}			
 
@@ -254,7 +305,7 @@ function conductVote(user, userID, channelID, args, type) {
 		votes[targetConcat] = votes[targetConcat] + 1;
 		alreadyVoted[targetConcat].push(user); 
 		var currVote =  {
-			voteID : uuid(), 
+			voteID : buildVoteID(), 
 			channelID : kickChannel.id, 
 			channelName : kickChannel.name, 
 			targetConcat: targetConcat
@@ -265,15 +316,21 @@ function conductVote(user, userID, channelID, args, type) {
 			to: channelID,
 			message: votes[targetConcat] + msg + target + ' from ' + kickChannel.name
 		});
+		logger.info('<INFO> ' + getTimestamp() + '  ' + votes[targetConcat] + msg + target + ' from ' + kickChannel.name);
 	} else {
 		bot.sendMessage({
 			to: channelID,
 			message: 'Fuck yourself ' + user + '! You can only vote for a person once.'
 		});
+		logger.info('<INFO> ' + getTimestamp() + '  ' + user + ' is attempting to vote for a person more than once.');
 	}
 }
 
+/**
+ * Listen's for messages in Discord
+ */
 bot.on('message', function (user, userID, channelID, message, evt) {
+	// stops if the message is not from bot-spam text channel
 	if (channelID !== botSpamChannelID) {
 		return;
 	}
@@ -294,4 +351,12 @@ bot.on('message', function (user, userID, channelID, message, evt) {
      }
 });
 
+/**
+ * Logs the bot into Discord.
+ */
+bot.on('ready', function (evt) {
+    logger.info('Connected');
+    logger.info('Logged in as: ');
+    logger.info(bot.username + ' - (' + bot.id + ')');
+});
 //console.log(util.inspect(bot.channels[chanID.id].members, false, null));
