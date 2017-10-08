@@ -348,6 +348,12 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 			case 'voteban':
 				logger.info('<VOTE Ban> ' + getTimestamp() + '  ' + user + ': ' + message);			
 				conductVote(user, userID, channelID, args, voteType.BAN);
+				break;
+			case 'help':
+				bot.sendMessage({
+					to: channelID,
+					message: '!votekick @user to remove from channel or !voteban @user for a more permanent solution.' 
+				});
          }
      }
 });
