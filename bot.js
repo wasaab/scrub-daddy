@@ -43,7 +43,7 @@ var voteChannelMembers = {
 
 var kickChannel = {};
 const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-//fakeasdasdasdasdasdasdeterw
+//fakeasdasdasdasdasdasdeterwsa
 // Configure logger settings
 logger.remove(logger.transports.Console);
 logger.add(logger.transports.Console, {
