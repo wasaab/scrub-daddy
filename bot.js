@@ -334,7 +334,6 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 	if (channelID !== botSpamChannelID) {
 		return;
 	}
-	logger.info('<MSG> ' + getTimestamp() + '  ' + user + ': ' + message);
 
     // Scrub Daddy will listen for messages that will start with `!`
     if (message.substring(0, 1) == '!') {
@@ -343,9 +342,11 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 
         switch(cmd) {
 			case 'votekick':
+				logger.info('<VOTE Kick> ' + getTimestamp() + '  ' + user + ': ' + message);
 				conductVote(user, userID, channelID, args, voteType.KICK);
 				break;
 			case 'voteban':
+				logger.info('<VOTE Ban> ' + getTimestamp() + '  ' + user + ': ' + message);			
 				conductVote(user, userID, channelID, args, voteType.BAN);
          }
      }
