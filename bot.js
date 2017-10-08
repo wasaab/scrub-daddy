@@ -43,7 +43,12 @@ var voteChannelMembers = {
 
 var kickChannel = {};
 const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-//fakeasdasdasdasdasdasdeterwsadfgsdfdhfswetfgdgsdsafdfdhgfghrdfsasdasd
+const voteType =  {
+	KICK : "kick" ,
+	BAN : "ban",
+	PTT : "force Push To Talk",
+	REMOVE_ROLE : "remove role"
+}
 // Configure logger settings
 logger.remove(logger.transports.Console);
 logger.add(logger.transports.Console, {
@@ -108,6 +113,17 @@ function getIDOfTargetInVoteChannel(vote) {
 	return result;
 }
 
+function endVote(vote, targetsID) {
+	purgatoryMoveReq = {serverID: serverID, userID: targetsID, channelID: purgatoryChannelID};
+	switch (vote.targetConcat.split(':-:')[2]) {
+		case voteType.BAN:
+			var roleReq = {serverID: serverID, roleID: channelIDToBanRoleID[vote.channelID], userID: targetsID};		
+			bot.addToRole(roleReq, log);
+			bot.moveUserTo(purgatoryMoveReq, log);
+		case voteType.KICK:
+			bot.moveUserTo(purgatoryMoveReq. log);
+	}
+}
 
 function maybeEndVote(voteData) {
 	const targetID = getIDOfTargetInVoteChannel(voteData);
@@ -122,10 +138,7 @@ function maybeEndVote(voteData) {
 	if (channelSize > 2 && votes[voteData.targetConcat] > majority) {
 		const target = voteData.targetConcat.split(':-:')[0];
 		logger.info('<KICK> ' + getTimestamp() + '  Kicking ' + target + ' from ' + voteData.channelName);					
-		var req = {serverID: serverID, roleID: channelIDToBanRoleID[voteData.channelID], userID: targetID};
-		bot.addToRole(req, log);
-		req = {serverID: serverID, userID: targetID, channelID: purgatoryChannelID};
-		bot.moveUserTo(req, log);
+		endVote(voteData, targetID);
 
 		bot.sendMessage({
 			to: botSpamChannelID,
@@ -144,7 +157,7 @@ function addVoteChannelMembers(error, response) {
 	}
 };
 
-var lockedBy = {voteID : ' ', channelID : ' ', channelName : ' '};
+var lockedBy = {voteID : ' '};
 
 function maybeEndVoteAfterWaitingToGetUser(retry) {
 	setTimeout(function() {
@@ -214,6 +227,52 @@ function uuid() {
 	});
 }
 
+function conductVote(user, userID, channelID, args, type) {
+	const kickChannel = determineKickChannel(userID);	
+	//if voting user not in a voice channel
+	if (kickChannel === 'none') {
+		bot.sendMessage({
+			to: channelID,
+			message: 'Sup ' + user + '! Tryna vote' + type + ' from nothing, ey dumbass?'
+		});
+		return;
+	}			
+
+	const target = args[1];
+	for (var k=2; k < args.length; k++) {
+		target += ' ' + args[k];
+	}
+	const targetConcat = target + ':-:' + kickChannel.id + ':-:' + type;
+	var msg = ' votes to ' + type + ' '; 				
+	
+	if (votes[targetConcat] === undefined) {
+		alreadyVoted[targetConcat] = [];
+		votes[targetConcat] = 0;
+		msg = ' vote to ' + type + ' ';
+	}
+	if (!alreadyVoted[targetConcat].includes(user)) {
+		votes[targetConcat] = votes[targetConcat] + 1;
+		alreadyVoted[targetConcat].push(user); 
+		var currVote =  {
+			voteID : uuid(), 
+			channelID : kickChannel.id, 
+			channelName : kickChannel.name, 
+			targetConcat: targetConcat
+		};					
+		retrieveVoteMembers(bot.channels[kickChannel.id].members, 0, currVote);
+
+		bot.sendMessage({
+			to: channelID,
+			message: votes[targetConcat] + msg + target + ' from ' + kickChannel.name
+		});
+	} else {
+		bot.sendMessage({
+			to: channelID,
+			message: 'Fuck yourself ' + user + '! You can only vote for a person once.'
+		});
+	}
+}
+
 bot.on('message', function (user, userID, channelID, message, evt) {
 	if (channelID !== botSpamChannelID) {
 		return;
@@ -227,44 +286,10 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 
         switch(cmd) {
 			case 'votekick':
-				const kickChannel = determineKickChannel(userID);	
-				//if voting user not in a voice channel
-				if (kickChannel === 'none') {
-					bot.sendMessage({
-						to: channelID,
-						message: 'Sup ' + user + '! Tryna votekick from nothing, ey dumbass?'
-					});
-					return;
-				}			
-
-				const target = args[1];
-				for (var k=2; k < args.length; k++) {
-					target += ' ' + args[k];
-				}
-				const targetConcat = target + ':-:' + kickChannel.id;
-				var msg = ' votes to kick ';				
-				
-				if (votes[targetConcat] === undefined) {
-					alreadyVoted[targetConcat] = [];
-					votes[targetConcat] = 0;
-					msg = ' vote to kick ';
-				}
-				if (!alreadyVoted[targetConcat].includes(user)) {
-					votes[targetConcat] = votes[targetConcat] + 1;
-					alreadyVoted[targetConcat].push(user); 
-					var currVote =  {voteID : uuid(), channelID : kickChannel.id, channelName : kickChannel.name, targetConcat: targetConcat};					
-					retrieveVoteMembers(bot.channels[kickChannel.id].members, 0, currVote);
-
-					bot.sendMessage({
-						to: channelID,
-						message: votes[targetConcat] + msg + target + ' from ' + kickChannel.name
-					});
-				} else {
-					bot.sendMessage({
-						to: channelID,
-						message: 'Fuck yourself ' + user + '! You can only vote for a person once.'
-					});
-				}
+				conductVote(user, userID, channelID, args, voteType.KICK);
+				break;
+			case 'voteban':
+				conductVote(user, userID, channelID, args, voteType.BAN);
          }
      }
 });
