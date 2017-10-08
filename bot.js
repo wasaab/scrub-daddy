@@ -350,6 +350,8 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 				conductVote(user, userID, channelID, args, voteType.BAN);
 				break;
 			case 'help':
+			case 'info':
+			case 'helpinfo':
 				bot.sendMessage({
 					to: channelID,
 					message: '!votekick @user to remove from channel or !voteban @user for a more permanent solution.' 
