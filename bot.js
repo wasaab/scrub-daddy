@@ -17,7 +17,8 @@ const voteType =  {
 	KICK : "kick" ,
 	BAN : "ban",
 	PTT : "force Push To Talk",
-	REMOVE_ROLE : "remove role"
+	REMOVE_ROLE : "remove role",
+	CUSTOM : "custom"
 }
 // Initialize Discord Bot
 const bot = new Discord.Client({
@@ -278,7 +279,11 @@ function buildVoteID() {
  * @param {String} type - vote type
  */
 function conductVote(user, userID, channelID, args, type) {
-	const kickChannel = determineKickChannel(userID);	
+	const kickChannel = { id: '', name: ''};
+	if (type !== voteType.CUSTOM) {
+		kickChannel = determineKickChannel(userID);	
+	}
+	
 	//if voting user not in a voice channel
 	if (kickChannel === 'none') {
 		bot.sendMessage({
@@ -292,6 +297,9 @@ function conductVote(user, userID, channelID, args, type) {
 	const target = args[1];
 	for (var k=2; k < args.length; k++) {
 		target += ' ' + args[k];
+	}
+	if (type === voteType.CUSTOM) {
+		type = target;
 	}
 	const targetConcat = target + ':-:' + kickChannel.id + ':-:' + type;
 	var msg = ' votes to ' + type + ' '; 				
@@ -310,13 +318,25 @@ function conductVote(user, userID, channelID, args, type) {
 			channelName : kickChannel.name, 
 			targetConcat: targetConcat
 		};					
-		retrieveVoteMembers(bot.channels[kickChannel.id].members, 0, currVote);
 
-		bot.sendMessage({
-			to: channelID,
-			message: votes[targetConcat] + msg + target + ' from ' + kickChannel.name
-		});
-		logger.info('<INFO> ' + getTimestamp() + '  ' + votes[targetConcat] + msg + target + ' from ' + kickChannel.name);
+		if (type !== voteType.CUSTOM) {
+			retrieveVoteMembers(bot.channels[kickChannel.id].members, 0, currVote);
+			bot.sendMessage({
+				to: channelID,
+				message: votes[targetConcat] + msg + target + ' from ' + kickChannel.name
+			});
+			logger.info('<INFO> ' + getTimestamp() + '  ' + votes[targetConcat] + msg + target + ' from ' + kickChannel.name);	
+		} else {
+			var message = votes[targetConcat] + msg + target
+			if (votes[targetConcat] > 2) {
+				message = 'The vote has concluded with ' + votes[targetConcat] + msg + target 
+			}
+			bot.sendMessage({
+				to: channelID,
+				message: message
+			});
+			logger.info('<INFO> ' + getTimestamp() + '  ' + message);				
+		}
 	} else {
 		bot.sendMessage({
 			to: channelID,
@@ -341,6 +361,9 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 		const cmd = args[0];
 
         switch(cmd) {
+			case 'vote':
+				conductVote(user, userID, channelID, args, voteType.CUSTOM);			
+				break;
 			case 'votekick':
 				logger.info('<VOTE Kick> ' + getTimestamp() + '  ' + user + ': ' + message);
 				conductVote(user, userID, channelID, args, voteType.KICK);
@@ -354,7 +377,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 			case 'helpinfo':
 				bot.sendMessage({
 					to: channelID,
-					message: '!votekick @user to remove from channel or !voteban @user for a more permanent solution.' 
+					message: 'Commands: !votekick @user to remove from channel or !voteban @user for a more permanent solution. You must be in a voice channel with at least 3 members to participate in a vote.' 
 				});
          }
      }
