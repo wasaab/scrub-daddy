@@ -319,7 +319,8 @@ function conductVote(user, userID, channelID, args, type) {
 			targetConcat: targetConcat
 		};					
 
-		if (type !== voteType.CUSTOM) {
+		//if not a custom vote
+		if (kickChannel.name !== '') {
 			retrieveVoteMembers(bot.channels[kickChannel.id].members, 0, currVote);
 			bot.sendMessage({
 				to: channelID,
@@ -327,9 +328,10 @@ function conductVote(user, userID, channelID, args, type) {
 			});
 			logger.info('<INFO> ' + getTimestamp() + '  ' + votes[targetConcat] + msg + target + ' from ' + kickChannel.name);	
 		} else {
-			var message = votes[targetConcat] + msg + target
+			//custom vote
+			var message = votes[targetConcat] + msg
 			if (votes[targetConcat] > 2) {
-				message = 'The vote has concluded with ' + votes[targetConcat] + msg + target 
+				message = 'The vote has concluded with ' + votes[targetConcat] + msg
 			}
 			bot.sendMessage({
 				to: channelID,
