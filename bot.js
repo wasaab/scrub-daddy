@@ -294,7 +294,7 @@ function conductVote(user, userID, channelID, args, type) {
 		return;
 	}			
 
-	const target = args[1];
+	var target = args[1];
 	for (var k=2; k < args.length; k++) {
 		target += ' ' + args[k];
 	}
