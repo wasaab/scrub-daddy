@@ -10,6 +10,7 @@ const auth = require('./auth.json');
 const util = require('util');
 const loopDelay = 1500;								//delay between each loop
 const botSpamChannelID = '261698738718900224';		//listen's to messages from this channel
+const scrubsChannelID = '132944227163176960';		//channel ID of scrubs text channel
 const purgatoryChannelID = '363935969310670861';	//sends kicked user's to this channel
 const serverID = '132944227163176960';				//Bed Bath Server ID
 const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
@@ -54,7 +55,7 @@ var alreadyVoted = {};								//map of targetConcat to array of people who have 
 var kickChannel = {};								//channel the kick is being initiated in (name, id)
 
 /**
- * initializes the logger
+ * initializes the logger.
  */
 function initLogger() {
 	logger.remove(logger.transports.Console);
@@ -62,6 +63,19 @@ function initLogger() {
     	colorize: true
 	});
 	logger.level = 'debug';
+}
+
+/**
+ * Gets a random number between min and max.
+ * The maximum is exclusive and the minimum is inclusive
+ * 
+ * @param {Number} min - the minimum
+ * @param {Number} max - the maximum 
+ */
+function getRand(min, max) {
+	min = Math.ceil(min);
+	max = Math.floor(max);
+	return Math.floor(Math.random() * (max - min)) + min; 
 }
 
 /**
@@ -444,25 +458,29 @@ function conductVote(user, userID, channelID, args, type) {
 	}
 }
 
+const pubgAliases = ["scrubg", "pubg", "pugG", "pabg", "pobg", "pebg", "pibg", "pybg", "Mr. Pib G.", "pub", "pudgy", "puh ba gee"];
+const greetings = ["you guys", "yous guys", "y'all", "hey buddies,", "hey pals,", "hey friends,", "sup dudes,", "hello fellow humans,"]
+
 /**
  * Listen's for messages in Discord
  */
 bot.on('message', function (user, userID, channelID, message, evt) {
-	// stops if the message is not from bot-spam text channel
-	if (channelID !== botSpamChannelID) {
-		return;
-	}
-
     // Scrub Daddy will listen for messages that will start with `!`
     if (message.substring(0, 1) == '!') {
 		const args = message.substring(1).match(/\S+/g);
 		const cmd = args[0];
 
+		// stops if the message is not from bot-spam text channel
+		if (channelID !== botSpamChannelID && !(channelID === scrubsChannelID && cmd === 'p')) {
+			return;
+		}
+		
         switch(cmd) {
 			case 'vote':
 				conductVote(user, userID, channelID, args, voteType.CUSTOM);			
 				break;
 			case 'votekick':
+				console.log('args[1]: ' + args[1]);
 				logger.info('<VOTE Kick> ' + getTimestamp() + '  ' + user + ': ' + message);
 				conductVote(user, userID, channelID, args, voteType.KICK);
 				break;
@@ -496,7 +514,13 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 				} else {
 					logger.info('<VOTE Info User> ' + getTimestamp() + '  ' + user + ': ' + message);													
 					getTotalVotesForTarget(user, userID, channelID, args);
-				}		
+				}	
+				break;
+			case 'p':
+			bot.sendMessage({
+				to: scrubsChannelID,
+				message: "<@&260632970010951683>  " + greetings[getRand(0, greetings.length)] + " tryna play some " + pubgAliases[getRand(0, pubgAliases.length)] + "?"
+			});	
          }
      }
 });
