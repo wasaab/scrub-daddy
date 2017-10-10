@@ -107,6 +107,102 @@ function log(error, response) {
 }
 
 /**
+ * Gets an embed object with vote target and vote count
+ * 
+ * @param {String} voteTarget - target of a vote
+ * @param {int} voteCount - number of votes for that target
+ */
+function getTotalEmbed(voteTarget, voteCount) {
+	return {
+		name: voteTarget,
+		value: voteCount,
+		inline: 'true'
+	};
+}
+
+
+/**
+ * Output vote count to bot-spam channel
+ */
+function sendEmbedMessage(title, fields) {
+	bot.sendMessage({
+		to: botSpamChannelID,
+		embed:  {
+			color: 0xffff00,
+			title: title,
+			fields: fields
+		} 
+	});	
+}
+
+/**
+ * Outputs totals for custom votes to bot-spam channel.
+ */
+function getCustomVoteTotals() {
+	var totals = [];
+	var i = 0;
+	for (var targetConcat in votes) {
+		const target = targetConcat.split(':-:')[2];
+		if (target !== voteType.KICK && target !== voteType.BAN) {
+			totals[i] = {
+				name: target,
+				value: votes[targetConcat],
+				inline: 'true'
+			};
+			i++;
+		}
+	}
+	if (totals.length > 0) {
+		sendEmbedMessage("Custom Vote Totals", totals);
+	}
+}
+
+/**
+ * Retrieves the total votes for the given target
+ * 
+ * @param {String} user - the user requesting the total
+ * @param {String} userID - id of the user requesting the total
+ * @param {String} channelID - bot-spam channel to respond in
+ * @param {String[]} args - input args of the requester (cmd and target)
+ */
+function getTotalVotesForTarget(user, userID, channelID, args) {
+	const kickChannel = determineKickChannel(userID)
+	if (kickChannel === 'none') {
+		bot.sendMessage({
+			to: channelID,
+			message: 'Sup ' + user + '! Tryna voteinfo @user from nothing, ey dumbass?'
+		});
+		logger.info('<INFO> ' + getTimestamp() + '  ' + user + ' is trying to voteinfo @user from nothing.');	
+		return;
+	}
+	var target = args[1];
+	for (var k=2; k < args.length; k++) {
+		target += ' ' + args[k];
+	}
+	var titleTarget = 'the provided user';
+	voteChannelMembers[kickChannel.id].forEach(function(vMember) {
+		if (vMember.name === target || vMember.id === target.match(/\d/g).join("")) {
+			titleTarget = vMember.name;
+		}
+	});
+	const kickTargetConcat = target + ':-:' + kickChannel.id + ':-:' + voteType.KICK;
+	const banTargetConcat = target + ':-:' + kickChannel.id + ':-:' + voteType.BAN;
+	var totals = [];
+	var i = 0;
+	if (votes[kickTargetConcat] !== undefined) {
+		totals[i] = getTotalEmbed("Kick", votes[kickTargetConcat]);
+		i++;
+	}
+	if (votes[banTargetConcat] !== undefined) {
+		totals[i] = getTotalEmbed("Ban", votes[banTargetConcat]);
+	}
+	if (totals.length > 0) {
+		sendEmbedMessage(kickChannel.name + "	-	Kick/Ban Vote Totals for " + titleTarget, totals);
+	}
+}
+
+
+/**
  * Gets the ID of the vote's target iff they are in the current vote's channel.
  * 
  * @param {Object} vote - the current vote 
@@ -279,7 +375,7 @@ function buildVoteID() {
  * @param {String} type - vote type
  */
 function conductVote(user, userID, channelID, args, type) {
-	const kickChannel = { id: '', name: ''};
+	var kickChannel = { id: '', name: ''};
 	if (type !== voteType.CUSTOM) {
 		kickChannel = determineKickChannel(userID);	
 	}
@@ -379,8 +475,28 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 			case 'helpinfo':
 				bot.sendMessage({
 					to: channelID,
-					message: 'Commands: !votekick @user to remove from channel or !voteban @user for a more permanent solution. You must be in a voice channel with at least 3 members to participate in a vote.' 
+					embed:  {
+						color: 0xffff00,
+						title: "Commands",
+						description: "!votekick @user - to remove user from channel." +
+									 "\n!voteban @user - for a more permanent solution." +
+									 "\nPlease Note: You must be in a voice channel with at least 3 members" +
+									 "\n						 to participate in a kick/ban vote." +
+									 "\n!vote thing to vote for - to do a custom vote." +
+									 "\n!voteinfo - for totals of all custom votes." +
+									 "\n!voteinfo @user - for total votes to kick/ban that user." +
+									 "\n!help, !info, or !helpinfo - to show this message again."
+					}
 				});
+				break;
+			case 'voteinfo':
+				if (args[1] === undefined) {
+					logger.info('<VOTE Info Custom> ' + getTimestamp() + '  ' + user + ': ' + message);								
+					getCustomVoteTotals();
+				} else {
+					logger.info('<VOTE Info User> ' + getTimestamp() + '  ' + user + ': ' + message);													
+					getTotalVotesForTarget(user, userID, channelID, args);
+				}		
          }
      }
 });
