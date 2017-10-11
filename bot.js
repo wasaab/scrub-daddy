@@ -4,6 +4,8 @@
 //target needs to check against name and id even in the concat one
 //persist this data through exits so that I can use !voteunkick? also considered automating unkick.
 	//https://github.com/simonlast/node-persist
+//do trends with game presence data. most played weekly and whatnot would be cool.
+	//I have potential to track hours played, but not sure if i should.
 const Discord = require('discord.io');
 const logger = require('winston');
 const auth = require('./auth.json'); 
@@ -121,15 +123,15 @@ function log(error, response) {
 }
 
 /**
- * Gets an embed object with vote target and vote count
+ * Builds an embed field object with name and value.
  * 
- * @param {String} voteTarget - target of a vote
- * @param {int} voteCount - number of votes for that target
+ * @param {String} name - the name
+ * @param {int} value - the value
  */
-function getTotalEmbed(voteTarget, voteCount) {
+function buildField(name, value) {
 	return {
-		name: voteTarget,
-		value: voteCount,
+		name: name,
+		value: value,
 		inline: 'true'
 	};
 }
@@ -154,16 +156,14 @@ function sendEmbedMessage(title, fields) {
  */
 function getCustomVoteTotals() {
 	var totals = [];
-	var i = 0;
 	for (var targetConcat in votes) {
 		const target = targetConcat.split(':-:')[2];
 		if (target !== voteType.KICK && target !== voteType.BAN) {
-			totals[i] = {
+			totals.push({
 				name: target,
 				value: votes[targetConcat],
 				inline: 'true'
-			};
-			i++;
+			});
 		}
 	}
 	if (totals.length > 0) {
@@ -193,25 +193,23 @@ function getTotalVotesForTarget(user, userID, channelID, args) {
 	for (var k=2; k < args.length; k++) {
 		target += ' ' + args[k];
 	}
-	var titleTarget = 'the provided user';
+	var titleTarget = 'The Provided User';
 	voteChannelMembers[kickChannel.id].forEach(function(vMember) {
-		if (vMember.name === target || vMember.id === target.match(/\d/g).join("")) {
+		if (vMember.name === target || (target.match(/\d/g) !== null && vMember.id === target.match(/\d/g).join(""))) {
 			titleTarget = vMember.name;
 		}
 	});
 	const kickTargetConcat = target + ':-:' + kickChannel.id + ':-:' + voteType.KICK;
 	const banTargetConcat = target + ':-:' + kickChannel.id + ':-:' + voteType.BAN;
 	var totals = [];
-	var i = 0;
 	if (votes[kickTargetConcat] !== undefined) {
-		totals[i] = getTotalEmbed("Kick", votes[kickTargetConcat]);
-		i++;
+		totals.push(buildField("Kick", votes[kickTargetConcat]));
 	}
 	if (votes[banTargetConcat] !== undefined) {
-		totals[i] = getTotalEmbed("Ban", votes[banTargetConcat]);
+		totals.push(buildField("Ban", votes[banTargetConcat]));
 	}
 	if (totals.length > 0) {
-		sendEmbedMessage(kickChannel.name + "	-	Kick/Ban Vote Totals for " + titleTarget, totals);
+		sendEmbedMessage(kickChannel.name + "	-	Vote Totals for " + titleTarget, totals);
 	}
 }
 
@@ -226,7 +224,7 @@ function getIDOfTargetInVoteChannel(vote) {
 	var result = 'none';
 	voteChannelMembers[vote.channelID].forEach(function(vMember) {
 		const kickTarget = vote.targetConcat.split(':-:')[0];
-		if (vMember.name === kickTarget || vMember.id === kickTarget.match(/\d/g).join("")) {
+		if (vMember.name === kickTarget || (kickTarget.match(/\d/g) !== null && vMember.id === kickTarget.match(/\d/g).join(""))) {
 			result = vMember.id;
 		}
 	});
@@ -249,7 +247,7 @@ function endVote(vote, targetsID) {
 			bot.moveUserTo(purgatoryMoveReq, log);
 			break;
 		case voteType.KICK:
-			bot.moveUserTo(purgatoryMoveReq. log);
+			bot.moveUserTo(purgatoryMoveReq, log);
 	}
 }
 
@@ -266,6 +264,7 @@ function maybeEndVote(voteData) {
 
 	channelSize = voteChannelMembers[voteData.channelID].length;
 	const majority = channelSize/2;
+	logger.info('<INFO> majority: ' + majority + ' votes: ' + votes[voteData.targetConcat]);
 	if (channelSize > 2 && votes[voteData.targetConcat] > majority) {
 		const target = voteData.targetConcat.split(':-:')[0];
 		endVote(voteData, targetID);
@@ -331,6 +330,7 @@ function retrieveVoteMembers(kickChannelMembers, i, vote) {
 	if (voteChannelMembers[vote.channelID].length > 0 && Object.keys(kickChannelMembers).length == voteChannelMembers[vote.channelID].length) {
 		logger.info('<INFO> ' + getTimestamp() +  '  Not updating voteChannelMembers.');
 		maybeEndVote(vote);
+		lockedBy.voteID = ' ';	
 		return;
 	}
 
@@ -432,10 +432,7 @@ function conductVote(user, userID, channelID, args, type) {
 		//if not a custom vote
 		if (kickChannel.name !== '') {
 			retrieveVoteMembers(bot.channels[kickChannel.id].members, 0, currVote);
-			bot.sendMessage({
-				to: channelID,
-				message: votes[targetConcat] + msg + target + ' from ' + kickChannel.name
-			});
+			getTotalVotesForTarget(user, userID, channelID, args);			
 			logger.info('<INFO> ' + getTimestamp() + '  ' + votes[targetConcat] + msg + target + ' from ' + kickChannel.name);	
 		} else {
 			//custom vote
@@ -460,6 +457,7 @@ function conductVote(user, userID, channelID, args, type) {
 
 const pubgAliases = ["scrubg", "pubg", "pugG", "pabg", "pobg", "pebg", "pibg", "pybg", "Mr. Pib G.", "pub", "pudgy", "puh ba gee"];
 const greetings = ["you guys", "yous guys", "y'all", "hey buddies,", "hey pals,", "hey friends,", "sup dudes,", "hello fellow humans,"]
+var games = [];
 
 /**
  * Listen's for messages in Discord
@@ -480,7 +478,6 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 				conductVote(user, userID, channelID, args, voteType.CUSTOM);			
 				break;
 			case 'votekick':
-				console.log('args[1]: ' + args[1]);
 				logger.info('<VOTE Kick> ' + getTimestamp() + '  ' + user + ': ' + message);
 				conductVote(user, userID, channelID, args, voteType.KICK);
 				break;
@@ -517,12 +514,47 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 				}	
 				break;
 			case 'p':
-			bot.sendMessage({
-				to: scrubsChannelID,
-				message: "<@&260632970010951683>  " + greetings[getRand(0, greetings.length)] + " tryna play some " + pubgAliases[getRand(0, pubgAliases.length)] + "?"
-			});	
+				bot.sendMessage({
+					to: scrubsChannelID,
+					message: "<@&260632970010951683>  " + greetings[getRand(0, greetings.length)] + " tryna play some " + pubgAliases[getRand(0, pubgAliases.length)] + "?"
+				});	
+				break;
+			case 'test':
+				bot.sendMessage({
+					to: botSpamChannelID,
+					embed:  {
+						color: 0xffff00,
+						title: "This is a test of the Emergency Broadcast System",
+						image: {
+							url: "https://i.kinja-img.com/gawker-media/image/upload/s--gXPJs2QR--/c_scale,f_auto,fl_progressive,q_80,w_800/sv3a6heu1v5d9ubr9ke3.jpg",
+						}
+					} 
+				});	
+				var scrubs = bot.getScrubs();
+				for (var s in scrubs) {
+					var scrub = scrubs[s];
+					if (scrub.game !== undefined && scrub.game !== null) {
+						var game = scrub.game.name;
+						if (games[game] === undefined) {
+							games[game] = 1;
+						} else {
+							games[game] += 1;
+						}
+					}
+				}
+				var fields = [];
+				for (var gameID in games) {
+					fields.push(buildField(gameID, games[gameID]));
+				}
+				sendEmbedMessage("Player Count", fields);
+
+			
          }
      }
+});
+
+bot.on('presence', function(user, userID, status, game, event) { 
+	//logger.info('user: ' + ' , userID: ' + userID + ' , status: ' + status + ' , game: ' + util.inspect(game, false, null) + ' , event: ' + util.inspect(event, false, null))
 });
 
 /**
@@ -534,3 +566,4 @@ bot.on('ready', function (evt) {
     logger.info(bot.username + ' - (' + bot.id + ')');
 });
 //console.log(util.inspect(bot.channels[chanID.id].members, false, null));
+//console.log(util.inspect(bot.getScrubs(), false, null));
