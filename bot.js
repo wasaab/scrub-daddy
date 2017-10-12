@@ -6,6 +6,7 @@
 	//https://github.com/simonlast/node-persist
 //do trends with game presence data. most played weekly and whatnot would be cool.
 	//I have potential to track hours played, but not sure if i should.
+//for player count command, add filter so it ignores either the 5 ids of the bots or checks their role ids to see if they contain bot. first choice seems more efficient.
 const Discord = require('discord.io');
 const logger = require('winston');
 const auth = require('./auth.json'); 
@@ -457,6 +458,7 @@ function conductVote(user, userID, channelID, args, type) {
 
 const pubgAliases = ["scrubg", "pubg", "pugG", "pabg", "pobg", "pebg", "pibg", "pybg", "Mr. Pib G.", "pub", "pudgy", "puh ba gee"];
 const greetings = ["you guys", "yous guys", "y'all", "hey buddies,", "hey pals,", "hey friends,", "sup dudes,", "hello fellow humans,"]
+const botIDs = ['172002275412279296', '86920406476292096', '188064764008726528', '263059218104320000', '116275390695079945', '362784198848675842'];
 var games = [];
 
 /**
@@ -519,7 +521,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 					message: "<@&260632970010951683>  " + greetings[getRand(0, greetings.length)] + " tryna play some " + pubgAliases[getRand(0, pubgAliases.length)] + "?"
 				});	
 				break;
-			case 'test':
+			case 'serverTest':
 				bot.sendMessage({
 					to: botSpamChannelID,
 					embed:  {
@@ -531,9 +533,11 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 					} 
 				});	
 				var scrubs = bot.getScrubs();
+				games = [];
 				for (var s in scrubs) {
 					var scrub = scrubs[s];
-					if (scrub.game !== undefined && scrub.game !== null) {
+					console.log(util.inspect(scrub, false, null));
+					if (scrub.game !== undefined && scrub.game !== null && scrub.bot === false) {
 						var game = scrub.game.name;
 						if (games[game] === undefined) {
 							games[game] = 1;
