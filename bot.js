@@ -172,6 +172,25 @@ function getCustomVoteTotals() {
 	}
 }
 
+// var bannedFrom = [];		
+
+// function getBanned(members) {
+// 	var bannedIDToChannelID = {};
+// 	for (var member in members) {
+// 		if (member.roles !== undefined && member.roles.length > 1) {			
+// 		for (var id in channelIDToBanRoleID) {
+// 			var banRoleId = channelIDToBanRoleID[id];
+// 				roles.forEach(function(role) {
+// 					if (role === banRoleId) {
+// 						//may need to wrap member.id with <@!>
+// 						const targetConcat = member.id + ':-:' + id + ':-:' + voteType.BAN;
+// 						bannedFrom[targetConcat].push(id);
+// 					}
+// 				});
+// 		}
+// 	}
+// }
+
 /**
  * Retrieves the total votes for the given target
  * 
@@ -460,6 +479,7 @@ const pubgAliases = ["scrubg", "pubg", "pugG", "pabg", "pobg", "pebg", "pibg", "
 const greetings = ["you guys", "yous guys", "y'all", "hey buddies,", "hey pals,", "hey friends,", "sup dudes,", "hello fellow humans,"]
 const botIDs = ['172002275412279296', '86920406476292096', '188064764008726528', '263059218104320000', '116275390695079945', '362784198848675842'];
 var games = [];
+var gameHistory = [];
 
 /**
  * Listen's for messages in Discord
@@ -502,6 +522,8 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 									 "\n!vote thing to vote for - to do a custom vote." +
 									 "\n!voteinfo - for totals of all custom votes." +
 									 "\n!voteinfo @user - for total votes to kick/ban that user." +
+									 "\n!test - to try out features in development." +
+									 "\n!gameHistory - get player counts for all games over the day." +
 									 "\n!help, !info, or !helpinfo - to show this message again."
 					}
 				});
@@ -521,7 +543,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 					message: "<@&260632970010951683>  " + greetings[getRand(0, greetings.length)] + " tryna play some " + pubgAliases[getRand(0, pubgAliases.length)] + "?"
 				});	
 				break;
-			case 'serverTest':
+			case 'test':
 				bot.sendMessage({
 					to: botSpamChannelID,
 					embed:  {
@@ -536,7 +558,6 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 				games = [];
 				for (var s in scrubs) {
 					var scrub = scrubs[s];
-					console.log(util.inspect(scrub, false, null));
 					if (scrub.game !== undefined && scrub.game !== null && scrub.bot === false) {
 						var game = scrub.game.name;
 						if (games[game] === undefined) {
@@ -547,12 +568,39 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 					}
 				}
 				var fields = [];
+				var time = getTimestamp();
+				var gamesLog = [];
 				for (var gameID in games) {
 					fields.push(buildField(gameID, games[gameID]));
-				}
-				sendEmbedMessage("Player Count", fields);
 
-			
+					//log timestamp and player count for each game
+					const gameData = {
+						game : gameID,
+						count : games[gameID],
+						time : time
+					};
+					gamesLog.push(gameData);
+				}
+				gameHistory.push(gamesLog);
+				
+				sendEmbedMessage("Player Count", fields);
+				break;
+			case 'gameHistory':
+				var previousTime = '';
+				gameHistory.forEach(function(gamesLog) {
+					if (gamesLog[0] !== undefined) {
+						var time = gamesLog[0].time;
+						if ( time !== previousTime) {
+							var fields = [];					
+							gamesLog.forEach(function(gameData) {
+								fields.push(buildField(gameData.game, gameData.count));
+							});
+							sendEmbedMessage('Player Count - ' + time, fields);	
+							previousTime = time;			
+						}	
+					}
+				});
+				break;
          }
      }
 });
