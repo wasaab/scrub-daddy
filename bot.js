@@ -478,6 +478,7 @@ function conductVote(user, userID, channelID, args, type) {
 const pubgAliases = ["scrubg", "pubg", "pugG", "pabg", "pobg", "pebg", "pibg", "pybg", "Mr. Pib G.", "pub", "pudgy", "puh ba gee"];
 const greetings = ["you guys", "yous guys", "y'all", "hey buddies,", "hey pals,", "hey friends,", "sup dudes,", "hello fellow humans,"]
 const botIDs = ['172002275412279296', '86920406476292096', '188064764008726528', '263059218104320000', '116275390695079945', '362784198848675842'];
+const gameNameToImg = {'World of Warcraft' : 'http://i.imgur.com/US59X7X.jpg', 'Overwatch' : 'http://i.imgur.com/WRQsSYp.png', 'PUBG' : 'https://i.imgur.com/nT2CNCs.png', 'Fortnite' : 'https://i.imgur.com/S0CN7n9.jpg'};
 var games = [];
 var gameHistory = [];
 
@@ -544,18 +545,20 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 				});	
 				break;
 			case 'test':
-				bot.sendMessage({
-					to: botSpamChannelID,
-					embed:  {
-						color: 0xffff00,
-						title: "This is a test of the Emergency Broadcast System",
-						image: {
-							url: "https://i.kinja-img.com/gawker-media/image/upload/s--gXPJs2QR--/c_scale,f_auto,fl_progressive,q_80,w_800/sv3a6heu1v5d9ubr9ke3.jpg",
-						}
-					} 
-				});	
+				// bot.sendMessage({
+				// 	to: botSpamChannelID,
+				// 	embed:  {
+				// 		color: 0xffff00,
+				// 		title: "This is a test of the Emergency Broadcast System",
+				// 		image: {
+				// 			url: "https://i.kinja-img.com/gawker-media/image/upload/s--gXPJs2QR--/c_scale,f_auto,fl_progressive,q_80,w_800/sv3a6heu1v5d9ubr9ke3.jpg",
+				// 		}
+				// 	} 
+				// });	
 				var scrubs = bot.getScrubs();
 				games = [];
+				var max = 0;
+				var winner = '';
 				for (var s in scrubs) {
 					var scrub = scrubs[s];
 					if (scrub.game !== undefined && scrub.game !== null && scrub.bot === false) {
@@ -564,6 +567,10 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 							games[game] = 1;
 						} else {
 							games[game] += 1;
+						}
+						if (games[game] > max) {
+							max = games[game];
+							winner = game;
 						}
 					}
 				}
@@ -583,7 +590,18 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 				}
 				gameHistory.push(gamesLog);
 				
+				bot.sendMessage({
+					to: botSpamChannelID,
+					embed:  {
+						color: 0xffff00,
+						title: "Winner - " + winner,
+						image: {
+							url: gameNameToImg[winner]
+						}
+					} 
+				});	
 				sendEmbedMessage("Player Count", fields);
+				//INCLUDE image of highest count game
 				break;
 			case 'gameHistory':
 				var previousTime = '';
