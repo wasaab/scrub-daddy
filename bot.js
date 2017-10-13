@@ -590,13 +590,17 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 				}
 				gameHistory.push(gamesLog);
 				
+				var imageUrl = 'http://i0.kym-cdn.com/entries/icons/original/000/012/982/post-19715-Brent-Rambo-gif-thumbs-up-imgu-L3yP.gif';
+				if (gameNameToImg[winner] !== undefined && gameNameToImg[winner] !== null) {
+					imageUrl = gameNameToImg[winner];
+				}
 				bot.sendMessage({
 					to: botSpamChannelID,
 					embed:  {
 						color: 0xffff00,
 						title: "Winner - " + winner,
 						image: {
-							url: gameNameToImg[winner]
+							url: imageUrl
 						}
 					} 
 				});	
