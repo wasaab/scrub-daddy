@@ -545,7 +545,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 					message: "<@&260632970010951683>  " + greetings[getRand(0, greetings.length)] + " tryna play some " + pubgAliases[getRand(0, pubgAliases.length)] + "?"
 				});	
 				break;
-			case 'local':
+			case 'playing':
 				// bot.sendMessage({
 				// 	to: botSpamChannelID,
 				// 	embed:  {
@@ -631,7 +631,6 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 				//!time World of Warcraft <!12312315>
 				//!time PUBG
 				//!time World of Warcraft
-				console.log('time called');
 				var target = '';
 				var game = args[1];
 				for (i=2; i < args.length; i++) {
@@ -641,7 +640,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 					}
 					game += ' ' + args[i];
 				}
-
+				logger.info('<INFO> time called. target: ' + target + ' , game: ' + game);
 				fields = [];
 				//If no target user provided, get cumulative time played for entire server
 				if (target === '') {
@@ -654,14 +653,21 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 					}
 					fields.push(buildField(game,totalTimePlayed.toFixed(1)));
 					sendEmbedMessage('Cumulative Hours Played', fields);
+					logger.info('<INFO> cumulative hours played:  ' + util.inspect(fields, false, null));											
 				// Get time played for target user
 				} else {
 					const targetID = target.match(/\d/g).join("");
 					if (timeSheet[targetID] !== undefined && timeSheet[targetID][game] !== undefined) {
-						console.log('targetID: ' + targetID + ' game: ' + game + ' timeSheet[targetID][game]: ' + timeSheet[targetID][game]);					
-						fields.push(buildField(game,timeSheet[targetID][game].toFixed(1)));
-						console.log(util.inspect(fields, false, null));
+						var result = timeSheet[targetID][game];
+						var currentlyPlaying = gameToTime['playing'];						
+						
+						if (timeSheet[targetID][game] === 0 && currentlyPlaying !== undefined) {						
+							result = getTimePlayed(currentlyPlaying);
+						}
+
+						fields.push(buildField(game, result.toFixed(1)));
 						sendEmbedMessage('Hours Played', fields);
+						logger.info('<INFO> hours played:  ' + util.inspect(fields, false, null));						
 					}
 				}
          }
@@ -677,7 +683,7 @@ bot.on('presence', function(user, userID, status, game, event) {
 		}
 	}
 
-	logger.info('user: ' + ' , userID: ' + userID + ' , status: ' + status + ' , game: ' + util.inspect(game, false, null))	
+	logger.info('<INFO> Presence Update - user: ' + user + ' , userID: ' + userID + ' , status: ' + status + ' , game: ' + util.inspect(game, false, null))	
 	
 	//get user's timesheet
 	var gameToTime = timeSheet[userID];
@@ -693,7 +699,7 @@ bot.on('presence', function(user, userID, status, game, event) {
 		gameToTime['playing'] = {name : game.name, start : game.timestamps.start} ;
 	//Just finished playing a game
 	} else {
-		currentlyPlaying = gameToTime['playing'];
+		var currentlyPlaying = gameToTime['playing'];
 		
 		//This user started playing the game before the bot was running
 		//so there is no start timestamp associated with the game
@@ -701,20 +707,23 @@ bot.on('presence', function(user, userID, status, game, event) {
 			return;
 		}
 
-		var utcSeconds = Number(currentlyPlaying.start) / 1000;
-		var startedPlaying = new Date(0); // The 0 there is the key, which sets the date to the epoch
-		startedPlaying.setUTCSeconds(utcSeconds);
-		console.log('startedPlaying: ' + startedPlaying);		
-		var finishedPlaying = new Date();
-		console.log('finishedPlaying: ' + finishedPlaying);				
-		var hoursPlayed = Math.abs(finishedPlaying - startedPlaying) / 36e5;
-		console.log('hoursPlayed: ' + hoursPlayed);
+		var hoursPlayed = getTimePlayed(currentlyPlaying);
+		logger.info('<INFO> Presence Update - startedPlaying: ' + startedPlaying + ' finishedPlaying: ' + finishedPlaying) + ' hoursPlayed: ' + hoursPlayed;											
 		gameToTime[currentlyPlaying.name] += hoursPlayed;
 		gameToTime['playing'] = undefined;
 	}
 	
 	timeSheet[userID] = gameToTime;
 });
+
+function getTimePlayed(currentlyPlaying) {
+	var utcSeconds = Number(currentlyPlaying.start) / 1000;
+	var startedPlaying = new Date(0); // The 0 there is the key, which sets the date to the epoch
+	startedPlaying.setUTCSeconds(utcSeconds);
+	var currentTime = new Date();
+	var hoursPlayed = Math.abs(currentTime - startedPlaying) / 36e5;
+	return hoursPlayed;
+}
 
 /**
  * Logs the bot into Discord.
