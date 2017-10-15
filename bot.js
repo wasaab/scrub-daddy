@@ -17,6 +17,10 @@ const scrubsChannelID = '132944227163176960';		//channel ID of scrubs text chann
 const purgatoryChannelID = '363935969310670861';	//sends kicked user's to this channel
 const serverID = '132944227163176960';				//Bed Bath Server ID
 const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const pubgAliases = ["scrubg", "pubg", "pugG", "pabg", "pobg", "pebg", "pibg", "pybg", "Mr. Pib G.", "pub", "pudgy", "puh ba gee"];
+const greetings = ["you guys", "yous guys", "y'all", "hey buddies,", "hey pals,", "hey friends,", "sup dudes,", "hello fellow humans,"]
+const botIDs = ['172002275412279296', '86920406476292096', '188064764008726528', '263059218104320000', '116275390695079945', '362784198848675842'];
+const gameNameToImg = {'World of Warcraft' : 'http://i.imgur.com/US59X7X.jpg', 'Overwatch' : 'http://i.imgur.com/WRQsSYp.png', 'PUBG' : 'https://i.imgur.com/nT2CNCs.png', 'Fortnite' : 'https://i.imgur.com/S0CN7n9.jpg'};
 const voteType =  {
 	KICK : "kick" ,
 	BAN : "ban",
@@ -56,6 +60,8 @@ var voteChannelMembers = {
 var votes = {};										//map of targetConcat to number of votes
 var alreadyVoted = {};								//map of targetConcat to array of people who have voted for them
 var kickChannel = {};								//channel the kick is being initiated in (name, id)
+var gameHistory = [];								//timestamped log of player counts for each game
+var timeSheet = {};									//map of userID to gameToTimePlayed map for that user
 
 /**
  * initializes the logger.
@@ -150,6 +156,56 @@ function sendEmbedMessage(title, fields) {
 			fields: fields
 		} 
 	});	
+}
+
+/**
+ * Gets the cumulative play time of everyone on the server for the provided game.
+ * 
+ * @param {String} gameName - the game to get play time for
+ */
+function getCumulativeTimePlayed(gameName) {
+	var cumulativeTimePlayed = 0;
+	for (var userID in timeSheet) {
+		var timePlayed = timeSheet[userID][gameName];
+		if (timePlayed !== undefined) {
+			cumulativeTimePlayed += timePlayed;							
+		}
+	}
+	
+	return cumulativeTimePlayed;
+}
+
+/**
+ * Gets the play time of the game provided.
+ * 
+ * @param {Object} currentlyPlaying - the game finished or currently being played
+ */
+function getTimePlayed(currentlyPlaying) {
+	var utcSeconds = Number(currentlyPlaying.start) / 1000;
+	var startedPlaying = new Date(0); // The 0 there is the key, which sets the date to the epoch
+	startedPlaying.setUTCSeconds(utcSeconds);
+	var currentTime = new Date();
+	var hoursPlayed = Math.abs(currentTime - startedPlaying) / 36e5;
+	return hoursPlayed;
+}
+
+/**
+ * Gets the name of the game provided as well as the target if one exists
+ * 
+ * @param {String[]} args - input arguments from the user
+ */
+function getGameNameAndTarget(args) {
+	var game = args[1];
+	var target = '';
+	for (i=2; i < args.length; i++) {
+		if (args[i].indexOf('<') === 0) {
+			target = args[i]
+			break;
+		}
+		game += ' ' + args[i];
+	}
+	const result = {game : game, target : target};
+	return result;
 }
 
 /**
@@ -475,29 +531,173 @@ function conductVote(user, userID, channelID, args, type) {
 	}
 }
 
-const pubgAliases = ["scrubg", "pubg", "pugG", "pabg", "pobg", "pebg", "pibg", "pybg", "Mr. Pib G.", "pub", "pudgy", "puh ba gee"];
-const greetings = ["you guys", "yous guys", "y'all", "hey buddies,", "hey pals,", "hey friends,", "sup dudes,", "hello fellow humans,"]
-const botIDs = ['172002275412279296', '86920406476292096', '188064764008726528', '263059218104320000', '116275390695079945', '362784198848675842'];
-const gameNameToImg = {'World of Warcraft' : 'http://i.imgur.com/US59X7X.jpg', 'Overwatch' : 'http://i.imgur.com/WRQsSYp.png', 'PUBG' : 'https://i.imgur.com/nT2CNCs.png', 'Fortnite' : 'https://i.imgur.com/S0CN7n9.jpg'};
-var games = [];
-var gameHistory = [];
-var timeSheet = {}
+/**
+ * Gets and outputs the player count of every game currently being played 
+ */
+function getAndOutputCountOfGamesBeingPlayed() {
+	var scrubs = bot.getScrubs();
+	var games = [];
+	var max = 0;
+	var winner = '';
+	for (var s in scrubs) {
+		var scrub = scrubs[s];
+		if (scrub.game !== undefined && scrub.game !== null && scrub.bot === false) {
+			var game = scrub.game.name;
+			if (games[game] === undefined) {
+				games[game] = 1;
+			} else {
+				games[game] += 1;
+			}
+			if (games[game] > max) {
+				max = games[game];
+				winner = game;
+			}
+		}
+	}
+	var fields = [];
+	var time = getTimestamp();
+	var gamesLog = [];
+	for (var gameID in games) {
+		fields.push(buildField(gameID, games[gameID]));
+
+		//log timestamp and player count for each game
+		const gameData = {
+			game : gameID,
+			count : games[gameID],
+			time : time
+		};
+		gamesLog.push(gameData);
+	}
+	gameHistory.push(gamesLog);
+	
+	var imageUrl = 'http://i0.kym-cdn.com/entries/icons/original/000/012/982/post-19715-Brent-Rambo-gif-thumbs-up-imgu-L3yP.gif';
+	if (gameNameToImg[winner] !== undefined && gameNameToImg[winner] !== null) {
+		imageUrl = gameNameToImg[winner];
+	}
+	bot.sendMessage({
+		to: botSpamChannelID,
+		embed:  {
+			color: 0xffff00,
+			title: "Winner - " + winner,
+			image: {
+				url: imageUrl
+			}
+		} 
+	});	
+	sendEmbedMessage("Player Count", fields);
+}
+
+/**
+ * Gets the provided users playtime for a specific game.
+ * 
+ * @param {String} userID - id of the user to get playtime of
+ * @param {String} gameName - name of the game to get playtime of
+ */
+function getUsersPlaytimeForGame(userID, gameName) {
+	var playtime = timeSheet[userID][gameName];
+	var currentlyPlaying = timeSheet[userID]['playing'];						
+	
+	//if the target user is currently playing the game 
+	if (playtime === 0 && currentlyPlaying !== undefined) {						
+		playtime = getTimePlayed(currentlyPlaying);
+	}
+
+	return playtime;
+}
+
+/**
+ * Gets and outputs the time played for the game by the user(s) provided in args.
+ * 
+ * @param {String[]} args - input arguments from the user
+ */
+function maybeOutputTimePlayed(args) {
+	const nameAndTargetData = getGameNameAndTarget(args);
+	var target = nameAndTargetData.target;
+	var game = nameAndTargetData.game;
+	var fields = [];
+	var timePlayed = '';
+	var title = 'Hours Played'
+
+	logger.info('<INFO> Time Called - game: ' + game + ' target: ' + target);				
+	//If no target user provided, get cumulative time played for entire server
+	if (target === '') {
+		timePlayed = getCumulativeTimePlayed(game);
+		title = 'Cumulative ' + tile;
+	// Get time played for target user
+	} else {
+		const targetID = target.match(/\d/g).join("");
+		//if the target user has a timesheet that includes the game
+		if (timeSheet[targetID] !== undefined && timeSheet[targetID][game] !== undefined) {
+			timePlayed = getUsersPlaytimeForGame(targetID, game);
+		}
+	}
+	//If the user has played the game, then output the hours played.
+	if (timePlayed !== '') {
+		fields.push(buildField(game,timePlayed.toFixed(1)));
+		sendEmbedMessage(title, fields);
+		logger.info('<INFO> cumulative hours played:  ' + util.inspect(fields, false, null));
+	}
+}
+
+/**
+ * Asks Scrubs if they want to play pubg.
+ */
+function askToPlayPUBG() {
+	bot.sendMessage({
+		to: scrubsChannelID,
+		message: "<@&260632970010951683>  " + greetings[getRand(0, greetings.length)] + " tryna play some " + pubgAliases[getRand(0, pubgAliases.length)] + "?"
+	});	
+}
+
+/**
+ * Outputs history of game's player counts throughout the day if such a log exists.
+ */
+function maybeOutputGameHistory() {
+	var previousTime = '';
+	gameHistory.forEach(function(gamesLog) {
+		if (gamesLog[0] !== undefined) {
+			var time = gamesLog[0].time;
+			if ( time !== previousTime) {
+				var fields = [];					
+				gamesLog.forEach(function(gameData) {
+					fields.push(buildField(gameData.game, gameData.count));
+				});
+				sendEmbedMessage('Player Count - ' + time, fields);	
+				previousTime = time;			
+			}	
+		}
+	});
+}
+
 
 /**
  * Listen's for messages in Discord
  */
 bot.on('message', function (user, userID, channelID, message, evt) {
-    // Scrub Daddy will listen for messages that will start with `!`
+    //Scrub Daddy will listen for messages that will start with `!`
     if (message.substring(0, 1) == '!') {
 		const args = message.substring(1).match(/\S+/g);
 		const cmd = args[0];
 
-		// stops if the message is not from bot-spam text channel
+		//stops if the message is not from bot-spam text channel, with the expection of the message !p.
 		if (channelID !== botSpamChannelID && !(channelID === scrubsChannelID && cmd === 'p')) {
 			return;
 		}
 		
         switch(cmd) {
+			case 'p':
+				askToPlayPUBG();
+				break;
+			case 'playing':
+				getAndOutputCountOfGamesBeingPlayed();
+				break;
+			case 'gameHistory':
+				maybeOutputGameHistory();
+				break;
+			case 'time':
+				maybeOutputTimePlayed(args);
+				break;
+			//custom vote
 			case 'vote':
 				conductVote(user, userID, channelID, args, voteType.CUSTOM);			
 				break;
@@ -509,6 +709,16 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 				logger.info('<VOTE Ban> ' + getTimestamp() + '  ' + user + ': ' + message);			
 				conductVote(user, userID, channelID, args, voteType.BAN);
 				break;
+			//get custom vote totals or number of kick/ban votes for a user
+			case 'voteinfo':
+				if (args[1] === undefined) {
+					logger.info('<VOTE Info Custom> ' + getTimestamp() + '  ' + user + ': ' + message);								
+					getCustomVoteTotals();
+				} else {
+					logger.info('<VOTE Info User> ' + getTimestamp() + '  ' + user + ': ' + message);													
+					getTotalVotesForTarget(user, userID, channelID, args);
+				}	
+				break;
 			case 'help':
 			case 'info':
 			case 'helpinfo':
@@ -519,171 +729,34 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 						title: "Commands",
 						description: "!votekick @user - to remove user from channel." +
 									 "\n!voteban @user - for a more permanent solution." +
-									 "\nPlease Note: You must be in a voice channel with at least 3 members" +
-									 "\n						 to participate in a kick/ban vote." +
+									 "\nPlease Note: You must be in a voice channel with at least 3 members to participate in a kick/ban vote." +
 									 "\n!vote thing to vote for - to do a custom vote." +
 									 "\n!voteinfo - for totals of all custom votes." +
 									 "\n!voteinfo @user - for total votes to kick/ban that user." +
 									 "\n!test - to try out features in development." +
-									 "\n!gameHistory - get player counts for all games over the day." +
+									 "\n!time Game Name @user - user's playtime for the specified Game Name" +
+									 "\n!time Game Name - cumulative playtime for the specified Game Name" +
+									 "\n!playing - player count of games currently being played." +
+									 "\n!gameHistory - player counts for all games throughout the day." +
+									 "\n!p - to ask @Scrubs to play PUBG in scrubs text channel" +
 									 "\n!help, !info, or !helpinfo - to show this message again."
 					}
 				});
-				break;
-			case 'voteinfo':
-				if (args[1] === undefined) {
-					logger.info('<VOTE Info Custom> ' + getTimestamp() + '  ' + user + ': ' + message);								
-					getCustomVoteTotals();
-				} else {
-					logger.info('<VOTE Info User> ' + getTimestamp() + '  ' + user + ': ' + message);													
-					getTotalVotesForTarget(user, userID, channelID, args);
-				}	
-				break;
-			case 'p':
-				bot.sendMessage({
-					to: scrubsChannelID,
-					message: "<@&260632970010951683>  " + greetings[getRand(0, greetings.length)] + " tryna play some " + pubgAliases[getRand(0, pubgAliases.length)] + "?"
-				});	
-				break;
-			case 'playing':
-				// bot.sendMessage({
-				// 	to: botSpamChannelID,
-				// 	embed:  {
-				// 		color: 0xffff00,
-				// 		title: "This is a test of the Emergency Broadcast System",
-				// 		image: {
-				// 			url: "https://i.kinja-img.com/gawker-media/image/upload/s--gXPJs2QR--/c_scale,f_auto,fl_progressive,q_80,w_800/sv3a6heu1v5d9ubr9ke3.jpg",
-				// 		}
-				// 	} 
-				// });	
-				var scrubs = bot.getScrubs();
-				//console.log(util.inspect(scrubs, false, null));
-				games = [];
-				var max = 0;
-				var winner = '';
-				for (var s in scrubs) {
-					var scrub = scrubs[s];
-					if (scrub.game !== undefined && scrub.game !== null && scrub.bot === false) {
-						var game = scrub.game.name;
-						if (games[game] === undefined) {
-							games[game] = 1;
-						} else {
-							games[game] += 1;
-						}
-						if (games[game] > max) {
-							max = games[game];
-							winner = game;
-						}
-					}
-				}
-				var fields = [];
-				var time = getTimestamp();
-				var gamesLog = [];
-				for (var gameID in games) {
-					fields.push(buildField(gameID, games[gameID]));
-
-					//log timestamp and player count for each game
-					const gameData = {
-						game : gameID,
-						count : games[gameID],
-						time : time
-					};
-					gamesLog.push(gameData);
-				}
-				gameHistory.push(gamesLog);
-				
-				var imageUrl = 'http://i0.kym-cdn.com/entries/icons/original/000/012/982/post-19715-Brent-Rambo-gif-thumbs-up-imgu-L3yP.gif';
-				if (gameNameToImg[winner] !== undefined && gameNameToImg[winner] !== null) {
-					imageUrl = gameNameToImg[winner];
-				}
-				bot.sendMessage({
-					to: botSpamChannelID,
-					embed:  {
-						color: 0xffff00,
-						title: "Winner - " + winner,
-						image: {
-							url: imageUrl
-						}
-					} 
-				});	
-				sendEmbedMessage("Player Count", fields);
-				//INCLUDE image of highest count game
-				break;
-			case 'gameHistory':
-				var previousTime = '';
-				gameHistory.forEach(function(gamesLog) {
-					if (gamesLog[0] !== undefined) {
-						var time = gamesLog[0].time;
-						if ( time !== previousTime) {
-							var fields = [];					
-							gamesLog.forEach(function(gameData) {
-								fields.push(buildField(gameData.game, gameData.count));
-							});
-							sendEmbedMessage('Player Count - ' + time, fields);	
-							previousTime = time;			
-						}	
-					}
-				});
-				break;
-			case 'time':
-				//make this work even when in the middle of a session. stop returning the time not including currently playing time in that case.
-				//!time PUBG <!231213123>
-				//!time World of Warcraft <!12312315>
-				//!time PUBG
-				//!time World of Warcraft
-				var target = '';
-				var game = args[1];
-				for (i=2; i < args.length; i++) {
-					if (args[i].indexOf('<') === 0) {
-						target = args[i]
-						break;
-					}
-					game += ' ' + args[i];
-				}
-				logger.info('<INFO> time called. target: ' + target + ' , game: ' + game);
-				fields = [];
-				//If no target user provided, get cumulative time played for entire server
-				if (target === '') {
-					var totalTimePlayed = 0;
-					for (var userID in timeSheet) {
-						var timePlayed = timeSheet[userID][game];
-						if (timePlayed !== undefined) {
-							totalTimePlayed += timePlayed;							
-						}
-					}
-					fields.push(buildField(game,totalTimePlayed.toFixed(1)));
-					sendEmbedMessage('Cumulative Hours Played', fields);
-					logger.info('<INFO> cumulative hours played:  ' + util.inspect(fields, false, null));											
-				// Get time played for target user
-				} else {
-					const targetID = target.match(/\d/g).join("");
-					if (timeSheet[targetID] !== undefined && timeSheet[targetID][game] !== undefined) {
-						var result = timeSheet[targetID][game];
-						var currentlyPlaying = gameToTime['playing'];						
-						
-						if (timeSheet[targetID][game] === 0 && currentlyPlaying !== undefined) {						
-							result = getTimePlayed(currentlyPlaying);
-						}
-
-						fields.push(buildField(game, result.toFixed(1)));
-						sendEmbedMessage('Hours Played', fields);
-						logger.info('<INFO> hours played:  ' + util.inspect(fields, false, null));						
-					}
-				}
          }
      }
 });
 
+/**
+ * listens for updates to a user's presence (online status, game, etc).
+ */
 bot.on('presence', function(user, userID, status, game, event) { 
-	
 	//ignore presence updates for bots
 	for (i = 0; i < botIDs.length; i++) {
 		if (userID === botIDs[i]) {
 			return;
 		}
 	}
-
-	logger.info('<INFO> Presence Update - user: ' + user + ' , userID: ' + userID + ' , status: ' + status + ' , game: ' + util.inspect(game, false, null))	
+	//logger.info('<INFO> Presence Update - ' + user + ' id: ' + userID + ' status: ' + status + ' game: ' + util.inspect(game, false, null))	
 	
 	//get user's timesheet
 	var gameToTime = timeSheet[userID];
@@ -708,22 +781,13 @@ bot.on('presence', function(user, userID, status, game, event) {
 		}
 
 		var hoursPlayed = getTimePlayed(currentlyPlaying);
-		logger.info('<INFO> Presence Update - startedPlaying: ' + startedPlaying + ' finishedPlaying: ' + finishedPlaying) + ' hoursPlayed: ' + hoursPlayed;											
+		logger.info('<INFO> Presence Update - ' + user + ' finished a ' + hoursPlayed + 'hr session of ' + currentlyPlaying.name);											
 		gameToTime[currentlyPlaying.name] += hoursPlayed;
 		gameToTime['playing'] = undefined;
 	}
 	
 	timeSheet[userID] = gameToTime;
 });
-
-function getTimePlayed(currentlyPlaying) {
-	var utcSeconds = Number(currentlyPlaying.start) / 1000;
-	var startedPlaying = new Date(0); // The 0 there is the key, which sets the date to the epoch
-	startedPlaying.setUTCSeconds(utcSeconds);
-	var currentTime = new Date();
-	var hoursPlayed = Math.abs(currentTime - startedPlaying) / 36e5;
-	return hoursPlayed;
-}
 
 /**
  * Logs the bot into Discord.
@@ -735,3 +799,15 @@ bot.on('ready', function (evt) {
 
 });
 //console.log(util.inspect(bot.getScrubs(), false, null));
+
+
+// bot.sendMessage({
+// 	to: botSpamChannelID,
+// 	embed:  {
+// 		color: 0xffff00,
+// 		title: "This is a test of the Emergency Broadcast System",
+// 		image: {
+// 			url: "https://i.kinja-img.com/gawker-media/image/upload/s--gXPJs2QR--/c_scale,f_auto,fl_progressive,q_80,w_800/sv3a6heu1v5d9ubr9ke3.jpg",
+// 		}
+// 	} 
+// });	
