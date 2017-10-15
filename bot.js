@@ -7,6 +7,7 @@
 //do trends with game presence data. most played weekly and whatnot would be cool.
 	//I have potential to track hours played, but not sure if i should.
 //for player count command, add filter so it ignores either the 5 ids of the bots or checks their role ids to see if they contain bot. first choice seems more efficient.
+//add command that outputs all games playtimes with pic of the winner
 const Discord = require('discord.io');
 const logger = require('winston');
 const auth = require('./auth.json'); 
@@ -727,17 +728,23 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 					embed:  {
 						color: 0xffff00,
 						title: "Commands",
-						description: "!votekick @user - to remove user from channel." +
-									 "\n!voteban @user - for a more permanent solution." +
+						description: "----------------------- Voting ------------------------" +
 									 "\nPlease Note: You must be in a voice channel with at least 3 members to participate in a kick/ban vote." +
+									 "\n\n!votekick @user - to remove user from channel." +
+									 "\n!voteban @user - for a more permanent solution." +
 									 "\n!vote thing to vote for - to do a custom vote." +
 									 "\n!voteinfo - for totals of all custom votes." +
 									 "\n!voteinfo @user - for total votes to kick/ban that user." +
-									 "\n!test - to try out features in development." +
+									 "\n--------------------------------------------------------" +
+									 "\n\n--------------------- Time Played --------------------" +
 									 "\n!time Game Name @user - user's playtime for the specified Game Name" +
 									 "\n!time Game Name - cumulative playtime for the specified Game Name" +
+									 "\n--------------------------------------------------------" +									 
+									 "\n\n-------------------- Player Count --------------------" +
 									 "\n!playing - player count of games currently being played." +
 									 "\n!gameHistory - player counts for all games throughout the day." +
+									 "\n--------------------------------------------------------" +
+									 "\n\n!test - to try out features in development." +									 
 									 "\n!p - to ask @Scrubs to play PUBG in scrubs text channel" +
 									 "\n!help, !info, or !helpinfo - to show this message again."
 					}
