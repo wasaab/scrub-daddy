@@ -127,7 +127,7 @@ function log(error, response) {
  * Builds an embed field object with name and value.
  * 
  * @param {String} name - the name
- * @param {int} value - the value
+ * @param {Number} value - the value
  */
 function buildField(name, value) {
 	return {
@@ -481,6 +481,7 @@ const botIDs = ['172002275412279296', '86920406476292096', '188064764008726528',
 const gameNameToImg = {'World of Warcraft' : 'http://i.imgur.com/US59X7X.jpg', 'Overwatch' : 'http://i.imgur.com/WRQsSYp.png', 'PUBG' : 'https://i.imgur.com/nT2CNCs.png', 'Fortnite' : 'https://i.imgur.com/S0CN7n9.jpg'};
 var games = [];
 var gameHistory = [];
+var timeSheet = {}
 
 /**
  * Listen's for messages in Discord
@@ -544,7 +545,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 					message: "<@&260632970010951683>  " + greetings[getRand(0, greetings.length)] + " tryna play some " + pubgAliases[getRand(0, pubgAliases.length)] + "?"
 				});	
 				break;
-			case 'test':
+			case 'local':
 				// bot.sendMessage({
 				// 	to: botSpamChannelID,
 				// 	embed:  {
@@ -556,6 +557,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 				// 	} 
 				// });	
 				var scrubs = bot.getScrubs();
+				//console.log(util.inspect(scrubs, false, null));
 				games = [];
 				var max = 0;
 				var winner = '';
@@ -623,12 +625,95 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 					}
 				});
 				break;
+			case 'time':
+				//make this work even when in the middle of a session. stop returning the time not including currently playing time in that case.
+				//!time PUBG <!231213123>
+				//!time World of Warcraft <!12312315>
+				//!time PUBG
+				//!time World of Warcraft
+				console.log('time called');
+				var target = '';
+				var game = args[1];
+				for (i=2; i < args.length; i++) {
+					if (args[i].indexOf('<') === 0) {
+						target = args[i]
+						break;
+					}
+					game += ' ' + args[i];
+				}
+
+				fields = [];
+				//If no target user provided, get cumulative time played for entire server
+				if (target === '') {
+					var totalTimePlayed = 0;
+					for (var userID in timeSheet) {
+						var timePlayed = timeSheet[userID][game];
+						if (timePlayed !== undefined) {
+							totalTimePlayed += timePlayed;							
+						}
+					}
+					fields.push(buildField(game,totalTimePlayed.toFixed(1)));
+					sendEmbedMessage('Cumulative Hours Played', fields);
+				// Get time played for target user
+				} else {
+					const targetID = target.match(/\d/g).join("");
+					if (timeSheet[targetID] !== undefined && timeSheet[targetID][game] !== undefined) {
+						console.log('targetID: ' + targetID + ' game: ' + game + ' timeSheet[targetID][game]: ' + timeSheet[targetID][game]);					
+						fields.push(buildField(game,timeSheet[targetID][game].toFixed(1)));
+						console.log(util.inspect(fields, false, null));
+						sendEmbedMessage('Hours Played', fields);
+					}
+				}
          }
      }
 });
 
 bot.on('presence', function(user, userID, status, game, event) { 
-	//logger.info('user: ' + ' , userID: ' + userID + ' , status: ' + status + ' , game: ' + util.inspect(game, false, null) + ' , event: ' + util.inspect(event, false, null))
+	
+	//ignore presence updates for bots
+	for (i = 0; i < botIDs.length; i++) {
+		if (userID === botIDs[i]) {
+			return;
+		}
+	}
+
+	logger.info('user: ' + ' , userID: ' + userID + ' , status: ' + status + ' , game: ' + util.inspect(game, false, null))	
+	
+	//get user's timesheet
+	var gameToTime = timeSheet[userID];
+	if (gameToTime === undefined) {
+		gameToTime = {};
+	}
+
+	//Just started playing a game
+	if (game !== null && game.timestamps !== undefined) {
+		if (gameToTime[game.name] === undefined) {
+			gameToTime[game.name] = 0;
+		}
+		gameToTime['playing'] = {name : game.name, start : game.timestamps.start} ;
+	//Just finished playing a game
+	} else {
+		currentlyPlaying = gameToTime['playing'];
+		
+		//This user started playing the game before the bot was running
+		//so there is no start timestamp associated with the game
+		if (currentlyPlaying === undefined) {
+			return;
+		}
+
+		var utcSeconds = Number(currentlyPlaying.start) / 1000;
+		var startedPlaying = new Date(0); // The 0 there is the key, which sets the date to the epoch
+		startedPlaying.setUTCSeconds(utcSeconds);
+		console.log('startedPlaying: ' + startedPlaying);		
+		var finishedPlaying = new Date();
+		console.log('finishedPlaying: ' + finishedPlaying);				
+		var hoursPlayed = Math.abs(finishedPlaying - startedPlaying) / 36e5;
+		console.log('hoursPlayed: ' + hoursPlayed);
+		gameToTime[currentlyPlaying.name] += hoursPlayed;
+		gameToTime['playing'] = undefined;
+	}
+	
+	timeSheet[userID] = gameToTime;
 });
 
 /**
@@ -637,7 +722,7 @@ bot.on('presence', function(user, userID, status, game, event) {
 bot.on('ready', function (evt) {
     logger.info('Connected');
     logger.info('Logged in as: ');
-    logger.info(bot.username + ' - (' + bot.id + ')');
+	logger.info(bot.username + ' - (' + bot.id + ')');
+
 });
-//console.log(util.inspect(bot.channels[chanID.id].members, false, null));
 //console.log(util.inspect(bot.getScrubs(), false, null));
