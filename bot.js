@@ -341,7 +341,7 @@ function maybeEndVote(voteData) {
 
 	channelSize = voteChannelMembers[voteData.channelID].length;
 	const majority = channelSize/2;
-	logger.info('<INFO> majority: ' + majority + ' votes: ' + votes[voteData.targetConcat]);
+	logger.info('<INFO> ' + getTimestamp() + '  majority: ' + majority + ' votes: ' + votes[voteData.targetConcat]);
 	if (channelSize > 2 && votes[voteData.targetConcat] > majority) {
 		const target = voteData.targetConcat.split(':-:')[0];
 		endVote(voteData, targetID);
@@ -619,11 +619,11 @@ function maybeOutputTimePlayed(args) {
 	var timePlayed = '';
 	var title = 'Hours Played'
 
-	logger.info('<INFO> Time Called - game: ' + game + ' target: ' + target);				
+	logger.info('<INFO> ' + getTimestamp() + '  Time Called - game: ' + game + ' target: ' + target);				
 	//If no target user provided, get cumulative time played for entire server
 	if (target === '') {
 		timePlayed = getCumulativeTimePlayed(game);
-		title = 'Cumulative ' + tile;
+		title = 'Cumulative ' + title;
 	// Get time played for target user
 	} else {
 		const targetID = target.match(/\d/g).join("");
@@ -636,7 +636,7 @@ function maybeOutputTimePlayed(args) {
 	if (timePlayed !== '') {
 		fields.push(buildField(game,timePlayed.toFixed(1)));
 		sendEmbedMessage(title, fields);
-		logger.info('<INFO> cumulative hours played:  ' + util.inspect(fields, false, null));
+		logger.info('<INFO> ' + getTimestamp() + '  ' + title + ': ' + util.inspect(fields, false, null));
 	}
 }
 
@@ -788,7 +788,7 @@ bot.on('presence', function(user, userID, status, game, event) {
 		}
 
 		var hoursPlayed = getTimePlayed(currentlyPlaying);
-		logger.info('<INFO> Presence Update - ' + user + ' finished a ' + hoursPlayed + 'hr session of ' + currentlyPlaying.name);											
+		logger.info('<INFO> ' + getTimestamp() + '  Presence Update - ' + user + ' finished a ' + hoursPlayed.toFixed(2) + 'hr session of ' + currentlyPlaying.name);											
 		gameToTime[currentlyPlaying.name] += hoursPlayed;
 		gameToTime['playing'] = undefined;
 	}
@@ -800,9 +800,9 @@ bot.on('presence', function(user, userID, status, game, event) {
  * Logs the bot into Discord.
  */
 bot.on('ready', function (evt) {
-    logger.info('Connected');
-    logger.info('Logged in as: ');
-	logger.info(bot.username + ' - (' + bot.id + ')');
+    logger.info('<INFO> ' + getTimestamp() + '  Connected');
+    logger.info('<INFO> Logged in as: ');
+	logger.info('<INFO> ' + bot.username + ' - (' + bot.id + ')');
 
 });
 //console.log(util.inspect(bot.getScrubs(), false, null));
