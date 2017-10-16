@@ -642,6 +642,7 @@ function outputCumulativeTimePlayed(gameToTime) {
 	sendEmbedMessage('Cumulative Hours Played', fields);
 	logger.info('<INFO> ' + getTimestamp() + '  Cumulative Hours Played All Games: ' + util.inspect(fields, false, null));
 }
+
 /**
  * Gets and outputs the time played for the game by the user(s) provided in args.
  * 
@@ -651,47 +652,20 @@ function maybeOutputTimePlayed(args) {
 	const nameAndTargetData = getGameNameAndTarget(args);
 	var target = nameAndTargetData.target;
 	var game = nameAndTargetData.game;
-	var fields = [];
-	var timePlayed = '';
-	var title = 'Hours Played'
 
 	logger.info('<INFO> ' + getTimestamp() + '  Time Called - game: ' + game + ' target: ' + target);				
-	//If no target user provided, get cumulative time played for entire server
-	if (target === '') {
-		title = 'Cumulative ' + title;				
-		//If no game provided, it will get cumulative time for each game
-		if (game === '') {
-			var timePlayedData = getCumulativeTimePlayed('','');
-			if (timePlayedData.total !== undefined) {
-				outputCumulativeTimePlayed(timePlayedData.gameToTime);	
-			}
-		} else {
-			timePlayed = getCumulativeTimePlayed(game,'').total;
-		}
-	// Get time played for target user
-	} else {
-		const targetID = target.match(/\d/g).join("");
-		if (timeSheet[targetID] === undefined) {
-			return;
-		}
-
-		//get user's time played for each game if no game provided
-		if (game === '') {
-			var timePlayedData = getCumulativeTimePlayed(game,targetID);
-			if (timePlayedData.total !== undefined) {
-				outputCumulativeTimePlayed(timePlayedData.gameToTime);	
-			}
-		//if target game and user provided / found
-		} else if (timeSheet[targetID][game] !== undefined) {
-			timePlayed = getUsersPlaytimeForGame(targetID, game);
-		}
-	}
-	//If the user has played the game, then output the hours played.
-	if (timePlayed !== '') {
-		fields.push(buildField(game,timePlayed.toFixed(1)));
-		sendEmbedMessage(title, fields);
-		logger.info('<INFO> ' + getTimestamp() + '  ' + title + ': ' + util.inspect(fields, false, null));
-	}
+    if (target.match(/\d/g) !== null) {
+        target = target.match(/\d/g).join("")
+    } 
+    var timePlayedData = getCumulativeTimePlayed(game,target);
+    if (Object.keys(timePlayedData.gameToTime).length !== 0) {
+        outputCumulativeTimePlayed(timePlayedData.gameToTime);	
+    } else {
+		var fields = [];
+		fields.push(buildField(game,timePlayedData.total.toFixed(1)));
+		sendEmbedMessage('Hours Played', fields);
+		logger.info('<INFO> ' + getTimestamp() + '  Hours Played: ' + util.inspect(fields, false, null));
+    }
 }
 
 /**
