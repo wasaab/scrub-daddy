@@ -774,6 +774,8 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 									 "\n\n--------------------- Time Played --------------------" +
 									 "\n!time Game Name @user - user's playtime for the specified Game Name" +
 									 "\n!time Game Name - cumulative playtime for the specified Game Name" +
+									 "\n!time @user - user's playtime for all games" + 
+									 "\n!time - cumulative playtime for all games" +
 									 "\n--------------------------------------------------------" +									 
 									 "\n\n-------------------- Player Count --------------------" +
 									 "\n!playing - player count of games currently being played." +
