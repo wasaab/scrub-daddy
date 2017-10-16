@@ -763,24 +763,24 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 					embed:  {
 						color: 0xffff00,
 						title: "Commands",
-						description: "----------------------- Voting ------------------------" +
+						description: "------------------------- Voting --------------------------" +
 									 "\nPlease Note: You must be in a voice channel with at least 3 members to participate in a kick/ban vote." +
 									 "\n\n!votekick @user - to remove user from channel." +
 									 "\n!voteban @user - for a more permanent solution." +
 									 "\n!vote thing to vote for - to do a custom vote." +
 									 "\n!voteinfo - for totals of all custom votes." +
 									 "\n!voteinfo @user - for total votes to kick/ban that user." +
-									 "\n--------------------------------------------------------" +
-									 "\n\n--------------------- Time Played --------------------" +
+									 "\n------------------------------------------------------------" +
+									 "\n\n----------------------- Time Played ----------------------" +
 									 "\n!time Game Name @user - user's playtime for the specified Game Name" +
 									 "\n!time Game Name - cumulative playtime for the specified Game Name" +
 									 "\n!time @user - user's playtime for all games" + 
 									 "\n!time - cumulative playtime for all games" +
-									 "\n--------------------------------------------------------" +									 
-									 "\n\n-------------------- Player Count --------------------" +
+									 "\n------------------------------------------------------------" +									 
+									 "\n\n---------------------- Player Count ----------------------" +
 									 "\n!playing - player count of games currently being played." +
 									 "\n!gameHistory - player counts for all games throughout the day." +
-									 "\n--------------------------------------------------------" +
+									 "\n------------------------------------------------------------" +
 									 "\n\n!test - to try out features in development." +									 
 									 "\n!p - to ask @Scrubs to play PUBG in scrubs text channel" +
 									 "\n!help, !info, or !helpinfo - to show this message again."
