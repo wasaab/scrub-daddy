@@ -579,6 +579,10 @@ function getAndOutputCountOfGamesBeingPlayed() {
  * @param {String} gameName - name of the game to get playtime of
  */
 function getUsersPlaytimeForGame(userID, gameName) {
+	if (timeSheet[userID] === undefined) {
+		return 0;
+	}
+
 	var playtime = timeSheet[userID][gameName];
 	var currentlyPlaying = timeSheet[userID]['playing'];						
 	
@@ -612,7 +616,11 @@ function getCumulativeTimePlayed(gameName, target) {
 		if (gameName === '') {
 			var gameToTime = userToTimes[userID];
 			for (var game in gameToTime) {
+				if (game === 'playing') {
+					continue;
+				} 
 				var playtime = getUsersPlaytimeForGame(userID, game);
+				console.log('game: ' + game + ' playtime: ' + playtime);
 				if (playtime !== undefined) {
 					if (cumulativeTimePlayed.gameToTime[game] === undefined) {
 						cumulativeTimePlayed.gameToTime[game] = 0;
@@ -632,11 +640,12 @@ function getCumulativeTimePlayed(gameName, target) {
 	return cumulativeTimePlayed;
 }
 
-function outputCumulativeTimePlayed(gameToTime) {
+function outputCumulativeTimePlayed(timePlayedData) {
 	var fields = [];
 	fields.push(buildField('All Games', timePlayedData.total));	
-	for (var gameName in gameToTime) {
-		var playtime = gameToTime[gameName];
+	console.log(util.inspect('timePlayedData: ' + timePlayedData, false, null));
+	for (var gameName in timePlayedData.gameToTime) {
+		var playtime = timePlayedData.gameToTime[gameName];
 		fields.push(buildField(gameName, playtime.toFixed(1)));
 	}
 	sendEmbedMessage('Cumulative Hours Played', fields);
@@ -659,7 +668,7 @@ function maybeOutputTimePlayed(args) {
     } 
     var timePlayedData = getCumulativeTimePlayed(game,target);
     if (Object.keys(timePlayedData.gameToTime).length !== 0) {
-        outputCumulativeTimePlayed(timePlayedData.gameToTime);	
+        outputCumulativeTimePlayed(timePlayedData);	
     } else {
 		var fields = [];
 		fields.push(buildField(game,timePlayedData.total.toFixed(1)));
