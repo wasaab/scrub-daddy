@@ -166,10 +166,15 @@ function sendEmbedMessage(title, fields) {
  * @param {Object} currentlyPlaying - the game finished or currently being played
  */
 function getTimePlayed(currentlyPlaying) {
+	var startOfDay = new Date();
+	startOfDay.setHours(0,0,0,0);
 	var utcSeconds = Number(currentlyPlaying.start) / 1000;
 	var startedPlaying = new Date(0); // The 0 there is the key, which sets the date to the epoch
 	startedPlaying.setUTCSeconds(utcSeconds);
 	var currentTime = new Date();
+	if (startedPlaying < startOfDay) {
+		startedPlaying = startOfDay;
+	}
 	var hoursPlayed = Math.abs(currentTime - startedPlaying) / 36e5;
 	return hoursPlayed;
 }
@@ -586,6 +591,7 @@ function getUsersPlaytimeForGame(userID, gameName) {
 	var playtime = timeSheet[userID][gameName];
 	var currentlyPlaying = timeSheet[userID]['playing'];						
 	
+	//THIS LOGIC IS WRONG! If they are currently playing a game and have already played it today, it won't include their current play time~~~~~~~~~~~~~~~~~~~~~~~~~
 	//if the target user is currently playing the game 
 	if (playtime === 0 && currentlyPlaying !== undefined && currentlyPlaying.name === gameName) {						
 		playtime = getTimePlayed(currentlyPlaying);
@@ -711,7 +717,7 @@ function maybeOutputGameHistory() {
  */
 bot.on('message', function (user, userID, channelID, message, evt) {
     //Scrub Daddy will listen for messages that will start with `!`
-    if (message.substring(0, 1) == '!') {
+    if (message.substring(0, 1) == '*') {
 		const args = message.substring(1).match(/\S+/g);
 		const cmd = args[0];
 
