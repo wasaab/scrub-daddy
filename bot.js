@@ -8,6 +8,8 @@
 	//I have potential to track hours played, but not sure if i should.
 //for player count command, add filter so it ignores either the 5 ids of the bots or checks their role ids to see if they contain bot. first choice seems more efficient.
 //add command that outputs all games playtimes with pic of the winner
+//doesn't currently handle multiple games being played at once by the same person, because of 'playing' being overwritten.
+//add logic to maybeOutputTimePlayed or a child, for getting time played of all games for a specific user.
 const Discord = require('discord.io');
 const logger = require('winston');
 const auth = require('./auth.json'); 
@@ -144,7 +146,6 @@ function buildField(name, value) {
 	};
 }
 
-
 /**
  * Output vote count to bot-spam channel
  */
@@ -157,23 +158,6 @@ function sendEmbedMessage(title, fields) {
 			fields: fields
 		} 
 	});	
-}
-
-/**
- * Gets the cumulative play time of everyone on the server for the provided game.
- * 
- * @param {String} gameName - the game to get play time for
- */
-function getCumulativeTimePlayed(gameName) {
-	var cumulativeTimePlayed = 0;
-	for (var userID in timeSheet) {
-		var timePlayed = timeSheet[userID][gameName];
-		if (timePlayed !== undefined) {
-			cumulativeTimePlayed += timePlayed;							
-		}
-	}
-	
-	return cumulativeTimePlayed;
 }
 
 /**
@@ -196,9 +180,9 @@ function getTimePlayed(currentlyPlaying) {
  * @param {String[]} args - input arguments from the user
  */
 function getGameNameAndTarget(args) {
-	var game = args[1];
+	var game = '';
 	var target = '';
-	for (i=2; i < args.length; i++) {
+	for (i=1; i < args.length; i++) {
 		if (args[i].indexOf('<') === 0) {
 			target = args[i]
 			break;
@@ -599,13 +583,65 @@ function getUsersPlaytimeForGame(userID, gameName) {
 	var currentlyPlaying = timeSheet[userID]['playing'];						
 	
 	//if the target user is currently playing the game 
-	if (playtime === 0 && currentlyPlaying !== undefined) {						
+	if (playtime === 0 && currentlyPlaying !== undefined && currentlyPlaying.name === gameName) {						
 		playtime = getTimePlayed(currentlyPlaying);
 	}
 
 	return playtime;
 }
 
+/**
+ * Gets the cumulative play time of everyone on the server for the provided game.
+ * Can also get cumulative time for all games.
+ * 
+ * @param {String} gameName - the game to get play time for
+ */
+function getCumulativeTimePlayed(gameName, target) {
+	var cumulativeTimePlayed = {
+		total : 0,
+		gameToTime : {}
+	};
+	var userToTimes = timeSheet;
+	//if a target is provided get cumulative time played of their games
+	if (target !== '') {
+		userToTimes = {};
+		userToTimes[target] = timeSheet[target];
+	}
+	for (var userID in userToTimes) {
+		//get time of all games
+		if (gameName === '') {
+			var gameToTime = userToTimes[userID];
+			for (var game in gameToTime) {
+				var playtime = getUsersPlaytimeForGame(userID, game);
+				if (playtime !== undefined) {
+					if (cumulativeTimePlayed.gameToTime[game] === undefined) {
+						cumulativeTimePlayed.gameToTime[game] = 0;
+					}
+					cumulativeTimePlayed.gameToTime[game] += playtime;
+					cumulativeTimePlayed.total += playtime;
+				}
+			}
+		} else {
+			var timePlayed = getUsersPlaytimeForGame(userID, gameName);
+			if (timePlayed !== undefined) {
+				cumulativeTimePlayed.total += timePlayed;							
+			}
+		}
+	}
+	
+	return cumulativeTimePlayed;
+}
+
+function outputCumulativeTimePlayed(gameToTime) {
+	var fields = [];
+	fields.push(buildField('All Games', timePlayedData.total));	
+	for (var gameName in gameToTime) {
+		var playtime = gameToTime[gameName];
+		fields.push(buildField(gameName, playtime.toFixed(1)));
+	}
+	sendEmbedMessage('Cumulative Hours Played', fields);
+	logger.info('<INFO> ' + getTimestamp() + '  Cumulative Hours Played All Games: ' + util.inspect(fields, false, null));
+}
 /**
  * Gets and outputs the time played for the game by the user(s) provided in args.
  * 
@@ -622,13 +658,31 @@ function maybeOutputTimePlayed(args) {
 	logger.info('<INFO> ' + getTimestamp() + '  Time Called - game: ' + game + ' target: ' + target);				
 	//If no target user provided, get cumulative time played for entire server
 	if (target === '') {
-		timePlayed = getCumulativeTimePlayed(game);
-		title = 'Cumulative ' + title;
+		title = 'Cumulative ' + title;				
+		//If no game provided, it will get cumulative time for each game
+		if (game === '') {
+			var timePlayedData = getCumulativeTimePlayed('','');
+			if (timePlayedData.total !== undefined) {
+				outputCumulativeTimePlayed(timePlayedData.gameToTime);	
+			}
+		} else {
+			timePlayed = getCumulativeTimePlayed(game,'').total;
+		}
 	// Get time played for target user
 	} else {
 		const targetID = target.match(/\d/g).join("");
-		//if the target user has a timesheet that includes the game
-		if (timeSheet[targetID] !== undefined && timeSheet[targetID][game] !== undefined) {
+		if (timeSheet[targetID] === undefined) {
+			return;
+		}
+
+		//get user's time played for each game if no game provided
+		if (game === '') {
+			var timePlayedData = getCumulativeTimePlayed(game,targetID);
+			if (timePlayedData.total !== undefined) {
+				outputCumulativeTimePlayed(timePlayedData.gameToTime);	
+			}
+		//if target game and user provided / found
+		} else if (timeSheet[targetID][game] !== undefined) {
 			timePlayed = getUsersPlaytimeForGame(targetID, game);
 		}
 	}
@@ -676,7 +730,7 @@ function maybeOutputGameHistory() {
  */
 bot.on('message', function (user, userID, channelID, message, evt) {
     //Scrub Daddy will listen for messages that will start with `!`
-    if (message.substring(0, 1) == '!') {
+    if (message.substring(0, 1) == '*') {
 		const args = message.substring(1).match(/\S+/g);
 		const cmd = args[0];
 
@@ -763,7 +817,7 @@ bot.on('presence', function(user, userID, status, game, event) {
 			return;
 		}
 	}
-	//logger.info('<INFO> Presence Update - ' + user + ' id: ' + userID + ' status: ' + status + ' game: ' + util.inspect(game, false, null))	
+	logger.info('<INFO> Presence Update - ' + user + ' id: ' + userID + ' status: ' + status + ' game: ' + util.inspect(game, false, null))	
 	
 	//get user's timesheet
 	var gameToTime = timeSheet[userID];
