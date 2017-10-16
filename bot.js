@@ -620,7 +620,6 @@ function getCumulativeTimePlayed(gameName, target) {
 					continue;
 				} 
 				var playtime = getUsersPlaytimeForGame(userID, game);
-				console.log('game: ' + game + ' playtime: ' + playtime);
 				if (playtime !== undefined) {
 					if (cumulativeTimePlayed.gameToTime[game] === undefined) {
 						cumulativeTimePlayed.gameToTime[game] = 0;
@@ -642,8 +641,7 @@ function getCumulativeTimePlayed(gameName, target) {
 
 function outputCumulativeTimePlayed(timePlayedData) {
 	var fields = [];
-	fields.push(buildField('All Games', timePlayedData.total));	
-	console.log(util.inspect('timePlayedData: ' + timePlayedData, false, null));
+	fields.push(buildField('All Games', timePlayedData.total.toFixed(1)));	
 	for (var gameName in timePlayedData.gameToTime) {
 		var playtime = timePlayedData.gameToTime[gameName];
 		fields.push(buildField(gameName, playtime.toFixed(1)));
