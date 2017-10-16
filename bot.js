@@ -845,13 +845,13 @@ bot.on('ready', function (evt) {
 //console.log(util.inspect(bot.getScrubs(), false, null));
 
 
-// bot.sendMessage({
-// 	to: botSpamChannelID,
-// 	embed:  {
-// 		color: 0xffff00,
-// 		title: "This is a test of the Emergency Broadcast System",
-// 		image: {
-// 			url: "https://i.kinja-img.com/gawker-media/image/upload/s--gXPJs2QR--/c_scale,f_auto,fl_progressive,q_80,w_800/sv3a6heu1v5d9ubr9ke3.jpg",
-// 		}
-// 	} 
-// });	
+	// bot.sendMessage({
+	// 	to: botSpamChannelID,
+	// 	embed:  {
+	// 		color: 0xffff00,
+	// 		title: "This is a test of the Emergency Broadcast System",
+	// 		image: {
+	// 			url: "https://i.kinja-img.com/gawker-media/image/upload/s--gXPJs2QR--/c_scale,f_auto,fl_progressive,q_80,w_800/sv3a6heu1v5d9ubr9ke3.jpg",
+	// 		}
+	// 	} 
+	// });	
