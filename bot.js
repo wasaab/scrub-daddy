@@ -104,14 +104,16 @@ function getTimestamp() {
 	const day = days[time.getDay()];
 	var hours = time.getHours();
 	var minutes = time.getMinutes();
+	var meridiem = 'AM';
 
 	if (hours > 12) {
 		hours -= 12;
+		meridiem = 'PM'
 	} else if (hours === 0) {
 		hours = 12;
 	}
 
-	return day + ' ' + pad(hours) + ':' + pad(minutes);
+	return day + ' ' + pad(hours) + ':' + pad(minutes) + ' ' + meridiem;
 }
 
 /**
@@ -574,6 +576,7 @@ function getAndOutputCountOfGamesBeingPlayed() {
 			}
 		} 
 	});	
+	fields.sort(compareFieldValues);
 	sendEmbedMessage("Player Count", fields);
 }
 
@@ -645,6 +648,21 @@ function getCumulativeTimePlayed(gameName, target) {
 	return cumulativeTimePlayed;
 }
 
+/**
+ * Comparator for two field objects. Compares values.
+ * 
+ * @param {Object} a 
+ * @param {Object} b 
+ */
+function compareFieldValues(a,b) {
+	if (a.value > b.value)
+	  return -1;
+	if (a.value < b.value)
+	  return 1;
+	return 0;
+}
+
+
 function outputCumulativeTimePlayed(timePlayedData) {
 	var fields = [];
 	fields.push(buildField('All Games', timePlayedData.total.toFixed(1)));	
@@ -652,6 +670,7 @@ function outputCumulativeTimePlayed(timePlayedData) {
 		var playtime = timePlayedData.gameToTime[gameName];
 		fields.push(buildField(gameName, playtime.toFixed(1)));
 	}
+	fields.sort(compareFieldValues);
 	sendEmbedMessage('Cumulative Hours Played', fields);
 	logger.info('<INFO> ' + getTimestamp() + '  Cumulative Hours Played All Games: ' + util.inspect(fields, false, null));
 }
@@ -692,10 +711,67 @@ function askToPlayPUBG() {
 }
 
 /**
+ * Gets hours, mins, and meridiem from the provided timestamp.
+ * 
+ * @param {String} timestamp 
+ */
+function getTimeData(timestamp) {
+	var timeData = timestamp.split(/[ :]+/);
+	var hours = parseInt(timeData[1]);
+	var mins = parseInt(timeData[2]);
+	var meridiem = timeData[3];
+	return {
+		hours : hours,
+		mins : mins,
+		meridiem : meridiem
+	};
+}
+
+/**
+ * Comparator for two gameLog objects. Compares times.
+ * 
+ * @param {Object} a - gameLog containing array of gameData objects for comparison
+ * @param {Object} b - gameLog containing array of gameData objects for comparison
+ */
+function compareTimestamps(a,b) {
+	if (a[0] !== undefined && b[0] !== undefined) {
+		console.log('time a: ' + a[0].time + ' time b: ' + b[0].time);
+		var aTimeData = getTimeData(a[0].time);
+		var bTimeData = getTimeData(b[0].time);
+		console.log('aTimeData: ' + util.inspect(aTimeData, false, null));
+		console.log('bTimeData: ' + util.inspect(bTimeData, false, null));
+		
+		//If a is AM and b is PM
+		if (aTimeData.meridiem < bTimeData.meridiem) {
+			console.log('a is AM and b is PM... returning 1')
+			return 1;
+		}
+			if (aTimeData.meridiem > bTimeData.meridiem) {
+			console.log('a is PM and b is AM... returning -1')
+			return -1;
+		}
+
+		var aMins = (aTimeData.hours * 60) + aTimeData.mins;
+		var bMins = (bTimeData.hours * 60) + bTimeData.mins;
+
+		if (aMins < bMins) {
+			console.log('aMins: ' + aMins + '< bMins: ' + bMins + '... returning 1');		
+			return 1;
+		}
+		if (aMins > bMins) {
+			console.log('aMins: ' + aMins + '> bMins: ' + bMins + '... returning -1');					
+			return -1;
+		}
+		return 0;
+	}
+}
+
+/**
  * Outputs history of game's player counts throughout the day if such a log exists.
  */
 function maybeOutputGameHistory() {
 	var previousTime = '';
+	gameHistory.sort(compareTimestamps);
 	gameHistory.forEach(function(gamesLog) {
 		if (gamesLog[0] !== undefined) {
 			var time = gamesLog[0].time;
@@ -704,6 +780,7 @@ function maybeOutputGameHistory() {
 				gamesLog.forEach(function(gameData) {
 					fields.push(buildField(gameData.game, gameData.count));
 				});
+				fields.sort(compareFieldValues);
 				sendEmbedMessage('Player Count - ' + time, fields);	
 				previousTime = time;			
 			}	
@@ -726,6 +803,7 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 			return;
 		}
 		
+		logger.info('<INFO> ' + getTimestamp() + '  ' + cmd + ' called');	
         switch(cmd) {
 			case 'p':
 				askToPlayPUBG();
