@@ -735,33 +735,22 @@ function getTimeData(timestamp) {
  */
 function compareTimestamps(a,b) {
 	if (a[0] !== undefined && b[0] !== undefined) {
-		console.log('time a: ' + a[0].time + ' time b: ' + b[0].time);
 		var aTimeData = getTimeData(a[0].time);
 		var bTimeData = getTimeData(b[0].time);
-		console.log('aTimeData: ' + util.inspect(aTimeData, false, null));
-		console.log('bTimeData: ' + util.inspect(bTimeData, false, null));
 		
 		//If a is AM and b is PM
-		if (aTimeData.meridiem < bTimeData.meridiem) {
-			console.log('a is AM and b is PM... returning 1')
+		if (aTimeData.meridiem < bTimeData.meridiem)
 			return 1;
-		}
-			if (aTimeData.meridiem > bTimeData.meridiem) {
-			console.log('a is PM and b is AM... returning -1')
+		if (aTimeData.meridiem > bTimeData.meridiem) 
 			return -1;
-		}
 
 		var aMins = (aTimeData.hours * 60) + aTimeData.mins;
 		var bMins = (bTimeData.hours * 60) + bTimeData.mins;
 
-		if (aMins < bMins) {
-			console.log('aMins: ' + aMins + '< bMins: ' + bMins + '... returning 1');		
+		if (aMins < bMins)
 			return 1;
-		}
-		if (aMins > bMins) {
-			console.log('aMins: ' + aMins + '> bMins: ' + bMins + '... returning -1');					
+		if (aMins > bMins)
 			return -1;
-		}
 		return 0;
 	}
 }
@@ -794,7 +783,7 @@ function maybeOutputGameHistory() {
  */
 bot.on('message', function (user, userID, channelID, message, evt) {
     //Scrub Daddy will listen for messages that will start with `!`
-    if (message.substring(0, 1) == '*') {
+    if (message.substring(0, 1) == '!') {
 		const args = message.substring(1).match(/\S+/g);
 		const cmd = args[0];
 
