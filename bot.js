@@ -663,6 +663,14 @@ function compareFieldValues(a,b) {
 }
 
 
+function isOptedIn(user) {
+	user = user.match(/\d/g).join("");
+	if (optedInUsers.indexOf(user) === -1) 
+		return false;
+	return true;
+}
+
+
 function outputCumulativeTimePlayed(timePlayedData) {
 	var fields = [];
 	fields.push(buildField('All Games', timePlayedData.total.toFixed(1)));	
@@ -685,9 +693,18 @@ function maybeOutputTimePlayed(args) {
 	var target = nameAndTargetData.target;
 	var game = nameAndTargetData.game;
 
-	logger.info('<INFO> ' + getTimestamp() + '  Time Called - game: ' + game + ' target: ' + target);				
+	logger.info('<INFO> ' + getTimestamp() + '  Time Called - game: ' + game + ' target: ' + target);		
+	if (target !== '' && !isOptedIn(target)) { 
+		bot.sendMessage({
+			to: botSpamChannelID,
+			message: 'I do not track that scrub\'s playtime.'
+		});	
+		logger.info('<INFO> ' + getTimestamp() + '  ' + target + ' is not opted in.');				
+		return; 
+	}
+	
     if (target.match(/\d/g) !== null) {
-        target = target.match(/\d/g).join("")
+        target = target.match(/\d/g).join("");
     } 
     var timePlayedData = getCumulativeTimePlayed(game,target);
     if (Object.keys(timePlayedData.gameToTime).length !== 0) {
@@ -777,6 +794,27 @@ function maybeOutputGameHistory() {
 	});
 }
 
+var optedInUsers = [];
+
+function waitAndSendScrubDaddyFact(attempts, seconds) {
+	setTimeout(function() {
+		if (attempts === seconds) {
+			bot.sendMessage({
+				to: botSpamChannelID,
+				embed:  {
+					color: 0xffff00,
+					title: "You are now subscribed to Scrub Daddy Facts!",
+					image: {
+						url: "http://marycoffeystrand.com/wp-content/uploads/2015/02/scrubsmile-300x233.jpg",
+					}
+				} 
+			});
+			return;
+		} else {
+			waitAndSendScrubDaddyFact(attempts+1, seconds);
+		}
+	}, 1000);
+}
 
 /**
  * Listen's for messages in Discord
@@ -805,6 +843,14 @@ bot.on('message', function (user, userID, channelID, message, evt) {
 				break;
 			case 'time':
 				maybeOutputTimePlayed(args);
+				break;
+			case 'opt-in':
+				optedInUsers.push(userID);
+				var fields = [];					
+				fields.push(buildField(user, 'I\'m watching you.'));
+				sendEmbedMessage('YOU ARE BEING WATCHED', fields);	
+				waitAndSendScrubDaddyFact(0,5);
+				logger.info('<INFO> ' + getTimestamp() + '  ' + user + ' (' + userID + ') has opted into time#######');	
 				break;
 			//custom vote
 			case 'vote':
@@ -913,7 +959,6 @@ bot.on('ready', function (evt) {
     logger.info('<INFO> ' + getTimestamp() + '  Connected');
     logger.info('<INFO> Logged in as: ');
 	logger.info('<INFO> ' + bot.username + ' - (' + bot.id + ')');
-
 });
 //console.log(util.inspect(bot.getScrubs(), false, null));
 
@@ -927,4 +972,4 @@ bot.on('ready', function (evt) {
 	// 			url: "https://i.kinja-img.com/gawker-media/image/upload/s--gXPJs2QR--/c_scale,f_auto,fl_progressive,q_80,w_800/sv3a6heu1v5d9ubr9ke3.jpg",
 	// 		}
 	// 	} 
-	// });	
+	// });		
