@@ -323,7 +323,7 @@ exports.updateTimesheet = function(user, userID, game) {
 			return;
 		}
 	}
-	c.LOG.info('<INFO> Presence Update - ' + user + ' id: ' + userID + ' status: ' + status + ' game: ' + inspector.inspect(game, false, null))	
+	c.LOG.info('<INFO> Presence Update - ' + user + ' id: ' + userID + ' game: ' + inspector.inspect(game, false, null))	
 	
 	//get user's timesheet
 	var gameToTime = timeSheet[userID];
