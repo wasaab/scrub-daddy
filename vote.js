@@ -6,6 +6,7 @@
     //https://github.com/simonlast/node-persist
 const c = require('./const.js');
 const util = require('./utilities.js');
+const inspector = require('util');
 
 var voteChannelMembers = {
 	'260886906437500928' : [],						//Beyond
@@ -52,7 +53,8 @@ exports.getCustomVoteTotals = function() {
  * @param {String[]} args - input args of the requester (cmd and target)
  */
 exports.getTotalVotesForTarget = function(user, userID, channelID, args) {
-	const kickChannel = determineKickChannel(userID)
+	const kickChannel = determineKickChannel(userID);
+	console.log('CHANNEL~~~~~~~~~~~~ ' + inspector.inspect(kickChannel, false, null));
 	if (kickChannel === 'none') {
 		c.BOT.sendMessage({
 			to: channelID,
@@ -226,6 +228,21 @@ function retrieveVoteMembers(kickChannelMembers, i, vote) {
  * @param {String} userID - id of the user initiating the vote
  */
 function determineKickChannel(userID) {
+	const channels = c.BOT.channels;
+	for (var cID in channels) {
+		var channel = channels[cID];
+		for (var m in channel.members) {
+			var member = channel.members[m];
+			if (member.user_id === userID) {
+				var kChannel = {id : cID, name : channel.name};
+				return kChannel;
+			}	
+		}
+	}
+	return 'none';
+};
+
+exports.chan = function(userID) {
 	const channels = c.BOT.channels;
 	for (var cID in channels) {
 		var channel = channels[cID];
