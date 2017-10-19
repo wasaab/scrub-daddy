@@ -960,6 +960,12 @@ bot.on('ready', function (evt) {
     logger.info('<INFO> Logged in as: ');
 	logger.info('<INFO> ' + bot.username + ' - (' + bot.id + ')');
 });
+
+bot.on('disconnect', function(erMsg, code) {
+	logger.info('<ERROR> ' +  getTimestamp() + '  code: ' + code + '  msg: ' + erMsg);
+	bot.connect();
+});
+
 //console.log(util.inspect(bot.getScrubs(), false, null));
 
 
