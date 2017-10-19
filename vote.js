@@ -227,12 +227,12 @@ function retrieveVoteMembers(kickChannelMembers, i, vote) {
  */
 function determineKickChannel(userID) {
 	const channels = c.BOT.channels;
-	for (var c in channels) {
-		var channel = channels[c];
+	for (var cID in channels) {
+		var channel = channels[cID];
 		for (var m in channel.members) {
 			var member = channel.members[m];
 			if (member.user_id === userID) {
-				var kChannel = {id : c, name : channel.name};
+				var kChannel = {id : cID, name : channel.name};
 				return kChannel;
 			}	
 		}
