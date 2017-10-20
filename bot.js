@@ -10,7 +10,7 @@ var vote = require('./vote.js');
 function askToPlayPUBG() {
 	c.BOT.sendMessage({
 		to: c.SCRUBS_CHANNEL_ID,
-		message: "<@&260632970010951683>  " + c.GREETINGS[util.getRand(0, c.GREETINGS.length)] + " tryna play some " + c.PUBG_ALIASES[util.getRand(0, c.PUBG_ALIASES.length)] + "?"
+		message: "<@&370671041644724226>  " + c.GREETINGS[util.getRand(0, c.GREETINGS.length)] + " tryna play some " + c.PUBG_ALIASES[util.getRand(0, c.PUBG_ALIASES.length)] + "?"
 	});	
 }
 
