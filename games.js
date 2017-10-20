@@ -355,3 +355,32 @@ exports.updateTimesheet = function(user, userID, game) {
 	
 	timeSheet[userID] = gameToTime;
 }
+
+function waitAndSendScrubDaddyFact(attempts, seconds) {
+	setTimeout(function() {
+		if (attempts === seconds) {
+			c.BOT.sendMessage({
+				to: c.BOT_SPAM_CHANNEL_ID,
+				embed:  {
+					color: 0xffff00,
+					title: "You are now subscribed to Scrub Daddy Facts!",
+					image: {
+						url: "http://marycoffeystrand.com/wp-content/uploads/2015/02/scrubsmile-300x233.jpg",
+					}
+				} 
+			});
+			return;
+		} else {
+			waitAndSendScrubDaddyFact(attempts+1, seconds);
+		}
+	}, 1000);
+}
+
+exports.optIn = function(user, userID) {
+	optedInUsers.push(userID);
+	var fields = [];					
+	fields.push(util.buildField(user, 'I\'m watching you.'));
+	util.sendEmbedMessage('YOU ARE BEING WATCHED', fields);	
+	waitAndSendScrubDaddyFact(0,5);
+	c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + user + ' (' + userID + ') has opted into time#######');	
+}

@@ -1,11 +1,8 @@
-
 const inspector = require('util');
 const c = require('./const.js');
 const util = require('./utilities.js');
 var games = require('./games.js');
 var vote = require('./vote.js');
-
-
 
 /**
  * Asks Scrubs if they want to play pubg.
@@ -15,26 +12,6 @@ function askToPlayPUBG() {
 		to: c.SCRUBS_CHANNEL_ID,
 		message: "<@&260632970010951683>  " + c.GREETINGS[util.getRand(0, c.GREETINGS.length)] + " tryna play some " + c.PUBG_ALIASES[util.getRand(0, c.PUBG_ALIASES.length)] + "?"
 	});	
-}
-
-function waitAndSendScrubDaddyFact(attempts, seconds) {
-	setTimeout(function() {
-		if (attempts === seconds) {
-			c.BOT.sendMessage({
-				to: c.BOT_SPAM_CHANNEL_ID,
-				embed:  {
-					color: 0xffff00,
-					title: "You are now subscribed to Scrub Daddy Facts!",
-					image: {
-						url: "http://marycoffeystrand.com/wp-content/uploads/2015/02/scrubsmile-300x233.jpg",
-					}
-				} 
-			});
-			return;
-		} else {
-			waitAndSendScrubDaddyFact(attempts+1, seconds);
-		}
-	}, 1000);
 }
 
 /**
@@ -66,13 +43,7 @@ c.BOT.on('message', function (user, userID, channelID, message, evt) {
 				games.maybeOutputTimePlayed(args);
 				break;
 			case 'opt-in':
-				//MOVE THIS OVER TO GAMES.JS ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-				optedInUsers.push(userID);
-				var fields = [];					
-				fields.push(util.buildField(user, 'I\'m watching you.'));
-				util.sendEmbedMessage('YOU ARE BEING WATCHED', fields);	
-				waitAndSendScrubDaddyFact(0,5);
-				c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + user + ' (' + userID + ') has opted into time#######');	
+				games.optIn(user, userID);
 				break;
 			//custom vote
 			case 'vote':
