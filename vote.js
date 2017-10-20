@@ -240,21 +240,6 @@ function determineKickChannel(userID) {
 	return 'none';
 };
 
-exports.chan = function(userID) {
-	const channels = c.BOT.channels;
-	for (var cID in channels) {
-		var channel = channels[cID];
-		for (var m in channel.members) {
-			var member = channel.members[m];
-			if (member.user_id === userID) {
-				var kChannel = {id : cID, name : channel.name};
-				return kChannel;
-			}	
-		}
-	}
-	return 'none';
-};
-
 /**
  * Builds the a unique vote id for the current vote.
  */
