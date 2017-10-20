@@ -318,7 +318,7 @@ exports.conductVote = function(user, userID, channelID, args, type) {
 		//if not a custom vote
 		if (kickChannel.name !== '') {
 			retrieveVoteMembers(c.BOT.channels[kickChannel.id].members, 0, currVote);
-			getTotalVotesForTarget(user, userID, channelID, args);			
+			exports.getTotalVotesForTarget(user, userID, channelID, args);			
 			c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + votes[targetConcat] + msg + target + ' from ' + kickChannel.name);	
 		} else {
 			//custom vote
