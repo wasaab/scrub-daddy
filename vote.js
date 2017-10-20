@@ -9,16 +9,14 @@ const util = require('./utilities.js');
 const inspector = require('util');
 
 var voteChannelMembers = {
-	'260886906437500928' : [],						//Beyond
-	'134557049374769152' : [],						//Str8 Chillin
-	'188111442770264065' : [],						//D. Va licious
-	'258062007499096064' : [],						//Spazzy's Scrub Shack
-	'258041915574845440' : [],						//Cartoon Network
-	'132944231583973376' : [],						//The Dream Team
-	'309106757110857729' : [],						//25pooky
-	'318081358364934151' : [],						//Cat People
-	'338468590716190722' : [],						//They'll fix that b4 release
-	'280108491929157643' : []						//Where he at doe?
+	'370625207150575617' : [],						//Beyond
+	'370625515293507584' : [],						//Str8 Chillin
+	'370625345138720809' : [],						//D. Va licious
+	'370626021227233290' : [],						//Spazzy's Scrub Shack
+	'370625671833190400' : [],						//Cartoon Network
+	'370625623736975372' : [],						//League
+	'370626139972042752' : [],						//They'll fix that b4 release
+	'370628203523473408' : []						//Where he at doe?
 };
 var votes = {};										//map of targetConcat to number of votes
 var alreadyVoted = {};								//map of targetConcat to array of people who have voted for them
