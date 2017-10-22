@@ -52,7 +52,6 @@ exports.getCustomVoteTotals = function() {
  */
 exports.getTotalVotesForTarget = function(user, userID, channelID, args) {
 	const kickChannel = determineKickChannel(userID);
-	console.log('CHANNEL~~~~~~~~~~~~ ' + inspector.inspect(kickChannel, false, null));
 	if (kickChannel === 'none') {
 		c.BOT.sendMessage({
 			to: channelID,
@@ -325,17 +324,6 @@ exports.conductVote = function(user, userID, channelID, args, type) {
 		c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + user + ' is attempting to vote for a person more than once.');
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
 
 // var bannedFrom = [];		
 

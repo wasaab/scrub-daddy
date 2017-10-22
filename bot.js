@@ -1,8 +1,10 @@
 const inspector = require('util');
 const c = require('./const.js');
 const util = require('./utilities.js');
+const gambling = require('./gambling.js');
 var games = require('./games.js');
 var vote = require('./vote.js');
+var previousMessageID = '';
 
 /**
  * Asks Scrubs if they want to play pubg.
@@ -27,9 +29,21 @@ c.BOT.on('message', function (user, userID, channelID, message, evt) {
 		if (channelID !== c.BOT_SPAM_CHANNEL_ID && !(channelID === c.SCRUBS_CHANNEL_ID && cmd === 'p')) {
 			return;
 		}
-		
 		c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + cmd + ' called');	
         switch(cmd) {
+			case 'army':
+				gambling.army(userID);
+				break;
+			case 'clean':
+				//PRIORITIZE ADDING NICKNAMES VIA GETSCRUBS SO YOU CAN RESPOND TO BETS WITH NICKNAMES
+				gambling.maybeBetClean(userID, args);
+				break;
+			case 'discharge':
+				gambling.dischargeScrubBubble(userID);
+				break;
+			case 'enlist':
+				gambling.enlist(userID);
+				break;
 			case 'p':
 				askToPlayPUBG();
 				break;
@@ -77,29 +91,47 @@ c.BOT.on('message', function (user, userID, channelID, message, evt) {
 						title: "Commands",
 						description: "------------------------- Voting --------------------------" +
 									 "\nPlease Note: You must be in a voice channel with at least 3 members to participate in a kick/ban vote." +
-									 "\n\n!votekick @user - to remove user from channel." +
-									 "\n!voteban @user - for a more permanent solution." +
-									 "\n!vote thing to vote for - to do a custom vote." +
+									 "\n\n!votekick <@user> - to remove user from channel." +
+									 "\n!voteban <@user> - for a more permanent solution." +
+									 "\n!vote <thing to vote for> - to do a custom vote." +
 									 "\n!voteinfo - for totals of all custom votes." +
-									 "\n!voteinfo @user - for total votes to kick/ban that user." +
+									 "\n!voteinfo <@user> - for total votes to kick/ban that user." +
 									 "\n------------------------------------------------------------" +
+									 "\n\n------------------------ Gambling ------------------------" +
+									 "\n!enlist - enlists the discharged Scrubbing Bubbles to your army." +
+									 "\n!discharge - honorably discharges a Scrubbing Bubble from your army." +
+									 "\n!clean <numBubbles> <t|b> - send numBubbles to clean toilet/bath." +
+									 "\n!army - retrieves the size of your army" +
+									 "\n------------------------------------------------------------" +	
 									 "\n\n----------------------- Time Played ----------------------" +
-									 "\n!time Game Name @user - user's playtime for the specified Game Name" +
-									 "\n!time Game Name - cumulative playtime for the specified Game Name" +
-									 "\n!time @user - user's playtime for all games" + 
-									 "\n!time - cumulative playtime for all games" +
+									 "\n!time <Game Name> <@user> - user's playtime for the specified Game Name." +
+									 "\n!time <Game Name> - cumulative playtime for the specified Game Name." +
+									 "\n!time <@user> - user's playtime for all games." + 
+									 "\n!time - cumulative playtime for all games." +
+									 "\n!opt-in - to opt into playtime tracking." + 
 									 "\n------------------------------------------------------------" +									 
 									 "\n\n---------------------- Player Count ----------------------" +
 									 "\n!playing - player count of games currently being played." +
 									 "\n!gameHistory - player counts for all games throughout the day." +
 									 "\n------------------------------------------------------------" +
 									 "\n\n!test - to try out features in development." +									 
-									 "\n!p - to ask @Scrubs to play PUBG in scrubs text channel" +
+									 "\n!p - to ask @Scrubs to play PUBG in scrubs text channel." +
 									 "\n!help, !info, or !helpinfo - to show this message again."
 					}
 				});
-         }
-     }
+		 }
+	//DEAR LORD PLZ REFACTOR THIS
+	 } else if (userID === c.SCRUB_DADDY_ID && evt.d.embeds !== undefined && evt.d.embeds[0] !== undefined && 
+		evt.d.embeds[0].title !== undefined && evt.d.embeds[0].title.indexOf('duty') !== -1) {
+		c.LOG.info('<INFO> ' + util.getTimestamp() + '  arrive for duty msg found ');
+		//delete previous message if >1 bubbles dropped
+		if (gambling.getDropped() > 1) {
+			c.LOG.info('<INFO> ' + util.getTimestamp() + '  Dropped > 1  previousMsgID: ' + previousMessageID);			
+			c.BOT.deleteMessage({channelID: c.BOT_SPAM_CHANNEL_ID, messageID: previousMessageID}, util.log);
+		}
+		previousMessageID = evt.d.id;
+	}
+	//c.LOG.info('<INFO> ' + util.getTimestamp() + '  userID: ' + userID + '  c.SCRUB_DADDY_ID: ' + c.SCRUB_DADDY_ID);
 });
 
 /**
@@ -107,6 +139,7 @@ c.BOT.on('message', function (user, userID, channelID, message, evt) {
  */
 c.BOT.on('presence', function(user, userID, status, game, event) { 
 	games.updateTimesheet(user, userID, game);
+	gambling.maybeDischargeScrubBubble();
 });
 
 /**

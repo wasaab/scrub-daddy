@@ -158,17 +158,25 @@ function getCumulativeTimePlayed(gameName, target) {
 /**
  * Comparator for two field objects. Compares values.
  * 
- * @param {Object} a 
- * @param {Object} b 
+ * @param {Object} a - first field
+ * @param {Object} b - second field
  */
 function compareFieldValues(a,b) {
-	if (a.value > b.value)
+	const aNum = Number(a.value);
+	const bNum = Number(b.value);
+
+	if ( aNum > bNum)
 	  return -1;
-	if (a.value < b.value)
+	if (aNum < bNum)
 	  return 1;
 	return 0;
 }
 
+/**
+ * Checks if the provided user has opted into playtime tracking.
+ * 
+ * @param {String} user - the user to check
+ */
 function isOptedIn(user) {
 	user = user.match(/\d/g).join("");
 	if (optedInUsers.indexOf(user) === -1) 
@@ -176,7 +184,11 @@ function isOptedIn(user) {
 	return true;
 }
 
-
+/**
+ * Outputs the cumulative playtime.
+ * 
+ * @param {Object} timePlayedData 
+ */
 function outputCumulativeTimePlayed(timePlayedData) {
 	var fields = [];
 	fields.push(util.buildField('All Games', timePlayedData.total.toFixed(1)));	
@@ -356,6 +368,12 @@ exports.updateTimesheet = function(user, userID, game) {
 	timeSheet[userID] = gameToTime;
 }
 
+/**
+ * Waits for the provided number of seconds and then sends a scrub daddy fact. 
+ * 
+ * @param {Number} attempts - loop iterator
+ * @param {Number} seconds - duration of each loop
+ */
 function waitAndSendScrubDaddyFact(attempts, seconds) {
 	setTimeout(function() {
 		if (attempts === seconds) {
@@ -376,6 +394,12 @@ function waitAndSendScrubDaddyFact(attempts, seconds) {
 	}, 1000);
 }
 
+/**
+ * opts a user into playtime tracking
+ * 
+ * @param {String} user - the name of the user to opt in
+ * @param {String} userID - the ID of the user to opt in
+ */
 exports.optIn = function(user, userID) {
 	optedInUsers.push(userID);
 	var fields = [];					

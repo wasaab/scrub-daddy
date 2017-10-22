@@ -59,12 +59,12 @@ exports.getTimestamp = function() {
 exports.log = function(error, response) {
 	if (undefined === response) {
 		if (null === error || undefined === error) {
-			c.LOG.info('<AddRoleOrMoveUser API INFO> ' + exports.getTimestamp() + '  Successful API Call');
+			c.LOG.info('<API INFO> ' + exports.getTimestamp() + '  Successful API Call');
 		} else {
-			c.LOG.info('<AddRoleOrMoveUser API RESPONSE> ' + exports.getTimestamp() + '  ERROR: ' + error);			
+			c.LOG.info('<API RESPONSE> ' + exports.getTimestamp() + '  ERROR: ' + error);			
 		}
 	} else {
-		c.LOG.info('<AddRoleOrMoveUser API RESPONSE> ' + exports.getTimestamp() + '  ' + response);
+		c.LOG.info('<API RESPONSE> ' + exports.getTimestamp() + '  ' + response);
 	}
 }
 
