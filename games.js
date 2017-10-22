@@ -7,10 +7,12 @@
 const c = require('./const.js');
 const util = require('./utilities.js');
 const inspector = require('util');
+var fs = require('fs');
 
 var gameHistory = [];								//timestamped log of player counts for each game
 var timeSheet = {};									//map of userID to gameToTimePlayed map for that user
-var optedInUsers = [];
+var optedInUsers = require('./optedIn.json');
+//optedInUsers = JSON.parse(optedInUsers);
 /**
  * Gets the name of the game provided as well as the target if one exists
  * 
@@ -407,4 +409,6 @@ exports.optIn = function(user, userID) {
 	util.sendEmbedMessage('YOU ARE BEING WATCHED', fields);	
 	waitAndSendScrubDaddyFact(0,5);
 	c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + user + ' (' + userID + ') has opted into time#######');	
+	var json = JSON.stringify(optedInUsers);	
+	fs.writeFile('optedIn.json', json, 'utf8', util.log);
 }

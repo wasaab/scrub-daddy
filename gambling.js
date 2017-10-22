@@ -1,11 +1,20 @@
 const c = require('./const.js');
 const util = require('./utilities.js');
+var fs = require('fs');
 
 var dropped = 0;
-var ledger = {};    //keeps track of how much armySize each member has as well bet amounts
+var ledger = require('./ledger.json');   //keeps track of how big of an army each member has as well as bet amounts
+console.log('ledger: ' + ledger);
+
+//ledger = JSON.parse(ledger);
 
 exports.getDropped = function() {
     return dropped;
+}
+
+exports.exportLedger = function() {
+    var json = JSON.stringify(ledger);    
+    fs.writeFile('ledger.json', json, 'utf8', util.log);
 }
 
 /**
