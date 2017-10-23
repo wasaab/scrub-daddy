@@ -1,4 +1,5 @@
 const c = require('./const.js');
+const catFacts = require('./catfacts.json');
 
 /**
  * initializes the logger.
@@ -92,6 +93,18 @@ exports.sendEmbedMessage = function(title, fields) {
 			color: 0xffff00,
 			title: title,
 			fields: fields
+		} 
+	});	
+}
+
+exports.catfacts = function() {
+	const factIdx = exports.getRand(0,catFacts.length);
+	c.BOT.sendMessage({
+		to: c.BOT_SPAM_CHANNEL_ID,
+		embed:  {
+			color: 0xffff00,
+			title: 'Did you know?',
+			description: catFacts[factIdx] + '\n 🐈 Meeeeee-WOW!'
 		} 
 	});	
 }

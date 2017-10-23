@@ -4,7 +4,7 @@ var fs = require('fs');
 
 var dropped = 0;
 var ledger = require('./ledger.json');   //keeps track of how big of an army each member has as well as bet amounts
-console.log('ledger: ' + ledger);
+//console.log('ledger: ' + ledger);
 
 //ledger = JSON.parse(ledger);
 
@@ -145,7 +145,7 @@ function betClean(userID, bet, type, side) {
         if (util.getRand(0,2) === getTypeNum(side)) {
             const payout = bet*2;            
             img = 'https://i.imgur.com/LDSm2sg.png';
-            msg = 'Congrats, your auxiliary army gained ' + payout + ' Scrubbing Bubble' + plural + ' after cleaning the bathroom and conquering the land!';
+            msg = 'Congrats, your auxiliary army gained ' + payout + ' Scrubbing Bubbles after cleaning the bathroom and conquering the land!';
             addToArmy(userID, payout);        
         } else {
             img = 'https://i.imgur.com/gynZE1j.png';
@@ -176,12 +176,23 @@ exports.maybeBetClean = function(userID, args) {
     betClean(userID, bet, 'clean', side);
 }
 
-exports.army = function(userID) {
+exports.army = function(userID, args) {
+    var msg = ' your';
+    if (args[1] !== undefined) {
+        if (args[1].match(/\d/g) !== null) {
+            userID = args[1].match(/\d/g).join("")  
+            msg = '\'s';
+        }
+    }
     const wallet = ledger[userID];
     if ( wallet !== undefined ) {
+        var plural = '';
+        if (wallet.armySize > 1) {
+            plural = 's';
+        }
         c.BOT.sendMessage({
             to: c.BOT_SPAM_CHANNEL_ID,
-            message: '<@!' + userID + '>  your army is ' + wallet.armySize +  ' Scrubbing Bubbles strong!' 
+            message: '<@!' + userID + '>'+ msg +  ' army is ' + wallet.armySize +  ' Scrubbing Bubble' + plural + ' strong!' 
         });	
     }
 }

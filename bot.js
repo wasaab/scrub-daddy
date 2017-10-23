@@ -31,11 +31,14 @@ c.BOT.on('message', function (user, userID, channelID, message, evt) {
 		}
 		c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + cmd + ' called');	
         switch(cmd) {
+			case 'catfacts':
+				util.catfacts();
+				break;
 			case 'export':
 				gambling.exportLedger();
 				break;
 			case 'army':
-				gambling.army(userID);
+				gambling.army(userID, args);
 				break;
 			case 'clean':
 				//PRIORITIZE ADDING NICKNAMES VIA GETSCRUBS SO YOU CAN RESPOND TO BETS WITH NICKNAMES
