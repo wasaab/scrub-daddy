@@ -1,3 +1,5 @@
+const util = require('./utilities.js');
+
 function define(name, value) {
     Object.defineProperty(exports, name, {
         value:      value,
@@ -30,7 +32,7 @@ define('GAME_NAME_TO_IMG', {
 });
 define('PURGATORY_CHANNEL_ID', '370626266786824192');	    //sends kicked user's to this channel    
 define('VOTE_TYPE', {
-	KICK : "kick" ,
+	KICK : "kick",
 	BAN : "ban",
 	PTT : "force Push To Talk",
 	REMOVE_ROLE : "remove role",
@@ -51,3 +53,6 @@ define('BUBBLE_IMAGES', ['https://i.imgur.com/rddtZR6.png','https://i.imgur.com/
 						 'https://i.imgur.com/3bXFEcL.png','https://i.imgur.com/Q33oITR.png','https://i.imgur.com/O2iQuhP.png','https://i.imgur.com/LUq3M1Q.png','https://i.imgur.com/ne412gl.png',
 						 'https://i.imgur.com/ASgP6i6.png']);
 define('SCRUB_DADDY_ID', '370688149971795982');
+
+define('SCRUB_ID_TO_NICK', util.getScrubIDToNick());
+

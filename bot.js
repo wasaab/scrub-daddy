@@ -31,6 +31,9 @@ c.BOT.on('message', function (user, userID, channelID, message, evt) {
 		}
 		c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + cmd + ' called');	
         switch(cmd) {
+			case 'ranks':
+				gambling.armyRanks();
+				break;
 			case 'catfacts':
 				util.catfacts();
 				break;

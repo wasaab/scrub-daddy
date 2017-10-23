@@ -1,5 +1,6 @@
 const c = require('./const.js');
 const catFacts = require('./catfacts.json');
+const scrubData = require('../scrubData.json');
 
 /**
  * initializes the logger.
@@ -84,6 +85,23 @@ exports.buildField = function(name, value) {
 }
 
 /**
+ * Comparator for two field objects. Compares values.
+ * 
+ * @param {Object} a - first field
+ * @param {Object} b - second field
+ */
+exports.compareFieldValues = function(a,b) {
+	const aNum = Number(a.value);
+	const bNum = Number(b.value);
+
+	if ( aNum > bNum)
+	  return -1;
+	if (aNum < bNum)
+	  return 1;
+	return 0;
+}
+
+/**
  * Output vote count to bot-spam channel
  */
 exports.sendEmbedMessage = function(title, fields) {
@@ -107,4 +125,12 @@ exports.catfacts = function() {
 			description: catFacts[factIdx] + '\n 🐈 Meeeeee-WOW!'
 		} 
 	});	
+}
+
+exports.getScrubIDToNick = function() {
+	scrubIDtoNick = {};
+	scrubData.forEach(function(member)  {
+		scrubIDtoNick[member.id] = member.nick;
+	});
+	return scrubIDtoNick;
 }

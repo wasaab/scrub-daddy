@@ -85,7 +85,7 @@ exports.getAndOutputCountOfGamesBeingPlayed = function() {
 			}
 		} 
 	});	
-	fields.sort(compareFieldValues);
+	fields.sort(util.compareFieldValues);
 	util.sendEmbedMessage("Player Count", fields);
 }
 
@@ -158,23 +158,6 @@ function getCumulativeTimePlayed(gameName, target) {
 }
 
 /**
- * Comparator for two field objects. Compares values.
- * 
- * @param {Object} a - first field
- * @param {Object} b - second field
- */
-function compareFieldValues(a,b) {
-	const aNum = Number(a.value);
-	const bNum = Number(b.value);
-
-	if ( aNum > bNum)
-	  return -1;
-	if (aNum < bNum)
-	  return 1;
-	return 0;
-}
-
-/**
  * Checks if the provided user has opted into playtime tracking.
  * 
  * @param {String} user - the user to check
@@ -198,7 +181,7 @@ function outputCumulativeTimePlayed(timePlayedData) {
 		var playtime = timePlayedData.gameToTime[gameName];
 		fields.push(util.buildField(gameName, playtime.toFixed(1)));
 	}
-	fields.sort(compareFieldValues);
+	fields.sort(util.compareFieldValues);
 	util.sendEmbedMessage('Cumulative Hours Played', fields);
 	c.LOG.info('<INFO> ' + util.getTimestamp() + '  Cumulative Hours Played All Games: ' + inspector.inspect(fields, false, null));
 }
@@ -296,7 +279,7 @@ exports.maybeOutputGameHistory = function () {
 				gamesLog.forEach(function(gameData) {
 					fields.push(util.buildField(gameData.game, gameData.count));
 				});
-				fields.sort(compareFieldValues);
+				fields.sort(util.compareFieldValues);
 				util.sendEmbedMessage('Player Count - ' + time, fields);	
 				previousTime = time;			
 			}	

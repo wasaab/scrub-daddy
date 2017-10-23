@@ -135,11 +135,7 @@ function betClean(userID, bet, type, side) {
         });	
     } else {
         var msg = '';
-        var plural = '';
         var img = '';
-        if (bet > 1) {
-            plural = 's';
-        }
         takeBetFromUser(userID, bet, type);
         
         if (util.getRand(0,2) === getTypeNum(side)) {
@@ -148,6 +144,10 @@ function betClean(userID, bet, type, side) {
             msg = 'Congrats, your auxiliary army gained ' + payout + ' Scrubbing Bubbles after cleaning the bathroom and conquering the land!';
             addToArmy(userID, payout);        
         } else {
+            var plural = '';
+            if (bet > 1) {
+                plural = 's';
+            }
             img = 'https://i.imgur.com/gynZE1j.png';
             msg = 'Sorry bud, you lost ' + bet + ' Scrubbing Bubble' + plural + ' in the battle.';
         }
@@ -195,4 +195,13 @@ exports.army = function(userID, args) {
             message: '<@!' + userID + '>'+ msg +  ' army is ' + wallet.armySize +  ' Scrubbing Bubble' + plural + ' strong!' 
         });	
     }
+}
+
+exports.armyRanks = function() {
+    var fields = [];
+    for (var userID in ledger) {
+        fields.push(util.buildField(c.SCRUB_ID_TO_NICK[userID], ledger[userID].armySize));
+    } 
+    fields.sort(util.compareFieldValues);
+    util.sendEmbedMessage('Scrubbing Bubbles Army Sizes', fields);
 }
