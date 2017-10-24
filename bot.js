@@ -4,7 +4,6 @@ const util = require('./utilities.js');
 const gambling = require('./gambling.js');
 var games = require('./games.js');
 var vote = require('./vote.js');
-var previousMessageID = '';
 
 /**
  * Asks Scrubs if they want to play pubg.
@@ -21,7 +20,7 @@ function askToPlayPUBG() {
  */
 c.BOT.on('message', function (user, userID, channelID, message, evt) {
     //Scrub Daddy will listen for messages that will start with `!`
-    if (message.substring(0, 1) == '!') {
+    if (message.substring(0, 1) == '*') {
 		const args = message.substring(1).match(/\S+/g);
 		const cmd = args[0];
 
@@ -31,6 +30,7 @@ c.BOT.on('message', function (user, userID, channelID, message, evt) {
 		}
 		c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + cmd + ' called');	
         switch(cmd) {
+			case 'rank':
 			case 'ranks':
 				gambling.armyRanks();
 				break;
@@ -39,6 +39,7 @@ c.BOT.on('message', function (user, userID, channelID, message, evt) {
 				break;
 			case 'export':
 				gambling.exportLedger();
+				games.exportTimeSheet();
 				break;
 			case 'army':
 				gambling.army(userID, args);
@@ -129,18 +130,10 @@ c.BOT.on('message', function (user, userID, channelID, message, evt) {
 					}
 				});
 		 }
-	//DEAR LORD PLZ REFACTOR THIS
 	 } else if (userID === c.SCRUB_DADDY_ID && evt.d.embeds !== undefined && evt.d.embeds[0] !== undefined && 
 		evt.d.embeds[0].title !== undefined && evt.d.embeds[0].title.indexOf('duty') !== -1) {
-		c.LOG.info('<INFO> ' + util.getTimestamp() + '  arrive for duty msg found ');
-		//delete previous message if >1 bubbles dropped
-		if (gambling.getDropped() > 1) {
-			c.LOG.info('<INFO> ' + util.getTimestamp() + '  Dropped > 1  previousMsgID: ' + previousMessageID);			
-			c.BOT.deleteMessage({channelID: c.BOT_SPAM_CHANNEL_ID, messageID: previousMessageID}, util.log);
-		}
-		previousMessageID = evt.d.id;
+		gambling.maybeDeletePreviousMessage(evt.d.id);
 	}
-	//c.LOG.info('<INFO> ' + util.getTimestamp() + '  userID: ' + userID + '  c.SCRUB_DADDY_ID: ' + c.SCRUB_DADDY_ID);
 });
 
 /**

@@ -183,6 +183,7 @@ function maybeEndVoteAfterWaitingToGetUser(retry) {
 	}, c.LOOP_DELAY);
 }
 
+//REPLACE THIS LOGIC WITH SCRUB_ID_TO_NICK ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 /**
  * Retrieves the name and id of members currently in the voice channel, who are eligible to vote.
  * 

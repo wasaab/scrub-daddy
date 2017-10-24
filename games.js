@@ -13,6 +13,12 @@ var gameHistory = [];								//timestamped log of player counts for each game
 var timeSheet = {};									//map of userID to gameToTimePlayed map for that user
 var optedInUsers = require('./optedIn.json');
 //optedInUsers = JSON.parse(optedInUsers);
+
+exports.exportTimeSheet = function() {
+	var json = JSON.stringify(timeSheet);	
+	fs.writeFile('../timeSheet.json', json, 'utf8', util.log);
+}
+
 /**
  * Gets the name of the game provided as well as the target if one exists
  * 

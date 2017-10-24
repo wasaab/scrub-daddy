@@ -4,13 +4,7 @@ var fs = require('fs');
 
 var dropped = 0;
 var ledger = require('./ledger.json');   //keeps track of how big of an army each member has as well as bet amounts
-//console.log('ledger: ' + ledger);
-
-//ledger = JSON.parse(ledger);
-
-exports.getDropped = function() {
-    return dropped;
-}
+var previousMessageID = '';
 
 exports.exportLedger = function() {
     var json = JSON.stringify(ledger);    
@@ -85,8 +79,8 @@ exports.enlist = function(userID) {
             to: c.BOT_SPAM_CHANNEL_ID,
             message: '<@!' + userID + '>  ' + 'Your Scrubbing Bubbles army has grown by ' + dropped + '! You now have an army of ' + ledger[userID].armySize + '.' 
         });	
+        c.BOT.deleteMessage({channelID: c.BOT_SPAM_CHANNEL_ID, messageID: previousMessageID}, util.log);        
         dropped = 0;
-        
     } 
 }
 
@@ -204,4 +198,14 @@ exports.armyRanks = function() {
     } 
     fields.sort(util.compareFieldValues);
     util.sendEmbedMessage('Scrubbing Bubbles Army Sizes', fields);
+}
+
+exports.maybeDeletePreviousMessage = function (msgID) {
+    c.LOG.info('<INFO> ' + util.getTimestamp() + '  arrive for duty msg found ');
+    //delete previous message if >1 bubbles dropped
+    if (dropped > 1) {
+        c.LOG.info('<INFO> ' + util.getTimestamp() + '  Dropped > 1  previousMsgID: ' + previousMessageID);			
+        c.BOT.deleteMessage({channelID: c.BOT_SPAM_CHANNEL_ID, messageID: previousMessageID}, util.log);
+    }
+    previousMessageID = msgID;
 }
