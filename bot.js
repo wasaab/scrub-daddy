@@ -30,6 +30,9 @@ c.BOT.on('message', function (user, userID, channelID, message, evt) {
 		}
 		c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + cmd + ' called');	
         switch(cmd) {
+			case 'issue':
+				util.submitIssue(userID, args);
+				break;
 			case 'rank':
 			case 'ranks':
 				gambling.armyRanks();
@@ -159,7 +162,7 @@ c.BOT.on('disconnect', function(erMsg, code) {
 	c.BOT.connect();
 });
 
-//console.log(inspector.inspect(bot.getScrubs(), false, null));
+//console.log(inspector.inspect(member, false, null));
 
 
 	// bot.sendMessage({

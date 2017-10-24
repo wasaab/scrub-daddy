@@ -1,6 +1,51 @@
 const c = require('./const.js');
 const catFacts = require('./catfacts.json');
 const scrubData = require('../scrubData.json');
+const inspector = require('util');
+
+var issueMsg = [];
+var id = [];
+
+/**
+ * Logs the response of an API request for Add Role or Move User.
+ * 
+ * @param {String} error - error returned from API request
+ * @param {Object} response - response returned from API request
+ */
+function moveIssueChannel(error, response) {
+	if (undefined === response) {
+		if (null === error || undefined === error) {
+			c.LOG.info('<API INFO> ' + exports.getTimestamp() + '  Successful API Call');
+		} else {
+			c.LOG.info('<API RESPONSE> ' + exports.getTimestamp() + '  ERROR: ' + error);			
+		}
+	} else if (response.id !== undefined) {
+		c.LOG.info('<API RESPONSE> ' + exports.getTimestamp() + '  ' + inspector.inspect(response, false, null));			
+		console.log('in');
+		c.BOT.editChannelInfo({position: 7, channelID: response.id}, exports.log);		
+		var issue = '';
+		for (i=2; i < issueMsg.length; i++) {
+			issue += issueMsg[i] + ' ';
+		}			
+		c.BOT.sendMessage({
+			to: response.id,
+			embed:  {
+				color: 0xffff00,
+				title: 'Issue Submitted By ' + c.SCRUB_ID_TO_NICK[id],
+				description: issue
+			}
+		});	
+	}
+}
+
+
+exports.submitIssue = function(userID, args) {
+	if (args[1] !== null) {
+		issueMsg = args;
+		id = userID;		
+		c.BOT.createChannel({name: args[1], serverID: c.SERVER_ID}, moveIssueChannel);
+	}
+}
 
 /**
  * initializes the logger.
@@ -66,7 +111,7 @@ exports.log = function(error, response) {
 			c.LOG.info('<API RESPONSE> ' + exports.getTimestamp() + '  ERROR: ' + error);			
 		}
 	} else {
-		c.LOG.info('<API RESPONSE> ' + exports.getTimestamp() + '  ' + response);
+		c.LOG.info('<API RESPONSE> ' + exports.getTimestamp() + '  ' + inspector.inspect(response, false, null));
 	}
 }
 
