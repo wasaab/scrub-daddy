@@ -20,7 +20,7 @@ function askToPlayPUBG() {
  */
 c.BOT.on('message', function (user, userID, channelID, message, evt) {
     //Scrub Daddy will listen for messages that will start with `!`
-    if (message.substring(0, 1) == '*') {
+    if (message.substring(0, 1) == '!') {
 		const args = message.substring(1).match(/\S+/g);
 		const cmd = args[0];
 
