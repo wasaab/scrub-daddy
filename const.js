@@ -1,22 +1,23 @@
 const util = require('./utilities.js');
-
+const auth = require('./secureAuth.json'); 
+var get = require('lodash.get');
 function define(name, value) {
     Object.defineProperty(exports, name, {
         value:      value,
         enumerable: true
     });
 }
-const Discord = require('discord.io');
-const auth = require('./secureAuth.json'); 
+
 // Initialize Discord Bot
-define('BOT', new Discord.Client({
-    token: auth.token,
-    autorun: true
- }));
+// define('BOT', new Discord.Client({
+//     token: auth.token,
+//     autorun: true
+//  }));
  
 define('LOG', require('winston'));
 
 define("LOOP_DELAY", 1500);							        //delay between each loop
+define('BOT_SPAM', {"type":"text","id":"372570540482887701","guild":{"id":"370623193075154945"}});
 define('BOT_SPAM_CHANNEL_ID', '372570540482887701');		//listen's to messages from this channel
 define('SCRUBS_CHANNEL_ID', '370626384059695107');		    //channel ID of scrubs text channel
 define('SERVER_ID', auth.serverID);				    		//Bed Bath Server ID
@@ -55,4 +56,3 @@ define('BUBBLE_IMAGES', ['https://i.imgur.com/rddtZR6.png','https://i.imgur.com/
 define('SCRUB_DADDY_ID', '370688149971795982');
 
 define('SCRUB_ID_TO_NICK', util.getScrubIDToNick());
-

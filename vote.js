@@ -7,7 +7,7 @@
 const c = require('./const.js');
 const util = require('./utilities.js');
 const inspector = require('util');
-
+var get = require('lodash.get');
 var voteChannelMembers = {
 	'370625207150575617' : [],						//Beyond
 	'370625515293507584' : [],						//Str8 Chillin

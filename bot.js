@@ -4,12 +4,21 @@ const util = require('./utilities.js');
 const gambling = require('./gambling.js');
 var games = require('./games.js');
 var vote = require('./vote.js');
+var get = require('lodash.get');
+var fs = require('fs');
+
+const Discord = require('discord.js');
+const auth = require('./secureAuth.json'); 
+const bot = new Discord.Client();
+
+bot.login(auth.token);
+var botSpam = '';
 
 /**
  * Asks Scrubs if they want to play pubg.
  */
 function askToPlayPUBG() {
-	c.BOT.sendMessage({
+	bot.sendMessage({
 		to: c.SCRUBS_CHANNEL_ID,
 		message: "<@&370671041644724226>  " + c.GREETINGS[util.getRand(0, c.GREETINGS.length)] + " tryna play some " + c.PUBG_ALIASES[util.getRand(0, c.PUBG_ALIASES.length)] + "?"
 	});	
@@ -18,11 +27,12 @@ function askToPlayPUBG() {
 /**
  * Listen's for messages in Discord
  */
-c.BOT.on('message', function (user, userID, channelID, message, evt) {
+bot.on('message', message => {
     //Scrub Daddy will listen for messages that will start with `!`
-    if (message.substring(0, 1) == '!') {
-		const args = message.substring(1).match(/\S+/g);
+    if (message.content.substring(0, 1) == '!') {
+		const args = message.content.substring(1).match(/\S+/g);
 		const cmd = args[0];
+		const channelID = message.channel.id;
 
 		//stops if the message is not from bot-spam text channel, with the expection of the message !p.
 		if (channelID !== c.BOT_SPAM_CHANNEL_ID && !(channelID === c.SCRUBS_CHANNEL_ID && cmd === 'p')) {
@@ -97,9 +107,7 @@ c.BOT.on('message', function (user, userID, channelID, message, evt) {
 			case 'help':
 			case 'info':
 			case 'helpinfo':
-				c.BOT.sendMessage({
-					to: channelID,
-					embed:  {
+				botSpam.send(new Discord.RichEmbed({
 						color: 0xffff00,
 						title: "Commands",
 						description: "------------------------- Voting --------------------------" +
@@ -130,48 +138,46 @@ c.BOT.on('message', function (user, userID, channelID, message, evt) {
 									 "\n\n!test - to try out features in development." +									 
 									 "\n!p - to ask @Scrubs to play PUBG in scrubs text channel." +
 									 "\n!help, !info, or !helpinfo - to show this message again."
-					}
-				});
+				}));
 		 }
-	 } else if (userID === c.SCRUB_DADDY_ID && evt.d.embeds !== undefined && evt.d.embeds[0] !== undefined && 
-		evt.d.embeds[0].title !== undefined && evt.d.embeds[0].title.indexOf('duty') !== -1) {
-		gambling.maybeDeletePreviousMessage(evt.d.id);
+	 //TODO: replace reference to content with whatever im using in this new api. title does not exist under message.
+	 } else if (message.author.id === c.SCRUB_DADDY_ID && message.content.indexOf('duty') !== -1) {
+		//gambling.maybeDeletePreviousMessage(evt.d.id);
 	}
 });
 
 /**
  * listens for updates to a user's presence (online status, game, etc).
  */
-c.BOT.on('presence', function(user, userID, status, game, event) { 
-	games.updateTimesheet(user, userID, game);
-	gambling.maybeDischargeScrubBubble();
+bot.on('presenceUpdate', (oldMember, newMember) => { 
+	//You are now fed both old and new member so you can actually know what game they finished playing!
+	games.updateTimesheet(newMember.displayName, newMember.id, get(oldMember, 'presence.game.name'), get(newMember, 'presence.game.name'));
+	gambling.maybeDischargeScrubBubble(botSpam);
 });
+
 
 /**
  * Logs the bot into Discord.
  */
-c.BOT.on('ready', function (evt) {
-	//util.initLogger();
-    c.LOG.info('<INFO> ' + util.getTimestamp() + '  Connected');
-    c.LOG.info('<INFO> Logged in as: ');
-	c.LOG.info('<INFO> ' + c.BOT.username + ' - (' + c.BOT.id + ')');
+bot.on('ready', () => {
+	c.LOG.info('<INFO> ' + util.getTimestamp() + '  Connected');
+	botSpam = bot.channels.find("id", c.BOT_SPAM_CHANNEL_ID);	
+	
 });
 
-c.BOT.on('disconnect', function(erMsg, code) {
-	c.LOG.info('<ERROR> ' +  util.getTimestamp() + '  code: ' + code + '  msg: ' + erMsg);
-	c.BOT.connect();
+bot.on('disconnect', event => {
+	c.LOG.info('<ERROR> ' +  util.getTimestamp() + '  event: ' + inspector.inspect(event, false, null));
+	bot.login(auth.token);
 });
 
 //console.log(inspector.inspect(member, false, null));
-
-
-	// bot.sendMessage({
-	// 	to: c.BOT_SPAM_CHANNEL_ID,
-	// 	embed:  {
-	// 		color: 0xffff00,
-	// 		title: "This is a test of the Emergency Broadcast System",
-	// 		image: {
-	// 			url: "https://i.kinja-img.com/gawker-media/image/upload/s--gXPJs2QR--/c_scale,f_auto,fl_progressive,q_80,w_800/sv3a6heu1v5d9ubr9ke3.jpg",
-	// 		}
-	// 	} 
-	// });		
+// bot.sendMessage({
+// 	to: c.BOT_SPAM_CHANNEL_ID,
+// 	embed:  {
+// 		color: 0xffff00,
+// 		title: "This is a test of the Emergency Broadcast System",
+// 		image: {
+// 			url: "https://i.kinja-img.com/gawker-media/image/upload/s--gXPJs2QR--/c_scale,f_auto,fl_progressive,q_80,w_800/sv3a6heu1v5d9ubr9ke3.jpg",
+// 		}
+// 	} 
+// });		

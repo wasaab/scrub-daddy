@@ -6,6 +6,8 @@
   "author": "Kent",
   "dependencies": {
     "discord.io": "^2.5.3",
+    "discord.js": "^11.2.1",
+    "lodash.get": "^4.4.2",
     "winston": "^2.3.1"
   }
 }

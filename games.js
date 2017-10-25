@@ -8,7 +8,7 @@ const c = require('./const.js');
 const util = require('./utilities.js');
 const inspector = require('util');
 var fs = require('fs');
-
+var get = require('lodash.get');
 var gameHistory = [];								//timestamped log of player counts for each game
 var timeSheet = {};									//map of userID to gameToTimePlayed map for that user
 var optedInUsers = require('./optedIn.json');
@@ -315,18 +315,21 @@ function getTimePlayed(currentlyPlaying) {
 /**
  * Updates the provided users timesheet.
  * 
+ * TODO: Update this function to use the oldGame name to validate that is 
+ * what they just finished playing.
+ * 
  * @param {String} user 
  * @param {String} userID 
  * @param {Object} game 
  */
-exports.updateTimesheet = function(user, userID, game) {
+exports.updateTimesheet = function(user, userID, oldGame, newGame) {
     //ignore presence updates for bots
 	for (i = 0; i < c.BOT_IDS.length; i++) {
 		if (userID === c.BOT_IDS[i]) {
 			return;
 		}
 	}
-	c.LOG.info('<INFO> Presence Update - ' + user + ' id: ' + userID + ' game: ' + inspector.inspect(game, false, null))	
+	c.LOG.info('<INFO> Presence Update - ' + user + ' id: ' + userID + ' new game: ' + newGame)	
 	
 	//get user's timesheet
 	var gameToTime = timeSheet[userID];
@@ -335,11 +338,12 @@ exports.updateTimesheet = function(user, userID, game) {
 	}
 
 	//Just started playing a game
-	if (game !== null && game.timestamps !== undefined) {
-		if (gameToTime[game.name] === undefined) {
-			gameToTime[game.name] = 0;
+	// TODO: this may need to be a null check instead 
+	if (oldGame === undefined && newGame !== undefined) {
+		if (gameToTime[newGame] === undefined) {
+			gameToTime[newGame] = 0;
 		}
-		gameToTime['playing'] = {name : game.name, start : game.timestamps.start} ;
+		gameToTime['playing'] = {name : newGame, start : util.getTimestamp()} ; //replace util.getTimestamp with epoch
 	//Just finished playing a game
 	} else {
 		var currentlyPlaying = gameToTime['playing'];

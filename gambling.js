@@ -1,7 +1,8 @@
 const c = require('./const.js');
 const util = require('./utilities.js');
 var fs = require('fs');
-
+var get = require('lodash.get');
+const Discord = require('discord.js');
 var dropped = 0;
 var ledger = require('./ledger.json');   //keeps track of how big of an army each member has as well as bet amounts
 var previousMessageID = '';
@@ -17,7 +18,7 @@ exports.exportLedger = function() {
  * 
  * @param {String} userID - the id of the user discharging a bubble
  */
-exports.dischargeScrubBubble = function (userID) {
+exports.dischargeScrubBubble = function (userID, botSpam) {
     if (userID !== undefined && userID !== '132944096347160576') {
         if (ledger[userID] !== undefined && ledger[userID].armySize > 0) {
             ledger[userID].armySize--;
@@ -35,27 +36,24 @@ exports.dischargeScrubBubble = function (userID) {
         }
     }
     
-    c.BOT.sendMessage({
-        to: c.BOT_SPAM_CHANNEL_ID,
-        embed:  {
-            color: 0xffff00,
-            title: dropped + ' Scrubbing ' + msg + ' arrived for duty!',
-            image: {
-                url: c.BUBBLE_IMAGES[droppedImg-1]
-            }
+    botSpam.send(new Discord.RichEmbed({
+        color: 0xffff00,
+        title: dropped + ' Scrubbing ' + msg + ' arrived for duty!',
+        image: {
+            url: c.BUBBLE_IMAGES[droppedImg-1]
         } 
-    });	
-
+    }));	
 }	
 
 /**
  * drops a scrub bubble in bot-spam with a 20% chance.
  * CONSIDER CHANGING THIS TO BE BASED ON MESSAGES NOT PRESENCE
  */
-exports.maybeDischargeScrubBubble = function() {
+exports.maybeDischargeScrubBubble = function(botSpamChannel) {
 	var num = util.getRand(1,11);
-	if (num > 8) {
-		exports.dischargeScrubBubble(undefined);
+	if (num > 0) {
+        console.log('DISCHARGING!');
+		exports.dischargeScrubBubble(undefined, botSpamChannel);
 	}
 }
 

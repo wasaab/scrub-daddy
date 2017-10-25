@@ -2,7 +2,7 @@ const c = require('./const.js');
 const catFacts = require('./catfacts.json');
 const scrubData = require('../scrubData.json');
 const inspector = require('util');
-
+var get = require('lodash.get');
 var issueMsg = [];
 var id = [];
 
