@@ -5,7 +5,7 @@ var get = require('lodash.get');
 const Discord = require('discord.js');
 var dropped = 0;
 var ledger = require('./ledger.json');   //keeps track of how big of an army each member has as well as bet amounts
-var previousMessageID = '';
+var previousMessage = {};
 
 exports.exportLedger = function() {
     var json = JSON.stringify(ledger);    
@@ -36,13 +36,8 @@ exports.dischargeScrubBubble = function (userID, botSpam) {
         }
     }
     
-    botSpam.send(new Discord.RichEmbed({
-        color: 0xffff00,
-        title: dropped + ' Scrubbing ' + msg + ' arrived for duty!',
-        image: {
-            url: c.BUBBLE_IMAGES[droppedImg-1]
-        } 
-    }));	
+    const title = dropped + ' Scrubbing ' + msg + ' arrived for duty!';
+    util.sendEmbedMessage(title, null, c.BUBBLE_IMAGES[droppedImg-1]);
 }	
 
 /**
@@ -51,8 +46,7 @@ exports.dischargeScrubBubble = function (userID, botSpam) {
  */
 exports.maybeDischargeScrubBubble = function(botSpamChannel) {
 	var num = util.getRand(1,11);
-	if (num > 0) {
-        console.log('DISCHARGING!');
+	if (num > 8) {
 		exports.dischargeScrubBubble(undefined, botSpamChannel);
 	}
 }
@@ -73,11 +67,9 @@ function addToArmy(userID, amount) {
 exports.enlist = function(userID) {
     if (dropped > 0) {
         addToArmy(userID, dropped);
-        c.BOT.sendMessage({
-            to: c.BOT_SPAM_CHANNEL_ID,
-            message: '<@!' + userID + '>  ' + 'Your Scrubbing Bubbles army has grown by ' + dropped + '! You now have an army of ' + ledger[userID].armySize + '.' 
-        });	
-        c.BOT.deleteMessage({channelID: c.BOT_SPAM_CHANNEL_ID, messageID: previousMessageID}, util.log);        
+        const msg = '<@!' + userID + '>  ' + 'Your Scrubbing Bubbles army has grown by ' + dropped + '! You now have an army of ' + ledger[userID].armySize + '.' ;        
+        util.sendEmbedMessage(null, msg);	
+        previousMessage.delete();
         dropped = 0;
     } 
 }
@@ -121,10 +113,8 @@ function betClean(userID, bet, type, side) {
         if (wallet !== undefined) {
             msg = 'Your ' + wallet.armySize + ' soliders would surely perish';
         }
-        c.BOT.sendMessage({
-            to: c.BOT_SPAM_CHANNEL_ID,
-            message: '<@!' + userID + '>  ' + 'You do not have enough Scrubbing Bubbles to clean the bathroom. ' + msg
-        });	
+        const description = '<@!' + userID + '>  ' + 'You do not have enough Scrubbing Bubbles to clean the bathroom. ' + msg;
+        util.sendEmbedMessage(null,description);
     } else {
         var msg = '';
         var img = '';
@@ -143,17 +133,7 @@ function betClean(userID, bet, type, side) {
             img = 'https://i.imgur.com/gynZE1j.png';
             msg = 'Sorry bud, you lost ' + bet + ' Scrubbing Bubble' + plural + ' in the battle.';
         }
-        
-        c.BOT.sendMessage({
-            to: c.BOT_SPAM_CHANNEL_ID,
-            embed:  {
-                color: 0xffff00,
-                description: '<@!' + userID + '>  ' + msg,
-                image: {
-                    url: img
-                }
-            } 
-        });	
+        util.sendEmbedMessage(null, '<@!' + userID + '>  ' + msg, img);
         resetLedgerAfterBet(userID, bet, type);
     }
 }
@@ -182,10 +162,8 @@ exports.army = function(userID, args) {
         if (wallet.armySize > 1) {
             plural = 's';
         }
-        c.BOT.sendMessage({
-            to: c.BOT_SPAM_CHANNEL_ID,
-            message: '<@!' + userID + '>'+ msg +  ' army is ' + wallet.armySize +  ' Scrubbing Bubble' + plural + ' strong!' 
-        });	
+        const description = '<@!' + userID + '>'+ msg +  ' army is ' + wallet.armySize +  ' Scrubbing Bubble' + plural + ' strong!';
+        util.sendEmbedMessage(null,description);
     }
 }
 
@@ -195,15 +173,14 @@ exports.armyRanks = function() {
         fields.push(util.buildField(c.SCRUB_ID_TO_NICK[userID], ledger[userID].armySize));
     } 
     fields.sort(util.compareFieldValues);
-    util.sendEmbedMessage('Scrubbing Bubbles Army Sizes', fields);
+    util.sendEmbedFieldsMessage('Scrubbing Bubbles Army Sizes', fields);
 }
 
-exports.maybeDeletePreviousMessage = function (msgID) {
+exports.maybeDeletePreviousMessage = function (msg) {
     c.LOG.info('<INFO> ' + util.getTimestamp() + '  arrive for duty msg found ');
     //delete previous message if >1 bubbles dropped
     if (dropped > 1) {
-        c.LOG.info('<INFO> ' + util.getTimestamp() + '  Dropped > 1  previousMsgID: ' + previousMessageID);			
-        c.BOT.deleteMessage({channelID: c.BOT_SPAM_CHANNEL_ID, messageID: previousMessageID}, util.log);
+        previousMessage.delete();
     }
-    previousMessageID = msgID;
+    previousMessage = msg;
 }

@@ -2,7 +2,9 @@ const c = require('./const.js');
 const catFacts = require('./catfacts.json');
 const scrubData = require('../scrubData.json');
 const inspector = require('util');
+const bot = require('./bot.js');
 var get = require('lodash.get');
+const Discord = require('discord.js');
 var issueMsg = [];
 var id = [];
 
@@ -12,6 +14,7 @@ var id = [];
  * @param {String} error - error returned from API request
  * @param {Object} response - response returned from API request
  */
+//TODO : Update call to editChannel or remove entirely if i can do this step on creation
 function moveIssueChannel(error, response) {
 	if (undefined === response) {
 		if (null === error || undefined === error) {
@@ -149,27 +152,34 @@ exports.compareFieldValues = function(a,b) {
 /**
  * Output vote count to bot-spam channel
  */
-exports.sendEmbedMessage = function(title, fields) {
-	c.BOT.sendMessage({
-		to: c.BOT_SPAM_CHANNEL_ID,
-		embed:  {
-			color: 0xffff00,
-			title: title,
-			fields: fields
+exports.sendEmbedFieldsMessage = function(title, fields) {
+	bot.getBotSpam().send(new Discord.RichEmbed({
+		color: 0xffff00,
+		title: title,
+		fields: fields
+	}));	
+}
+
+exports.sendEmbedMessage = function(title, description, image) {
+	//these are all optional parameters
+	title = title || '';
+	description = description || '';
+	image = image || '';
+
+	bot.getBotSpam().send(new Discord.RichEmbed({
+		color: 0xffff00,
+		title: title,
+		description: description,
+		image: {
+			url: image
 		} 
-	});	
+	}));	
 }
 
 exports.catfacts = function() {
 	const factIdx = exports.getRand(0,catFacts.length);
-	c.BOT.sendMessage({
-		to: c.BOT_SPAM_CHANNEL_ID,
-		embed:  {
-			color: 0xffff00,
-			title: 'Did you know?',
-			description: catFacts[factIdx] + '\n 🐈 Meeeeee-WOW!'
-		} 
-	});	
+	const msg = catFacts[factIdx] + '\n 🐈 Meeeeee-WOW!';
+	exports.sendEmbedMessage('Did you know?', msg);
 }
 
 exports.getScrubIDToNick = function() {

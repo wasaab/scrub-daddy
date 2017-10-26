@@ -6,6 +6,7 @@
     //https://github.com/simonlast/node-persist
 const c = require('./const.js');
 const util = require('./utilities.js');
+const bot = require('./bot.js');
 const inspector = require('util');
 var get = require('lodash.get');
 var voteChannelMembers = {
@@ -38,7 +39,7 @@ exports.getCustomVoteTotals = function() {
 		}
 	}
 	if (totals.length > 0) {
-		util.sendEmbedMessage("Custom Vote Totals", totals);
+		util.sendEmbedFieldsMessage("Custom Vote Totals", totals);
 	}
 }
 
@@ -46,17 +47,14 @@ exports.getCustomVoteTotals = function() {
  * Retrieves the total votes for the given target
  * 
  * @param {String} user - the user requesting the total
- * @param {String} userID - id of the user requesting the total
+ * @param {String} kickChannel - the voice channel to kick a user from
  * @param {String} channelID - bot-spam channel to respond in
  * @param {String[]} args - input args of the requester (cmd and target)
  */
-exports.getTotalVotesForTarget = function(user, userID, channelID, args) {
-	const kickChannel = determineKickChannel(userID);
-	if (kickChannel === 'none') {
-		c.BOT.sendMessage({
-			to: channelID,
-			message: 'Sup ' + user + '! Tryna voteinfo @user from nothing, ey dumbass?'
-		});
+exports.getTotalVotesForTarget = function(user, kickChannel, channelID, args) {
+	if (!kickChannel) {
+		const description = 'Sup ' + user + '! Tryna voteinfo @user from nothing, ey dumbass?';
+		util.sendEmbedMessage(null, description);
 		c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + user + ' is trying to voteinfo @user from nothing.');	
 		return;
 	}
@@ -80,7 +78,7 @@ exports.getTotalVotesForTarget = function(user, userID, channelID, args) {
 		totals.push(util.buildField("Ban", votes[banTargetConcat]));
 	}
 	if (totals.length > 0) {
-		util.sendEmbedMessage(kickChannel.name + "	-	Vote Totals for " + titleTarget, totals);
+		util.sendEmbedFieldsMessage(kickChannel.name + "	-	Vote Totals for " + titleTarget, totals);
 	}
 }
 
@@ -90,12 +88,12 @@ exports.getTotalVotesForTarget = function(user, userID, channelID, args) {
  * @param {Object} vote - the current vote 
  * @returns {String} the id of the target if found and 'none' otherwise
  */
-function getIDOfTargetInVoteChannel(vote) {
-	var result = 'none';
+function getTargetInVoteChannel(vote) {
+	var result;
 	voteChannelMembers[vote.channelID].forEach(function(vMember) {
 		const kickTarget = vote.targetConcat.split(':-:')[0];
 		if (vMember.name === kickTarget || (kickTarget.match(/\d/g) !== null && vMember.id === kickTarget.match(/\d/g).join(""))) {
-			result = vMember.id;
+			result = vMember.fullMember;
 		}
 	});
 	
@@ -106,18 +104,17 @@ function getIDOfTargetInVoteChannel(vote) {
  * Ends the vote and performs the relevant operation for the vote type.
  * 
  * @param {Object} vote - the current vote 
- * @param {String} targetsID - the id of the vote's target
+ * @param {Object} target - the vote's target
+ * @param {Collection} roles - server's roles
  */
-function endVote(vote, targetsID) {
-	purgatoryMoveReq = {serverID: c.SERVER_ID, userID: targetsID, channelID: c.PURGATORY_CHANNEL_ID};
+function endVote(vote, target, roles) {
 	switch (vote.targetConcat.split(':-:')[2]) {
 		case c.VOTE_TYPE.BAN:
-			var roleReq = {serverID: c.SERVER_ID, roleID: c.CHANNEL_ID_TO_BAN_ROLE_ID[vote.channelID], userID: targetsID};		
-			c.BOT.addToRole(roleReq, util.log);
-			c.BOT.moveUserTo(purgatoryMoveReq, util.log);
+			target.addRole(roles.find('id', c.CHANNEL_ID_TO_BAN_ROLE_ID[vote.channelID]));
+			target.setVoiceChannel(bot.getPurgatory());
 			break;
 		case c.VOTE_TYPE.KICK:
-			c.BOT.moveUserTo(purgatoryMoveReq, util.log);
+			target.setVoiceChannel(bot.getPurgatory());	
 	}
 }
 
@@ -126,9 +123,9 @@ function endVote(vote, targetsID) {
  * 
  * @param {Object} voteData - the current vote
  */
-function maybeEndVote(voteData) {
-	const targetID = getIDOfTargetInVoteChannel(voteData);
-	if (targetID === 'none') {
+function maybeEndVote(voteData, roles) {
+	const target = getTargetInVoteChannel(voteData);
+	if (!target) {
 		return;
 	}
 
@@ -136,118 +133,13 @@ function maybeEndVote(voteData) {
 	const majority = channelSize/2;
 	c.LOG.info('<INFO> ' + util.getTimestamp() + '  majority: ' + majority + ' votes: ' + votes[voteData.targetConcat]);
 	if (channelSize > 2 && votes[voteData.targetConcat] > majority) {
-		const target = voteData.targetConcat.split(':-:')[0];
-		endVote(voteData, targetID);
-
-		c.BOT.sendMessage({
-			to: c.BOT_SPAM_CHANNEL_ID,
-			message: target + ' has been voted off the island, a.k.a. ' + voteData.channelName + '!' 
-		});
-		c.LOG.info('<KICK> ' + util.getTimestamp() + '  Kicking ' + target + ' from ' + voteData.channelName);							
-	}
-}
-
-/**
- * Adds a member from the voice channel associated with a vote 
- * to the voteChannelMembers array.
- * 
- * @param {String} error - error returned from API getUser request
- * @param {Object} response - response returned from API getUser request
- */
-function addVoteChannelMember(error, response) {
-	if (undefined === response) {
-		c.LOG.info('<GetUser API RESPONSE> ' + util.getTimestamp() + '  ERROR: ' + error);
-	} else {
-		const userObj = {id : response.id, name : response.username};
-		voteChannelMembers[lockedBy.channelID].push(userObj);
-		c.LOG.info('<GetUser API RESPONSE> ' + util.getTimestamp() +  '  userID: ' + response.id + ' name: ' + response.username);
-	}
-};
-
-var lockedBy = {voteID : ' '};
-
-/**
- * Executes a 1.5 second wait before calling maybeEndVote(),
- * so that a getUser request can finish.
- * 
- * @param {Boolean} retry - flag to signify first loop iteration 
- */
-function maybeEndVoteAfterWaitingToGetUser(retry) {
-	setTimeout(function() {
-		if (!retry) {
-			maybeEndVote(lockedBy);
-			lockedBy.voteID = ' ';	
-		} else {
-			maybeEndVoteAfterWaitingToGetUser(false);
-		}
-	}, c.LOOP_DELAY);
-}
-
-//REPLACE THIS LOGIC WITH SCRUB_ID_TO_NICK ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-/**
- * Retrieves the name and id of members currently in the voice channel, who are eligible to vote.
- * 
- * @param {Object[]} kickChannelMembers - the members in the channel (not including names)
- * @param {Number} i - number of members grabbed
- * @param {Object} vote - the current vote
- */
-function retrieveVoteMembers(kickChannelMembers, i, vote) {
-	if (lockedBy.voteID === ' ') {
-		lockedBy = vote;
-	}
-	if (lockedBy.voteID !== vote.voteID) {
-		return;
-	}
-	if (voteChannelMembers[vote.channelID].length > 0 && Object.keys(kickChannelMembers).length == voteChannelMembers[vote.channelID].length) {
-		c.LOG.info('<INFO> ' + util.getTimestamp() +  '  Not updating voteChannelMembers.');
-		maybeEndVote(vote);
-		lockedBy.voteID = ' ';	
-		return;
-	}
-
-	//Only allowed into this function if vote == lockedBy
-	setTimeout(function(){
-		const member = {userID : kickChannelMembers[Object.keys(kickChannelMembers)[i]].user_id};
-		c.BOT.getUser(member, addVoteChannelMember);
-		i++;
+		const targetName = voteData.targetConcat.split(':-:')[0];
+		endVote(voteData, target, roles);
 		
-		//continue loop if members remain
-		if (i < Object.keys(kickChannelMembers).length) {
-			retrieveVoteMembers(kickChannelMembers, i, lockedBy);
-		} else {
-			maybeEndVoteAfterWaitingToGetUser(true);
-		}
-	}, c.LOOP_DELAY);
-}
-
-/**
- * Determines which voice channel the vote has been initiated from.
- * 
- * @param {String} userID - id of the user initiating the vote
- */
-function determineKickChannel(userID) {
-	const channels = c.BOT.channels;
-	for (var cID in channels) {
-		var channel = channels[cID];
-		for (var m in channel.members) {
-			var member = channel.members[m];
-			if (member.user_id === userID) {
-				var kChannel = {id : cID, name : channel.name};
-				return kChannel;
-			}	
-		}
+		const description = targetName + ' has been voted off the island, a.k.a. ' + voteData.channelName + '!' ;
+		util.sendEmbedMessage(null, description);
+		c.LOG.info('<KICK> ' + util.getTimestamp() + '  Kicking ' + targetName + ' from ' + voteData.channelName);							
 	}
-	return 'none';
-};
-
-/**
- * Builds the a unique vote id for the current vote.
- */
-function buildVoteID() {
-	return 'xx-xx-yx'.replace(/[xy]/g, function(c) {
-	  var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-	  return v.toString(16);
-	});
 }
 
 /**
@@ -259,18 +151,11 @@ function buildVoteID() {
  * @param {String[]} args - target of the vote
  * @param {String} type - vote type
  */
-exports.conductVote = function(user, userID, channelID, args, type) {
-	var kickChannel = { id: '', name: ''};
-	if (type !== c.VOTE_TYPE.CUSTOM) {
-		kickChannel = determineKickChannel(userID);	
-	}
-	
+exports.conductVote = function(user, userID, channelID, args, type, kickChannel, roles) {
 	//if voting user not in a voice channel
-	if (kickChannel === 'none') {
-		c.BOT.sendMessage({
-			to: channelID,
-			message: 'Sup ' + user + '! Tryna vote' + type + ' from nothing, ey dumbass?'
-		});
+	if (!kickChannel) {
+		const description = 'Sup ' + user + '! Tryna vote' + type + ' from nothing, ey dumbass?';
+		util.sendEmbedMessage(null, description);
 		c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + user + ' is trying to kick from nothing.');		
 		return;
 	}			
@@ -292,18 +177,23 @@ exports.conductVote = function(user, userID, channelID, args, type) {
 	}
 	if (!alreadyVoted[targetConcat].includes(user)) {
 		votes[targetConcat] = votes[targetConcat] + 1;
-		alreadyVoted[targetConcat].push(user); 
-		var currVote =  {
-			voteID : buildVoteID(), 
-			channelID : kickChannel.id, 
-			channelName : kickChannel.name, 
-			targetConcat: targetConcat
-		};					
+		alreadyVoted[targetConcat].push(user); 				
 
 		//if not a custom vote
-		if (kickChannel.name !== '') {
-			retrieveVoteMembers(c.BOT.channels[kickChannel.id].members, 0, currVote);
-			exports.getTotalVotesForTarget(user, userID, channelID, args);			
+		if (type !== c.VOTE_TYPE.CUSTOM) {
+			voteChannelMembers[kickChannel.id] = [];
+			var kickMembers = kickChannel.members.array();
+			kickMembers.forEach(function (member) {
+				var memberData = {id: member.id, name: member.displayName, fullMember: member}
+				voteChannelMembers[kickChannel.id].push(memberData);
+			})
+			exports.getTotalVotesForTarget(user, kickChannel, channelID, args);		
+			var currVote =  {
+				channelID : kickChannel.id, 
+				channelName : kickChannel.name, 
+				targetConcat: targetConcat,
+			};			
+			maybeEndVote(currVote, roles);	
 			c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + votes[targetConcat] + msg + target + ' from ' + kickChannel.name);	
 		} else {
 			//custom vote
@@ -311,17 +201,12 @@ exports.conductVote = function(user, userID, channelID, args, type) {
 			if (votes[targetConcat] > 2) {
 				message = 'The vote has concluded with ' + votes[targetConcat] + msg
 			}
-			c.BOT.sendMessage({
-				to: channelID,
-				message: message
-			});
+			util.sendEmbedMessage(null, message);
 			c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + message);				
 		}
 	} else {
-		c.BOT.sendMessage({
-			to: channelID,
-			message: 'Fuck yourself ' + user + '! You can only vote for a person once.'
-		});
+		const message = 'Fuck yourself ' + user + '! You can only vote for a person once.';
+		util.sendEmbedMessage(null, message);
 		c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + user + ' is attempting to vote for a person more than once.');
 	}
 }

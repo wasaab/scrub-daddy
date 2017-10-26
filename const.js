@@ -17,8 +17,7 @@ function define(name, value) {
 define('LOG', require('winston'));
 
 define("LOOP_DELAY", 1500);							        //delay between each loop
-define('BOT_SPAM', {"type":"text","id":"372570540482887701","guild":{"id":"370623193075154945"}});
-define('BOT_SPAM_CHANNEL_ID', '372570540482887701');		//listen's to messages from this channel
+define('BOT_SPAM_CHANNEL_ID', '372865125155078154');		//listen's to messages from this channel
 define('SCRUBS_CHANNEL_ID', '370626384059695107');		    //channel ID of scrubs text channel
 define('SERVER_ID', auth.serverID);				    		//Bed Bath Server ID
 define('DAYS', ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]);
@@ -54,5 +53,32 @@ define('BUBBLE_IMAGES', ['https://i.imgur.com/rddtZR6.png','https://i.imgur.com/
 						 'https://i.imgur.com/3bXFEcL.png','https://i.imgur.com/Q33oITR.png','https://i.imgur.com/O2iQuhP.png','https://i.imgur.com/LUq3M1Q.png','https://i.imgur.com/ne412gl.png',
 						 'https://i.imgur.com/ASgP6i6.png']);
 define('SCRUB_DADDY_ID', '370688149971795982');
-
 define('SCRUB_ID_TO_NICK', util.getScrubIDToNick());
+define('HELP_MSG',  '------------------------- Voting --------------------------' +
+					'\nPlease Note: You must be in a voice channel with at least 3 members to participate in a kick/ban vote.' +
+					'\n\n!votekick <@user> - to remove user from channel.' +
+					'\n!voteban <@user> - for a more permanent solution.' +
+					'\n!vote <thing to vote for> - to do a custom vote.' +
+					'\n!voteinfo - for totals of all custom votes.' +
+					'\n!voteinfo <@user> - for total votes to kick/ban that user.' +
+					'\n------------------------------------------------------------' +
+					'\n\n------------------------ Gambling ------------------------' +
+					'\n!enlist - enlists the discharged Scrubbing Bubbles to your army.' +
+					'\n!discharge - honorably discharges a Scrubbing Bubble from your army.' +
+					'\n!clean <numBubbles> <t|b> - send numBubbles to clean toilet/bath.' +
+					'\n!army - retrieves the size of your army' +
+					'\n------------------------------------------------------------' +	
+					'\n\n----------------------- Time Played ----------------------' +
+					'\n!time <Game Name> <@user> - user\'s playtime for the specified Game Name.' +
+					'\n!time <Game Name> - cumulative playtime for the specified Game Name.' +
+					'\n!time <@user> - user\'s playtime for all games.' + 
+					'\n!time - cumulative playtime for all games.' +
+					'\n!opt-in - to opt into playtime tracking.' + 
+					'\n------------------------------------------------------------' +									 
+					'\n\n---------------------- Player Count ----------------------' +
+					'\n!playing - player count of games currently being played.' +
+					'\n!gameHistory - player counts for all games throughout the day.' +
+					'\n------------------------------------------------------------' +
+					'\n\n!test - to try out features in development.' +									 
+					'\n!p - to ask @Scrubs to play PUBG in scrubs text channel.' +
+					'\n!help, !info, or !helpinfo - to show this message again.');

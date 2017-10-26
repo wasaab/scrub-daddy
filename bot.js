@@ -9,30 +9,38 @@ var fs = require('fs');
 
 const Discord = require('discord.js');
 const auth = require('./secureAuth.json'); 
-const bot = new Discord.Client();
+const client = new Discord.Client();
 
-bot.login(auth.token);
-var botSpam = '';
+client.login(auth.token);
+var botSpam = {};
+var scrubsChannel = {};
+var purgatory = {};
 
-/**
- * Asks Scrubs if they want to play pubg.
- */
-function askToPlayPUBG() {
-	bot.sendMessage({
-		to: c.SCRUBS_CHANNEL_ID,
-		message: "<@&370671041644724226>  " + c.GREETINGS[util.getRand(0, c.GREETINGS.length)] + " tryna play some " + c.PUBG_ALIASES[util.getRand(0, c.PUBG_ALIASES.length)] + "?"
-	});	
+
+exports.getBotSpam = function() {
+	return botSpam;
+}
+
+exports.getScrubsChannel = function() {
+	return scrubsChannel;
+}
+
+exports.getPurgatory = function() {
+	return purgatory;
 }
 
 /**
  * Listen's for messages in Discord
  */
-bot.on('message', message => {
+//TODO: refactor this so that i dont need to pass in a million params to everything. should pass one object and then it gets split on in the other file
+client.on('message', message => {
     //Scrub Daddy will listen for messages that will start with `!`
-    if (message.content.substring(0, 1) == '!') {
+    if (message.content.substring(0, 1) == '*') {
 		const args = message.content.substring(1).match(/\S+/g);
 		const cmd = args[0];
 		const channelID = message.channel.id;
+		const userID = message.member.id;
+		const user = message.member.displayName;
 
 		//stops if the message is not from bot-spam text channel, with the expection of the message !p.
 		if (channelID !== c.BOT_SPAM_CHANNEL_ID && !(channelID === c.SCRUBS_CHANNEL_ID && cmd === 'p')) {
@@ -68,7 +76,7 @@ bot.on('message', message => {
 				gambling.enlist(userID);
 				break;
 			case 'p':
-				askToPlayPUBG();
+				games.askToPlayPUBG();
 				break;
 			case 'playing':
 				games.getAndOutputCountOfGamesBeingPlayed();
@@ -88,11 +96,11 @@ bot.on('message', message => {
 				break;
 			case 'votekick':
 				c.LOG.info('<VOTE Kick> ' + util.getTimestamp() + '  ' + user + ': ' + message);
-				vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.KICK);
+				vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.KICK, message.member.voiceChannel, message.guild.roles);
 				break;
 			case 'voteban':
 				c.LOG.info('<VOTE Ban> ' + util.getTimestamp() + '  ' + user + ': ' + message);			
-				vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.BAN);
+				vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.BAN, message.member.voiceChannel, message.guild.roles);
 				break;
 			//get custom vote totals or number of kick/ban votes for a user
 			case 'voteinfo':
@@ -101,55 +109,24 @@ bot.on('message', message => {
 					vote.getCustomVoteTotals();
 				} else {
 					c.LOG.info('<VOTE Info User> ' + util.getTimestamp() + '  ' + user + ': ' + message);													
-					vote.getTotalVotesForTarget(user, userID, channelID, args);
+					vote.getTotalVotesForTarget(user, message.member.voiceChannel, channelID, args);
 				}	
 				break;
 			case 'help':
 			case 'info':
 			case 'helpinfo':
-				botSpam.send(new Discord.RichEmbed({
-						color: 0xffff00,
-						title: "Commands",
-						description: "------------------------- Voting --------------------------" +
-									 "\nPlease Note: You must be in a voice channel with at least 3 members to participate in a kick/ban vote." +
-									 "\n\n!votekick <@user> - to remove user from channel." +
-									 "\n!voteban <@user> - for a more permanent solution." +
-									 "\n!vote <thing to vote for> - to do a custom vote." +
-									 "\n!voteinfo - for totals of all custom votes." +
-									 "\n!voteinfo <@user> - for total votes to kick/ban that user." +
-									 "\n------------------------------------------------------------" +
-									 "\n\n------------------------ Gambling ------------------------" +
-									 "\n!enlist - enlists the discharged Scrubbing Bubbles to your army." +
-									 "\n!discharge - honorably discharges a Scrubbing Bubble from your army." +
-									 "\n!clean <numBubbles> <t|b> - send numBubbles to clean toilet/bath." +
-									 "\n!army - retrieves the size of your army" +
-									 "\n------------------------------------------------------------" +	
-									 "\n\n----------------------- Time Played ----------------------" +
-									 "\n!time <Game Name> <@user> - user's playtime for the specified Game Name." +
-									 "\n!time <Game Name> - cumulative playtime for the specified Game Name." +
-									 "\n!time <@user> - user's playtime for all games." + 
-									 "\n!time - cumulative playtime for all games." +
-									 "\n!opt-in - to opt into playtime tracking." + 
-									 "\n------------------------------------------------------------" +									 
-									 "\n\n---------------------- Player Count ----------------------" +
-									 "\n!playing - player count of games currently being played." +
-									 "\n!gameHistory - player counts for all games throughout the day." +
-									 "\n------------------------------------------------------------" +
-									 "\n\n!test - to try out features in development." +									 
-									 "\n!p - to ask @Scrubs to play PUBG in scrubs text channel." +
-									 "\n!help, !info, or !helpinfo - to show this message again."
-				}));
+				util.sendEmbedMessage('Commands', c.HELP_MSG);
 		 }
 	 //TODO: replace reference to content with whatever im using in this new api. title does not exist under message.
-	 } else if (message.author.id === c.SCRUB_DADDY_ID && message.content.indexOf('duty') !== -1) {
-		//gambling.maybeDeletePreviousMessage(evt.d.id);
+	 } else if (message.member.id === c.SCRUB_DADDY_ID && get(message, 'embeds[0].title') && message.embeds[0].title.indexOf('duty') !== -1 && message.channel.id === c.BOT_SPAM_CHANNEL_ID) {
+		gambling.maybeDeletePreviousMessage(message);
 	}
 });
 
 /**
  * listens for updates to a user's presence (online status, game, etc).
  */
-bot.on('presenceUpdate', (oldMember, newMember) => { 
+client.on('presenceUpdate', (oldMember, newMember) => { 
 	//You are now fed both old and new member so you can actually know what game they finished playing!
 	games.updateTimesheet(newMember.displayName, newMember.id, get(oldMember, 'presence.game.name'), get(newMember, 'presence.game.name'));
 	gambling.maybeDischargeScrubBubble(botSpam);
@@ -159,15 +136,16 @@ bot.on('presenceUpdate', (oldMember, newMember) => {
 /**
  * Logs the bot into Discord.
  */
-bot.on('ready', () => {
+client.on('ready', () => {
 	c.LOG.info('<INFO> ' + util.getTimestamp() + '  Connected');
-	botSpam = bot.channels.find("id", c.BOT_SPAM_CHANNEL_ID);	
-	
+	botSpam = client.channels.find('id', c.BOT_SPAM_CHANNEL_ID);	
+	scrubsChannel = client.channels.find('id', c.SCRUBS_CHANNEL_ID);
+	purgatory = client.channels.find('id', c.PURGATORY_CHANNEL_ID);
 });
 
-bot.on('disconnect', event => {
+client.on('disconnect', event => {
 	c.LOG.info('<ERROR> ' +  util.getTimestamp() + '  event: ' + inspector.inspect(event, false, null));
-	bot.login(auth.token);
+	client.login(auth.token);
 });
 
 //console.log(inspector.inspect(member, false, null));
@@ -175,9 +153,9 @@ bot.on('disconnect', event => {
 // 	to: c.BOT_SPAM_CHANNEL_ID,
 // 	embed:  {
 // 		color: 0xffff00,
-// 		title: "This is a test of the Emergency Broadcast System",
+// 		title: 'This is a test of the Emergency Broadcast System',
 // 		image: {
-// 			url: "https://i.kinja-img.com/gawker-media/image/upload/s--gXPJs2QR--/c_scale,f_auto,fl_progressive,q_80,w_800/sv3a6heu1v5d9ubr9ke3.jpg",
+// 			url: 'https://i.kinja-img.com/gawker-media/image/upload/s--gXPJs2QR--/c_scale,f_auto,fl_progressive,q_80,w_800/sv3a6heu1v5d9ubr9ke3.jpg',
 // 		}
 // 	} 
 // });		

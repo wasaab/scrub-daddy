@@ -81,18 +81,9 @@ exports.getAndOutputCountOfGamesBeingPlayed = function() {
 	if (c.GAME_NAME_TO_IMG[winner] !== undefined && c.GAME_NAME_TO_IMG[winner] !== null) {
 		imageUrl = c.GAME_NAME_TO_IMG[winner];
 	}
-	c.BOT.sendMessage({
-		to: c.BOT_SPAM_CHANNEL_ID,
-		embed:  {
-			color: 0xffff00,
-			title: "Winner - " + winner,
-			image: {
-				url: imageUrl
-			}
-		} 
-	});	
+	util.sendEmbedMessage("Winner - " + winner, null, imageUrl);
 	fields.sort(util.compareFieldValues);
-	util.sendEmbedMessage("Player Count", fields);
+	util.sendEmbedFieldsMessage("Player Count", fields);
 }
 
 /**
@@ -188,7 +179,7 @@ function outputCumulativeTimePlayed(timePlayedData) {
 		fields.push(util.buildField(gameName, playtime.toFixed(1)));
 	}
 	fields.sort(util.compareFieldValues);
-	util.sendEmbedMessage('Cumulative Hours Played', fields);
+	util.sendEmbedFieldsMessage('Cumulative Hours Played', fields);
 	c.LOG.info('<INFO> ' + util.getTimestamp() + '  Cumulative Hours Played All Games: ' + inspector.inspect(fields, false, null));
 }
 
@@ -204,10 +195,7 @@ exports.maybeOutputTimePlayed = function(args) {
 
 	c.LOG.info('<INFO> ' + util.getTimestamp() + '  Time Called - game: ' + game + ' target: ' + target);		
 	if (target !== '' && !isOptedIn(target)) { 
-		c.BOT.sendMessage({
-			to: c.BOT_SPAM_CHANNEL_ID,
-			message: 'I do not track that scrub\'s playtime.'
-		});	
+		util.sendEmbedMessage(null,'I do not track that scrub\'s playtime.');
 		c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + target + ' is not opted in.');				
 		return; 
 	}
@@ -221,7 +209,7 @@ exports.maybeOutputTimePlayed = function(args) {
     } else {
 		var fields = [];
 		fields.push(util.buildField(game,timePlayedData.total.toFixed(1)));
-		util.sendEmbedMessage('Hours Played', fields);
+		util.sendEmbedFieldsMessage('Hours Played', fields);
 		c.LOG.info('<INFO> ' + util.getTimestamp() + '  Hours Played: ' + inspector.inspect(fields, false, null));
     }
 }
@@ -286,7 +274,7 @@ exports.maybeOutputGameHistory = function () {
 					fields.push(util.buildField(gameData.game, gameData.count));
 				});
 				fields.sort(util.compareFieldValues);
-				util.sendEmbedMessage('Player Count - ' + time, fields);	
+				util.sendEmbedFieldsMessage('Player Count - ' + time, fields);	
 				previousTime = time;			
 			}	
 		}
@@ -329,7 +317,7 @@ exports.updateTimesheet = function(user, userID, oldGame, newGame) {
 			return;
 		}
 	}
-	c.LOG.info('<INFO> Presence Update - ' + user + ' id: ' + userID + ' new game: ' + newGame)	
+	c.LOG.info('<INFO> Presence Update - ' + user + ' id: ' + userID + ' old game: ' + oldGame + ' new game: ' + newGame)	
 	
 	//get user's timesheet
 	var gameToTime = timeSheet[userID];
@@ -372,16 +360,9 @@ exports.updateTimesheet = function(user, userID, oldGame, newGame) {
 function waitAndSendScrubDaddyFact(attempts, seconds) {
 	setTimeout(function() {
 		if (attempts === seconds) {
-			c.BOT.sendMessage({
-				to: c.BOT_SPAM_CHANNEL_ID,
-				embed:  {
-					color: 0xffff00,
-					title: "You are now subscribed to Scrub Daddy Facts!",
-					image: {
-						url: "http://marycoffeystrand.com/wp-content/uploads/2015/02/scrubsmile-300x233.jpg",
-					}
-				} 
-			});
+			const title = 'You are now subscribed to Scrub Daddy Facts!';
+			const imgUrl = 'https://i.imgur.com/FbAwRTj.jpg';
+			util.sendEmbedMessage(title, null, imgUrl);
 			return;
 		} else {
 			waitAndSendScrubDaddyFact(attempts+1, seconds);
@@ -399,9 +380,20 @@ exports.optIn = function(user, userID) {
 	optedInUsers.push(userID);
 	var fields = [];					
 	fields.push(util.buildField(user, 'I\'m watching you.'));
-	util.sendEmbedMessage('YOU ARE BEING WATCHED', fields);	
+	util.sendEmbedFieldsMessage('YOU ARE BEING WATCHED', fields);	
 	waitAndSendScrubDaddyFact(0,5);
 	c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + user + ' (' + userID + ') has opted into time#######');	
 	var json = JSON.stringify(optedInUsers);	
 	fs.writeFile('optedIn.json', json, 'utf8', util.log);
+}
+
+/**
+ * Asks Scrubs if they want to play pubg.
+ */
+exports.askToPlayPUBG = function() {
+	bot.getScrubChannel().send(new Discord.RichEmbed({
+		color: 0xffff00,
+		title: title,
+		description: '<@&370671041644724226>  ' + c.GREETINGS[util.getRand(0, c.GREETINGS.length)] + ' tryna play some ' + c.PUBG_ALIASES[util.getRand(0, c.PUBG_ALIASES.length)] + '?'
+	}));	
 }
