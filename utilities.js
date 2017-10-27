@@ -1,52 +1,36 @@
-const c = require('./const.js');
-const catFacts = require('./catfacts.json');
-const scrubData = require('../scrubData.json');
-const inspector = require('util');
-const bot = require('./bot.js');
-var get = require('lodash.get');
 const Discord = require('discord.js');
-var issueMsg = [];
-var id = [];
+const inspector = require('util');
+const get = require('lodash.get');
+
+const c = require('./const.js');
+const bot = require('./bot.js');
+const catFacts = require('./catfacts.json');
 
 /**
- * Logs the response of an API request for Add Role or Move User.
- * 
- * @param {String} error - error returned from API request
- * @param {Object} response - response returned from API request
+ * For submitting issues with the bot.
+ * @param {String} user - the user's name
+ * @param {String[]} issueMsg - the issue message split by spaces
+ * @param {Object} message - the full message object
  */
-//TODO : Update call to editChannel or remove entirely if i can do this step on creation
-function moveIssueChannel(error, response) {
-	if (undefined === response) {
-		if (null === error || undefined === error) {
-			c.LOG.info('<API INFO> ' + exports.getTimestamp() + '  Successful API Call');
-		} else {
-			c.LOG.info('<API RESPONSE> ' + exports.getTimestamp() + '  ERROR: ' + error);			
-		}
-	} else if (response.id !== undefined) {
-		c.LOG.info('<API RESPONSE> ' + exports.getTimestamp() + '  ' + inspector.inspect(response, false, null));			
-		console.log('in');
-		c.BOT.editChannelInfo({position: 7, channelID: response.id}, exports.log);		
+exports.submitIssue = function(user, issueMsg, message) {
+	if (issueMsg[1]) {
 		var issue = '';
 		for (i=2; i < issueMsg.length; i++) {
 			issue += issueMsg[i] + ' ';
-		}			
-		c.BOT.sendMessage({
-			to: response.id,
-			embed:  {
+		}	
+		
+		message.guild.createChannel(issueMsg[1], "text")
+		.then((channel) => {			
+			//Moves channel to the Feedback category
+			channel.setParent(c.FEEDBACK_CATEGORY_ID);
+			channel.send(new Discord.RichEmbed({
 				color: 0xffff00,
-				title: 'Issue Submitted By ' + c.SCRUB_ID_TO_NICK[id],
-				description: issue
-			}
-		});	
-	}
-}
-
-
-exports.submitIssue = function(userID, args) {
-	if (args[1] !== null) {
-		issueMsg = args;
-		id = userID;		
-		c.BOT.createChannel({name: args[1], serverID: c.SERVER_ID}, moveIssueChannel);
+				title: 'Issue Submitted By ' + user,
+				description: issue,
+			}));	
+		})
+		.catch(console.error);
+		c.LOG.info('<INFO> ' + exports.getTimestamp() + '  ' + user + ' submitted issue: ' + issue);		
 	}
 }
 
@@ -107,8 +91,8 @@ exports.getTimestamp = function() {
  * @param {Object} response - response returned from API request
  */
 exports.log = function(error, response) {
-	if (undefined === response) {
-		if (null === error || undefined === error) {
+	if (!response) {
+		if (!error) {
 			c.LOG.info('<API INFO> ' + exports.getTimestamp() + '  Successful API Call');
 		} else {
 			c.LOG.info('<API RESPONSE> ' + exports.getTimestamp() + '  ERROR: ' + error);			
@@ -160,6 +144,9 @@ exports.sendEmbedFieldsMessage = function(title, fields) {
 	}));	
 }
 
+/**
+ * Sends an embed message to bot-spam with an optional title, description, and image.
+ */
 exports.sendEmbedMessage = function(title, description, image) {
 	//these are all optional parameters
 	title = title || '';
@@ -176,16 +163,18 @@ exports.sendEmbedMessage = function(title, description, image) {
 	}));	
 }
 
+/**
+ * Outputs a cat fact.
+ */
 exports.catfacts = function() {
 	const factIdx = exports.getRand(0,catFacts.length);
 	const msg = catFacts[factIdx] + '\n 🐈 Meeeeee-WOW!';
 	exports.sendEmbedMessage('Did you know?', msg);
 }
 
+/**
+ * Gets a map of scrub's ids to nicknames.
+ */
 exports.getScrubIDToNick = function() {
-	scrubIDtoNick = {};
-	scrubData.forEach(function(member)  {
-		scrubIDtoNick[member.id] = member.nick;
-	});
-	return scrubIDtoNick;
+	return bot.getScrubIDToNick();
 }

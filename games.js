@@ -1,19 +1,17 @@
-//do trends with game presence data. most played weekly and whatnot would be cool.
-	//I have potential to track hours played, but not sure if i should.
-//for player count command, add filter so it ignores either the 5 ids of the bots or checks their role ids to see if they contain bot. first choice seems more efficient.
-//add command that outputs all games playtimes with pic of the winner
-//doesn't currently handle multiple games being played at once by the same person, because of 'playing' being overwritten.
-//add logic to maybeOutputTimePlayed or a child, for getting time played of all games for a specific user.
+const inspector = require('util');
+const get = require('lodash.get');
+const fs = require('fs');
+
 const c = require('./const.js');
 const util = require('./utilities.js');
-const inspector = require('util');
-var fs = require('fs');
-var get = require('lodash.get');
+var optedInUsers = require('./optedIn.json');
+
 var gameHistory = [];								//timestamped log of player counts for each game
 var timeSheet = {};									//map of userID to gameToTimePlayed map for that user
-var optedInUsers = require('./optedIn.json');
-//optedInUsers = JSON.parse(optedInUsers);
 
+/**
+ * Exports the timesheet to a json file.
+ */
 exports.exportTimeSheet = function() {
 	var json = JSON.stringify(timeSheet);	
 	fs.writeFile('../timeSheet.json', json, 'utf8', util.log);
@@ -41,26 +39,26 @@ function getGameNameAndTarget(args) {
 /**
  * Gets and outputs the player count of every game currently being played 
  */
-exports.getAndOutputCountOfGamesBeingPlayed = function() {
-	var scrubs = c.BOT.getScrubs();
+exports.getAndOutputCountOfGamesBeingPlayed = function(scrubs) {
 	var games = [];
 	var max = 0;
 	var winner = '';
-	for (var s in scrubs) {
-		var scrub = scrubs[s];
-		if (scrub.game !== undefined && scrub.game !== null && scrub.bot === false) {
-			var game = scrub.game.name;
-			if (games[game] === undefined) {
+
+	scrubs.forEach((scrub) => {
+		const game = get(scrub, 'presence.game.name');
+		if (game && !scrub.user.bot) {
+			if (!games[game]){
 				games[game] = 1;
 			} else {
-				games[game] += 1;
+				games[game]++;
 			}
 			if (games[game] > max) {
 				max = games[game];
 				winner = game;
 			}
-		}
-	}
+		}	
+	});
+
 	var fields = [];
 	var time = util.getTimestamp();
 	var gamesLog = [];
@@ -77,8 +75,8 @@ exports.getAndOutputCountOfGamesBeingPlayed = function() {
 	}
 	gameHistory.push(gamesLog);
 	
-	var imageUrl = 'http://i0.kym-cdn.com/entries/icons/original/000/012/982/post-19715-Brent-Rambo-gif-thumbs-up-imgu-L3yP.gif';
-	if (c.GAME_NAME_TO_IMG[winner] !== undefined && c.GAME_NAME_TO_IMG[winner] !== null) {
+	var imageUrl = c.THUMBS_UP_GIF;
+	if (c.GAME_NAME_TO_IMG[winner]) {
 		imageUrl = c.GAME_NAME_TO_IMG[winner];
 	}
 	util.sendEmbedMessage("Winner - " + winner, null, imageUrl);
@@ -93,7 +91,7 @@ exports.getAndOutputCountOfGamesBeingPlayed = function() {
  * @param {String} gameName - name of the game to get playtime of
  */
 function getUsersPlaytimeForGame(userID, gameName) {
-	if (timeSheet[userID] === undefined) {
+	if (!timeSheet[userID]) {
 		return 0;
 	}
 
@@ -102,7 +100,7 @@ function getUsersPlaytimeForGame(userID, gameName) {
 	
 	//THIS LOGIC IS WRONG! If they are currently playing a game and have already played it today, it won't include their current play time~~~~~~~~~~~~~~~~~~~~~~~~~
 	//if the target user is currently playing the game 
-	if (playtime === 0 && currentlyPlaying !== undefined && currentlyPlaying.name === gameName) {						
+	if (playtime === 0 && currentlyPlaying && currentlyPlaying.name === gameName) {						
 		playtime = getTimePlayed(currentlyPlaying);
 	}
 
@@ -135,8 +133,8 @@ function getCumulativeTimePlayed(gameName, target) {
 					continue;
 				} 
 				var playtime = getUsersPlaytimeForGame(userID, game);
-				if (playtime !== undefined) {
-					if (cumulativeTimePlayed.gameToTime[game] === undefined) {
+				if (playtime) {
+					if (!cumulativeTimePlayed.gameToTime[game]) {
 						cumulativeTimePlayed.gameToTime[game] = 0;
 					}
 					cumulativeTimePlayed.gameToTime[game] += playtime;
@@ -145,7 +143,7 @@ function getCumulativeTimePlayed(gameName, target) {
 			}
 		} else {
 			var timePlayed = getUsersPlaytimeForGame(userID, gameName);
-			if (timePlayed !== undefined) {
+			if (timePlayed) {
 				cumulativeTimePlayed.total += timePlayed;							
 			}
 		}
@@ -238,7 +236,7 @@ function getTimeData(timestamp) {
  * @param {Object} b - gameLog containing array of gameData objects for comparison
  */
 function compareTimestamps(a,b) {
-	if (a[0] !== undefined && b[0] !== undefined) {
+	if (a[0] && b[0]) {
 		var aTimeData = getTimeData(a[0].time);
 		var bTimeData = getTimeData(b[0].time);
 		
@@ -266,7 +264,7 @@ exports.maybeOutputGameHistory = function () {
 	var previousTime = '';
 	gameHistory.sort(compareTimestamps);
 	gameHistory.forEach(function(gamesLog) {
-		if (gamesLog[0] !== undefined) {
+		if (gamesLog[0]) {
 			var time = gamesLog[0].time;
 			if ( time !== previousTime) {
 				var fields = [];					
@@ -321,14 +319,14 @@ exports.updateTimesheet = function(user, userID, oldGame, newGame) {
 	
 	//get user's timesheet
 	var gameToTime = timeSheet[userID];
-	if (gameToTime === undefined) {
+	if (!gameToTime) {
 		gameToTime = {};
 	}
 
 	//Just started playing a game
 	// TODO: this may need to be a null check instead 
-	if (oldGame === undefined && newGame !== undefined) {
-		if (gameToTime[newGame] === undefined) {
+	if (!oldGame && newGame) {
+		if (!gameToTime[newGame]) {
 			gameToTime[newGame] = 0;
 		}
 		gameToTime['playing'] = {name : newGame, start : util.getTimestamp()} ; //replace util.getTimestamp with epoch
@@ -338,7 +336,7 @@ exports.updateTimesheet = function(user, userID, oldGame, newGame) {
 		
 		//This user started playing the game before the bot was running
 		//so there is no start timestamp associated with the game
-		if (currentlyPlaying === undefined) {
+		if (!currentlyPlaying) {
 			return;
 		}
 
@@ -361,7 +359,7 @@ function waitAndSendScrubDaddyFact(attempts, seconds) {
 	setTimeout(function() {
 		if (attempts === seconds) {
 			const title = 'You are now subscribed to Scrub Daddy Facts!';
-			const imgUrl = 'https://i.imgur.com/FbAwRTj.jpg';
+			const imgUrl = c.SCRUB_DADDY_FACT;
 			util.sendEmbedMessage(title, null, imgUrl);
 			return;
 		} else {

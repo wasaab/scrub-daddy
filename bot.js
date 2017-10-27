@@ -1,33 +1,23 @@
+const Discord = require('discord.js');
 const inspector = require('util');
+const get = require('lodash.get');
+const fs = require('fs');
+
 const c = require('./const.js');
 const util = require('./utilities.js');
 const gambling = require('./gambling.js');
-var games = require('./games.js');
-var vote = require('./vote.js');
-var get = require('lodash.get');
-var fs = require('fs');
+const games = require('./games.js');
+const vote = require('./vote.js');
 
-const Discord = require('discord.js');
 const auth = require('./secureAuth.json'); 
 const client = new Discord.Client();
-
 client.login(auth.token);
+
 var botSpam = {};
 var scrubsChannel = {};
 var purgatory = {};
-
-
-exports.getBotSpam = function() {
-	return botSpam;
-}
-
-exports.getScrubsChannel = function() {
-	return scrubsChannel;
-}
-
-exports.getPurgatory = function() {
-	return purgatory;
-}
+var feedbackCategory = {};
+var scrubIDtoNick = {};
 
 /**
  * Listen's for messages in Discord
@@ -35,21 +25,21 @@ exports.getPurgatory = function() {
 //TODO: refactor this so that i dont need to pass in a million params to everything. should pass one object and then it gets split on in the other file
 client.on('message', message => {
     //Scrub Daddy will listen for messages that will start with `!`
-    if (message.content.substring(0, 1) == '*') {
+    if (message.content.substring(0, 1) == '!') {
 		const args = message.content.substring(1).match(/\S+/g);
 		const cmd = args[0];
 		const channelID = message.channel.id;
 		const userID = message.member.id;
 		const user = message.member.displayName;
 
-		//stops if the message is not from bot-spam text channel, with the expection of the message !p.
+		//stops if the message is not from bot-spam text channel, with the exception of the message !p.
 		if (channelID !== c.BOT_SPAM_CHANNEL_ID && !(channelID === c.SCRUBS_CHANNEL_ID && cmd === 'p')) {
 			return;
 		}
 		c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + cmd + ' called');	
         switch(cmd) {
 			case 'issue':
-				util.submitIssue(userID, args);
+				util.submitIssue(user, args, message);
 				break;
 			case 'rank':
 			case 'ranks':
@@ -66,7 +56,6 @@ client.on('message', message => {
 				gambling.army(userID, args);
 				break;
 			case 'clean':
-				//PRIORITIZE ADDING NICKNAMES VIA GETSCRUBS SO YOU CAN RESPOND TO BETS WITH NICKNAMES
 				gambling.maybeBetClean(userID, args);
 				break;
 			case 'discharge':
@@ -79,7 +68,7 @@ client.on('message', message => {
 				games.askToPlayPUBG();
 				break;
 			case 'playing':
-				games.getAndOutputCountOfGamesBeingPlayed();
+				games.getAndOutputCountOfGamesBeingPlayed(message.guild.members.array());
 				break;
 			case 'gameHistory':
 				games.maybeOutputGameHistory();
@@ -104,7 +93,7 @@ client.on('message', message => {
 				break;
 			//get custom vote totals or number of kick/ban votes for a user
 			case 'voteinfo':
-				if (args[1] === undefined) {
+				if (!args[1]) {
 					c.LOG.info('<VOTE Info Custom> ' + util.getTimestamp() + '  ' + user + ': ' + message);								
 					vote.getCustomVoteTotals();
 				} else {
@@ -127,35 +116,41 @@ client.on('message', message => {
  * listens for updates to a user's presence (online status, game, etc).
  */
 client.on('presenceUpdate', (oldMember, newMember) => { 
-	//You are now fed both old and new member so you can actually know what game they finished playing!
 	games.updateTimesheet(newMember.displayName, newMember.id, get(oldMember, 'presence.game.name'), get(newMember, 'presence.game.name'));
 	gambling.maybeDischargeScrubBubble(botSpam);
 });
 
-
 /**
- * Logs the bot into Discord.
+ * Reconnects the bot if diconnected.
  */
-client.on('ready', () => {
-	c.LOG.info('<INFO> ' + util.getTimestamp() + '  Connected');
-	botSpam = client.channels.find('id', c.BOT_SPAM_CHANNEL_ID);	
-	scrubsChannel = client.channels.find('id', c.SCRUBS_CHANNEL_ID);
-	purgatory = client.channels.find('id', c.PURGATORY_CHANNEL_ID);
-});
-
 client.on('disconnect', event => {
 	c.LOG.info('<ERROR> ' +  util.getTimestamp() + '  event: ' + inspector.inspect(event, false, null));
 	client.login(auth.token);
 });
 
-//console.log(inspector.inspect(member, false, null));
-// bot.sendMessage({
-// 	to: c.BOT_SPAM_CHANNEL_ID,
-// 	embed:  {
-// 		color: 0xffff00,
-// 		title: 'This is a test of the Emergency Broadcast System',
-// 		image: {
-// 			url: 'https://i.kinja-img.com/gawker-media/image/upload/s--gXPJs2QR--/c_scale,f_auto,fl_progressive,q_80,w_800/sv3a6heu1v5d9ubr9ke3.jpg',
-// 		}
-// 	} 
-// });		
+/**
+ * Logs the bot into Discord, stores id to nick map, and retrieves 3 crucial channels.
+ */
+client.on('ready', () => {
+	c.LOG.info('<INFO> ' + util.getTimestamp() + '  Connected');
+	
+	const members = client.guilds.find('id', c.SERVER_ID).members;
+	members.forEach((member) => {
+		scrubIDtoNick[member.id] = member.displayName;
+	});
+
+	client.channels.forEach((channel) => {
+		console.log('id: ' + channel.id + ' name: ' + channel.name);
+	});
+	botSpam = client.channels.find('id', c.BOT_SPAM_CHANNEL_ID);	
+	scrubsChannel = client.channels.find('id', c.SCRUBS_CHANNEL_ID);
+	purgatory = client.channels.find('id', c.PURGATORY_CHANNEL_ID);
+	feedbackCategory = client.channels.find('id', c.FEEDBACK_CATEGORY_ID);		
+});
+
+exports.getBotSpam = () => botSpam;
+exports.getScrubsChannel = () => scrubsChannel;
+exports.getPurgatory = () => purgatory;
+exports.getScrubIDToNick = () => scrubIDtoNick;
+exports.getFeedbackCategory = () => feedbackCategory;
+exports.getClient = () => client;

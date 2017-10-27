@@ -1,25 +1,20 @@
 const util = require('./utilities.js');
 const auth = require('./secureAuth.json'); 
 var get = require('lodash.get');
+
 function define(name, value) {
     Object.defineProperty(exports, name, {
         value:      value,
         enumerable: true
     });
 }
-
-// Initialize Discord Bot
-// define('BOT', new Discord.Client({
-//     token: auth.token,
-//     autorun: true
-//  }));
  
 define('LOG', require('winston'));
-
 define("LOOP_DELAY", 1500);							        //delay between each loop
-define('BOT_SPAM_CHANNEL_ID', '372865125155078154');		//listen's to messages from this channel
+define('BOT_SPAM_CHANNEL_ID', '372570540482887701');		//listen's to messages from this channel
 define('SCRUBS_CHANNEL_ID', '370626384059695107');		    //channel ID of scrubs text channel
 define('SERVER_ID', auth.serverID);				    		//Bed Bath Server ID
+define('FEEDBACK_CATEGORY_ID', '372143355070644255');
 define('DAYS', ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]);
 define('PUBG_ALIASES', ["scrubg", "pubg", "pugG", "pabg", "pobg", "pebg", "pibg", "pybg", "Mr. Pib G.", "pub", "pudgy", "puh ba gee"]);
 define('GREETINGS', ["you guys", "yous guys", "y'all", "hey buddies,", "hey pals,", "hey friends,", "sup dudes,", "hello fellow humans,"]);
@@ -30,6 +25,10 @@ define('GAME_NAME_TO_IMG', {
     'PUBG' : 'https://i.imgur.com/nT2CNCs.png', 
     'Fortnite' : 'https://i.imgur.com/S0CN7n9.jpg'
 });
+define('THUMBS_UP_GIF', 'https://i.imgur.com/CLC53gf.gif');
+define('CLEAN_WIN_IMG', 'https://i.imgur.com/LDSm2sg.png');
+define('CLEAN_LOSE_IMG', 'https://i.imgur.com/gynZE1j.png');
+define('SCRUB_DADDY_FACT', 'https://i.imgur.com/FbAwRTj.jpg');
 define('PURGATORY_CHANNEL_ID', '370626266786824192');	    //sends kicked user's to this channel    
 define('VOTE_TYPE', {
 	KICK : "kick",
@@ -53,7 +52,6 @@ define('BUBBLE_IMAGES', ['https://i.imgur.com/rddtZR6.png','https://i.imgur.com/
 						 'https://i.imgur.com/3bXFEcL.png','https://i.imgur.com/Q33oITR.png','https://i.imgur.com/O2iQuhP.png','https://i.imgur.com/LUq3M1Q.png','https://i.imgur.com/ne412gl.png',
 						 'https://i.imgur.com/ASgP6i6.png']);
 define('SCRUB_DADDY_ID', '370688149971795982');
-define('SCRUB_ID_TO_NICK', util.getScrubIDToNick());
 define('HELP_MSG',  '------------------------- Voting --------------------------' +
 					'\nPlease Note: You must be in a voice channel with at least 3 members to participate in a kick/ban vote.' +
 					'\n\n!votekick <@user> - to remove user from channel.' +

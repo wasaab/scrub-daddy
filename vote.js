@@ -1,14 +1,10 @@
-//there is a role in discord that makes it so you can only use push to talk in the channel permissions. do seperate vote for this. fuck alec.
-//reset a lot of the vars when channel members drop below 2.
-//voteChannelMembers needs to be updating. 
-//target needs to check against name and id even in the concat one
-//persist this data through exits so that I can use !voteunkick? also considered automating unkick.
-    //https://github.com/simonlast/node-persist
-const c = require('./const.js');
-const util = require('./utilities.js');
-const bot = require('./bot.js');
 const inspector = require('util');
-var get = require('lodash.get');
+const get = require('lodash.get');
+
+const c = require('./const.js');
+const bot = require('./bot.js');
+const util = require('./utilities.js');
+
 var voteChannelMembers = {
 	'370625207150575617' : [],						//Beyond
 	'370625515293507584' : [],						//Str8 Chillin
@@ -71,10 +67,10 @@ exports.getTotalVotesForTarget = function(user, kickChannel, channelID, args) {
 	const kickTargetConcat = target + ':-:' + kickChannel.id + ':-:' + c.VOTE_TYPE.KICK;
 	const banTargetConcat = target + ':-:' + kickChannel.id + ':-:' + c.VOTE_TYPE.BAN;
 	var totals = [];
-	if (votes[kickTargetConcat] !== undefined) {
+	if (votes[kickTargetConcat]) {
 		totals.push(util.buildField("Kick", votes[kickTargetConcat]));
 	}
-	if (votes[banTargetConcat] !== undefined) {
+	if (votes[banTargetConcat]) {
 		totals.push(util.buildField("Ban", votes[banTargetConcat]));
 	}
 	if (totals.length > 0) {
@@ -170,7 +166,7 @@ exports.conductVote = function(user, userID, channelID, args, type, kickChannel,
 	const targetConcat = target + ':-:' + kickChannel.id + ':-:' + type;
 	var msg = ' votes to ' + type + ' '; 				
 	
-	if (votes[targetConcat] === undefined) {
+	if (!votes[targetConcat]) {
 		alreadyVoted[targetConcat] = [];
 		votes[targetConcat] = 0;
 		msg = ' vote to ' + type + ' ';
@@ -210,22 +206,3 @@ exports.conductVote = function(user, userID, channelID, args, type, kickChannel,
 		c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + user + ' is attempting to vote for a person more than once.');
 	}
 }
-
-// var bannedFrom = [];		
-
-// function getBanned(members) {
-// 	var bannedIDToChannelID = {};
-// 	for (var member in members) {
-// 		if (member.roles !== undefined && member.roles.length > 1) {			
-// 		for (var id in c.CHANNEL_ID_TO_BAN_ROLE_ID) {
-// 			var banRoleId = c.CHANNEL_ID_TO_BAN_ROLE_ID[id];
-// 				roles.forEach(function(role) {
-// 					if (role === banRoleId) {
-// 						//may need to wrap member.id with <@!>
-// 						const targetConcat = member.id + ':-:' + id + ':-:' + c.VOTE_TYPE.BAN;
-// 						bannedFrom[targetConcat].push(id);
-// 					}
-// 				});
-// 		}
-// 	}
-// }
