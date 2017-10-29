@@ -389,7 +389,7 @@ exports.optIn = function(user, userID) {
  * Asks Scrubs if they want to play pubg.
  */
 exports.askToPlayPUBG = function() {
-	bot.getScrubChannel().send(new Discord.RichEmbed({
+	bot.getScrubChannel().send(new Discord.MessageEmbed({
 		color: 0xffff00,
 		title: title,
 		description: '<@&370671041644724226>  ' + c.GREETINGS[util.getRand(0, c.GREETINGS.length)] + ' tryna play some ' + c.PUBG_ALIASES[util.getRand(0, c.PUBG_ALIASES.length)] + '?'

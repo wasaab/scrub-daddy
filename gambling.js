@@ -24,7 +24,7 @@ exports.exportLedger = function() {
  * @param {String} botSpam - bot-spam channel
  */
 exports.dischargeScrubBubble = function (userID, botSpam) {
-    if (userID && userID !== '132944096347160576') {
+    if (userID && userID !== 'dev') {
         if (ledger[userID] && ledger[userID].armySize > 0) {
             ledger[userID].armySize--;
         } else {

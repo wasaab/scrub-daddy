@@ -23,7 +23,7 @@ exports.submitIssue = function(user, issueMsg, message) {
 		.then((channel) => {			
 			//Moves channel to the Feedback category
 			channel.setParent(c.FEEDBACK_CATEGORY_ID);
-			channel.send(new Discord.RichEmbed({
+			channel.send(new Discord.MessageEmbed({
 				color: 0xffff00,
 				title: 'Issue Submitted By ' + user,
 				description: issue,

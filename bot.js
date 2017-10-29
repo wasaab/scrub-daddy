@@ -22,10 +22,9 @@ var scrubIDtoNick = {};
 /**
  * Listen's for messages in Discord
  */
-//TODO: refactor this so that i dont need to pass in a million params to everything. should pass one object and then it gets split on in the other file
 client.on('message', message => {
     //Scrub Daddy will listen for messages that will start with `!`
-    if (message.content.substring(0, 1) == '*') {
+    if (message.content.substring(0, 1) == '!') {
 		const args = message.content.substring(1).match(/\S+/g);
 		const cmd = args[0];
 		const channelID = message.channel.id;
@@ -36,28 +35,31 @@ client.on('message', message => {
 		if (channelID !== c.BOT_SPAM_CHANNEL_ID && !(channelID === c.SCRUBS_CHANNEL_ID && cmd === 'p')) {
 			return;
 		}
+
 		c.LOG.info('<CMD> ' + util.getTimestamp() + '  ' + cmd + ' called');	
         switch(cmd) {
 			case 'issue':
 				util.submitIssue(user, args, message);
 				break;
-			case 'rank':
-			case 'ranks':
-				gambling.armyRanks();
-				break;
-			case 'catfacts':
-				util.catfacts();
-				break;
 			case 'export':
 				gambling.exportLedger();
 				games.exportTimeSheet();
 				break;
+			case 'catfacts':
+				util.catfacts();
+				break;
 			case 'army':
 				gambling.army(userID, args);
+				break;
+			case 'rank':
+			case 'ranks':
+				gambling.armyRanks();
 				break;
 			case 'clean':
 				gambling.maybeBetClean(userID, args);
 				break;
+			case 'revive':
+				userID = 'dev';
 			case 'discharge':
 				gambling.dischargeScrubBubble(userID);
 				break;
@@ -104,10 +106,14 @@ client.on('message', message => {
 			case 'help':
 			case 'info':
 			case 'helpinfo':
-				util.sendEmbedMessage('Commands', c.HELP_MSG);
+				util.sendEmbedFieldsMessage('Voting', c.HELP_VOTING);
+				util.sendEmbedFieldsMessage('Scrubbing Bubbles', c.HELP_SCRUBBING_BUBBLES);
+				util.sendEmbedFieldsMessage('Time Played', c.HELP_TIME_PLAYED);
+				util.sendEmbedFieldsMessage('Player Count', c.HELP_PLAYER_COUNT);
+				util.sendEmbedFieldsMessage('Bot Issues, Feature Requests, and Help', c.HELP_BOT);
+				util.sendEmbedFieldsMessage('Miscellaneous', c.HELP_MISC);
 		 }
-	 //TODO: replace reference to content with whatever im using in this new api. title does not exist under message.
-	 } else if (message.member.id === c.SCRUB_DADDY_ID && get(message, 'embeds[0].title') && message.embeds[0].title.indexOf('duty') !== -1 && message.channel.id === c.BOT_SPAM_CHANNEL_ID) {
+	 } else if (isArrivedForDutyMessage(message)) {
 		gambling.maybeDeletePreviousMessage(message);
 	}
 });
@@ -145,9 +151,14 @@ client.on('ready', () => {
 	feedbackCategory = client.channels.find('id', c.FEEDBACK_CATEGORY_ID);		
 });
 
+function isArrivedForDutyMessage(message) {
+    return message.member.id === c.SCRUB_DADDY_ID && get (message, 'embeds[0].title') && message.embeds[0].title.indexOf('duty') !== -1 && message.channel.id === c.BOT_SPAM_CHANNEL_ID;
+}
+
 exports.getBotSpam = () => botSpam;
 exports.getScrubsChannel = () => scrubsChannel;
 exports.getPurgatory = () => purgatory;
 exports.getScrubIDToNick = () => scrubIDtoNick;
 exports.getFeedbackCategory = () => feedbackCategory;
 exports.getClient = () => client;
+
