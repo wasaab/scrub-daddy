@@ -14,9 +14,10 @@ define('LOOP_DELAY', 1500);							        //delay between each loop
 define('BOT_SPAM_CHANNEL_ID', '372570540482887701');		//listen's to messages from this channel
 define('SCRUBS_CHANNEL_ID', '370626384059695107');		    //channel ID of scrubs text channel
 define('SERVER_ID', auth.serverID);				    		//Bed Bath Server ID
-define('FEEDBACK_CATEGORY_ID', {
+define('CATEGORY_ID', {
 	'Issue': '372143355070644255', 
-	'Feature': '374009714213781504'
+	'Feature': '374009714213781504',
+	'Temp': '374246719648694282'
 });
 define('DAYS', ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']);
 define('PUBG_ALIASES', ['scrubg', 'pubg', 'pugG', 'pabg', 'pobg', 'pebg', 'pibg', 'pybg', 'Mr. Pib G.', 'pub', 'pudgy', 'puh ba gee']);
@@ -76,10 +77,13 @@ define('HELP_TIME_PLAYED',[{ name: '!time <Game Name> <@user>', value: 'user\'s 
 define('HELP_PLAYER_COUNT',[{ name: '!playing', value: 'player count of games currently being played.', inline: 'false'},
 							{ name: '!gameHistory', value: 'player counts for all games throughout the day.', inline: 'false'}]);
 
-define('HELP_BOT',[{ name: 'Please Note', value: 'Your issue title or feature title must be ONE WORD!', inline: 'false'},
+define('HELP_BOT',[{ name: 'Please Note', value: 'Your issue title or feature title must be ONE WORD! msg is optional', inline: 'false'},
 				   { name: '!issue <issue-title> <msg detailing issue>', value: 'to submit bot issues.', inline: 'false'},
 				   { name: '!feature <feature-title> <msg detailing feature>', value: 'to submit bot feature requests.', inline: 'false'},
 				   { name: '!help, !info, or !helpinfo', value: 'to show this message again.', inline: 'false'}]);
 				   
-define('HELP_MISC',[{ name: '!p', value: 'to ask @Scrubs to play PUBG in scrubs text channel.', inline: 'false'}]);
+define('HELP_MISC',[{ name: '!p', value: 'to ask @Scrubs to play PUBG in scrubs text channel.', inline: 'false'},
+					{ name: '!temp', value: 'Creates a temporary text channel', inline: 'false'},
+					{ name: '!temp <text|voice>', value: 'Creates a temp text/voice channel', inline: 'false'},
+					{ name: '!temp <text|voice> <channel-title>', value: 'Creates a voice/text channel with the provided title', inline: 'false'},]);
 

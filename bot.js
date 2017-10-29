@@ -42,9 +42,17 @@ client.on('message', message => {
 
 		c.LOG.info('<CMD> ' + util.getTimestamp() + '  ' + cmd + ' called');	
         switch(cmd) {
+			case 'temp':
+				const channelType = args[1] || 'text';
+				const channelName = args[2] || 'temp-channel';
+				util.createChannelInCategory(cmd, channelType, channelName, message, ' Channel Created By ' + user);
+				break;
 			case 'issue':
 			case 'feature':
-				util.submitFeedback(user, args, message);
+				const chanName = args[1];
+				const feedback = args.slice(2).join(' ');
+				console.log('feedback: ' + feedback);
+				util.createChannelInCategory(cmd, 'text', chanName, message, ' Submitted By ' + user, feedback);
 				break;
 			case 'export':
 				gambling.exportLedger();
@@ -64,6 +72,7 @@ client.on('message', message => {
 				gambling.maybeBetClean(userID, args);
 				break;
 			case 'revive':
+				if (userID !== '132944096347160576') { break; }
 				userID = 'dev';
 			case 'discharge':
 				gambling.dischargeScrubBubble(userID);

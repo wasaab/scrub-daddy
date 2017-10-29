@@ -7,32 +7,33 @@ var bot = require('./bot.js');
 const catFacts = require('./catfacts.json');
 
 /**
- * For submitting feature requests or issues with the bot.
+ * Creates a channel in a category, specified by the command provided.
+ * For submitting issues/features and creating temporary voice/text channels.
  * 
- * @param {String} user - the user's name
- * @param {String[]} feedbackMsg - the feedback message split by spaces
- * @param {Object} message - the full message object
+ * @param {String} command - command called
+ * @param {String} channelType - type of channel to create 'voice' or 'text'
+ * @param {String} channelName - name of channel to create
+ * @param {String} message - full message object
+ * @param {String} createdByMsg - msg to send to channel upon creation
+ * @param {String} feedback - optional feedback provided if an issue/feature
  */
-exports.submitFeedback = function(user, feedbackMsg, message) {
-	if (feedbackMsg[1]) {
-		const type = feedbackMsg[0].charAt(0).toUpperCase() + feedbackMsg[0].slice(1);
-		var issue = '';
-		for (var i=2; i < feedbackMsg.length; i++) {
-			issue += feedbackMsg[i] + ' ';
-		}	
+exports.createChannelInCategory = function(command, channelType, channelName, message, createdByMsg, feedback) {
+	if (channelName) {
+		const description = feedback || ' ';		
+		const channelCategoryName = command.charAt(0).toUpperCase() + command.slice(1);
 		
-		message.guild.createChannel(feedbackMsg[1], 'text')
+		message.guild.createChannel(channelName, channelType)
 		.then((channel) => {			
 			//Moves channel to the Feedback category
-			channel.setParent(c.FEEDBACK_CATEGORY_ID[type]);
+			channel.setParent(c.CATEGORY_ID[channelCategoryName]);
 			channel.send(new Discord.MessageEmbed({
 				color: 0xffff00,
-				title: type + ' Submitted By ' + user,
-				description: issue,
+				title: channelCategoryName + createdByMsg,
+				description: description,
 			}));	
 		})
 		.catch(console.error);
-		c.LOG.info('<INFO> ' + exports.getTimestamp() + '  ' + user + ' submitted issue: ' + issue);		
+		c.LOG.info('<INFO> ' + exports.getTimestamp() + '  ' + channelCategoryName + createdByMsg + '  ' + description);		
 	}
 }
 
