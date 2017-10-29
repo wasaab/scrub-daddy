@@ -185,3 +185,31 @@ exports.catfacts = function() {
 exports.getScrubIDToNick = function() {
 	return bot.getScrubIDToNick();
 }
+
+/**
+ * Outputs the help category for the given selection.
+ * 
+ * @param {number} selection - the category selection
+ */
+function outputHelpCategory(selection) {
+	const helpCategory = c.HELP_CATEGORIES[selection];
+	exports.sendEmbedFieldsMessage(helpCategory.name, helpCategory.fields);
+}
+
+/**
+ * Outputs help dialog to explain command usage.
+ */
+exports.help = function() {
+	exports.sendEmbedFieldsMessage('`Help Categories`', c.HELP_CATEGORIES_PROMPT);
+	const filter = (m) => {
+		var num = parseInt(m.content);
+		if (!isNaN(num) && num > 0 && num < 7) {
+			return m;
+		}
+	}
+	bot.getBotSpam().awaitMessages(filter, { max: 1, time: 10000, errors: ['time'] })
+	.then((collected) => {
+		outputHelpCategory(parseInt(collected.array()[0].content)-1);
+	})
+	.catch(collected => console.log(`After 10 seconds, only ${collected.size}.`));
+}

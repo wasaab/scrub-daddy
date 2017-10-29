@@ -19,16 +19,25 @@ var purgatory = {};
 var feedbackCategory = {};
 var scrubIDtoNick = {};
 
+/**
+ * Returns true iff the message is an arrived for duty message.
+ * 
+ * @param {Object} message - the full message object
+ */
 function isArrivedForDutyMessage(message) {
-    return message.member.id === c.SCRUB_DADDY_ID && get (message, 'embeds[0].title') && message.embeds[0].title.indexOf('duty') !== -1 && message.channel.id === c.BOT_SPAM_CHANNEL_ID;
+	return message.member.id === c.SCRUB_DADDY_ID 
+			&& get (message, 'embeds[0].title') 
+			&& message.embeds[0].title.indexOf('duty') !== -1 
+			&& message.channel.id === c.BOT_SPAM_CHANNEL_ID;
 }
 
 /**
  * Listen's for messages in Discord
  */
 client.on('message', message => {
+	const firstChar = message.content.substring(0, 1);
     //Scrub Daddy will listen for messages that will start with `!`
-    if (message.content.substring(0, 1) === '!') {
+    if (firstChar === '!') {
 		const args = message.content.substring(1).match(/\S+/g);
 		const cmd = args[0];
 		const channelID = message.channel.id;
@@ -75,7 +84,7 @@ client.on('message', message => {
 				if (userID !== '132944096347160576') { break; }
 				userID = 'dev';
 			case 'discharge':
-				gambling.dischargeScrubBubble(userID);
+				gambling.dischargeScrubBubble(userID); 
 				break;
 			case 'enlist':
 				gambling.enlist(userID);
@@ -120,17 +129,14 @@ client.on('message', message => {
 			case 'help':
 			case 'info':
 			case 'helpinfo':
-				util.sendEmbedFieldsMessage('Voting', c.HELP_VOTING);
-				util.sendEmbedFieldsMessage('Scrubbing Bubbles', c.HELP_SCRUBBING_BUBBLES);
-				util.sendEmbedFieldsMessage('Time Played', c.HELP_TIME_PLAYED);
-				util.sendEmbedFieldsMessage('Player Count', c.HELP_PLAYER_COUNT);
-				util.sendEmbedFieldsMessage('Bot Issues, Feature Requests, and Help', c.HELP_BOT);
-				util.sendEmbedFieldsMessage('Miscellaneous', c.HELP_MISC);
+				util.help();
 		 }
 	 } else if (isArrivedForDutyMessage(message)) {
 		gambling.maybeDeletePreviousMessage(message);
-	}
+	} 
 });
+
+
 
 /**
  * listens for updates to a user's presence (online status, game, etc).

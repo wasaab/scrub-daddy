@@ -56,34 +56,46 @@ define('BUBBLE_IMAGES', ['https://i.imgur.com/rddtZR6.png','https://i.imgur.com/
 						 'https://i.imgur.com/3bXFEcL.png','https://i.imgur.com/Q33oITR.png','https://i.imgur.com/O2iQuhP.png','https://i.imgur.com/LUq3M1Q.png','https://i.imgur.com/ne412gl.png',
 						 'https://i.imgur.com/ASgP6i6.png']);
 define('SCRUB_DADDY_ID', '370688149971795982');
-define('HELP_VOTING',[{ name: 'Please Note', value: 'You must be in a voice channel with at least 3 members to participate in a kick/ban vote.', inline: 'false'},
-					  { name: '!votekick <@user>', value: 'to remove user from channel.', inline: 'false'},
-					  { name: '!voteban <@user>', value: 'for a more permanent solution.', inline: 'false'},
-					  { name: '!vote <thing to vote for>', value: 'to do a custom vote.', inline: 'false'},
-					  { name: '!voteinfo', value: 'for totals of all custom votes.', inline: 'false'},
-					  { name: '!voteinfo <@user>', value: 'for total votes to kick/ban that user.', inline: 'false'}]);
+define('HELP_VOTING',[{ name: 'Please Note', value: '`You must be in a voice channel with at least 3 members to participate in a kick/ban vote.`', inline: 'false'},
+					  { name: '!votekick <`@user`>', value: '`to remove user from channel.`', inline: 'false'},
+					  { name: '!voteban <`@user`>', value: '`for a more permanent solution.`', inline: 'false'},
+					  { name: '!vote <`thing to vote for`>', value: '`to do a custom vote.`', inline: 'false'},
+					  { name: '!voteinfo', value: '`for totals of all custom votes.`', inline: 'false'},
+					  { name: '!voteinfo <`@user`>', value: '`for total votes to kick/ban that user.`', inline: 'false'}]);
 					
-define('HELP_SCRUBBING_BUBBLES',[{ name: '!enlist', value: 'enlists the discharged Scrubbing Bubbles to your army.', inline: 'false'},
-								 { name: '!discharge', value: 'honorably discharges a Scrubbing Bubble from your army.', inline: 'false'},
-								 { name: '!clean <numBubbles> <t|b>', value: 'send numBubbles to clean toilet/bath.', inline: 'false'},
-								 { name: '!army', value: 'retrieves the size of your army', inline: 'false'},
-								 { name: '!army <@user>', value: 'retrieves the size of the user\'s army', inline: 'false'}]);
-define('HELP_TIME_PLAYED',[{ name: '!time <Game Name> <@user>', value: 'user\'s playtime for the specified Game Name.', inline: 'false'},
-						   { name: '!time <Game Name>', value: 'cumulative playtime for the specified Game Name.', inline: 'false'},
-						   { name: '!time <@user>', value: 'user\'s playtime for all games.', inline: 'false'},
-						   { name: '!time', value: 'cumulative playtime for all games.', inline: 'false'},
-						   { name: '!opt-in', value: 'to opt into playtime tracking.', inline: 'false'}]);
+define('HELP_SCRUBBING_BUBBLES',[{ name: '!enlist', value: '`enlists the discharged Scrubbing Bubbles to your army.`', inline: 'false'},
+								 { name: '!discharge', value: '`honorably discharges a Scrubbing Bubble from your army.`', inline: 'false'},
+								 { name: '!clean <`numBubbles`> <`t|b`>', value: '`send numBubbles to clean toilet/bath.`', inline: 'false'},
+								 { name: '!army', value: '`retrieves the size of your army`', inline: 'false'},
+								 { name: '!army <`@user`>', value: '`retrieves the size of the user\'s army`', inline: 'false'}]);
+define('HELP_TIME_PLAYED',[{ name: '!time <`Game Name`> <`@user`>', value: '`user\'s playtime for the specified Game Name.`', inline: 'false'},
+						   { name: '!time <`Game Name`>', value: '`cumulative playtime for the specified Game Name.`', inline: 'false'},
+						   { name: '!time <`@user`>', value: '`user\'s playtime for all games.`', inline: 'false'},
+						   { name: '!time', value: '`cumulative playtime for all games.`', inline: 'false'},
+						   { name: '!opt-in', value: '`to opt into playtime tracking.`', inline: 'false'}]);
 
-define('HELP_PLAYER_COUNT',[{ name: '!playing', value: 'player count of games currently being played.', inline: 'false'},
-							{ name: '!gameHistory', value: 'player counts for all games throughout the day.', inline: 'false'}]);
+define('HELP_PLAYER_COUNT',[{ name: '!playing', value: '`player count of games currently being played.`', inline: 'false'},
+							{ name: '!gameHistory', value: '`player counts for all games throughout the day.`', inline: 'false'}]);
 
-define('HELP_BOT',[{ name: 'Please Note', value: 'Your issue title or feature title must be ONE WORD! msg is optional', inline: 'false'},
-				   { name: '!issue <issue-title> <msg detailing issue>', value: 'to submit bot issues.', inline: 'false'},
-				   { name: '!feature <feature-title> <msg detailing feature>', value: 'to submit bot feature requests.', inline: 'false'},
-				   { name: '!help, !info, or !helpinfo', value: 'to show this message again.', inline: 'false'}]);
+define('HELP_BOT',[{ name: 'Please Note', value: '`Your issue title or feature title must be ONE WORD! msg is optional`', inline: 'false'},
+				   { name: '!issue <`issue-title`> <`msg detailing issue`>', value: '`to submit bot issues.`', inline: 'false'},
+				   { name: '!feature <`feature-title`> <`msg detailing feature`>', value: '`to submit bot feature requests.`', inline: 'false'},
+				   { name: '!help, !info, or !helpinfo', value: '`to show this message again.`', inline: 'false'}]);
 				   
-define('HELP_MISC',[{ name: '!p', value: 'to ask @Scrubs to play PUBG in scrubs text channel.', inline: 'false'},
-					{ name: '!temp', value: 'Creates a temporary text channel', inline: 'false'},
-					{ name: '!temp <text|voice>', value: 'Creates a temp text/voice channel', inline: 'false'},
-					{ name: '!temp <text|voice> <channel-title>', value: 'Creates a voice/text channel with the provided title', inline: 'false'},]);
-
+define('HELP_MISC',[{ name: '!p', value: '`to ask @Scrubs to play PUBG in scrubs text channel.`', inline: 'false'},
+					{ name: '!temp', value: '`Creates a temporary text channel`', inline: 'false'},
+					{ name: '!temp <`text|voice`>', value: '`Creates a temp text/voice channel`', inline: 'false'},
+					{ name: '!temp <`text|voice`> <`channel-title`>', value: '`Creates a voice/text channel with the provided title`', inline: 'false'}]);
+define('HELP_CATEGORIES_PROMPT',[{ name: 'To select a category:', value: '`Type one of the numbers below.`', inline: 'false'},
+						  { name: '1) Voting', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
+						  { name: '2) Scrubbing Bubbles', value: '`enlist`	`discharge`	`clean`	`army`', inline: 'false'},
+						  { name: '3) Time Played', value: '`time`	`opt-in`', inline: 'false'},
+						  { name: '4) Player Count', value: '`playing`	`gameHistory`', inline: 'false'},
+						  { name: '5) Bot Issues, Feature Requests, and Help', value: '`issue`	`feature`	`help`	`info`	`helpinfo`', inline: 'false'},
+						  { name: '6) Miscellaneous', value: '`p`	`temp`', inline: 'false'}]);
+define('HELP_CATEGORIES', [{name: '`Voting`', fields: exports.HELP_VOTING},
+{name: '`Scrubbing Bubbles`', fields: exports.HELP_SCRUBBING_BUBBLES},
+{name: '`Time Played`', fields: exports.HELP_TIME_PLAYED},
+{name: '`Player Count`', fields: exports.HELP_PLAYER_COUNT},
+{name: '`Bot Issues, Feature Requests, and Help`', fields: exports.HELP_BOT}, 
+{name: '`Miscellaneous`', fields: exports.HELP_MISC}]);
