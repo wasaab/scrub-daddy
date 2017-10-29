@@ -1,9 +1,9 @@
-const Discord = require('discord.js');
-const inspector = require('util');
-const get = require('lodash.get');
+var Discord = require('discord.js');
+var inspect = require('util-inspect');
+var get = require('lodash.get');
 
-const c = require('./const.js');
-const bot = require('./bot.js');
+var c = require('./const.js');
+var bot = require('./bot.js');
 const catFacts = require('./catfacts.json');
 
 /**
@@ -98,7 +98,7 @@ exports.log = function(error, response) {
 			c.LOG.info('<API RESPONSE> ' + exports.getTimestamp() + '  ERROR: ' + error);			
 		}
 	} else {
-		c.LOG.info('<API RESPONSE> ' + exports.getTimestamp() + '  ' + inspector.inspect(response, false, null));
+		c.LOG.info('<API RESPONSE> ' + exports.getTimestamp() + '  ' + inspect(response));
 	}
 }
 
@@ -137,7 +137,11 @@ exports.compareFieldValues = function(a,b) {
  * Output vote count to bot-spam channel
  */
 exports.sendEmbedFieldsMessage = function(title, fields) {
-	bot.getBotSpam().send(new Discord.RichEmbed({
+	if (fields.length === 1 && fields[0].name === '') {
+		return;
+	}
+
+	bot.getBotSpam().send(new Discord.MessageEmbed({
 		color: 0xffff00,
 		title: title,
 		fields: fields
@@ -153,7 +157,7 @@ exports.sendEmbedMessage = function(title, description, image) {
 	description = description || '';
 	image = image || '';
 
-	bot.getBotSpam().send(new Discord.RichEmbed({
+	bot.getBotSpam().send(new Discord.MessageEmbed({
 		color: 0xffff00,
 		title: title,
 		description: description,

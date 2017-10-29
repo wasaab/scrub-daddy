@@ -1,5 +1,5 @@
-const util = require('./utilities.js');
-const auth = require('./secureAuth.json'); 
+var util = require('./utilities.js');
+var auth = require('./secureAuth.json'); 
 var get = require('lodash.get');
 
 function define(name, value) {
@@ -8,10 +8,10 @@ function define(name, value) {
         enumerable: true
     });
 }
- 
+
 define('LOG', require('winston'));
 define("LOOP_DELAY", 1500);							        //delay between each loop
-define('BOT_SPAM_CHANNEL_ID', '372570540482887701');		//listen's to messages from this channel
+define('BOT_SPAM_CHANNEL_ID', '372865125155078154');		//listen's to messages from this channel
 define('SCRUBS_CHANNEL_ID', '370626384059695107');		    //channel ID of scrubs text channel
 define('SERVER_ID', auth.serverID);				    		//Bed Bath Server ID
 define('FEEDBACK_CATEGORY_ID', '372143355070644255');
@@ -64,6 +64,7 @@ define('HELP_MSG',  '------------------------- Voting --------------------------
 					'\n!enlist - enlists the discharged Scrubbing Bubbles to your army.' +
 					'\n!discharge - honorably discharges a Scrubbing Bubble from your army.' +
 					'\n!clean <numBubbles> <t|b> - send numBubbles to clean toilet/bath.' +
+					'\n!army - retrieves the size of your army' +
 					'\n!army - retrieves the size of your army' +
 					'\n------------------------------------------------------------' +	
 					'\n\n----------------------- Time Played ----------------------' +

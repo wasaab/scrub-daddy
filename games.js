@@ -1,9 +1,9 @@
-const inspector = require('util');
-const get = require('lodash.get');
-const fs = require('fs');
+var inspect = require('util-inspect');
+var get = require('lodash.get');
+var fs = require('fs');
 
-const c = require('./const.js');
-const util = require('./utilities.js');
+var c = require('./const.js');
+var util = require('./utilities.js');
 var optedInUsers = require('./optedIn.json');
 
 var gameHistory = [];								//timestamped log of player counts for each game
@@ -45,7 +45,7 @@ exports.getAndOutputCountOfGamesBeingPlayed = function(scrubs) {
 	var winner = '';
 
 	scrubs.forEach((scrub) => {
-		const game = get(scrub, 'presence.game.name');
+		const game = get(scrub, 'presence.activity.name');
 		if (game && !scrub.user.bot) {
 			if (!games[game]){
 				games[game] = 1;
@@ -178,7 +178,7 @@ function outputCumulativeTimePlayed(timePlayedData) {
 	}
 	fields.sort(util.compareFieldValues);
 	util.sendEmbedFieldsMessage('Cumulative Hours Played', fields);
-	c.LOG.info('<INFO> ' + util.getTimestamp() + '  Cumulative Hours Played All Games: ' + inspector.inspect(fields, false, null));
+	c.LOG.info('<INFO> ' + util.getTimestamp() + '  Cumulative Hours Played All Games: ' + inspect(fields));
 }
 
 /**
@@ -208,7 +208,7 @@ exports.maybeOutputTimePlayed = function(args) {
 		var fields = [];
 		fields.push(util.buildField(game,timePlayedData.total.toFixed(1)));
 		util.sendEmbedFieldsMessage('Hours Played', fields);
-		c.LOG.info('<INFO> ' + util.getTimestamp() + '  Hours Played: ' + inspector.inspect(fields, false, null));
+		c.LOG.info('<INFO> ' + util.getTimestamp() + '  Hours Played: ' + inspect(fields));
     }
 }
 
@@ -299,6 +299,24 @@ function getTimePlayed(currentlyPlaying) {
 }
 
 /**
+ * Updates the time played for a game when the user finishes playing it.
+ * 
+ * @param {Object} gameToTime - map of game to time played
+ * @param {userName} userName - name of the user whos playtime is being updated
+ */
+function getUpdatedGameToTime(gameToTime, userName) {
+	var currentlyPlaying = gameToTime['playing'];
+	
+	if (currentlyPlaying) {
+		var hoursPlayed = getTimePlayed(currentlyPlaying);
+		c.LOG.info('<INFO> ' + util.getTimestamp() + '  Presence Update - ' + userName + ' finished a ' + hoursPlayed.toFixed(4) + 'hr session of ' + currentlyPlaying.name);											
+		gameToTime[currentlyPlaying.name] += hoursPlayed;
+		gameToTime['playing'] = undefined;
+	}
+	return gameToTime;
+}
+
+/**
  * Updates the provided users timesheet.
  * 
  * TODO: Update this function to use the oldGame name to validate that is 
@@ -309,12 +327,8 @@ function getTimePlayed(currentlyPlaying) {
  * @param {Object} game 
  */
 exports.updateTimesheet = function(user, userID, oldGame, newGame) {
-    //ignore presence updates for bots
-	for (i = 0; i < c.BOT_IDS.length; i++) {
-		if (userID === c.BOT_IDS[i]) {
-			return;
-		}
-	}
+	//ignore presence updates for bots and online status changes
+	if (c.BOT_IDS.indexOf(userID) > -1 || oldGame === newGame) { return };	
 	c.LOG.info('<INFO> Presence Update - ' + user + ' id: ' + userID + ' old game: ' + oldGame + ' new game: ' + newGame)	
 	
 	//get user's timesheet
@@ -323,27 +337,13 @@ exports.updateTimesheet = function(user, userID, oldGame, newGame) {
 		gameToTime = {};
 	}
 
-	//Just started playing a game
-	// TODO: this may need to be a null check instead 
-	if (!oldGame && newGame) {
-		if (!gameToTime[newGame]) {
-			gameToTime[newGame] = 0;
-		}
-		gameToTime['playing'] = {name : newGame, start : util.getTimestamp()} ; //replace util.getTimestamp with epoch
-	//Just finished playing a game
-	} else {
-		var currentlyPlaying = gameToTime['playing'];
-		
-		//This user started playing the game before the bot was running
-		//so there is no start timestamp associated with the game
-		if (!currentlyPlaying) {
-			return;
-		}
-
-		var hoursPlayed = getTimePlayed(currentlyPlaying);
-		c.LOG.info('<INFO> ' + util.getTimestamp() + '  Presence Update - ' + user + ' finished a ' + hoursPlayed.toFixed(2) + 'hr session of ' + currentlyPlaying.name);											
-		gameToTime[currentlyPlaying.name] += hoursPlayed;
-		gameToTime['playing'] = undefined;
+	//finished playing a game
+	if (oldGame) {
+		gameToTime = getUpdatedGameToTime(gameToTime, user);
+	}
+	//started playing a game
+	if (newGame) {
+		gameToTime['playing'] = {name : newGame, start : (new Date).getTime()};
 	}
 	
 	timeSheet[userID] = gameToTime;

@@ -1,8 +1,8 @@
-const get = require('lodash.get');
-const fs = require('fs');
+var get = require('lodash.get');
+var fs = require('fs');
 
-const c = require('./const.js');
-const util = require('./utilities.js');
+var c = require('./const.js');
+var util = require('./utilities.js');
 var ledger = require('./ledger.json');   //keeps track of how big of an army each member has as well as bet amounts
 
 var dropped = 0;
@@ -235,7 +235,6 @@ exports.armyRanks = function() {
  * Deletes previous Scrub Daddy message if it is an arrived for duty message.
  */
 exports.maybeDeletePreviousMessage = function (msg) {
-    c.LOG.info('<INFO> ' + util.getTimestamp() + '  arrive for duty msg found ');
     //delete previous message if >1 bubbles dropped
     if (dropped > 1) {
         previousMessage.delete();

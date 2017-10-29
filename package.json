@@ -5,8 +5,9 @@
   "main": "bot.js",
   "author": "Kent",
   "dependencies": {
-    "discord.js": "^11.2.1",
+    "discord.js": "git+https://github.com/hydrabolt/discord.js.git",
     "lodash.get": "^4.4.2",
+    "util-inspect": "^0.1.8",
     "winston": "^2.3.1"
   }
 }

@@ -1,16 +1,16 @@
-const Discord = require('discord.js');
-const inspector = require('util');
-const get = require('lodash.get');
-const fs = require('fs');
+var Discord = require('discord.js');
+var inspect = require('util-inspect');
+var get = require('lodash.get');
+var fs = require('fs');
 
-const c = require('./const.js');
-const util = require('./utilities.js');
-const gambling = require('./gambling.js');
-const games = require('./games.js');
-const vote = require('./vote.js');
+var c = require('./const.js');
+var util = require('./utilities.js');
+var gambling = require('./gambling.js');
+var games = require('./games.js');
+var vote = require('./vote.js');
 
-const auth = require('./secureAuth.json'); 
-const client = new Discord.Client();
+var auth = require('./secureAuth.json'); 
+var client = new Discord.Client();
 client.login(auth.token);
 
 var botSpam = {};
@@ -25,7 +25,7 @@ var scrubIDtoNick = {};
 //TODO: refactor this so that i dont need to pass in a million params to everything. should pass one object and then it gets split on in the other file
 client.on('message', message => {
     //Scrub Daddy will listen for messages that will start with `!`
-    if (message.content.substring(0, 1) == '!') {
+    if (message.content.substring(0, 1) == '*') {
 		const args = message.content.substring(1).match(/\S+/g);
 		const cmd = args[0];
 		const channelID = message.channel.id;
@@ -36,7 +36,7 @@ client.on('message', message => {
 		if (channelID !== c.BOT_SPAM_CHANNEL_ID && !(channelID === c.SCRUBS_CHANNEL_ID && cmd === 'p')) {
 			return;
 		}
-		c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + cmd + ' called');	
+		c.LOG.info('<CMD> ' + util.getTimestamp() + '  ' + cmd + ' called');	
         switch(cmd) {
 			case 'issue':
 				util.submitIssue(user, args, message);
@@ -116,7 +116,7 @@ client.on('message', message => {
  * listens for updates to a user's presence (online status, game, etc).
  */
 client.on('presenceUpdate', (oldMember, newMember) => { 
-	games.updateTimesheet(newMember.displayName, newMember.id, get(oldMember, 'presence.game.name'), get(newMember, 'presence.game.name'));
+	games.updateTimesheet(newMember.displayName, newMember.id, get(oldMember, 'presence.activity.name'), get(newMember, 'presence.activity.name'));
 	gambling.maybeDischargeScrubBubble(botSpam);
 });
 
@@ -124,7 +124,7 @@ client.on('presenceUpdate', (oldMember, newMember) => {
  * Reconnects the bot if diconnected.
  */
 client.on('disconnect', event => {
-	c.LOG.info('<ERROR> ' +  util.getTimestamp() + '  event: ' + inspector.inspect(event, false, null));
+	c.LOG.error('<ERROR> ' +  util.getTimestamp() + '  event: ' + inspect(event));
 	client.login(auth.token);
 });
 
@@ -139,9 +139,6 @@ client.on('ready', () => {
 		scrubIDtoNick[member.id] = member.displayName;
 	});
 
-	client.channels.forEach((channel) => {
-		console.log('id: ' + channel.id + ' name: ' + channel.name);
-	});
 	botSpam = client.channels.find('id', c.BOT_SPAM_CHANNEL_ID);	
 	scrubsChannel = client.channels.find('id', c.SCRUBS_CHANNEL_ID);
 	purgatory = client.channels.find('id', c.PURGATORY_CHANNEL_ID);

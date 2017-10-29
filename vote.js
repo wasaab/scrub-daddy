@@ -1,9 +1,8 @@
-const inspector = require('util');
-const get = require('lodash.get');
+var get = require('lodash.get');
 
-const c = require('./const.js');
-const bot = require('./bot.js');
-const util = require('./utilities.js');
+var c = require('./const.js');
+var bot = require('./bot.js');
+var util = require('./utilities.js');
 
 var voteChannelMembers = {
 	'370625207150575617' : [],						//Beyond
@@ -18,6 +17,19 @@ var voteChannelMembers = {
 var votes = {};										//map of targetConcat to number of votes
 var alreadyVoted = {};								//map of targetConcat to array of people who have voted for them
 var kickChannel = {};								//channel the kick is being initiated in (name, id)
+
+/**
+ * Builds a target which could be one word or multiple.
+ * 
+ * @param {String[]} args 
+ */
+function getTargetFromArgs(args) {
+	var target = args[1];
+	for (var k=2; k < args.length; k++) {
+		target += ' ' + args[k];
+	}
+	return target;
+}
 
 /**
  * Outputs totals for custom votes to bot-spam channel.
@@ -54,10 +66,7 @@ exports.getTotalVotesForTarget = function(user, kickChannel, channelID, args) {
 		c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + user + ' is trying to voteinfo @user from nothing.');	
 		return;
 	}
-	var target = args[1];
-	for (var k=2; k < args.length; k++) {
-		target += ' ' + args[k];
-	}
+	var target = getTargetFromArgs(args);
 	var titleTarget = 'The Provided User';
 	voteChannelMembers[kickChannel.id].forEach(function(vMember) {
 		if (vMember.name === target || (target.match(/\d/g) !== null && vMember.id === target.match(/\d/g).join(""))) {
@@ -146,8 +155,14 @@ function maybeEndVote(voteData, roles) {
  * @param {String} channelID - the channel's ID
  * @param {String[]} args - target of the vote
  * @param {String} type - vote type
+ * @param {String} kickChannel - the voice channel of the user calling !vote
+ * @param {String} roles - the guild's role objects
  */
 exports.conductVote = function(user, userID, channelID, args, type, kickChannel, roles) {
+	if (type === c.VOTE_TYPE.CUSTOM) {
+		kickChannel = { id: '', name: ''};	
+	}
+
 	//if voting user not in a voice channel
 	if (!kickChannel) {
 		const description = 'Sup ' + user + '! Tryna vote' + type + ' from nothing, ey dumbass?';
@@ -156,27 +171,26 @@ exports.conductVote = function(user, userID, channelID, args, type, kickChannel,
 		return;
 	}			
 
-	var target = args[1];
-	for (var k=2; k < args.length; k++) {
-		target += ' ' + args[k];
-	}
+	var target = getTargetFromArgs(args);
 	if (type === c.VOTE_TYPE.CUSTOM) {
 		type = target;
 	}
 	const targetConcat = target + ':-:' + kickChannel.id + ':-:' + type;
 	var msg = ' votes to ' + type + ' '; 				
 	
+	//If this is the first vote for the given target
 	if (!votes[targetConcat]) {
 		alreadyVoted[targetConcat] = [];
 		votes[targetConcat] = 0;
 		msg = ' vote to ' + type + ' ';
 	}
+	//If the user has not already voted for the target
 	if (!alreadyVoted[targetConcat].includes(user)) {
 		votes[targetConcat] = votes[targetConcat] + 1;
 		alreadyVoted[targetConcat].push(user); 				
 
-		//if not a custom vote
-		if (type !== c.VOTE_TYPE.CUSTOM) {
+		//If not a custom vote
+		if (kickChannel.name !== '') {
 			voteChannelMembers[kickChannel.id] = [];
 			var kickMembers = kickChannel.members.array();
 			kickMembers.forEach(function (member) {
