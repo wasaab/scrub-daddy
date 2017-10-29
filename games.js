@@ -1,3 +1,4 @@
+var Discord = require('discord.js');
 var inspect = require('util-inspect');
 var get = require('lodash.get');
 var fs = require('fs');
@@ -28,7 +29,7 @@ function getGameNameAndTarget(args) {
 	var target = '';
 	for (var i=1; i < args.length; i++) {
 		if (args[i].indexOf('<') === 0) {
-			target = args[i]
+			target = args[i];
 			break;
 		}
 		game += ' ' + args[i];
@@ -80,9 +81,28 @@ exports.getAndOutputCountOfGamesBeingPlayed = function(scrubs) {
 	if (c.GAME_NAME_TO_IMG[winner]) {
 		imageUrl = c.GAME_NAME_TO_IMG[winner];
 	}
-	util.sendEmbedMessage("Winner - " + winner, null, imageUrl);
+	util.sendEmbedMessage('Winner - ' + winner, null, imageUrl);
 	fields.sort(util.compareFieldValues);
-	util.sendEmbedFieldsMessage("Player Count", fields);
+	util.sendEmbedFieldsMessage('Player Count', fields);
+}
+
+/**
+ * Gets the play time of the game provided.
+ * 
+ * @param {Object} currentlyPlaying - the game finished or currently being played
+ */
+function getTimePlayed(currentlyPlaying) {
+	var startOfDay = new Date();
+	startOfDay.setHours(0,0,0,0);
+	var utcSeconds = Number(currentlyPlaying.start) / 1000;
+	var startedPlaying = new Date(0); // The 0 there is the key, which sets the date to the epoch
+	startedPlaying.setUTCSeconds(utcSeconds);
+	var currentTime = new Date();
+	if (startedPlaying < startOfDay) {
+		startedPlaying = startOfDay;
+	}
+	var hoursPlayed = Math.abs(currentTime - startedPlaying) / 36e5;
+	return hoursPlayed;
 }
 
 /**
@@ -99,7 +119,7 @@ function getUsersPlaytimeForGame(userID, gameName) {
 	var playtime = timeSheet[userID][gameName];
 	var currentlyPlaying = timeSheet[userID]['playing'];						
 	
-	//THIS LOGIC IS WRONG! If they are currently playing a game and have already played it today, it won't include their current play time~~~~~~~~~~~~~~~~~~~~~~~~~
+	//TODO: THIS LOGIC IS WRONG! If they are currently playing a game and have already played it today, it won't include their current play time~~~~~~~~~~~~~~~~~~~~~~~~~
 	//if the target user is currently playing the game 
 	if (playtime === 0 && currentlyPlaying && currentlyPlaying.name === gameName) {						
 		playtime = getTimePlayed(currentlyPlaying);
@@ -159,7 +179,7 @@ function getCumulativeTimePlayed(gameName, target) {
  * @param {String} user - the user to check
  */
 function isOptedIn(user) {
-	user = user.match(/\d/g).join("");
+	user = user.match(/\d/g).join('');
 	if (optedInUsers.indexOf(user) === -1) 
 		return false;
 	return true;
@@ -200,7 +220,7 @@ exports.maybeOutputTimePlayed = function(args) {
 	}
 	
     if (target.match(/\d/g) !== null) {
-        target = target.match(/\d/g).join("");
+        target = target.match(/\d/g).join('');
     } 
     var timePlayedData = getCumulativeTimePlayed(game,target);
     if (Object.keys(timePlayedData.gameToTime).length !== 0) {
@@ -281,25 +301,6 @@ exports.maybeOutputGameHistory = function () {
 }
 
 /**
- * Gets the play time of the game provided.
- * 
- * @param {Object} currentlyPlaying - the game finished or currently being played
- */
-function getTimePlayed(currentlyPlaying) {
-	var startOfDay = new Date();
-	startOfDay.setHours(0,0,0,0);
-	var utcSeconds = Number(currentlyPlaying.start) / 1000;
-	var startedPlaying = new Date(0); // The 0 there is the key, which sets the date to the epoch
-	startedPlaying.setUTCSeconds(utcSeconds);
-	var currentTime = new Date();
-	if (startedPlaying < startOfDay) {
-		startedPlaying = startOfDay;
-	}
-	var hoursPlayed = Math.abs(currentTime - startedPlaying) / 36e5;
-	return hoursPlayed;
-}
-
-/**
  * Updates the time played for a game when the user finishes playing it.
  * 
  * @param {Object} gameToTime - map of game to time played
@@ -312,7 +313,7 @@ function getUpdatedGameToTime(gameToTime, userName) {
 		var hoursPlayed = getTimePlayed(currentlyPlaying);
 		c.LOG.info('<INFO> ' + util.getTimestamp() + '  Presence Update - ' + userName + ' finished a ' + hoursPlayed.toFixed(4) + 'hr session of ' + currentlyPlaying.name);											
 		gameToTime[currentlyPlaying.name] += hoursPlayed;
-		gameToTime['playing'] = undefined;
+		gameToTime['playing'] = null;
 	}
 	return gameToTime;
 }
@@ -329,8 +330,8 @@ function getUpdatedGameToTime(gameToTime, userName) {
  */
 exports.updateTimesheet = function(user, userID, oldGame, newGame) {
 	//ignore presence updates for bots and online status changes
-	if (c.BOT_IDS.indexOf(userID) > -1 || oldGame === newGame) { return };	
-	c.LOG.info('<INFO> Presence Update - ' + user + ' id: ' + userID + ' old game: ' + oldGame + ' new game: ' + newGame)	
+	if (c.BOT_IDS.indexOf(userID) > -1 || oldGame === newGame) { return; }
+	c.LOG.info('<INFO> Presence Update - ' + user + ' id: ' + userID + ' old game: ' + oldGame + ' new game: ' + newGame);
 	
 	//get user's timesheet
 	var gameToTime = timeSheet[userID];
@@ -381,7 +382,7 @@ exports.optIn = function(user, userID) {
 	fields.push(util.buildField(user, 'I\'m watching you.'));
 	util.sendEmbedFieldsMessage('YOU ARE BEING WATCHED', fields);	
 	waitAndSendScrubDaddyFact(0,5);
-	c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + user + ' (' + userID + ') has opted into time#######');	
+	c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + user + ' (' + userID + ') has opted into time');	
 	var json = JSON.stringify(optedInUsers);	
 	fs.writeFile('optedIn.json', json, 'utf8', util.log);
 }

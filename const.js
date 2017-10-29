@@ -4,13 +4,13 @@ var get = require('lodash.get');
 
 function define(name, value) {
     Object.defineProperty(exports, name, {
-        value:      value,
+        value: value,
         enumerable: true
     });
 }
 
 define('LOG', require('winston'));
-define("LOOP_DELAY", 1500);							        //delay between each loop
+define('LOOP_DELAY', 1500);							        //delay between each loop
 define('BOT_SPAM_CHANNEL_ID', '372570540482887701');		//listen's to messages from this channel
 define('SCRUBS_CHANNEL_ID', '370626384059695107');		    //channel ID of scrubs text channel
 define('SERVER_ID', auth.serverID);				    		//Bed Bath Server ID
@@ -18,9 +18,9 @@ define('FEEDBACK_CATEGORY_ID', {
 	'Issue': '372143355070644255', 
 	'Feature': '374009714213781504'
 });
-define('DAYS', ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]);
-define('PUBG_ALIASES', ["scrubg", "pubg", "pugG", "pabg", "pobg", "pebg", "pibg", "pybg", "Mr. Pib G.", "pub", "pudgy", "puh ba gee"]);
-define('GREETINGS', ["you guys", "yous guys", "y'all", "hey buddies,", "hey pals,", "hey friends,", "sup dudes,", "hello fellow humans,"]);
+define('DAYS', ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']);
+define('PUBG_ALIASES', ['scrubg', 'pubg', 'pugG', 'pabg', 'pobg', 'pebg', 'pibg', 'pybg', 'Mr. Pib G.', 'pub', 'pudgy', 'puh ba gee']);
+define('GREETINGS', ['you guys', 'yous guys', 'y\'all', 'hey buddies,', 'hey pals,', 'hey friends,', 'sup dudes,', 'hello fellow humans,']);
 define('BOT_IDS', ['172002275412279296', '86920406476292096', '188064764008726528', '263059218104320000', '116275390695079945', '362784198848675842']);
 define('GAME_NAME_TO_IMG', {
     'World of Warcraft' : 'http://i.imgur.com/US59X7X.jpg', 
@@ -34,11 +34,11 @@ define('CLEAN_LOSE_IMG', 'https://i.imgur.com/gynZE1j.png');
 define('SCRUB_DADDY_FACT', 'https://i.imgur.com/FbAwRTj.jpg');
 define('PURGATORY_CHANNEL_ID', '370626266786824192');	    //sends kicked user's to this channel    
 define('VOTE_TYPE', {
-	KICK : "kick",
-	BAN : "ban",
-	PTT : "force Push To Talk",
-	REMOVE_ROLE : "remove role",
-	CUSTOM : "custom"
+	KICK : 'kick',
+	BAN : 'ban',
+	PTT : 'force Push To Talk',
+	REMOVE_ROLE : 'remove role',
+	CUSTOM : 'custom'
 });
 define('CHANNEL_ID_TO_BAN_ROLE_ID',{
 	'370625207150575617' : '370746310346801164',	        //Beyond

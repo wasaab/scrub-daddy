@@ -21,7 +21,7 @@ exports.submitFeedback = function(user, feedbackMsg, message) {
 			issue += feedbackMsg[i] + ' ';
 		}	
 		
-		message.guild.createChannel(feedbackMsg[1], "text")
+		message.guild.createChannel(feedbackMsg[1], 'text')
 		.then((channel) => {			
 			//Moves channel to the Feedback category
 			channel.setParent(c.FEEDBACK_CATEGORY_ID[type]);
@@ -78,7 +78,7 @@ exports.getTimestamp = function() {
 
 	if (hours > 12) {
 		hours -= 12;
-		meridiem = 'PM'
+		meridiem = 'PM';
 	} else if (hours === 0) {
 		hours = 12;
 	}

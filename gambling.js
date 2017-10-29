@@ -33,7 +33,7 @@ exports.dischargeScrubBubble = function (userID, botSpam) {
     }
     dropped++;
     var droppedImg = dropped;
-    var msg = 'Bubble has'
+    var msg = 'Bubble has';
     if (dropped > 1) {
         msg = 'Bubbles have';
         if (dropped > 21) {
@@ -52,7 +52,7 @@ exports.dischargeScrubBubble = function (userID, botSpam) {
 exports.maybeDischargeScrubBubble = function(botSpamChannel) {
 	var num = util.getRand(1,11);
 	if (num > 8) {
-		exports.dischargeScrubBubble(undefined, botSpamChannel);
+		exports.dischargeScrubBubble(null, botSpamChannel);
 	}
 }
 
@@ -158,16 +158,16 @@ function maybeGetPlural(count) {
  */
 function betClean(userID, bet, type, side) {    
     var wallet = ledger[userID];
+    var msg = '';
     
     if (!wallet || wallet.armySize < bet ) {
-        var msg = 'Your army is nonexistent.'
+        msg = 'Your army is nonexistent.';
         if (wallet && wallet.armySize > 0) {
             msg = 'Your ' + wallet.armySize + ' soldier' + maybeGetPlural(wallet.armySize) + ' would surely perish.';
         }
         const description = '<@!' + userID + '>  ' + 'You do not have enough Scrubbing Bubbles to clean the bathroom. ' + msg;
         util.sendEmbedMessage(null,description);
     } else {
-        var msg = '';
         var img = '';
         takeBetFromUser(userID, bet, type);
         
@@ -177,7 +177,6 @@ function betClean(userID, bet, type, side) {
             msg = 'Congrats, your auxiliary army gained ' + payout + ' Scrubbing Bubbles after cleaning the bathroom and conquering the land!';
             addToArmy(userID, payout);        
         } else {
-
             img = c.CLEAN_LOSE_IMG;
             msg = 'Sorry bud, you lost ' + bet + ' Scrubbing Bubble' + maybeGetPlural(bet) + ' in the battle.';
         }
@@ -207,7 +206,7 @@ exports.army = function(userID, args) {
     var msg = ' your';
     if (args[1]) {
         if (args[1].match(/\d/g) !== null) {
-            userID = args[1].match(/\d/g).join("")  
+            userID = args[1].match(/\d/g).join('');
             msg = '\'s';
         }
     }

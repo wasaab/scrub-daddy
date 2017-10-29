@@ -47,7 +47,7 @@ exports.getCustomVoteTotals = function() {
 		}
 	}
 	if (totals.length > 0) {
-		util.sendEmbedFieldsMessage("Custom Vote Totals", totals);
+		util.sendEmbedFieldsMessage('Custom Vote Totals', totals);
 	}
 }
 
@@ -69,7 +69,7 @@ exports.getTotalVotesForTarget = function(user, kickChannel, channelID, args) {
 	var target = getTargetFromArgs(args);
 	var titleTarget = 'The Provided User';
 	voteChannelMembers[kickChannel.id].forEach(function(vMember) {
-		if (vMember.name === target || (target.match(/\d/g) !== null && vMember.id === target.match(/\d/g).join(""))) {
+		if (vMember.name === target || (target.match(/\d/g) !== null && vMember.id === target.match(/\d/g).join(''))) {
 			titleTarget = vMember.name;
 		}
 	});
@@ -77,13 +77,13 @@ exports.getTotalVotesForTarget = function(user, kickChannel, channelID, args) {
 	const banTargetConcat = target + ':-:' + kickChannel.id + ':-:' + c.VOTE_TYPE.BAN;
 	var totals = [];
 	if (votes[kickTargetConcat]) {
-		totals.push(util.buildField("Kick", votes[kickTargetConcat]));
+		totals.push(util.buildField('Kick', votes[kickTargetConcat]));
 	}
 	if (votes[banTargetConcat]) {
-		totals.push(util.buildField("Ban", votes[banTargetConcat]));
+		totals.push(util.buildField('Ban', votes[banTargetConcat]));
 	}
 	if (totals.length > 0) {
-		util.sendEmbedFieldsMessage(kickChannel.name + "	-	Vote Totals for " + titleTarget, totals);
+		util.sendEmbedFieldsMessage(kickChannel.name + '	-	Vote Totals for ' + titleTarget, totals);
 	}
 }
 
@@ -97,7 +97,7 @@ function getTargetInVoteChannel(vote) {
 	var result;
 	voteChannelMembers[vote.channelID].forEach(function(vMember) {
 		const kickTarget = vote.targetConcat.split(':-:')[0];
-		if (vMember.name === kickTarget || (kickTarget.match(/\d/g) !== null && vMember.id === kickTarget.match(/\d/g).join(""))) {
+		if (vMember.name === kickTarget || (kickTarget.match(/\d/g) !== null && vMember.id === kickTarget.match(/\d/g).join(''))) {
 			result = vMember.fullMember;
 		}
 	});
@@ -134,7 +134,7 @@ function maybeEndVote(voteData, roles) {
 		return;
 	}
 
-	channelSize = voteChannelMembers[voteData.channelID].length;
+	const channelSize = voteChannelMembers[voteData.channelID].length;
 	const majority = channelSize/2;
 	c.LOG.info('<INFO> ' + util.getTimestamp() + '  majority: ' + majority + ' votes: ' + votes[voteData.targetConcat]);
 	if (channelSize > 2 && votes[voteData.targetConcat] > majority) {
@@ -194,9 +194,9 @@ exports.conductVote = function(user, userID, channelID, args, type, kickChannel,
 			voteChannelMembers[kickChannel.id] = [];
 			var kickMembers = kickChannel.members.array();
 			kickMembers.forEach(function (member) {
-				var memberData = {id: member.id, name: member.displayName, fullMember: member}
+				var memberData = {id: member.id, name: member.displayName, fullMember: member};
 				voteChannelMembers[kickChannel.id].push(memberData);
-			})
+			});
 			exports.getTotalVotesForTarget(user, kickChannel, channelID, args);		
 			var currVote =  {
 				channelID : kickChannel.id, 
@@ -207,9 +207,9 @@ exports.conductVote = function(user, userID, channelID, args, type, kickChannel,
 			c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + votes[targetConcat] + msg + target + ' from ' + kickChannel.name);	
 		} else {
 			//custom vote
-			var message = votes[targetConcat] + msg
+			var message = votes[targetConcat] + msg;
 			if (votes[targetConcat] > 2) {
-				message = 'The vote has concluded with ' + votes[targetConcat] + msg
+				message = 'The vote has concluded with ' + votes[targetConcat] + msg;
 			}
 			util.sendEmbedMessage(null, message);
 			c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + message);				

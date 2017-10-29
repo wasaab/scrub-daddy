@@ -19,18 +19,22 @@ var purgatory = {};
 var feedbackCategory = {};
 var scrubIDtoNick = {};
 
+function isArrivedForDutyMessage(message) {
+    return message.member.id === c.SCRUB_DADDY_ID && get (message, 'embeds[0].title') && message.embeds[0].title.indexOf('duty') !== -1 && message.channel.id === c.BOT_SPAM_CHANNEL_ID;
+}
+
 /**
  * Listen's for messages in Discord
  */
 client.on('message', message => {
     //Scrub Daddy will listen for messages that will start with `!`
-    if (message.content.substring(0, 1) == '!') {
+    if (message.content.substring(0, 1) === '!') {
 		const args = message.content.substring(1).match(/\S+/g);
 		const cmd = args[0];
 		const channelID = message.channel.id;
-		const userID = message.member.id;
 		const user = message.member.displayName;
-
+		var userID = message.member.id;
+		
 		//stops if the message is not from bot-spam text channel, with the exception of the message !p.
 		if (channelID !== c.BOT_SPAM_CHANNEL_ID && !(channelID === c.SCRUBS_CHANNEL_ID && cmd === 'p')) {
 			return;
@@ -148,20 +152,12 @@ client.on('ready', () => {
 
 	botSpam = client.channels.find('id', c.BOT_SPAM_CHANNEL_ID);	
 	scrubsChannel = client.channels.find('id', c.SCRUBS_CHANNEL_ID);
-	purgatory = client.channels.find('id', c.PURGATORY_CHANNEL_ID);
-	issuesCategory = client.channels.find('id', c.FEEDBACK_CATEGORY_ID['Issue']);		
-	featuresCategory = client.channels.find('id', c.FEEDBACK_CATEGORY_ID['Feature']);			
+	purgatory = client.channels.find('id', c.PURGATORY_CHANNEL_ID);		
 });
-
-function isArrivedForDutyMessage(message) {
-    return message.member.id === c.SCRUB_DADDY_ID && get (message, 'embeds[0].title') && message.embeds[0].title.indexOf('duty') !== -1 && message.channel.id === c.BOT_SPAM_CHANNEL_ID;
-}
 
 exports.getBotSpam = () => botSpam;
 exports.getScrubsChannel = () => scrubsChannel;
 exports.getPurgatory = () => purgatory;
 exports.getScrubIDToNick = () => scrubIDtoNick;
-exports.getIssuesCategory = () => feedbackCategory;
-exports.getFeaturesCategory = () => feedbackCategory;
 exports.getClient = () => client;
 
