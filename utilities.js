@@ -7,25 +7,27 @@ var bot = require('./bot.js');
 const catFacts = require('./catfacts.json');
 
 /**
- * For submitting issues with the bot.
+ * For submitting feature requests or issues with the bot.
+ * 
  * @param {String} user - the user's name
- * @param {String[]} issueMsg - the issue message split by spaces
+ * @param {String[]} feedbackMsg - the feedback message split by spaces
  * @param {Object} message - the full message object
  */
-exports.submitIssue = function(user, issueMsg, message) {
-	if (issueMsg[1]) {
+exports.submitFeedback = function(user, feedbackMsg, message) {
+	if (feedbackMsg[1]) {
+		const type = feedbackMsg[0].charAt(0).toUpperCase() + feedbackMsg[0].slice(1);
 		var issue = '';
-		for (i=2; i < issueMsg.length; i++) {
-			issue += issueMsg[i] + ' ';
+		for (var i=2; i < feedbackMsg.length; i++) {
+			issue += feedbackMsg[i] + ' ';
 		}	
 		
-		message.guild.createChannel(issueMsg[1], "text")
+		message.guild.createChannel(feedbackMsg[1], "text")
 		.then((channel) => {			
 			//Moves channel to the Feedback category
-			channel.setParent(c.FEEDBACK_CATEGORY_ID);
+			channel.setParent(c.FEEDBACK_CATEGORY_ID[type]);
 			channel.send(new Discord.MessageEmbed({
 				color: 0xffff00,
-				title: 'Issue Submitted By ' + user,
+				title: type + ' Submitted By ' + user,
 				description: issue,
 			}));	
 		})

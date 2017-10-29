@@ -14,7 +14,10 @@ define("LOOP_DELAY", 1500);							        //delay between each loop
 define('BOT_SPAM_CHANNEL_ID', '372570540482887701');		//listen's to messages from this channel
 define('SCRUBS_CHANNEL_ID', '370626384059695107');		    //channel ID of scrubs text channel
 define('SERVER_ID', auth.serverID);				    		//Bed Bath Server ID
-define('FEEDBACK_CATEGORY_ID', '372143355070644255');
+define('FEEDBACK_CATEGORY_ID', {
+	'Issue': '372143355070644255', 
+	'Feature': '374009714213781504'
+});
 define('DAYS', ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"]);
 define('PUBG_ALIASES', ["scrubg", "pubg", "pugG", "pabg", "pobg", "pebg", "pibg", "pybg", "Mr. Pib G.", "pub", "pudgy", "puh ba gee"]);
 define('GREETINGS', ["you guys", "yous guys", "y'all", "hey buddies,", "hey pals,", "hey friends,", "sup dudes,", "hello fellow humans,"]);

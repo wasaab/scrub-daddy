@@ -3,6 +3,7 @@ var get = require('lodash.get');
 var fs = require('fs');
 
 var c = require('./const.js');
+var bot = require('./bot.js');
 var util = require('./utilities.js');
 var optedInUsers = require('./optedIn.json');
 
@@ -25,7 +26,7 @@ exports.exportTimeSheet = function() {
 function getGameNameAndTarget(args) {
 	var game = '';
 	var target = '';
-	for (i=1; i < args.length; i++) {
+	for (var i=1; i < args.length; i++) {
 		if (args[i].indexOf('<') === 0) {
 			target = args[i]
 			break;
@@ -389,7 +390,7 @@ exports.optIn = function(user, userID) {
  * Asks Scrubs if they want to play pubg.
  */
 exports.askToPlayPUBG = function() {
-	bot.getScrubChannel().send(new Discord.MessageEmbed({
+	bot.getScrubsChannel().send(new Discord.MessageEmbed({
 		color: 0xffff00,
 		title: title,
 		description: '<@&370671041644724226>  ' + c.GREETINGS[util.getRand(0, c.GREETINGS.length)] + ' tryna play some ' + c.PUBG_ALIASES[util.getRand(0, c.PUBG_ALIASES.length)] + '?'

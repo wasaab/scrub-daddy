@@ -39,7 +39,8 @@ client.on('message', message => {
 		c.LOG.info('<CMD> ' + util.getTimestamp() + '  ' + cmd + ' called');	
         switch(cmd) {
 			case 'issue':
-				util.submitIssue(user, args, message);
+			case 'feature':
+				util.submitFeedback(user, args, message);
 				break;
 			case 'export':
 				gambling.exportLedger();
@@ -148,7 +149,8 @@ client.on('ready', () => {
 	botSpam = client.channels.find('id', c.BOT_SPAM_CHANNEL_ID);	
 	scrubsChannel = client.channels.find('id', c.SCRUBS_CHANNEL_ID);
 	purgatory = client.channels.find('id', c.PURGATORY_CHANNEL_ID);
-	feedbackCategory = client.channels.find('id', c.FEEDBACK_CATEGORY_ID);		
+	issuesCategory = client.channels.find('id', c.FEEDBACK_CATEGORY_ID['Issue']);		
+	featuresCategory = client.channels.find('id', c.FEEDBACK_CATEGORY_ID['Feature']);			
 });
 
 function isArrivedForDutyMessage(message) {
@@ -159,6 +161,7 @@ exports.getBotSpam = () => botSpam;
 exports.getScrubsChannel = () => scrubsChannel;
 exports.getPurgatory = () => purgatory;
 exports.getScrubIDToNick = () => scrubIDtoNick;
-exports.getFeedbackCategory = () => feedbackCategory;
+exports.getIssuesCategory = () => feedbackCategory;
+exports.getFeaturesCategory = () => feedbackCategory;
 exports.getClient = () => client;
 
