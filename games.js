@@ -1,19 +1,17 @@
-//do trends with game presence data. most played weekly and whatnot would be cool.
-	//I have potential to track hours played, but not sure if i should.
-//for player count command, add filter so it ignores either the 5 ids of the bots or checks their role ids to see if they contain bot. first choice seems more efficient.
-//add command that outputs all games playtimes with pic of the winner
-//doesn't currently handle multiple games being played at once by the same person, because of 'playing' being overwritten.
-//add logic to maybeOutputTimePlayed or a child, for getting time played of all games for a specific user.
-const c = require('./const.js');
-const util = require('./utilities.js');
-const inspector = require('util');
+var inspect = require('util-inspect');
+var get = require('lodash.get');
 var fs = require('fs');
+
+var c = require('./const.js');
+var util = require('./utilities.js');
+var optedInUsers = require('./optedIn.json');
 
 var gameHistory = [];								//timestamped log of player counts for each game
 var timeSheet = {};									//map of userID to gameToTimePlayed map for that user
-var optedInUsers = require('./optedIn.json');
-//optedInUsers = JSON.parse(optedInUsers);
 
+/**
+ * Exports the timesheet to a json file.
+ */
 exports.exportTimeSheet = function() {
 	var json = JSON.stringify(timeSheet);	
 	fs.writeFile('../timeSheet.json', json, 'utf8', util.log);
@@ -41,26 +39,26 @@ function getGameNameAndTarget(args) {
 /**
  * Gets and outputs the player count of every game currently being played 
  */
-exports.getAndOutputCountOfGamesBeingPlayed = function() {
-	var scrubs = c.BOT.getScrubs();
+exports.getAndOutputCountOfGamesBeingPlayed = function(scrubs) {
 	var games = [];
 	var max = 0;
 	var winner = '';
-	for (var s in scrubs) {
-		var scrub = scrubs[s];
-		if (scrub.game !== undefined && scrub.game !== null && scrub.bot === false) {
-			var game = scrub.game.name;
-			if (games[game] === undefined) {
+
+	scrubs.forEach((scrub) => {
+		const game = get(scrub, 'presence.activity.name');
+		if (game && !scrub.user.bot) {
+			if (!games[game]){
 				games[game] = 1;
 			} else {
-				games[game] += 1;
+				games[game]++;
 			}
 			if (games[game] > max) {
 				max = games[game];
 				winner = game;
 			}
-		}
-	}
+		}	
+	});
+
 	var fields = [];
 	var time = util.getTimestamp();
 	var gamesLog = [];
@@ -77,22 +75,13 @@ exports.getAndOutputCountOfGamesBeingPlayed = function() {
 	}
 	gameHistory.push(gamesLog);
 	
-	var imageUrl = 'http://i0.kym-cdn.com/entries/icons/original/000/012/982/post-19715-Brent-Rambo-gif-thumbs-up-imgu-L3yP.gif';
-	if (c.GAME_NAME_TO_IMG[winner] !== undefined && c.GAME_NAME_TO_IMG[winner] !== null) {
+	var imageUrl = c.THUMBS_UP_GIF;
+	if (c.GAME_NAME_TO_IMG[winner]) {
 		imageUrl = c.GAME_NAME_TO_IMG[winner];
 	}
-	c.BOT.sendMessage({
-		to: c.BOT_SPAM_CHANNEL_ID,
-		embed:  {
-			color: 0xffff00,
-			title: "Winner - " + winner,
-			image: {
-				url: imageUrl
-			}
-		} 
-	});	
+	util.sendEmbedMessage("Winner - " + winner, null, imageUrl);
 	fields.sort(util.compareFieldValues);
-	util.sendEmbedMessage("Player Count", fields);
+	util.sendEmbedFieldsMessage("Player Count", fields);
 }
 
 /**
@@ -102,7 +91,7 @@ exports.getAndOutputCountOfGamesBeingPlayed = function() {
  * @param {String} gameName - name of the game to get playtime of
  */
 function getUsersPlaytimeForGame(userID, gameName) {
-	if (timeSheet[userID] === undefined) {
+	if (!timeSheet[userID]) {
 		return 0;
 	}
 
@@ -111,7 +100,7 @@ function getUsersPlaytimeForGame(userID, gameName) {
 	
 	//THIS LOGIC IS WRONG! If they are currently playing a game and have already played it today, it won't include their current play time~~~~~~~~~~~~~~~~~~~~~~~~~
 	//if the target user is currently playing the game 
-	if (playtime === 0 && currentlyPlaying !== undefined && currentlyPlaying.name === gameName) {						
+	if (playtime === 0 && currentlyPlaying && currentlyPlaying.name === gameName) {						
 		playtime = getTimePlayed(currentlyPlaying);
 	}
 
@@ -144,8 +133,8 @@ function getCumulativeTimePlayed(gameName, target) {
 					continue;
 				} 
 				var playtime = getUsersPlaytimeForGame(userID, game);
-				if (playtime !== undefined) {
-					if (cumulativeTimePlayed.gameToTime[game] === undefined) {
+				if (playtime) {
+					if (!cumulativeTimePlayed.gameToTime[game]) {
 						cumulativeTimePlayed.gameToTime[game] = 0;
 					}
 					cumulativeTimePlayed.gameToTime[game] += playtime;
@@ -154,7 +143,7 @@ function getCumulativeTimePlayed(gameName, target) {
 			}
 		} else {
 			var timePlayed = getUsersPlaytimeForGame(userID, gameName);
-			if (timePlayed !== undefined) {
+			if (timePlayed) {
 				cumulativeTimePlayed.total += timePlayed;							
 			}
 		}
@@ -188,8 +177,8 @@ function outputCumulativeTimePlayed(timePlayedData) {
 		fields.push(util.buildField(gameName, playtime.toFixed(1)));
 	}
 	fields.sort(util.compareFieldValues);
-	util.sendEmbedMessage('Cumulative Hours Played', fields);
-	c.LOG.info('<INFO> ' + util.getTimestamp() + '  Cumulative Hours Played All Games: ' + inspector.inspect(fields, false, null));
+	util.sendEmbedFieldsMessage('Cumulative Hours Played', fields);
+	c.LOG.info('<INFO> ' + util.getTimestamp() + '  Cumulative Hours Played All Games: ' + inspect(fields));
 }
 
 /**
@@ -204,10 +193,7 @@ exports.maybeOutputTimePlayed = function(args) {
 
 	c.LOG.info('<INFO> ' + util.getTimestamp() + '  Time Called - game: ' + game + ' target: ' + target);		
 	if (target !== '' && !isOptedIn(target)) { 
-		c.BOT.sendMessage({
-			to: c.BOT_SPAM_CHANNEL_ID,
-			message: 'I do not track that scrub\'s playtime.'
-		});	
+		util.sendEmbedMessage(null,'I do not track that scrub\'s playtime.');
 		c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + target + ' is not opted in.');				
 		return; 
 	}
@@ -221,8 +207,8 @@ exports.maybeOutputTimePlayed = function(args) {
     } else {
 		var fields = [];
 		fields.push(util.buildField(game,timePlayedData.total.toFixed(1)));
-		util.sendEmbedMessage('Hours Played', fields);
-		c.LOG.info('<INFO> ' + util.getTimestamp() + '  Hours Played: ' + inspector.inspect(fields, false, null));
+		util.sendEmbedFieldsMessage('Hours Played', fields);
+		c.LOG.info('<INFO> ' + util.getTimestamp() + '  Hours Played: ' + inspect(fields));
     }
 }
 
@@ -250,7 +236,7 @@ function getTimeData(timestamp) {
  * @param {Object} b - gameLog containing array of gameData objects for comparison
  */
 function compareTimestamps(a,b) {
-	if (a[0] !== undefined && b[0] !== undefined) {
+	if (a[0] && b[0]) {
 		var aTimeData = getTimeData(a[0].time);
 		var bTimeData = getTimeData(b[0].time);
 		
@@ -278,7 +264,7 @@ exports.maybeOutputGameHistory = function () {
 	var previousTime = '';
 	gameHistory.sort(compareTimestamps);
 	gameHistory.forEach(function(gamesLog) {
-		if (gamesLog[0] !== undefined) {
+		if (gamesLog[0]) {
 			var time = gamesLog[0].time;
 			if ( time !== previousTime) {
 				var fields = [];					
@@ -286,7 +272,7 @@ exports.maybeOutputGameHistory = function () {
 					fields.push(util.buildField(gameData.game, gameData.count));
 				});
 				fields.sort(util.compareFieldValues);
-				util.sendEmbedMessage('Player Count - ' + time, fields);	
+				util.sendEmbedFieldsMessage('Player Count - ' + time, fields);	
 				previousTime = time;			
 			}	
 		}
@@ -313,47 +299,51 @@ function getTimePlayed(currentlyPlaying) {
 }
 
 /**
+ * Updates the time played for a game when the user finishes playing it.
+ * 
+ * @param {Object} gameToTime - map of game to time played
+ * @param {userName} userName - name of the user whos playtime is being updated
+ */
+function getUpdatedGameToTime(gameToTime, userName) {
+	var currentlyPlaying = gameToTime['playing'];
+	
+	if (currentlyPlaying) {
+		var hoursPlayed = getTimePlayed(currentlyPlaying);
+		c.LOG.info('<INFO> ' + util.getTimestamp() + '  Presence Update - ' + userName + ' finished a ' + hoursPlayed.toFixed(4) + 'hr session of ' + currentlyPlaying.name);											
+		gameToTime[currentlyPlaying.name] += hoursPlayed;
+		gameToTime['playing'] = undefined;
+	}
+	return gameToTime;
+}
+
+/**
  * Updates the provided users timesheet.
+ * 
+ * TODO: Update this function to use the oldGame name to validate that is 
+ * what they just finished playing.
  * 
  * @param {String} user 
  * @param {String} userID 
  * @param {Object} game 
  */
-exports.updateTimesheet = function(user, userID, game) {
-    //ignore presence updates for bots
-	for (i = 0; i < c.BOT_IDS.length; i++) {
-		if (userID === c.BOT_IDS[i]) {
-			return;
-		}
-	}
-	c.LOG.info('<INFO> Presence Update - ' + user + ' id: ' + userID + ' game: ' + inspector.inspect(game, false, null))	
+exports.updateTimesheet = function(user, userID, oldGame, newGame) {
+	//ignore presence updates for bots and online status changes
+	if (c.BOT_IDS.indexOf(userID) > -1 || oldGame === newGame) { return };	
+	c.LOG.info('<INFO> Presence Update - ' + user + ' id: ' + userID + ' old game: ' + oldGame + ' new game: ' + newGame)	
 	
 	//get user's timesheet
 	var gameToTime = timeSheet[userID];
-	if (gameToTime === undefined) {
+	if (!gameToTime) {
 		gameToTime = {};
 	}
 
-	//Just started playing a game
-	if (game !== null && game.timestamps !== undefined) {
-		if (gameToTime[game.name] === undefined) {
-			gameToTime[game.name] = 0;
-		}
-		gameToTime['playing'] = {name : game.name, start : game.timestamps.start} ;
-	//Just finished playing a game
-	} else {
-		var currentlyPlaying = gameToTime['playing'];
-		
-		//This user started playing the game before the bot was running
-		//so there is no start timestamp associated with the game
-		if (currentlyPlaying === undefined) {
-			return;
-		}
-
-		var hoursPlayed = getTimePlayed(currentlyPlaying);
-		c.LOG.info('<INFO> ' + util.getTimestamp() + '  Presence Update - ' + user + ' finished a ' + hoursPlayed.toFixed(2) + 'hr session of ' + currentlyPlaying.name);											
-		gameToTime[currentlyPlaying.name] += hoursPlayed;
-		gameToTime['playing'] = undefined;
+	//finished playing a game
+	if (oldGame) {
+		gameToTime = getUpdatedGameToTime(gameToTime, user);
+	}
+	//started playing a game
+	if (newGame) {
+		gameToTime['playing'] = {name : newGame, start : (new Date).getTime()};
 	}
 	
 	timeSheet[userID] = gameToTime;
@@ -368,16 +358,9 @@ exports.updateTimesheet = function(user, userID, game) {
 function waitAndSendScrubDaddyFact(attempts, seconds) {
 	setTimeout(function() {
 		if (attempts === seconds) {
-			c.BOT.sendMessage({
-				to: c.BOT_SPAM_CHANNEL_ID,
-				embed:  {
-					color: 0xffff00,
-					title: "You are now subscribed to Scrub Daddy Facts!",
-					image: {
-						url: "http://marycoffeystrand.com/wp-content/uploads/2015/02/scrubsmile-300x233.jpg",
-					}
-				} 
-			});
+			const title = 'You are now subscribed to Scrub Daddy Facts!';
+			const imgUrl = c.SCRUB_DADDY_FACT;
+			util.sendEmbedMessage(title, null, imgUrl);
 			return;
 		} else {
 			waitAndSendScrubDaddyFact(attempts+1, seconds);
@@ -395,9 +378,20 @@ exports.optIn = function(user, userID) {
 	optedInUsers.push(userID);
 	var fields = [];					
 	fields.push(util.buildField(user, 'I\'m watching you.'));
-	util.sendEmbedMessage('YOU ARE BEING WATCHED', fields);	
+	util.sendEmbedFieldsMessage('YOU ARE BEING WATCHED', fields);	
 	waitAndSendScrubDaddyFact(0,5);
 	c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + user + ' (' + userID + ') has opted into time#######');	
 	var json = JSON.stringify(optedInUsers);	
 	fs.writeFile('optedIn.json', json, 'utf8', util.log);
+}
+
+/**
+ * Asks Scrubs if they want to play pubg.
+ */
+exports.askToPlayPUBG = function() {
+	bot.getScrubChannel().send(new Discord.MessageEmbed({
+		color: 0xffff00,
+		title: title,
+		description: '<@&370671041644724226>  ' + c.GREETINGS[util.getRand(0, c.GREETINGS.length)] + ' tryna play some ' + c.PUBG_ALIASES[util.getRand(0, c.PUBG_ALIASES.length)] + '?'
+	}));	
 }

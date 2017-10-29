@@ -1,56 +1,65 @@
-const inspector = require('util');
-const c = require('./const.js');
-const util = require('./utilities.js');
-const gambling = require('./gambling.js');
+var Discord = require('discord.js');
+var inspect = require('util-inspect');
+var get = require('lodash.get');
+var fs = require('fs');
+
+var c = require('./const.js');
+var util = require('./utilities.js');
+var gambling = require('./gambling.js');
 var games = require('./games.js');
 var vote = require('./vote.js');
 
-/**
- * Asks Scrubs if they want to play pubg.
- */
-function askToPlayPUBG() {
-	c.BOT.sendMessage({
-		to: c.SCRUBS_CHANNEL_ID,
-		message: "<@&370671041644724226>  " + c.GREETINGS[util.getRand(0, c.GREETINGS.length)] + " tryna play some " + c.PUBG_ALIASES[util.getRand(0, c.PUBG_ALIASES.length)] + "?"
-	});	
-}
+var auth = require('./secureAuth.json'); 
+var client = new Discord.Client();
+client.login(auth.token);
+
+var botSpam = {};
+var scrubsChannel = {};
+var purgatory = {};
+var feedbackCategory = {};
+var scrubIDtoNick = {};
 
 /**
  * Listen's for messages in Discord
  */
-c.BOT.on('message', function (user, userID, channelID, message, evt) {
+client.on('message', message => {
     //Scrub Daddy will listen for messages that will start with `!`
-    if (message.substring(0, 1) == '!') {
-		const args = message.substring(1).match(/\S+/g);
+    if (message.content.substring(0, 1) == '!') {
+		const args = message.content.substring(1).match(/\S+/g);
 		const cmd = args[0];
+		const channelID = message.channel.id;
+		const userID = message.member.id;
+		const user = message.member.displayName;
 
-		//stops if the message is not from bot-spam text channel, with the expection of the message !p.
+		//stops if the message is not from bot-spam text channel, with the exception of the message !p.
 		if (channelID !== c.BOT_SPAM_CHANNEL_ID && !(channelID === c.SCRUBS_CHANNEL_ID && cmd === 'p')) {
 			return;
 		}
-		c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + cmd + ' called');	
+
+		c.LOG.info('<CMD> ' + util.getTimestamp() + '  ' + cmd + ' called');	
         switch(cmd) {
 			case 'issue':
-				util.submitIssue(userID, args);
-				break;
-			case 'rank':
-			case 'ranks':
-				gambling.armyRanks();
-				break;
-			case 'catfacts':
-				util.catfacts();
+				util.submitIssue(user, args, message);
 				break;
 			case 'export':
 				gambling.exportLedger();
 				games.exportTimeSheet();
 				break;
+			case 'catfacts':
+				util.catfacts();
+				break;
 			case 'army':
 				gambling.army(userID, args);
 				break;
+			case 'rank':
+			case 'ranks':
+				gambling.armyRanks();
+				break;
 			case 'clean':
-				//PRIORITIZE ADDING NICKNAMES VIA GETSCRUBS SO YOU CAN RESPOND TO BETS WITH NICKNAMES
 				gambling.maybeBetClean(userID, args);
 				break;
+			case 'revive':
+				userID = 'dev';
 			case 'discharge':
 				gambling.dischargeScrubBubble(userID);
 				break;
@@ -58,10 +67,10 @@ c.BOT.on('message', function (user, userID, channelID, message, evt) {
 				gambling.enlist(userID);
 				break;
 			case 'p':
-				askToPlayPUBG();
+				games.askToPlayPUBG();
 				break;
 			case 'playing':
-				games.getAndOutputCountOfGamesBeingPlayed();
+				games.getAndOutputCountOfGamesBeingPlayed(message.guild.members.array());
 				break;
 			case 'gameHistory':
 				games.maybeOutputGameHistory();
@@ -78,100 +87,78 @@ c.BOT.on('message', function (user, userID, channelID, message, evt) {
 				break;
 			case 'votekick':
 				c.LOG.info('<VOTE Kick> ' + util.getTimestamp() + '  ' + user + ': ' + message);
-				vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.KICK);
+				vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.KICK, message.member.voiceChannel, message.guild.roles);
 				break;
 			case 'voteban':
 				c.LOG.info('<VOTE Ban> ' + util.getTimestamp() + '  ' + user + ': ' + message);			
-				vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.BAN);
+				vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.BAN, message.member.voiceChannel, message.guild.roles);
 				break;
 			//get custom vote totals or number of kick/ban votes for a user
 			case 'voteinfo':
-				if (args[1] === undefined) {
+				if (!args[1]) {
 					c.LOG.info('<VOTE Info Custom> ' + util.getTimestamp() + '  ' + user + ': ' + message);								
 					vote.getCustomVoteTotals();
 				} else {
 					c.LOG.info('<VOTE Info User> ' + util.getTimestamp() + '  ' + user + ': ' + message);													
-					vote.getTotalVotesForTarget(user, userID, channelID, args);
+					vote.getTotalVotesForTarget(user, message.member.voiceChannel, channelID, args);
 				}	
 				break;
 			case 'help':
 			case 'info':
 			case 'helpinfo':
-				c.BOT.sendMessage({
-					to: channelID,
-					embed:  {
-						color: 0xffff00,
-						title: "Commands",
-						description: "------------------------- Voting --------------------------" +
-									 "\nPlease Note: You must be in a voice channel with at least 3 members to participate in a kick/ban vote." +
-									 "\n\n!votekick <@user> - to remove user from channel." +
-									 "\n!voteban <@user> - for a more permanent solution." +
-									 "\n!vote <thing to vote for> - to do a custom vote." +
-									 "\n!voteinfo - for totals of all custom votes." +
-									 "\n!voteinfo <@user> - for total votes to kick/ban that user." +
-									 "\n------------------------------------------------------------" +
-									 "\n\n------------------------ Gambling ------------------------" +
-									 "\n!enlist - enlists the discharged Scrubbing Bubbles to your army." +
-									 "\n!discharge - honorably discharges a Scrubbing Bubble from your army." +
-									 "\n!clean <numBubbles> <t|b> - send numBubbles to clean toilet/bath." +
-									 "\n!army - retrieves the size of your army" +
-									 "\n------------------------------------------------------------" +	
-									 "\n\n----------------------- Time Played ----------------------" +
-									 "\n!time <Game Name> <@user> - user's playtime for the specified Game Name." +
-									 "\n!time <Game Name> - cumulative playtime for the specified Game Name." +
-									 "\n!time <@user> - user's playtime for all games." + 
-									 "\n!time - cumulative playtime for all games." +
-									 "\n!opt-in - to opt into playtime tracking." + 
-									 "\n------------------------------------------------------------" +									 
-									 "\n\n---------------------- Player Count ----------------------" +
-									 "\n!playing - player count of games currently being played." +
-									 "\n!gameHistory - player counts for all games throughout the day." +
-									 "\n------------------------------------------------------------" +
-									 "\n\n!test - to try out features in development." +									 
-									 "\n!p - to ask @Scrubs to play PUBG in scrubs text channel." +
-									 "\n!help, !info, or !helpinfo - to show this message again."
-					}
-				});
+				util.sendEmbedFieldsMessage('Voting', c.HELP_VOTING);
+				util.sendEmbedFieldsMessage('Scrubbing Bubbles', c.HELP_SCRUBBING_BUBBLES);
+				util.sendEmbedFieldsMessage('Time Played', c.HELP_TIME_PLAYED);
+				util.sendEmbedFieldsMessage('Player Count', c.HELP_PLAYER_COUNT);
+				util.sendEmbedFieldsMessage('Bot Issues, Feature Requests, and Help', c.HELP_BOT);
+				util.sendEmbedFieldsMessage('Miscellaneous', c.HELP_MISC);
 		 }
-	 } else if (userID === c.SCRUB_DADDY_ID && evt.d.embeds !== undefined && evt.d.embeds[0] !== undefined && 
-		evt.d.embeds[0].title !== undefined && evt.d.embeds[0].title.indexOf('duty') !== -1) {
-		gambling.maybeDeletePreviousMessage(evt.d.id);
+	 } else if (isArrivedForDutyMessage(message)) {
+		gambling.maybeDeletePreviousMessage(message);
 	}
 });
 
 /**
  * listens for updates to a user's presence (online status, game, etc).
  */
-c.BOT.on('presence', function(user, userID, status, game, event) { 
-	games.updateTimesheet(user, userID, game);
-	gambling.maybeDischargeScrubBubble();
+client.on('presenceUpdate', (oldMember, newMember) => { 
+	games.updateTimesheet(newMember.displayName, newMember.id, get(oldMember, 'presence.activity.name'), get(newMember, 'presence.activity.name'));
+	gambling.maybeDischargeScrubBubble(botSpam);
 });
 
 /**
- * Logs the bot into Discord.
+ * Reconnects the bot if diconnected.
  */
-c.BOT.on('ready', function (evt) {
-	//util.initLogger();
-    c.LOG.info('<INFO> ' + util.getTimestamp() + '  Connected');
-    c.LOG.info('<INFO> Logged in as: ');
-	c.LOG.info('<INFO> ' + c.BOT.username + ' - (' + c.BOT.id + ')');
+client.on('disconnect', event => {
+	c.LOG.error('<ERROR> ' +  util.getTimestamp() + '  event: ' + inspect(event));
+	client.login(auth.token);
 });
 
-c.BOT.on('disconnect', function(erMsg, code) {
-	c.LOG.info('<ERROR> ' +  util.getTimestamp() + '  code: ' + code + '  msg: ' + erMsg);
-	c.BOT.connect();
+/**
+ * Logs the bot into Discord, stores id to nick map, and retrieves 3 crucial channels.
+ */
+client.on('ready', () => {
+	c.LOG.info('<INFO> ' + util.getTimestamp() + '  Connected');
+	
+	const members = client.guilds.find('id', c.SERVER_ID).members;
+	members.forEach((member) => {
+		scrubIDtoNick[member.id] = member.displayName;
+	});
+
+	botSpam = client.channels.find('id', c.BOT_SPAM_CHANNEL_ID);	
+	scrubsChannel = client.channels.find('id', c.SCRUBS_CHANNEL_ID);
+	purgatory = client.channels.find('id', c.PURGATORY_CHANNEL_ID);
+	feedbackCategory = client.channels.find('id', c.FEEDBACK_CATEGORY_ID);		
 });
 
-//console.log(inspector.inspect(member, false, null));
+function isArrivedForDutyMessage(message) {
+    return message.member.id === c.SCRUB_DADDY_ID && get (message, 'embeds[0].title') && message.embeds[0].title.indexOf('duty') !== -1 && message.channel.id === c.BOT_SPAM_CHANNEL_ID;
+}
 
+exports.getBotSpam = () => botSpam;
+exports.getScrubsChannel = () => scrubsChannel;
+exports.getPurgatory = () => purgatory;
+exports.getScrubIDToNick = () => scrubIDtoNick;
+exports.getFeedbackCategory = () => feedbackCategory;
+exports.getClient = () => client;
 
-	// bot.sendMessage({
-	// 	to: c.BOT_SPAM_CHANNEL_ID,
-	// 	embed:  {
-	// 		color: 0xffff00,
-	// 		title: "This is a test of the Emergency Broadcast System",
-	// 		image: {
-	// 			url: "https://i.kinja-img.com/gawker-media/image/upload/s--gXPJs2QR--/c_scale,f_auto,fl_progressive,q_80,w_800/sv3a6heu1v5d9ubr9ke3.jpg",
-	// 		}
-	// 	} 
-	// });		

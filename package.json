@@ -1,11 +1,13 @@
 {
   "name": "scrub-daddy",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "The scrubbiest bot of all time.",
   "main": "bot.js",
   "author": "Kent",
   "dependencies": {
-    "discord.io": "^2.5.3",
+    "discord.js": "git+https://github.com/hydrabolt/discord.js.git",
+    "lodash.get": "^4.4.2",
+    "util-inspect": "^0.1.8",
     "winston": "^2.3.1"
   }
 }
