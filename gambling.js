@@ -12,7 +12,7 @@ var previousMessage = {};
  * exports the ledger to a json file.
  */
 exports.exportLedger = function() {
-    var json = JSON.stringify(ledger);    
+    var json = JSON.stringify(ledger);
     fs.writeFile('ledger.json', json, 'utf8', util.log);
 }
 
@@ -27,6 +27,7 @@ exports.dischargeScrubBubble = function (userID, botSpam) {
     if (userID && userID !== 'dev') {
         if (ledger[userID] && ledger[userID].armySize > 0) {
             ledger[userID].armySize--;
+            ledger[userID].totalDischarged++;
         } else {
             return;
         }
@@ -40,20 +41,20 @@ exports.dischargeScrubBubble = function (userID, botSpam) {
             droppedImg = 21;
         }
     }
-    
+
     const title = dropped + ' Scrubbing ' + msg + ' arrived for duty!';
     util.sendEmbedMessage(title, null, c.BUBBLE_IMAGES[droppedImg-1]);
-}	
+}
 
 /**
  * drops a scrub bubble in bot-spam with a 20% chance.
  * CONSIDER CHANGING THIS TO BE BASED ON MESSAGES NOT PRESENCE
  */
 exports.maybeDischargeScrubBubble = function(botSpamChannel) {
-	var num = util.getRand(1,11);
-	if (num > 8) {
-		exports.dischargeScrubBubble(null, botSpamChannel);
-	}
+    var num = util.getRand(1,11);
+    if (num > 8) {
+        exports.dischargeScrubBubble(null, botSpamChannel);
+    }
 }
 
 /**
@@ -64,9 +65,12 @@ exports.maybeDischargeScrubBubble = function(botSpamChannel) {
  */
 function addToArmy(userID, amount) {
     if (!ledger[userID]) {
-        ledger[userID] = { armySize : 0, cleanBet : 0, raceBet : 0};
+        ledger[userID] = { armySize: 0, cleanBet: 0, raceBet: 0, recordArmy: 0, highestLost: 0, highestWon: 0, totalWins: 0, totalLosses: 0, totalEnlisted: 0, scrubsBet: 0, scrubsWon: 0, scrubsLost: 0, totalDischarged: 0 };
     }
     ledger[userID].armySize += amount;
+    if (ledger[userID].armySize > ledger[userID].recordArmy) {
+        ledger[userID].recordArmy = ledger[userID].armySize;
+    }
 }
 
 /**
@@ -75,11 +79,12 @@ function addToArmy(userID, amount) {
 exports.enlist = function(userID) {
     if (dropped > 0) {
         addToArmy(userID, dropped);
-        const msg = '<@!' + userID + '>  ' + 'Your Scrubbing Bubbles army has grown by ' + dropped + '! You now have an army of ' + ledger[userID].armySize + '.' ;        
-        util.sendEmbedMessage(null, msg);	
+        ledger[userID].totalEnlisted += dropped;
+        const msg = '<@!' + userID + '>  ' + 'Your Scrubbing Bubbles army has grown by ' + dropped + '! You now have an army of ' + ledger[userID].armySize + '.';
+        util.sendEmbedMessage(null, msg);
         previousMessage.delete();
         dropped = 0;
-    } 
+    }
 }
 
 /**
@@ -103,9 +108,11 @@ function isValidSide(side) {
 function takeBetFromUser(userID, bet, type) {
     if (type === 'clean') {
         ledger[userID].armySize -= bet;
+        ledger[userID].scrubsBet += bet;
         ledger[userID].cleanBet = bet;
     } else if (type === 'race') {
         ledger[userID].armySize -= bet;
+        ledger[userID].scrubsBet += bet;
         ledger[userID].raceBet = bet;
     }
 }
@@ -131,8 +138,8 @@ function resetLedgerAfterBet(userID, type) {
  */
 function getTypeNum(typeString) {
     if (typeString === 't')
-        return 0; 
-    if ( typeString === 'b')
+        return 0;
+    if (typeString === 'b')
         return 1;
 }
 
@@ -156,10 +163,10 @@ function maybeGetPlural(count) {
  * @param {String} type - the type of bet
  * @param {String} side - the side to battle
  */
-function betClean(userID, bet, type, side) {    
+function betClean(userID, bet, type, side) {
     var wallet = ledger[userID];
     var msg = '';
-    
+
     if (!wallet || wallet.armySize < bet ) {
         msg = 'Your army is nonexistent.';
         if (wallet && wallet.armySize > 0) {
@@ -170,15 +177,27 @@ function betClean(userID, bet, type, side) {
     } else {
         var img = '';
         takeBetFromUser(userID, bet, type);
-        
+
         if (util.getRand(0,2) === getTypeNum(side)) {
-            const payout = bet*2;            
+            const payout = bet*2;
+            ledger[userID].scrubsWon += payout;
+            ledger[userID].totalWins++;
             img = c.CLEAN_WIN_IMG;
             msg = 'Congrats, your auxiliary army gained ' + payout + ' Scrubbing Bubbles after cleaning the bathroom and conquering the land!';
-            addToArmy(userID, payout);        
+            addToArmy(userID, payout);
+            if (payout > ledger[userID].highestWon) {
+                ledger[userID].highestWon = payout;
+            }
         } else {
             img = c.CLEAN_LOSE_IMG;
             msg = 'Sorry bud, you lost ' + bet + ' Scrubbing Bubble' + maybeGetPlural(bet) + ' in the battle.';
+            ledger[userID].scrubsLost += bet;
+            ledger[userID].totalLosses++;
+
+            if (bet > ledger[userID].highestLost) {
+                ledger[userID].highestLost = bet;
+
+            }
         }
         util.sendEmbedMessage(null, '<@!' + userID + '>  ' + msg, img);
         resetLedgerAfterBet(userID, bet, type);
@@ -191,7 +210,7 @@ function betClean(userID, bet, type, side) {
 exports.maybeBetClean = function(userID, args) {
     const bet = Number(args[1]);
     const side = args[2];
-    
+
     if (!bet || !side || !isValidSide(side) || bet < 1) {
         return;
     }
@@ -213,7 +232,33 @@ exports.army = function(userID, args) {
     const wallet = ledger[userID];
     if (wallet) {
         const description = '<@!' + userID + '>'+ msg +  ' army is ' + wallet.armySize +  ' Scrubbing Bubble' + maybeGetPlural(wallet.armySize) + ' strong!';
-        util.sendEmbedMessage(null,description);
+        util.sendEmbedMessage(null, description);
+    }
+}
+
+exports.stats = function (userID, args) {
+    var msg = ' your';
+    if (args[1]) {
+        if (args[1].match(/\d/g) !== null) {
+            userID = args[1].match(/\d/g).join('')
+            msg = '\'s';
+        }
+    }
+    const wallet = ledger[userID];
+    if (wallet) {
+        const description = '<@!' + userID + '>' + msg + ' Stats (starting from 10/31/17): ' + 
+            '\nCurrent Army Size: ' + wallet.armySize + 'Scrubs' +
+            '\nRecord Army Size: ' + wallet.recordArmy + 'Scrubs' +
+            '\nLifetime Scrubs Won: ' + wallet.scrubsWons + 'Scrubs' +
+            '\nLifetime Scrubs Lost: ' + wallet.scrubsLost + 'Scrubs' +
+            '\nBiggest Bet Won: ' + wallet.highestWon + 'Scrubs' +
+            '\nBiggest Bet Lost: ' + wallet.highestLost + 'Scrubs' +
+            '\nTotal Bets Won: ' + wallet.totalWins + 'Wins' +
+            '\nTotal Bets Lost: ' + wallet.totalLosses + 'Losses' +
+            '\nTotal Scrubs Discharged: ' + wallet.totalDischarged + 'Scrubs' +
+            '\nTotal Scrubs Enlisted: ' + wallet.totalEnlistesd + 'Scrubs'; 
+           
+            util.sendEmbedMessage(null, description);
     }
 }
 
@@ -225,7 +270,7 @@ exports.armyRanks = function() {
     const scrubIDToNick = util.getScrubIDToNick();
     for (var userID in ledger) {
         fields.push(util.buildField(scrubIDToNick[userID], ledger[userID].armySize));
-    } 
+    }
     fields.sort(util.compareFieldValues);
     util.sendEmbedFieldsMessage('Scrubbing Bubbles Army Sizes', fields);
 }
