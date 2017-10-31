@@ -207,7 +207,7 @@ exports.help = function() {
 			return m;
 		}
 	}
-	bot.getBotSpam().awaitMessages(filter, { max: 1, time: 10000, errors: ['time'] })
+	bot.getBotSpam().awaitMessages(filter, { max: 1, time: 20000, errors: ['time'] })
 	.then((collected) => {
 		outputHelpCategory(parseInt(collected.array()[0].content)-1);
 	})
