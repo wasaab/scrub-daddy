@@ -73,6 +73,9 @@ client.on('message', message => {
 			case 'army':
 				gambling.army(userID, args);
 				break;
+			case 'stats':
+				gambling.stats(userID, args);
+				break;
 			case 'rank':
 			case 'ranks':
 				gambling.armyRanks();
