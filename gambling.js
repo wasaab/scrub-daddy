@@ -11,7 +11,7 @@ var previousMessage = {};
 /**
  * exports the ledger to a json file.
  */
-exports.exportLedger = function () {
+exports.exportLedger = function() {
     var json = JSON.stringify(ledger);
     fs.writeFile('ledger.json', json, 'utf8', util.log);
 }
@@ -43,15 +43,15 @@ exports.dischargeScrubBubble = function (userID, botSpam) {
     }
 
     const title = dropped + ' Scrubbing ' + msg + ' arrived for duty!';
-    util.sendEmbedMessage(title, null, c.BUBBLE_IMAGES[droppedImg - 1]);
+    util.sendEmbedMessage(title, null, c.BUBBLE_IMAGES[droppedImg-1]);
 }
 
 /**
  * drops a scrub bubble in bot-spam with a 20% chance.
  * CONSIDER CHANGING THIS TO BE BASED ON MESSAGES NOT PRESENCE
  */
-exports.maybeDischargeScrubBubble = function (botSpamChannel) {
-    var num = util.getRand(1, 11);
+exports.maybeDischargeScrubBubble = function(botSpamChannel) {
+    var num = util.getRand(1,11);
     if (num > 8) {
         exports.dischargeScrubBubble(null, botSpamChannel);
     }
@@ -76,7 +76,7 @@ function addToArmy(userID, amount) {
 /**
  * enlists a scrubbing bubble in userID's army.
  */
-exports.enlist = function (userID) {
+exports.enlist = function(userID) {
     if (dropped > 0) {
         addToArmy(userID, dropped);
         ledger[userID].totalEnlisted += dropped;
@@ -167,19 +167,19 @@ function betClean(userID, bet, type, side) {
     var wallet = ledger[userID];
     var msg = '';
 
-    if (!wallet || wallet.armySize < bet) {
+    if (!wallet || wallet.armySize < bet ) {
         msg = 'Your army is nonexistent.';
         if (wallet && wallet.armySize > 0) {
             msg = 'Your ' + wallet.armySize + ' soldier' + maybeGetPlural(wallet.armySize) + ' would surely perish.';
         }
         const description = '<@!' + userID + '>  ' + 'You do not have enough Scrubbing Bubbles to clean the bathroom. ' + msg;
-        util.sendEmbedMessage(null, description);
+        util.sendEmbedMessage(null,description);
     } else {
         var img = '';
         takeBetFromUser(userID, bet, type);
 
-        if (util.getRand(0, 2) === getTypeNum(side)) {
-            const payout = bet * 2;
+        if (util.getRand(0,2) === getTypeNum(side)) {
+            const payout = bet*2;
             ledger[userID].scrubsWon += payout;
             ledger[userID].totalWins++;
             img = c.CLEAN_WIN_IMG;
@@ -207,7 +207,7 @@ function betClean(userID, bet, type, side) {
 /**
  * Calls betClean if the bet is valid.
  */
-exports.maybeBetClean = function (userID, args) {
+exports.maybeBetClean = function(userID, args) {
     const bet = Number(args[1]);
     const side = args[2];
 
@@ -221,7 +221,7 @@ exports.maybeBetClean = function (userID, args) {
 /**
  * Outputs the user's army size.
  */
-exports.army = function (userID, args) {
+exports.army = function(userID, args) {
     var msg = ' your';
     if (args[1]) {
         if (args[1].match(/\d/g) !== null) {
@@ -231,7 +231,7 @@ exports.army = function (userID, args) {
     }
     const wallet = ledger[userID];
     if (wallet) {
-        const description = '<@!' + userID + '>' + msg + ' army is ' + wallet.armySize + ' Scrubbing Bubble' + maybeGetPlural(wallet.armySize) + ' strong!';
+        const description = '<@!' + userID + '>'+ msg +  ' army is ' + wallet.armySize +  ' Scrubbing Bubble' + maybeGetPlural(wallet.armySize) + ' strong!';
         util.sendEmbedMessage(null, description);
     }
 }
@@ -265,7 +265,7 @@ exports.stats = function (userID, args) {
 /**
  * Outputs all member's army sizes in order.
  */
-exports.armyRanks = function () {
+exports.armyRanks = function() {
     var fields = [];
     const scrubIDToNick = util.getScrubIDToNick();
     for (var userID in ledger) {
