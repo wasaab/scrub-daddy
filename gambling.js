@@ -256,7 +256,7 @@ exports.stats = function (userID, args) {
             '\nTotal Bets Won: ' + wallet.totalWins + 'Wins' +
             '\nTotal Bets Lost: ' + wallet.totalLosses + 'Losses' +
             '\nTotal Scrubs Discharged: ' + wallet.totalDischarged + 'Scrubs' +
-            '\nTotal Scrubs Enlisted: ' + wallet.totalEnlistesd + 'Scrubs' 
+            '\nTotal Scrubs Enlisted: ' + wallet.totalEnlistesd + 'Scrubs'; 
            
             util.sendEmbedMessage(null, description);
     }
