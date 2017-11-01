@@ -155,21 +155,46 @@ function maybeGetPlural(count) {
 }
 
 /**
+ * Adds to the given user's gaming streak stats.
+ * 
+ * @param {String} currentStreak - current win/loss streak
+ * @param {String} highestStreak - highest win/loss streak
+ * @param {String} oppositeStreak - opposite of current streak
+ * @param {String} user - gambling user
+ */
+function addToGamblingStreaks(currentStreak, highestStreak, oppositeStreak, user) {
+    ledger[user][currentStreak]++;
+    ledger[user][oppositeStreak] = 0;
+
+    if (ledger[user][currentStreak] > ledger[user][highestStreak]){
+        ledger[user][highestStreak] = ledger[user][currentStreak];
+    }
+}
+
+/**
  * Adds to to the user's gambling stats.
  * 
- * @param {String} winsLosses - 'Wins' or 'Losses'
- * @param {String} wonLost - 'Won' or 'Lost'
+ * @param {String} outcome - outcome of the battle 'Won' or 'Lost'
  * @param {number} amount - amount the user won or lost
  * @param {String} user - the user to add stats to
  */
-function addToGamblingStats(winsLosses, wonLost, amount, user) {
-    const stat = 'highest' + wonLost;
+function addToGamblingStats(outcome, amount, user) {
+    var plural = 'Losses';
+    var opposite = 'Won';
+
+    if (outcome === 'Won') {
+        plural = 'Wins';
+        opposite = 'Lost';
+    }
+
+    const stat = 'highest'+outcome;
     if (amount > ledger[user][stat]) {
         ledger[user][stat] = amount;
     }
-
+   
+    addToGamblingStreaks('streak'+plural, 'maxStreak'+plural, 'streak'+opposite, user);
     ledger[user]['scrubs'+wonLost] += amount;
-    ledger[user]['total'+winsLosses]++;
+    ledger[user]['total'+plural]++;
 }
 
 /**
