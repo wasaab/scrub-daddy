@@ -87,7 +87,7 @@ client.on('message', message => {
 				if (userID !== '132944096347160576') { break; }
 				userID = 'dev';
 			case 'discharge':
-				gambling.dischargeScrubBubble(userID); 
+				gambling.maybeDischarging(userID, args); 
 				break;
 			case 'enlist':
 				gambling.enlist(userID);

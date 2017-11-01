@@ -21,18 +21,18 @@ exports.exportLedger = function() {
  * member may enlist the bubble to their army.
  * 
  * @param {String} userID - the id of the user discharging a bubble
- * @param {String} botSpam - bot-spam channel
+ * @param {String} discharging - the number of scrubs the user will discharge
  */
-exports.dischargeScrubBubble = function (userID, botSpam) {
+exports.dischargeScrubBubble = function (userID, discharging) {
     if (userID && userID !== 'dev') {
-        if (ledger[userID] && ledger[userID].armySize > 0) {
-            ledger[userID].armySize--;
-            ledger[userID].totalDischarged++;
+        if (ledger[userID] && ledger[userID].armySize >= discharging) {
+            ledger[userID].armySize -= discharging;
+            ledger[userID].totalDischarged += discharging;
         } else {
             return;
         }
     }
-    dropped++;
+    dropped += discharging;
     var droppedImg = dropped;
     var msg = 'Bubble has';
     if (dropped > 1) {
@@ -46,6 +46,14 @@ exports.dischargeScrubBubble = function (userID, botSpam) {
     util.sendEmbedMessage(title, null, c.BUBBLE_IMAGES[droppedImg-1]);
 }
 
+exports.maybeDischarging = function(userID, args){
+    const discharging = Number(args[1]);
+    if (!discharging || bet < 1) {
+        return;
+    }
+    dischargeScrubBubble(userID, discharging);
+}
+
 /**
  * drops a scrub bubble in bot-spam with a 20% chance.
  * CONSIDER CHANGING THIS TO BE BASED ON MESSAGES NOT PRESENCE
@@ -53,7 +61,7 @@ exports.dischargeScrubBubble = function (userID, botSpam) {
 exports.maybeDischargeScrubBubble = function(botSpamChannel) {
     var num = util.getRand(1,11);
     if (num > 8) {
-        exports.dischargeScrubBubble(null, botSpamChannel);
+        exports.dischargeScrubBubble(null, 1);
     }
 }
 
