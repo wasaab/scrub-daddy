@@ -7,6 +7,7 @@ var ledger = require('./ledger.json');   //keeps track of how big of an army eac
 
 var dropped = 0;
 var previousMessage = {};
+var description = '';
 
 /**
  * exports the ledger to a json file.
@@ -17,12 +18,46 @@ exports.exportLedger = function() {
 }
 
 /**
+ * returns an 's' iff count > 1.
+ * 
+ * @param {number} count 
+ */
+function maybeGetPlural(count) {
+    if (count > 1)
+        return 's';
+    return '';
+}
+
+/**
+ * Adds the given number of Scrubbing Bubbles to the provided user's army.
+ * 
+ * @param {String} userID - id of the user to add to
+ * @param {Number} amount - amount to add
+ * @param {String} addTake - Whether to Add or Take from Army
+ */
+function addToArmy(userID, amount, addTake) {
+    if (!ledger[userID]) {
+        ledger[userID] = Object.assign({}, c.NEW_LEDGER_ENTRY);
+    }
+    if(addTake === 'add'){
+     ledger[userID].armySize += amount;
+    
+        if (ledger[userID].armySize > ledger[userID].recordArmy) {
+            ledger[userID].recordArmy = ledger[userID].armySize;
+        }
+    }else{
+        ledger[userID].armySize -= amount;
+    }
+    exports.exportLedger();
+}
+/**
  * Discharges a scrub bubble from the provided user's army, so that another
  * member may enlist the bubble to their army.
  * 
  * @param {String} userID - the id of the user discharging a bubble
  * @param {String} discharging - the number of scrubs the user will discharge
  */
+
 exports.dischargeScrubBubble = function (userID, discharging) {
     if (userID && userID !== 'dev') {
         if (ledger[userID] && ledger[userID].armySize >= discharging) {
@@ -50,7 +85,7 @@ exports.dischargeScrubBubble = function (userID, discharging) {
  * @param {Number} amount - amount the user wants to dispatch
  * @param {Number} dispatchee - user ID of the receiver for Dispatch Command
  */
-dispatchScrubs = function (userID, amount, dispatchee){
+function dispatchScrubs(userID, amount, dispatchee){
     if(ledger[userID] && ledger[dispatchee] && ledger[userID].armySize >= amount){
         addToArmy(UserID, amount, 'take');
         addToArmy(dispatchee, amount, 'add');
@@ -67,7 +102,8 @@ dispatchScrubs = function (userID, amount, dispatchee){
  */
 exports.checkNumber = function(mode, userID, args){
     const discharging = Number(args[1]);
-    if (!discharging || bet < 1) {
+    var dispatchee = 0;
+    if (!discharging < 1) {
         return;
     }
     if(mode === 'discharging'){
@@ -79,7 +115,7 @@ exports.checkNumber = function(mode, userID, args){
                 dispatchee = args[2].match(/\d/g).join('');
             }
         }
-        dispatchScrubs(userID, dispatching, dispatchee)
+        dispatchScrubs(userID, dispatching, dispatchee);
     }
 }
 
@@ -94,28 +130,7 @@ exports.maybeDischargeScrubBubble = function(botSpamChannel) {
     }
 }
 
-/**
- * Adds the given number of Scrubbing Bubbles to the provided user's army.
- * 
- * @param {String} userID - id of the user to add to
- * @param {Number} amount - amount to add
- * @param {String} addTake - Whether to Add or Take from Army
- */
-function addToArmy(userID, amount, addTake) {
-    if (!ledger[userID]) {
-        ledger[userID] = Object.assign({}, c.NEW_LEDGER_ENTRY);
-    }
-    if(addTake === 'add'){
-     ledger[userID].armySize += amount;
-    
-        if (ledger[userID].armySize > ledger[userID].recordArmy) {
-            ledger[userID].recordArmy = ledger[userID].armySize;
-        }
-    }else{
-        ledger[userID].armySize -= amount;
-    }
-    exports.exportLedger();
-}
+
 
 /**
  * enlists a scrubbing bubble in userID's army.
@@ -187,16 +202,7 @@ function getTypeNum(typeString) {
         return 1;
 }
 
-/**
- * returns an 's' iff count > 1.
- * 
- * @param {number} count 
- */
-function maybeGetPlural(count) {
-    if (count > 1)
-        return 's';
-    return '';
-}
+
 
 /**
  * Adds to the given user's gaming streak stats.
@@ -309,7 +315,6 @@ function outputUserGamblingData(userID, args) {
     }
     const wallet = ledger[userID];
     if (wallet) {
-        var description = '';
         if (args[0] === 'army') {
             description = '<@!' + userID + '>'+ msg +  ' army is ' + wallet.armySize +  ' Scrubbing Bubble' + maybeGetPlural(wallet.armySize) + ' strong!';
         } else {
