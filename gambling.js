@@ -160,15 +160,16 @@ function maybeGetPlural(count) {
  * @param {String} winsLosses - 'Wins' or 'Losses'
  * @param {String} wonLost - 'Won' or 'Lost'
  * @param {number} amount - amount the user won or lost
+ * @param {String} user - the user to add stats to
  */
-function addToGamblingStats(winsLosses, wonLost, amount) {
+function addToGamblingStats(winsLosses, wonLost, amount, user) {
     const stat = 'highest' + wonLost;
-    if (amount > ledger[userID][stat]) {
-        ledger[userID][stat] = amount;
+    if (amount > ledger[user][stat]) {
+        ledger[user][stat] = amount;
     }
 
-    ledger[userID]['scrubs'+wonLost] += amount;
-    ledger[userID]['total'+winsLosses]++;
+    ledger[user]['scrubs'+wonLost] += amount;
+    ledger[user]['total'+winsLosses]++;
 }
 
 /**
@@ -200,11 +201,11 @@ function betClean(userID, bet, type, side) {
             img = c.CLEAN_WIN_IMG;
             msg = 'Congrats, your auxiliary army gained ' + payout + ' Scrubbing Bubbles after cleaning the bathroom and conquering the land!';
             addToArmy(userID, payout);
-            addToGamblingStats('Wins', 'Won', payout, );
+            addToGamblingStats('Wins', 'Won', payout, userID);
         } else {
             img = c.CLEAN_LOSE_IMG;
             msg = 'Sorry bud, you lost ' + bet + ' Scrubbing Bubble' + maybeGetPlural(bet) + ' in the battle.';
-            addToGamblingStats('Losses', 'Lost', bet);
+            addToGamblingStats('Losses', 'Lost', bet, userID);
         }
         util.sendEmbedMessage(null, '<@!' + userID + '>  ' + msg, img);
         resetLedgerAfterBet(userID, bet, type);
@@ -228,7 +229,7 @@ exports.maybeBetClean = function(userID, args) {
 /**
  * Outputs the user's army size or their gambling stats.
  */
-function outputUserGamblingData() {
+function outputUserGamblingData(userID, args) {
     var msg = ' your';
     if (args[1]) {
         if (args[1].match(/\d/g) !== null) {
@@ -245,14 +246,14 @@ function outputUserGamblingData() {
             description = '<@!' + userID + '>' + msg + ' Stats (starting from 10/31/17): ' + 
                           '\nCurrent Army Size: ' + wallet.armySize + ' Scrubs' +
                           '\nRecord Army Size: ' + wallet.recordArmy + ' Scrubs' +
-                          '\nLifetime Scrubs Won: ' + wallet.scrubsWons + ' Scrubs' +
+                          '\nLifetime Scrubs Won: ' + wallet.scrubsWon + ' Scrubs' +
                           '\nLifetime Scrubs Lost: ' + wallet.scrubsLost + ' Scrubs' +
                           '\nBiggest Bet Won: ' + wallet.highestWon + ' Scrubs' +
                           '\nBiggest Bet Lost: ' + wallet.highestLost + ' Scrubs' +
                           '\nTotal Bets Won: ' + wallet.totalWins + ' Wins' +
                           '\nTotal Bets Lost: ' + wallet.totalLosses + ' Losses' +
                           '\nTotal Scrubs Discharged: ' + wallet.totalDischarged + ' Scrubs' +
-                          '\nTotal Scrubs Enlisted: ' + wallet.totalEnlistesd + ' Scrubs'; 
+                          '\nTotal Scrubs Enlisted: ' + wallet.totalEnlisted + ' Scrubs'; 
         }
         util.sendEmbedMessage(null, description);
     }
