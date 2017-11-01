@@ -21,7 +21,7 @@ exports.exportLedger = function() {
  * member may enlist the bubble to their army.
  * 
  * @param {String} userID - the id of the user discharging a bubble
- * @param {String} discharging - the number of scrubs the user will discharge
+ * @param {Number} discharging - the number of scrubs the user will discharge
  */
 exports.dischargeScrubBubble = function (userID, discharging) {
     if (userID && userID !== 'dev') {
