@@ -109,7 +109,7 @@ define('NEW_LEDGER_ENTRY', {
 	totalWon: 0,         //total bet wins for user
 	totalLost: 0,        //total bet losses for user
 	totalEnlisted: 0,    //total scrubs the user has enlisted
-	scrubsBet: 0,        //total scrubs the user has bet (not used atm)
+	scrubsBet: 0,        //total scrubs the user has bet
 	scrubsWon: 0,        //total scrubs the user has won
 	scrubsLost: 0,       //total scrubs the user has lost
 	totalDischarged: 0,  //total scrubs the user has !discharged
