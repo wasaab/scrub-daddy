@@ -26,7 +26,7 @@ exports.exportLedger = function() {
 exports.dischargeScrubBubble = function (userID, discharging) {
     if (userID && userID !== 'dev') {
         if (ledger[userID] && ledger[userID].armySize >= discharging) {
-            ledger[userID].armySize -= discharging;
+            addToArmy(userID, discharging, 'take');
             ledger[userID].totalDischarged += discharging;
         } else {
             return;
@@ -45,16 +45,26 @@ exports.dischargeScrubBubble = function (userID, discharging) {
     const title = dropped + ' Scrubbing ' + msg + ' arrived for duty!';
     util.sendEmbedMessage(title, null, c.BUBBLE_IMAGES[droppedImg-1]);
 }
+/**
+ * @param {Number} userID - user's ID dispatching Scrubs
+ * @param {Number} amount - amount the user wants to dispatch
+ * @param {Number} dispatchee - user ID of the receiver for Dispatch Command
+ */
 dispatchScrubs = function (userID, amount, dispatchee){
     if(ledger[userID] && ledger[dispatchee] && ledger[userID].armySize >= amount){
-        ledger[userID].armySize -= amount;
-        addToArmy(dispatchee, amount);
+        addToArmy(UserID, amount, 'take');
+        addToArmy(dispatchee, amount, 'add');
 
         description = '<@!' + dispatchee + '>'+ ' '+ amount +  ' Scrubbing Bubble' + maybeGetPlural(amount) + ' have been dispatched to you by' + '<@!' + userID + '>';
         util.sendEmbedMessage(null, description);
     }
     
 }
+/**
+ * @param {String} mode - Decides which function to call
+ * @param {Number} userID - the id of the user calling command
+ * @param {String} args - text after command
+ */
 exports.checkNumber = function(mode, userID, args){
     const discharging = Number(args[1]);
     if (!discharging || bet < 1) {
@@ -89,15 +99,22 @@ exports.maybeDischargeScrubBubble = function(botSpamChannel) {
  * 
  * @param {String} userID - id of the user to add to
  * @param {Number} amount - amount to add
+ * @param {String} addTake - Whether to Add or Take from Army
  */
-function addToArmy(userID, amount) {
+function addToArmy(userID, amount, addTake) {
     if (!ledger[userID]) {
         ledger[userID] = Object.assign({}, c.NEW_LEDGER_ENTRY);
     }
-    ledger[userID].armySize += amount;
-    if (ledger[userID].armySize > ledger[userID].recordArmy) {
-        ledger[userID].recordArmy = ledger[userID].armySize;
+    if(addTake === 'add'){
+     ledger[userID].armySize += amount;
+    
+        if (ledger[userID].armySize > ledger[userID].recordArmy) {
+            ledger[userID].recordArmy = ledger[userID].armySize;
+        }
+    }else{
+        ledger[userID].armySize -= amount;
     }
+    exports.exportLedger();
 }
 
 /**
@@ -105,7 +122,7 @@ function addToArmy(userID, amount) {
  */
 exports.enlist = function(userID) {
     if (dropped > 0) {
-        addToArmy(userID, dropped);
+        addToArmy(userID, dropped, 'add');
         ledger[userID].totalEnlisted += dropped;
         const msg = '<@!' + userID + '>  ' + 'Your Scrubbing Bubbles army has grown by ' + dropped + '! You now have an army of ' + ledger[userID].armySize + '.';
         util.sendEmbedMessage(null, msg);
@@ -134,11 +151,11 @@ function isValidSide(side) {
  */
 function takeBetFromUser(userID, bet, type) {
     if (type === 'clean') {
-        ledger[userID].armySize -= bet;
+        addToArmy(userID, bet, 'take');
         ledger[userID].scrubsBet += bet;
         ledger[userID].cleanBet = bet;
     } else if (type === 'race') {
-        ledger[userID].armySize -= bet;
+        addToArmy(userID, bet, 'take');
         ledger[userID].scrubsBet += bet;
         ledger[userID].raceBet = bet;
     }
@@ -253,7 +270,7 @@ function betClean(userID, bet, type, side) {
             const payout = bet*2;
             img = c.CLEAN_WIN_IMG;
             msg = 'Congrats, your auxiliary army gained ' + payout + ' Scrubbing Bubbles after cleaning the bathroom and conquering the land!';
-            addToArmy(userID, payout);
+            addToArmy(userID, payout, 'add');
             addToGamblingStats('Won', payout, userID);
         } else {
             img = c.CLEAN_LOSE_IMG;
