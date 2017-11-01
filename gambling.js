@@ -65,7 +65,7 @@ exports.maybeDischargeScrubBubble = function(botSpamChannel) {
  */
 function addToArmy(userID, amount) {
     if (!ledger[userID]) {
-        ledger[userID] = { armySize: 0, cleanBet: 0, raceBet: 0, recordArmy: 0, highestLost: 0, highestWon: 0, totalWins: 0, totalLosses: 0, totalEnlisted: 0, scrubsBet: 0, scrubsWon: 0, scrubsLost: 0, totalDischarged: 0 };
+        ledger[userID] = Object.assign({}, c.NEW_LEDGER_ENTRY);
     }
     ledger[userID].armySize += amount;
     if (ledger[userID].armySize > ledger[userID].recordArmy) {

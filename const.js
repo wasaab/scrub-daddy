@@ -94,8 +94,23 @@ define('HELP_CATEGORIES_PROMPT',[{ name: 'To select a category:', value: '`Type 
 						  { name: '5) Bot Issues, Feature Requests, and Help', value: '`issue`	`feature`	`help`	`info`	`helpinfo`', inline: 'false'},
 						  { name: '6) Miscellaneous', value: '`p`	`temp`', inline: 'false'}]);
 define('HELP_CATEGORIES', [{name: '`Voting`', fields: exports.HELP_VOTING},
-{name: '`Scrubbing Bubbles`', fields: exports.HELP_SCRUBBING_BUBBLES},
-{name: '`Time Played`', fields: exports.HELP_TIME_PLAYED},
-{name: '`Player Count`', fields: exports.HELP_PLAYER_COUNT},
-{name: '`Bot Issues, Feature Requests, and Help`', fields: exports.HELP_BOT}, 
-{name: '`Miscellaneous`', fields: exports.HELP_MISC}]);
+						   {name: '`Scrubbing Bubbles`', fields: exports.HELP_SCRUBBING_BUBBLES},
+						   {name: '`Time Played`', fields: exports.HELP_TIME_PLAYED},
+						   {name: '`Player Count`', fields: exports.HELP_PLAYER_COUNT},
+						   {name: '`Bot Issues, Feature Requests, and Help`', fields: exports.HELP_BOT}, 
+						   {name: '`Miscellaneous`', fields: exports.HELP_MISC}]);
+define('NEW_LEDGER_ENTRY', { 
+	armySize: 0, 
+	cleanBet: 0, 
+	raceBet: 0, 
+	recordArmy: 0, 
+	highestLost: 0, 
+	highestWon: 0, 
+	totalWins: 0, 
+	totalLosses: 0, 
+	totalEnlisted: 0, 
+	scrubsBet: 0, 
+	scrubsWon: 0,
+	scrubsLost: 0, 
+	totalDischarged: 0 
+});
