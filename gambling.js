@@ -40,7 +40,7 @@ function addToArmy(userID, amount, addTake) {
         ledger[userID] = Object.assign({}, c.NEW_LEDGER_ENTRY);
     }
     if(addTake === 'add'){
-     ledger[userID].armySize += amount;
+        ledger[userID].armySize += amount;
     
         if (ledger[userID].armySize > ledger[userID].recordArmy) {
             ledger[userID].recordArmy = ledger[userID].armySize;
@@ -103,7 +103,7 @@ function dispatchScrubs(userID, amount, dispatchee){
 exports.checkNumber = function(mode, userID, args){
     const discharging = Number(args[1]);
     var dispatchee = 0;
-    if (!discharging < 1) {
+    if (!discharging || discharging < 1) {
         return;
     }
     if(mode === 'discharging'){
