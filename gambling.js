@@ -102,7 +102,7 @@ function dispatchScrubs(userID, amount, dispatchee){
  */
 exports.checkNumber = function(mode, userID, args){
     const discharging = Number(args[1]);
-    var dispatchee = 0;
+    var dispatchee = userID;
     if (!discharging || discharging < 1) {
         return;
     }
