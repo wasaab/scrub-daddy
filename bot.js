@@ -90,7 +90,7 @@ client.on('message', message => {
 				gambling.checkNumber('discharging', userID, args); 
 				break;
 			case 'dispatch':
-				gambling.checkNumber('dispatch', userID, args,)
+				gambling.checkNumber('dispatch', userID, args)
 			case 'enlist':
 				gambling.enlist(userID);
 				break;
