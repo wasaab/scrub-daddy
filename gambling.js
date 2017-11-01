@@ -48,7 +48,7 @@ exports.dischargeScrubBubble = function (userID, discharging) {
 dispatchScrubs = function (userID, amount, dispatchee){
     if(ledger[userID] && ledger[dispatchee] && ledger[userID].armySize >= amount){
         ledger[userID].armySize -= amount;
-        ledger[dispatchee].armySize += amount;
+        addToArmy(dispatchee, amount);
 
         description = '<@!' + dispatchee + '>'+ ' '+ amount +  ' Scrubbing Bubble' + maybeGetPlural(amount) + ' have been dispatched to you by' + '<@!' + userID + '>';
         util.sendEmbedMessage(null, description);
