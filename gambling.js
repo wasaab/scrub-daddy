@@ -21,7 +21,7 @@ exports.exportLedger = function() {
  * member may enlist the bubble to their army.
  * 
  * @param {String} userID - the id of the user discharging a bubble
- * @param {Number} discharging - the number of scrubs the user will discharge
+ * @param {String} discharging - the number of scrubs the user will discharge
  */
 exports.dischargeScrubBubble = function (userID, discharging) {
     if (userID && userID !== 'dev') {
@@ -45,13 +45,32 @@ exports.dischargeScrubBubble = function (userID, discharging) {
     const title = dropped + ' Scrubbing ' + msg + ' arrived for duty!';
     util.sendEmbedMessage(title, null, c.BUBBLE_IMAGES[droppedImg-1]);
 }
+dispatchScrubs = function (userID, amount, dispatchee){
+    if(ledger[userID] && ledger[dispatchee] && ledger[userID].armySize >= amount){
+        ledger[userID].armysize -= amount;
+        ledger[dispatchee].armysize += amount;
 
-exports.maybeDischarging = function(userID, args){
+        description = '<@!' + dispatchee + '>'+ ' '+ amount +  ' Scrubbing Bubble' + maybeGetPlural(amount) + ' have been dispatched to you by' + '<@!' + userID + '>';
+        util.sendEmbedMessage(null, description);
+    }
+    
+}
+exports.checkNumber = function(mode, userID, args){
     const discharging = Number(args[1]);
     if (!discharging || bet < 1) {
         return;
     }
-    dischargeScrubBubble(userID, discharging);
+    if(mode === 'discharging'){
+        dischargeScrubBubble(userID, discharging);
+    }
+    if(mode === 'dispatch'){
+        if (args[2]) {
+            if (args[2].match(/\d/g) !== null) {
+                dispatchee = args[2].match(/\d/g).join('');
+            }
+        }
+        dispatchScrubs(userID, dispatching, dispatchee)
+    }
 }
 
 /**

@@ -87,8 +87,10 @@ client.on('message', message => {
 				if (userID !== '132944096347160576') { break; }
 				userID = 'dev';
 			case 'discharge':
-				gambling.maybeDischarging(userID, args); 
+				gambling.checkNumber('discharging', userID, args); 
 				break;
+			case 'dispatch':
+				gambling.checkNumber('dispatch', userID, args,)
 			case 'enlist':
 				gambling.enlist(userID);
 				break;
