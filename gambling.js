@@ -169,6 +169,7 @@ function addToGamblingStreaks(currentStreak, highestStreak, oppositeStreak, user
     if (ledger[user][currentStreak] > ledger[user][highestStreak]){
         ledger[user][highestStreak] = ledger[user][currentStreak];
     }
+    exports.exportLedger();
 }
 
 /**
@@ -179,11 +180,11 @@ function addToGamblingStreaks(currentStreak, highestStreak, oppositeStreak, user
  * @param {String} user - the user to add stats to
  */
 function addToGamblingStats(outcome, amount, user) {
-    var plural = 'Losses';
+    var plural = 'Lost';
     var opposite = 'Won';
 
     if (outcome === 'Won') {
-        plural = 'Wins';
+        plural = 'Won';
         opposite = 'Lost';
     }
 
@@ -192,9 +193,9 @@ function addToGamblingStats(outcome, amount, user) {
         ledger[user][stat] = amount;
     }
    
-    addToGamblingStreaks('streak'+plural, 'maxStreak'+plural, 'streak'+opposite, user);
-    ledger[user]['scrubs'+wonLost] += amount;
-    ledger[user]['total'+plural]++;
+    addToGamblingStreaks('streak'+plural, 'highestStreak'+plural, 'streak'+opposite, user);
+    ledger[user]['scrubs'+outcome] += amount;
+    ledger[user]['total'+outcome]++;
 }
 
 /**
@@ -226,15 +227,14 @@ function betClean(userID, bet, type, side) {
             img = c.CLEAN_WIN_IMG;
             msg = 'Congrats, your auxiliary army gained ' + payout + ' Scrubbing Bubbles after cleaning the bathroom and conquering the land!';
             addToArmy(userID, payout);
-            addToGamblingStats('Wins', 'Won', payout, userID);
+            addToGamblingStats('Won', payout, userID);
         } else {
             img = c.CLEAN_LOSE_IMG;
             msg = 'Sorry bud, you lost ' + bet + ' Scrubbing Bubble' + maybeGetPlural(bet) + ' in the battle.';
-            addToGamblingStats('Losses', 'Lost', bet, userID);
+            addToGamblingStats('Lost', bet, userID);
         }
         util.sendEmbedMessage(null, '<@!' + userID + '>  ' + msg, img);
         resetLedgerAfterBet(userID, bet, type);
-        exports.exportLedger();
     }
 }
 
@@ -274,12 +274,17 @@ function outputUserGamblingData(userID, args) {
                           '\nRecord Army Size: ' + wallet.recordArmy + ' Scrubs' +
                           '\nLifetime Scrubs Won: ' + wallet.scrubsWon + ' Scrubs' +
                           '\nLifetime Scrubs Lost: ' + wallet.scrubsLost + ' Scrubs' +
+                          '\nTotal Scrubs Bet: ' + wallet.scrubsBet + ' Scrubs' +
                           '\nBiggest Bet Won: ' + wallet.highestWon + ' Scrubs' +
                           '\nBiggest Bet Lost: ' + wallet.highestLost + ' Scrubs' +
-                          '\nTotal Bets Won: ' + wallet.totalWins + ' Wins' +
-                          '\nTotal Bets Lost: ' + wallet.totalLosses + ' Losses' +
+                          '\nTotal Bets Won: ' + wallet.totalWon + ' Wins' +
+                          '\nTotal Bets Lost: ' + wallet.totalLost + ' Losses' +
                           '\nTotal Scrubs Discharged: ' + wallet.totalDischarged + ' Scrubs' +
-                          '\nTotal Scrubs Enlisted: ' + wallet.totalEnlisted + ' Scrubs'; 
+                          '\nTotal Scrubs Enlisted: ' + wallet.totalEnlisted + ' Scrubs' +
+                          '\nCurrent Win Streak: ' + wallet.StreakWon + ' Wins' +
+                          '\nCurrent Lose Streak: ' + wallet.StreakLost + ' Losses' +
+                          '\nHighest Win Streak: ' + wallet.highestStreakWon + ' Wins' +
+                          '\nHighest Lose Streak: ' + wallet.highestStreakLost + ' Losses'; 
         }
         util.sendEmbedMessage(null, description);
     }

@@ -100,17 +100,21 @@ define('HELP_CATEGORIES', [{name: '`Voting`', fields: exports.HELP_VOTING},
 						   {name: '`Bot Issues, Feature Requests, and Help`', fields: exports.HELP_BOT}, 
 						   {name: '`Miscellaneous`', fields: exports.HELP_MISC}]);
 define('NEW_LEDGER_ENTRY', { 
-	armySize: 0, 
+	armySize: 0,        //current army size
 	cleanBet: 0, 
 	raceBet: 0, 
-	recordArmy: 0, 
-	highestLost: 0, 
-	highestWon: 0, 
-	totalWins: 0, 
-	totalLosses: 0, 
-	totalEnlisted: 0, 
-	scrubsBet: 0, 
-	scrubsWon: 0,
-	scrubsLost: 0, 
-	totalDischarged: 0 
+	recordArmy: 0,       //largest army the user has had
+	highestLost: 0,      //biggest bet the user has lost
+	highestWon: 0,       //biggest bet the user has won
+	totalWon: 0,         //total bet wins for user
+	totalLost: 0,        //total bet losses for user
+	totalEnlisted: 0,    //total scrubs the user has enlisted
+	scrubsBet: 0,        //total scrubs the user has bet (not used atm)
+	scrubsWon: 0,        //total scrubs the user has won
+	scrubsLost: 0,       //total scrubs the user has lost
+	totalDischarged: 0,  //total scrubs the user has !discharged
+	highestStreakWon: 0, //highest bet win streak for user
+	highestStreakLost: 0,//highest bet lose streak for user
+	StreakWon: 0,        //current bet win streak for user
+	StreakLost: 0        //current bet lose streak for user
 });
