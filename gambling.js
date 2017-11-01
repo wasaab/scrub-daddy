@@ -58,7 +58,7 @@ function addToArmy(userID, amount, addTake) {
  * @param {String} discharging - the number of scrubs the user will discharge
  */
 
-exports.dischargeScrubBubble = function (userID, discharging) {
+function dischargeScrubBubble(userID, discharging) {
     if (userID && userID !== 'dev') {
         if (ledger[userID] && ledger[userID].armySize >= discharging) {
             addToArmy(userID, discharging, 'take');
@@ -87,7 +87,7 @@ exports.dischargeScrubBubble = function (userID, discharging) {
  */
 function dispatchScrubs(userID, amount, dispatchee){
     if(ledger[userID] && ledger[dispatchee] && ledger[userID].armySize >= amount){
-        addToArmy(UserID, amount, 'take');
+        addToArmy(userID, amount, 'take');
         addToArmy(dispatchee, amount, 'add');
 
         description = '<@!' + dispatchee + '>'+ ' '+ amount +  ' Scrubbing Bubble' + maybeGetPlural(amount) + ' have been dispatched to you by' + '<@!' + userID + '>';
@@ -115,7 +115,7 @@ exports.checkNumber = function(mode, userID, args){
                 dispatchee = args[2].match(/\d/g).join('');
             }
         }
-        dispatchScrubs(userID, dispatching, dispatchee);
+        dispatchScrubs(userID, discharging, dispatchee);
     }
 }
 
@@ -126,7 +126,7 @@ exports.checkNumber = function(mode, userID, args){
 exports.maybeDischargeScrubBubble = function(botSpamChannel) {
     var num = util.getRand(1,11);
     if (num > 8) {
-        exports.dischargeScrubBubble(null, 1);
+        dischargeScrubBubble(null, 1);
     }
 }
 
