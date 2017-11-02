@@ -271,7 +271,17 @@ function outputUserGamblingData(userID, args) {
         if (args[0] === 'army') {
             description = `<@!${userID}>${msg} army is ${wallet.armySize} Scrubbing Bubble${maybeGetPlural(wallet.armySize)} strong!`;
         } else {
-            description = `<@!${userID}>${msg} Stats (starting from 10/31/17): \nCurrent Army Size: ${wallet.armySize} Scrubs\nRecord Army Size: ${wallet.recordArmy} Scrubs\nLifetime Scrubs Won: ${wallet.scrubsWon} Scrubs\nLifetime Scrubs Lost: ${wallet.scrubsLost} Scrubs\nBiggest Bet Won: ${wallet.highestWon} Scrubs\nBiggest Bet Lost: ${wallet.highestLost} Scrubs\nTotal Bets Won: ${wallet.totalWins} Wins\nTotal Bets Lost: ${wallet.totalLosses} Losses\nTotal Scrubs Discharged: ${wallet.totalDischarged} Scrubs\nTotal Scrubs Enlisted: ${wallet.totalEnlisted} Scrubs`; 
+            description = `<@!${userID}>${msg} Stats (starting from 10/31/17):\n` +
+                `Current Army Size: ${wallet.armySize} Scrubs\n` +
+                `Record Army Size: ${wallet.recordArmy} Scrubs\n` +
+                `Lifetime Scrubs Won: ${wallet.scrubsWon} Scrubs\n` +
+                `Lifetime Scrubs Lost: ${wallet.scrubsLost} Scrubs\n` +
+                `Biggest Bet Won: ${wallet.highestWon} Scrubs\n` +
+                `Biggest Bet Lost: ${wallet.highestLost} Scrubs\n` +
+                `Total Bets Won: ${wallet.totalWins} Wins\n` +
+                `Total Bets Lost: ${wallet.totalLosses} Losses\n` +
+                `Total Scrubs Discharged: ${wallet.totalDischarged} Scrubs\n` +
+                `Total Scrubs Enlisted: ${wallet.totalEnlisted} Scrubs`; 
         }
         util.sendEmbedMessage(null, description);
     }
