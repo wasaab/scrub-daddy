@@ -66,7 +66,7 @@ exports.getCustomVoteTotals = function() {
 	if (totals.length > 0) {
 		util.sendEmbedFieldsMessage('Custom Vote Totals', totals);
 	}
-}
+};
 
 /**
  * Retrieves the total votes for the given target
@@ -102,7 +102,7 @@ exports.getTotalVotesForTarget = function(user, kickChannel, channelID, args) {
 	if (totals.length > 0) {
 		util.sendEmbedFieldsMessage(kickChannel.name + '	-	Vote Totals for ' + titleTarget, totals);
 	}
-}
+};
 
 /**
  * Gets the ID of the vote's target iff they are in the current vote's channel.
@@ -241,4 +241,4 @@ exports.conductVote = function(user, userID, channelID, args, type, kickChannel,
 		util.sendEmbedMessage(null, message);
 		c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + user + ' is attempting to vote for a person more than once.');
 	}
-}
+};

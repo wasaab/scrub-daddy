@@ -38,10 +38,10 @@ exports.createChannelInCategory = function(command, channelType, channelName, me
 				description: description,
 			}));	
 		})
-		.catch(console.error);
+		.catch('<ERROR> ' + exports.getTimestamp() + '  ' + c.LOG.info(console.error));
 		c.LOG.info('<INFO> ' + exports.getTimestamp() + '  ' + channelCategoryName + createdByMsg + '  ' + description);		
 	}
-}
+};
 
 /**
  * initializes the logger.
@@ -52,7 +52,7 @@ exports.initLogger = function() {
     	colorize: true
 	});
 	c.LOG.level = 'debug';
-}
+};
 
 /**
  * Gets a random number between min and max.
@@ -65,7 +65,7 @@ exports.getRand = function(min, max) {
 	min = Math.ceil(min);
 	max = Math.floor(max);
 	return Math.floor(Math.random() * (max - min)) + min; 
-}
+};
 
 /**
  * Gets a timestamp representing the current time.
@@ -91,7 +91,7 @@ exports.getTimestamp = function() {
 	}
 
 	return day + ' ' + pad(hours) + ':' + pad(minutes) + ' ' + meridiem;
-}
+};
 
 /**
  * Logs the response of an API request for Add Role or Move User.
@@ -109,7 +109,7 @@ exports.log = function(error, response) {
 	} else {
 		c.LOG.info('<API RESPONSE> ' + exports.getTimestamp() + '  ' + inspect(response));
 	}
-}
+};
 
 /**
  * Builds an embed field object with name and value.
@@ -123,7 +123,7 @@ exports.buildField = function(name, value) {
 		value: value,
 		inline: 'true'
 	};
-}
+};
 
 /**
  * Comparator for two field objects. Compares values.
@@ -140,7 +140,7 @@ exports.compareFieldValues = function(a,b) {
 	if (aNum < bNum)
 	  return 1;
 	return 0;
-}
+};
 
 /**
  * Output vote count to bot-spam channel
@@ -155,7 +155,7 @@ exports.sendEmbedFieldsMessage = function(title, fields) {
 		title: title,
 		fields: fields
 	}));	
-}
+};
 
 /**
  * Sends an embed message to bot-spam with an optional title, description, and image.
@@ -174,7 +174,7 @@ exports.sendEmbedMessage = function(title, description, image) {
 			url: image
 		} 
 	}));	
-}
+};
 
 /**
  * Outputs a cat fact.
@@ -183,14 +183,14 @@ exports.catfacts = function() {
 	const factIdx = exports.getRand(0,catFacts.length);
 	const msg = catFacts[factIdx] + '\n 🐈 Meeeeee-WOW!';
 	exports.sendEmbedMessage('Did you know?', msg);
-}
+};
 
 /**
  * Gets a map of scrub's ids to nicknames.
  */
 exports.getScrubIDToNick = function() {
 	return bot.getScrubIDToNick();
-}
+};
 
 /**
  * Outputs the help category for the given selection.
@@ -224,4 +224,4 @@ exports.help = function() {
 		exports.sendEmbedMessage('Reponse Timed Out', 
 			'You have not selected a category, so I\'m not listening to you anymore 😛');
 	});
-}
+};

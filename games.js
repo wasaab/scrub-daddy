@@ -17,7 +17,7 @@ var timeSheet = {};									//map of userID to gameToTimePlayed map for that use
 exports.exportTimeSheet = function() {
 	var json = JSON.stringify(timeSheet);	
 	fs.writeFile('../timeSheet.json', json, 'utf8', util.log);
-}
+};
 
 /**
  * Gets the name of the game provided as well as the target if one exists
@@ -84,7 +84,7 @@ exports.getAndOutputCountOfGamesBeingPlayed = function(scrubs) {
 	util.sendEmbedMessage('Winner - ' + winner, null, imageUrl);
 	fields.sort(util.compareFieldValues);
 	util.sendEmbedFieldsMessage('Player Count', fields);
-}
+};
 
 /**
  * Gets the play time of the game provided.
@@ -231,7 +231,7 @@ exports.maybeOutputTimePlayed = function(args) {
 		util.sendEmbedFieldsMessage('Hours Played', fields);
 		c.LOG.info('<INFO> ' + util.getTimestamp() + '  Hours Played: ' + inspect(fields));
     }
-}
+};
 
 /**
  * Gets hours, mins, and meridiem from the provided timestamp.
@@ -298,7 +298,7 @@ exports.maybeOutputGameHistory = function () {
 			}	
 		}
 	});
-}
+};
 
 /**
  * Updates the time played for a game when the user finishes playing it.
@@ -349,7 +349,7 @@ exports.updateTimesheet = function(user, userID, oldGame, newGame) {
 	}
 	
 	timeSheet[userID] = gameToTime;
-}
+};
 
 /**
  * Waits for the provided number of seconds and then sends a scrub daddy fact. 
@@ -385,7 +385,7 @@ exports.optIn = function(user, userID) {
 	c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + user + ' (' + userID + ') has opted into time');	
 	var json = JSON.stringify(optedInUsers);	
 	fs.writeFile('optedIn.json', json, 'utf8', util.log);
-}
+};
 
 /**
  * Asks Scrubs if they want to play pubg.
@@ -394,4 +394,4 @@ exports.askToPlayPUBG = function() {
 	bot.getScrubsChannel().send('<@&370671041644724226>  ' 
 		+ c.GREETINGS[util.getRand(0, c.GREETINGS.length)] 
 		+ ' tryna play some ' + c.PUBG_ALIASES[util.getRand(0, c.PUBG_ALIASES.length)] + '?');	
-}
+};

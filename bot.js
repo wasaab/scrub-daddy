@@ -35,7 +35,7 @@ function isArrivedForDutyMessage(message) {
  * Listen's for messages in Discord
  * TODO: Refactor
  */
-client.on('message', message => {
+client.on('message', (message) => {
 	const firstChar = message.content.substring(0, 1);
     //Scrub Daddy will listen for messages that will start with `!`
     if (firstChar === '!') {
@@ -160,7 +160,7 @@ client.on('presenceUpdate', (oldMember, newMember) => {
 /**
  * Reconnects the bot if diconnected.
  */
-client.on('disconnect', event => {
+client.on('disconnect', (event) => {
 	c.LOG.error('<ERROR> ' +  util.getTimestamp() + '  event: ' + inspect(event));
 	client.login(auth.token);
 });

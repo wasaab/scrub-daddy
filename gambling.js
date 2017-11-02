@@ -14,7 +14,7 @@ var previousMessage = {};
 exports.exportLedger = function() {
     var json = JSON.stringify(ledger);
     fs.writeFile('ledger.json', json, 'utf8', util.log);
-}
+};
 
 /**
  * Discharges a scrub bubble from the provided user's army, so that another
@@ -44,7 +44,7 @@ exports.dischargeScrubBubble = function (userID, botSpam) {
 
     const title = dropped + ' Scrubbing ' + msg + ' arrived for duty!';
     util.sendEmbedMessage(title, null, c.BUBBLE_IMAGES[droppedImg-1]);
-}
+};
 
 /**
  * drops a scrub bubble in bot-spam with a 20% chance.
@@ -55,7 +55,7 @@ exports.maybeDischargeScrubBubble = function(botSpamChannel) {
     if (num > 8) {
         exports.dischargeScrubBubble(null, botSpamChannel);
     }
-}
+};
 
 /**
  * Adds the given number of Scrubbing Bubbles to the provided user's army.
@@ -86,7 +86,7 @@ exports.enlist = function(userID, message) {
         message.delete();
         dropped = 0;
     }
-}
+};
 
 /**
  * returns true iff the side provided is valid.
@@ -252,7 +252,7 @@ exports.maybeBetClean = function(userID, args, message) {
 
     betClean(userID, bet, 'clean', side);
     message.delete();
-}
+};
 
 /**
  * Outputs the user's army size or their gambling stats.
@@ -293,14 +293,14 @@ function outputUserGamblingData(userID, args) {
  */
 exports.army = function(userID, args) {
     outputUserGamblingData(userID, args);
-}
+};
 
 /**
  * Outputs the user's gambling stats.
  */
 exports.stats = function (userID, args) {
     outputUserGamblingData(userID, args);    
-}
+};
 
 /**
  * Outputs all member's army sizes in order.
@@ -313,7 +313,7 @@ exports.armyRanks = function() {
     }
     fields.sort(util.compareFieldValues);
     util.sendEmbedFieldsMessage('Scrubbing Bubbles Army Sizes', fields);
-}
+};
 
 /**
  * Deletes previous Scrub Daddy message if it is an arrived for duty message.
@@ -324,4 +324,4 @@ exports.maybeDeletePreviousMessage = function (msg) {
         previousMessage.delete();
     }
     previousMessage = msg;
-}
+};
