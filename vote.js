@@ -19,6 +19,23 @@ var alreadyVoted = {};								//map of targetConcat to array of people who have 
 var kickChannel = {};								//channel the kick is being initiated in (name, id)
 
 /**
+ * Moves the channel associated with the provided task name to the
+ * In Progress category iff the channel exists. 
+ * 
+ * @param {String} taskName - the name of the task/channel to move
+ */
+function maybeMoveTaskToInProgress(taskName) {
+	const taskChannel = bot.getClient().channels.find('name', taskName);
+	if (taskChannel) {
+		taskChannel.setParent(c.CATEGORY_ID['In Progress']);
+		taskChannel.send('The scrubs have spoken! Implement this feature next.');
+	} else {
+		util.sendEmbedMessage('The task you voted for does not exist', 
+			'Make sure your input matches the channel title. Only letters, nums, -, _ are allowed.');
+	}
+}
+
+/**
  * Builds a target which could be one word or multiple.
  * 
  * @param {String[]} args 
@@ -149,6 +166,7 @@ function maybeEndVote(voteData, roles) {
 
 /**
  * Conducts a vote to kick or ban the specified user from the channel provided.
+ * TODO: Refactor
  * 
  * @param {String} user - the user
  * @param {String} userID - the user's ID
@@ -210,6 +228,10 @@ exports.conductVote = function(user, userID, channelID, args, type, kickChannel,
 			var message = votes[targetConcat] + msg;
 			if (votes[targetConcat] > 2) {
 				message = 'The vote has concluded with ' + votes[targetConcat] + msg;
+
+				if (targetConcat.startsWith('implement')) {
+					maybeMoveTaskToInProgress(targetConcat.split(':')[0].slice(10));
+				}
 			}
 			util.sendEmbedMessage(null, message);
 			c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + message);				

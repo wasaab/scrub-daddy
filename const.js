@@ -17,7 +17,8 @@ define('SERVER_ID', auth.serverID);				    		//Bed Bath Server ID
 define('CATEGORY_ID', {
 	'Issue': '372143355070644255', 
 	'Feature': '374009714213781504',
-	'Temp': '374246719648694282'
+	'Temp': '374246719648694282',
+	'In Progress': '374702344316780567'
 });
 define('DAYS', ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']);
 define('PUBG_ALIASES', ['scrubg', 'pubg', 'pugG', 'pabg', 'pobg', 'pebg', 'pibg', 'pybg', 'Mr. Pib G.', 'pub', 'pudgy', 'puh ba gee']);
@@ -80,6 +81,7 @@ define('HELP_PLAYER_COUNT',[{ name: '!playing', value: '`player count of games c
 define('HELP_BOT',[{ name: 'Please Note', value: '`Your issue title or feature title must be ONE WORD! msg is optional`', inline: 'false'},
 				   { name: '!issue <`issue-title`> <`msg detailing issue`>', value: '`to submit bot issues.`', inline: 'false'},
 				   { name: '!feature <`feature-title`> <`msg detailing feature`>', value: '`to submit bot feature requests.`', inline: 'false'},
+				   { name: '!implement <`task-title`>', value: '`to vote for the next task to complete.\ntask-title is the channel title of the issue or feature.`', inline: 'false'},
 				   { name: '!help, !info, or !helpinfo', value: '`to show this message again.`', inline: 'false'}]);
 				   
 define('HELP_MISC',[{ name: '!p', value: '`to ask @Scrubs to play PUBG in scrubs text channel.`', inline: 'false'},
@@ -91,7 +93,7 @@ define('HELP_CATEGORIES_PROMPT',[{ name: 'To select a category:', value: '`Type 
 						  { name: '2) Scrubbing Bubbles', value: '`enlist`	`discharge`	`clean`	`army`', inline: 'false'},
 						  { name: '3) Time Played', value: '`time`	`opt-in`', inline: 'false'},
 						  { name: '4) Player Count', value: '`playing`	`gameHistory`', inline: 'false'},
-						  { name: '5) Bot Issues, Feature Requests, and Help', value: '`issue`	`feature`	`help`	`info`	`helpinfo`', inline: 'false'},
+						  { name: '5) Bot Issues, Feature Requests, and Help', value: '`issue`	`feature`	`implement`	`help`	`info`	`helpinfo`', inline: 'false'},
 						  { name: '6) Miscellaneous', value: '`p`	`temp`', inline: 'false'}]);
 define('HELP_CATEGORIES', [{name: '`Voting`', fields: exports.HELP_VOTING},
 						   {name: '`Scrubbing Bubbles`', fields: exports.HELP_SCRUBBING_BUBBLES},

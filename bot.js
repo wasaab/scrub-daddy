@@ -60,9 +60,11 @@ client.on('message', message => {
 			case 'feature':
 				const chanName = args[1];
 				const feedback = args.slice(2).join(' ');
-				console.log('feedback: ' + feedback);
 				util.createChannelInCategory(cmd, 'text', chanName, message, ' Submitted By ' + user, feedback);
 				break;
+			case 'implement':
+				args.splice(1, 0, cmd);
+				vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.CUSTOM);			
 			case 'export':
 				gambling.exportLedger();
 				games.exportTimeSheet();
