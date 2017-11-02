@@ -193,7 +193,7 @@ function addToGamblingStats(outcome, amount, user) {
     }
    
     addToGamblingStreaks('streak'+plural, 'maxStreak'+plural, 'streak'+opposite, user);
-    ledger[user]['scrubs'+wonLost] += amount;
+    ledger[user]['scrubs'+outcome] += amount;
     ledger[user]['total'+plural]++;
 }
 
@@ -226,11 +226,11 @@ function betClean(userID, bet, type, side) {
             img = c.CLEAN_WIN_IMG;
             msg = 'Congrats, your auxiliary army gained ' + payout + ' Scrubbing Bubbles after cleaning the bathroom and conquering the land!';
             addToArmy(userID, payout);
-            addToGamblingStats('Wins', 'Won', payout, userID);
+            //addToGamblingStats('Wins', 'Won', payout, userID);
         } else {
             img = c.CLEAN_LOSE_IMG;
             msg = 'Sorry bud, you lost ' + bet + ' Scrubbing Bubble' + maybeGetPlural(bet) + ' in the battle.';
-            addToGamblingStats('Losses', 'Lost', bet, userID);
+            //addToGamblingStats('Losses', 'Lost', bet, userID);
         }
         util.sendEmbedMessage(null, '<@!' + userID + '>  ' + msg, img);
         resetLedgerAfterBet(userID, bet, type);
