@@ -6,7 +6,7 @@ var fs = require('fs');
 var c = require('./const.js');
 var bot = require('./bot.js');
 var util = require('./utilities.js');
-var optedInUsers = require('./optedIn.json');
+var optedInUsers = require('../optedIn.json');
 
 var gameHistory = [];								//timestamped log of player counts for each game
 var timeSheet = {};									//map of userID to gameToTimePlayed map for that user
@@ -16,7 +16,7 @@ var timeSheet = {};									//map of userID to gameToTimePlayed map for that use
  */
 exports.exportTimeSheet = function() {
 	var json = JSON.stringify(timeSheet);	
-	fs.writeFile('../timeSheet.json', json, 'utf8', util.log);
+	fs.writeFile('../../timeSheet.json', json, 'utf8', util.log);
 };
 
 /**
@@ -32,7 +32,7 @@ function getGameNameAndTarget(args) {
 			target = args[i];
 			break;
 		}
-		game += ' ' + args[i];
+		game += ` ${args[i]}`;
 	}
 	const result = {game : game, target : target};
 	return result;
@@ -81,7 +81,7 @@ exports.getAndOutputCountOfGamesBeingPlayed = function(scrubs) {
 	if (c.GAME_NAME_TO_IMG[winner]) {
 		imageUrl = c.GAME_NAME_TO_IMG[winner];
 	}
-	util.sendEmbedMessage('Winner - ' + winner, null, imageUrl);
+	util.sendEmbedMessage(`Winner - ${winner}`, null, imageUrl);
 	fields.sort(util.compareFieldValues);
 	util.sendEmbedFieldsMessage('Player Count', fields);
 };
@@ -199,7 +199,7 @@ function outputCumulativeTimePlayed(timePlayedData) {
 	}
 	fields.sort(util.compareFieldValues);
 	util.sendEmbedFieldsMessage('Cumulative Hours Played', fields);
-	c.LOG.info('<INFO> ' + util.getTimestamp() + '  Cumulative Hours Played All Games: ' + inspect(fields));
+	c.LOG.info(`<INFO> ${util.getTimestamp()}  Cumulative Hours Played All Games: ${inspect(fields)}`);
 }
 
 /**
@@ -212,10 +212,10 @@ exports.maybeOutputTimePlayed = function(args) {
 	var target = nameAndTargetData.target;
 	var game = nameAndTargetData.game;
 
-	c.LOG.info('<INFO> ' + util.getTimestamp() + '  Time Called - game: ' + game + ' target: ' + target);		
+	c.LOG.info(`<INFO> ${util.getTimestamp()}  Time Called - game: ${game} target: ${target}`);		
 	if (target !== '' && !isOptedIn(target)) { 
 		util.sendEmbedMessage(null,'I do not track that scrub\'s playtime.');
-		c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + target + ' is not opted in.');				
+		c.LOG.info(`<INFO> ${util.getTimestamp()}  ${target} is not opted in.`);				
 		return; 
 	}
 	
@@ -229,7 +229,7 @@ exports.maybeOutputTimePlayed = function(args) {
 		var fields = [];
 		fields.push(util.buildField(game,timePlayedData.total.toFixed(1)));
 		util.sendEmbedFieldsMessage('Hours Played', fields);
-		c.LOG.info('<INFO> ' + util.getTimestamp() + '  Hours Played: ' + inspect(fields));
+		c.LOG.info(`<INFO> ${util.getTimestamp()}  Hours Played: ${inspect(fields)}`);
     }
 };
 
@@ -284,16 +284,16 @@ function compareTimestamps(a,b) {
 exports.maybeOutputGameHistory = function () {
 	var previousTime = '';
 	gameHistory.sort(compareTimestamps);
-	gameHistory.forEach(function(gamesLog) {
+	gameHistory.forEach((gamesLog) => {
 		if (gamesLog[0]) {
 			var time = gamesLog[0].time;
 			if ( time !== previousTime) {
 				var fields = [];					
-				gamesLog.forEach(function(gameData) {
+				gamesLog.forEach((gameData) => {
 					fields.push(util.buildField(gameData.game, gameData.count));
 				});
 				fields.sort(util.compareFieldValues);
-				util.sendEmbedFieldsMessage('Player Count - ' + time, fields);	
+				util.sendEmbedFieldsMessage(`Player Count - ${time}`, fields);	
 				previousTime = time;			
 			}	
 		}
@@ -311,7 +311,7 @@ function getUpdatedGameToTime(gameToTime, userName) {
 	
 	if (currentlyPlaying) {
 		var hoursPlayed = getTimePlayed(currentlyPlaying);
-		c.LOG.info('<INFO> ' + util.getTimestamp() + '  Presence Update - ' + userName + ' finished a ' + hoursPlayed.toFixed(4) + 'hr session of ' + currentlyPlaying.name);											
+		c.LOG.info(`<INFO> ${util.getTimestamp()}  Presence Update - ${userName} finished a ${hoursPlayed.toFixed(4)}hr session of ${currentlyPlaying.name}`);											
 		gameToTime[currentlyPlaying.name] += hoursPlayed;
 		gameToTime['playing'] = null;
 	}
@@ -331,7 +331,7 @@ function getUpdatedGameToTime(gameToTime, userName) {
 exports.updateTimesheet = function(user, userID, oldGame, newGame) {
 	//ignore presence updates for bots and online status changes
 	if (c.BOT_IDS.indexOf(userID) > -1 || oldGame === newGame) { return; }
-	c.LOG.info('<INFO> Presence Update - ' + user + ' id: ' + userID + ' old game: ' + oldGame + ' new game: ' + newGame);
+	c.LOG.info(`<INFO> Presence Update - ${user} id: ${userID} old game: ${oldGame} new game: ${newGame}`);
 	
 	//get user's timesheet
 	var gameToTime = timeSheet[userID];
@@ -358,7 +358,7 @@ exports.updateTimesheet = function(user, userID, oldGame, newGame) {
  * @param {Number} seconds - duration of each loop
  */
 function waitAndSendScrubDaddyFact(attempts, seconds) {
-	setTimeout(function() {
+	setTimeout(() => {
 		if (attempts === seconds) {
 			const title = 'You are now subscribed to Scrub Daddy Facts!';
 			const imgUrl = c.SCRUB_DADDY_FACT;
@@ -382,16 +382,14 @@ exports.optIn = function(user, userID) {
 	fields.push(util.buildField(user, 'I\'m watching you.'));
 	util.sendEmbedFieldsMessage('YOU ARE BEING WATCHED', fields);	
 	waitAndSendScrubDaddyFact(0,5);
-	c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + user + ' (' + userID + ') has opted into time');	
+	c.LOG.info(`<INFO> ${util.getTimestamp()}  ${user} (${userID}) has opted into time`);	
 	var json = JSON.stringify(optedInUsers);	
-	fs.writeFile('optedIn.json', json, 'utf8', util.log);
+	fs.writeFile('../optedIn.json', json, 'utf8', util.log);
 };
 
 /**
  * Asks Scrubs if they want to play pubg.
  */
 exports.askToPlayPUBG = function() {
-	bot.getScrubsChannel().send('<@&370671041644724226>  ' 
-		+ c.GREETINGS[util.getRand(0, c.GREETINGS.length)] 
-		+ ' tryna play some ' + c.PUBG_ALIASES[util.getRand(0, c.PUBG_ALIASES.length)] + '?');	
+	bot.getScrubsChannel().send(`<@&370671041644724226>  ${c.GREETINGS[util.getRand(0, c.GREETINGS.length)]} tryna play some ${c.PUBG_ALIASES[util.getRand(0, c.PUBG_ALIASES.length)]}?`);	
 };
