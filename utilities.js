@@ -207,9 +207,13 @@ exports.help = function() {
 			return m;
 		}
 	}
-	bot.getBotSpam().awaitMessages(filter, { max: 1, time: 20000, errors: ['time'] })
+	bot.getBotSpam().awaitMessages(filter, { max: 1, time: 30000, errors: ['time'] })
 	.then((collected) => {
 		outputHelpCategory(parseInt(collected.array()[0].content)-1);
 	})
-	.catch(collected => console.log(`After 10 seconds, only ${collected.size}.`));
+	.catch((collected) => {
+		c.LOG.info((`After 30 seconds, only ${collected.size} responses.`));
+		exports.sendEmbedMessage('Reponse Timed Out', 
+			'You have not selected a category, so I\'m not listening to you anymore 😛');
+	});
 }
