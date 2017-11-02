@@ -212,7 +212,7 @@ exports.help = function() {
 		if (!isNaN(num) && num > 0 && num < 7) {
 			return m;
 		}
-	}
+	};
 	bot.getBotSpam().awaitMessages(filter, { max: 1, time: 30000, errors: ['time'] })
 	.then((collected) => {
 		const response = collected.array()[0];
