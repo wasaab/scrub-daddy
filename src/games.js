@@ -284,12 +284,12 @@ function compareTimestamps(a,b) {
 exports.maybeOutputGameHistory = function () {
 	var previousTime = '';
 	gameHistory.sort(compareTimestamps);
-	gameHistory.forEach(function(gamesLog) {
+	gameHistory.forEach((gamesLog) => {
 		if (gamesLog[0]) {
 			var time = gamesLog[0].time;
 			if ( time !== previousTime) {
 				var fields = [];					
-				gamesLog.forEach(function(gameData) {
+				gamesLog.forEach((gameData) => {
 					fields.push(util.buildField(gameData.game, gameData.count));
 				});
 				fields.sort(util.compareFieldValues);
@@ -358,7 +358,7 @@ exports.updateTimesheet = function(user, userID, oldGame, newGame) {
  * @param {Number} seconds - duration of each loop
  */
 function waitAndSendScrubDaddyFact(attempts, seconds) {
-	setTimeout(function() {
+	setTimeout(() => {
 		if (attempts === seconds) {
 			const title = 'You are now subscribed to Scrub Daddy Facts!';
 			const imgUrl = c.SCRUB_DADDY_FACT;

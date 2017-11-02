@@ -85,7 +85,7 @@ exports.getTotalVotesForTarget = function(user, kickChannel, channelID, args) {
 	}
 	var target = getTargetFromArgs(args);
 	var titleTarget = 'The Provided User';
-	voteChannelMembers[kickChannel.id].forEach(function(vMember) {
+	voteChannelMembers[kickChannel.id].forEach((vMember) => {
 		if (vMember.name === target || (target.match(/\d/g) !== null && vMember.id === target.match(/\d/g).join(''))) {
 			titleTarget = vMember.name;
 		}
@@ -112,7 +112,7 @@ exports.getTotalVotesForTarget = function(user, kickChannel, channelID, args) {
  */
 function getTargetInVoteChannel(vote) {
 	var result;
-	voteChannelMembers[vote.channelID].forEach(function(vMember) {
+	voteChannelMembers[vote.channelID].forEach((vMember) => {
 		const kickTarget = vote.targetConcat.split(':-:')[0];
 		if (vMember.name === kickTarget || (kickTarget.match(/\d/g) !== null && vMember.id === kickTarget.match(/\d/g).join(''))) {
 			result = vMember.fullMember;
@@ -211,7 +211,7 @@ exports.conductVote = function(user, userID, channelID, args, type, kickChannel,
 		if (kickChannel.name !== '') {
 			voteChannelMembers[kickChannel.id] = [];
 			var kickMembers = kickChannel.members.array();
-			kickMembers.forEach(function (member) {
+			kickMembers.forEach((member) => {
 				var memberData = {id: member.id, name: member.displayName, fullMember: member};
 				voteChannelMembers[kickChannel.id].push(memberData);
 			});
