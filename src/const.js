@@ -1,5 +1,5 @@
 var util = require('./utilities.js');
-var auth = require('./secureAuth.json'); 
+var auth = require('../secureAuth.json'); 
 var get = require('lodash.get');
 
 function define(name, value) {

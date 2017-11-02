@@ -43,7 +43,7 @@ function maybeMoveTaskToInProgress(taskName) {
 function getTargetFromArgs(args) {
 	var target = args[1];
 	for (var k=2; k < args.length; k++) {
-		target += ' ' + args[k];
+		target += ` ${args[k]}`;
 	}
 	return target;
 }
@@ -78,9 +78,9 @@ exports.getCustomVoteTotals = function() {
  */
 exports.getTotalVotesForTarget = function(user, kickChannel, channelID, args) {
 	if (!kickChannel) {
-		const description = 'Sup ' + user + '! Tryna voteinfo @user from nothing, ey dumbass?';
+		const description = `Sup ${user}! Tryna voteinfo @user from nothing, ey dumbass?`;
 		util.sendEmbedMessage(null, description);
-		c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + user + ' is trying to voteinfo @user from nothing.');	
+		c.LOG.info(`<INFO> ${util.getTimestamp()}  ${user} is trying to voteinfo @user from nothing.`);	
 		return;
 	}
 	var target = getTargetFromArgs(args);
@@ -90,8 +90,8 @@ exports.getTotalVotesForTarget = function(user, kickChannel, channelID, args) {
 			titleTarget = vMember.name;
 		}
 	});
-	const kickTargetConcat = target + ':-:' + kickChannel.id + ':-:' + c.VOTE_TYPE.KICK;
-	const banTargetConcat = target + ':-:' + kickChannel.id + ':-:' + c.VOTE_TYPE.BAN;
+	const kickTargetConcat = `${target}:-:${kickChannel.id}:-:${c.VOTE_TYPE.KICK}`;
+	const banTargetConcat = `${target}:-:${kickChannel.id}:-:${c.VOTE_TYPE.BAN}`;
 	var totals = [];
 	if (votes[kickTargetConcat]) {
 		totals.push(util.buildField('Kick', votes[kickTargetConcat]));
@@ -100,7 +100,7 @@ exports.getTotalVotesForTarget = function(user, kickChannel, channelID, args) {
 		totals.push(util.buildField('Ban', votes[banTargetConcat]));
 	}
 	if (totals.length > 0) {
-		util.sendEmbedFieldsMessage(kickChannel.name + '	-	Vote Totals for ' + titleTarget, totals);
+		util.sendEmbedFieldsMessage(`${kickChannel.name}    -	Vote Totals for ${titleTarget}`, totals);
 	}
 };
 
@@ -153,14 +153,14 @@ function maybeEndVote(voteData, roles) {
 
 	const channelSize = voteChannelMembers[voteData.channelID].length;
 	const majority = channelSize/2;
-	c.LOG.info('<INFO> ' + util.getTimestamp() + '  majority: ' + majority + ' votes: ' + votes[voteData.targetConcat]);
+	c.LOG.info(`<INFO> ${util.getTimestamp()}  majority: ${majority} votes: ${votes[voteData.targetConcat]}`);
 	if (channelSize > 2 && votes[voteData.targetConcat] > majority) {
 		const targetName = voteData.targetConcat.split(':-:')[0];
 		endVote(voteData, target, roles);
 		
-		const description = targetName + ' has been voted off the island, a.k.a. ' + voteData.channelName + '!' ;
+		const description = `${targetName} has been voted off the island, a.k.a. ${voteData.channelName}!` ;
 		util.sendEmbedMessage(null, description);
-		c.LOG.info('<KICK> ' + util.getTimestamp() + '  Kicking ' + targetName + ' from ' + voteData.channelName);							
+		c.LOG.info(`<KICK> ${util.getTimestamp()}  Kicking ${targetName} from ${voteData.channelName}`);							
 	}
 }
 
@@ -183,9 +183,9 @@ exports.conductVote = function(user, userID, channelID, args, type, kickChannel,
 
 	//if voting user not in a voice channel
 	if (!kickChannel) {
-		const description = 'Sup ' + user + '! Tryna vote' + type + ' from nothing, ey dumbass?';
+		const description = `Sup ${user}! Tryna vote${type} from nothing, ey dumbass?`;
 		util.sendEmbedMessage(null, description);
-		c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + user + ' is trying to kick from nothing.');		
+		c.LOG.info(`<INFO> ${util.getTimestamp()}  ${user} is trying to kick from nothing.`);		
 		return;
 	}			
 
@@ -193,14 +193,14 @@ exports.conductVote = function(user, userID, channelID, args, type, kickChannel,
 	if (type === c.VOTE_TYPE.CUSTOM) {
 		type = target;
 	}
-	const targetConcat = target + ':-:' + kickChannel.id + ':-:' + type;
-	var msg = ' votes to ' + type + ' '; 				
+	const targetConcat = `${target}:-:${kickChannel.id}:-:${type}`;
+	var msg = ` votes to ${type} `; 				
 	
 	//If this is the first vote for the given target
 	if (!votes[targetConcat]) {
 		alreadyVoted[targetConcat] = [];
 		votes[targetConcat] = 0;
-		msg = ' vote to ' + type + ' ';
+		msg = ` vote to ${type} `;
 	}
 	//If the user has not already voted for the target
 	if (!alreadyVoted[targetConcat].includes(user)) {
@@ -222,23 +222,23 @@ exports.conductVote = function(user, userID, channelID, args, type, kickChannel,
 				targetConcat: targetConcat,
 			};			
 			maybeEndVote(currVote, roles);	
-			c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + votes[targetConcat] + msg + target + ' from ' + kickChannel.name);	
+			c.LOG.info(`<INFO> ${util.getTimestamp()}  ${votes[targetConcat]}${msg}${target} from ${kickChannel.name}`);	
 		} else {
 			//custom vote
 			var message = votes[targetConcat] + msg;
 			if (votes[targetConcat] > 2) {
-				message = 'The vote has concluded with ' + votes[targetConcat] + msg;
+				message = `The vote has concluded with ${votes[targetConcat]}${msg}`;
 
 				if (targetConcat.startsWith('implement')) {
 					maybeMoveTaskToInProgress(targetConcat.split(':')[0].slice(10));
 				}
 			}
 			util.sendEmbedMessage(null, message);
-			c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + message);				
+			c.LOG.info(`<INFO> ${util.getTimestamp()}  ${message}`);				
 		}
 	} else {
-		const message = 'Fuck yourself ' + user + '! You can only vote for a person once.';
+		const message = `Fuck yourself ${user}! You can only vote for a person once.`;
 		util.sendEmbedMessage(null, message);
-		c.LOG.info('<INFO> ' + util.getTimestamp() + '  ' + user + ' is attempting to vote for a person more than once.');
+		c.LOG.info(`<INFO> ${util.getTimestamp()}  ${user} is attempting to vote for a person more than once.`);
 	}
 };

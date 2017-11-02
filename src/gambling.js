@@ -3,7 +3,7 @@ var fs = require('fs');
 
 var c = require('./const.js');
 var util = require('./utilities.js');
-var ledger = require('./ledger.json');   //keeps track of how big of an army each member has as well as bet amounts
+var ledger = require('../ledger.json');   //keeps track of how big of an army each member has as well as bet amounts
 
 var dropped = 0;
 var previousMessage = {};
@@ -13,7 +13,7 @@ var previousMessage = {};
  */
 exports.exportLedger = function() {
     var json = JSON.stringify(ledger);
-    fs.writeFile('ledger.json', json, 'utf8', util.log);
+    fs.writeFile('../ledger.json', json, 'utf8', util.log);
 };
 
 /**
@@ -42,7 +42,7 @@ exports.dischargeScrubBubble = function (userID, botSpam) {
         }
     }
 
-    const title = dropped + ' Scrubbing ' + msg + ' arrived for duty!';
+    const title = `${dropped} Scrubbing ${msg} arrived for duty!`;
     util.sendEmbedMessage(title, null, c.BUBBLE_IMAGES[droppedImg-1]);
 };
 
@@ -80,7 +80,7 @@ exports.enlist = function(userID, message) {
     if (dropped > 0) {
         addToArmy(userID, dropped);
         ledger[userID].totalEnlisted += dropped;
-        const msg = '<@!' + userID + '>  ' + 'Your Scrubbing Bubbles army has grown by ' + dropped + '! You now have an army of ' + ledger[userID].armySize + '.';
+        const msg = `<@!${userID}>  Your Scrubbing Bubbles army has grown by ${dropped}! You now have an army of ${ledger[userID].armySize}.`;
         util.sendEmbedMessage(null, msg);
         previousMessage.delete();
         message.delete();
@@ -188,14 +188,14 @@ function addToGamblingStats(outcome, amount, user) {
         opposite = 'Lost';
     }
 
-    const stat = 'highest'+outcome;
+    const stat = `highest${outcome}`;
     if (amount > ledger[user][stat]) {
         ledger[user][stat] = amount;
     }
    
-    addToGamblingStreaks('streak'+plural, 'maxStreak'+plural, 'streak'+opposite, user);
-    ledger[user]['scrubs'+outcome] += amount;
-    ledger[user]['total'+plural]++;
+    addToGamblingStreaks(`streak${plural}`, `maxStreak${plural}`, `streak${opposite}`, user);
+    ledger[user][`scrubs${outcome}`] += amount;
+    ledger[user][`total${plural}`]++;
 }
 
 /**
@@ -214,9 +214,9 @@ function betClean(userID, bet, type, side) {
     if (!wallet || wallet.armySize < bet ) {
         msg = 'Your army is nonexistent.';
         if (wallet && wallet.armySize > 0) {
-            msg = 'Your ' + wallet.armySize + ' soldier' + maybeGetPlural(wallet.armySize) + ' would surely perish.';
+            msg = `Your ${wallet.armySize} soldier${maybeGetPlural(wallet.armySize)} would surely perish.`;
         }
-        const description = '<@!' + userID + '>  ' + 'You do not have enough Scrubbing Bubbles to clean the bathroom. ' + msg;
+        const description = `<@!${userID}>  You do not have enough Scrubbing Bubbles to clean the bathroom. ${msg}`;
         util.sendEmbedMessage(null,description);
     } else {
         var img = '';
@@ -225,15 +225,15 @@ function betClean(userID, bet, type, side) {
         if (util.getRand(0,2) === getTypeNum(side)) {
             const payout = bet*2;
             img = c.CLEAN_WIN_IMG;
-            msg = 'Congrats, your auxiliary army gained ' + payout + ' Scrubbing Bubbles after cleaning the bathroom and conquering the land!';
+            msg = `Congrats, your auxiliary army gained ${payout} Scrubbing Bubbles after cleaning the bathroom and conquering the land!`;
             addToArmy(userID, payout);
             //addToGamblingStats('Wins', 'Won', payout, userID);
         } else {
             img = c.CLEAN_LOSE_IMG;
-            msg = 'Sorry bud, you lost ' + bet + ' Scrubbing Bubble' + maybeGetPlural(bet) + ' in the battle.';
+            msg = `Sorry bud, you lost ${bet} Scrubbing Bubble${maybeGetPlural(bet)} in the battle.`;
             //addToGamblingStats('Losses', 'Lost', bet, userID);
         }
-        util.sendEmbedMessage(null, '<@!' + userID + '>  ' + msg, img);
+        util.sendEmbedMessage(null, `<@!${userID}>  ${msg}`, img);
         resetLedgerAfterBet(userID, bet, type);
         exports.exportLedger();
     }
@@ -269,19 +269,9 @@ function outputUserGamblingData(userID, args) {
     if (wallet) {
         var description = '';
         if (args[0] === 'army') {
-            description = '<@!' + userID + '>'+ msg +  ' army is ' + wallet.armySize +  ' Scrubbing Bubble' + maybeGetPlural(wallet.armySize) + ' strong!';
+            description = `<@!${userID}>${msg} army is ${wallet.armySize} Scrubbing Bubble${maybeGetPlural(wallet.armySize)} strong!`;
         } else {
-            description = '<@!' + userID + '>' + msg + ' Stats (starting from 10/31/17): ' + 
-                          '\nCurrent Army Size: ' + wallet.armySize + ' Scrubs' +
-                          '\nRecord Army Size: ' + wallet.recordArmy + ' Scrubs' +
-                          '\nLifetime Scrubs Won: ' + wallet.scrubsWon + ' Scrubs' +
-                          '\nLifetime Scrubs Lost: ' + wallet.scrubsLost + ' Scrubs' +
-                          '\nBiggest Bet Won: ' + wallet.highestWon + ' Scrubs' +
-                          '\nBiggest Bet Lost: ' + wallet.highestLost + ' Scrubs' +
-                          '\nTotal Bets Won: ' + wallet.totalWins + ' Wins' +
-                          '\nTotal Bets Lost: ' + wallet.totalLosses + ' Losses' +
-                          '\nTotal Scrubs Discharged: ' + wallet.totalDischarged + ' Scrubs' +
-                          '\nTotal Scrubs Enlisted: ' + wallet.totalEnlisted + ' Scrubs'; 
+            description = `<@!${userID}>${msg} Stats (starting from 10/31/17): \nCurrent Army Size: ${wallet.armySize} Scrubs\nRecord Army Size: ${wallet.recordArmy} Scrubs\nLifetime Scrubs Won: ${wallet.scrubsWon} Scrubs\nLifetime Scrubs Lost: ${wallet.scrubsLost} Scrubs\nBiggest Bet Won: ${wallet.highestWon} Scrubs\nBiggest Bet Lost: ${wallet.highestLost} Scrubs\nTotal Bets Won: ${wallet.totalWins} Wins\nTotal Bets Lost: ${wallet.totalLosses} Losses\nTotal Scrubs Discharged: ${wallet.totalDischarged} Scrubs\nTotal Scrubs Enlisted: ${wallet.totalEnlisted} Scrubs`; 
         }
         util.sendEmbedMessage(null, description);
     }

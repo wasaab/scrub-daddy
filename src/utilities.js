@@ -4,7 +4,7 @@ var get = require('lodash.get');
 
 var c = require('./const.js');
 var bot = require('./bot.js');
-const catFacts = require('./catfacts.json');
+const catFacts = require('../catfacts.json');
 
 /**
  * Creates a channel in a category, specified by the command provided.
@@ -38,8 +38,8 @@ exports.createChannelInCategory = function(command, channelType, channelName, me
 				description: description,
 			}));	
 		})
-		.catch('<ERROR> ' + exports.getTimestamp() + '  ' + c.LOG.info(console.error));
-		c.LOG.info('<INFO> ' + exports.getTimestamp() + '  ' + channelCategoryName + createdByMsg + '  ' + description);		
+		.catch(`<ERROR> ${exports.getTimestamp()}  ${c.LOG.info(console.error)}`);
+		c.LOG.info(`<INFO> ${exports.getTimestamp()}  ${channelCategoryName}${createdByMsg}  ${description}`);		
 	}
 };
 
@@ -74,7 +74,7 @@ exports.getRand = function(min, max) {
  */
 exports.getTimestamp = function() {
 	function pad(n) {
-			return (n < 10) ? '0' + n : n;
+			return (n < 10) ? `0${n}` : n;
 	}
 
 	const time = new Date();
@@ -90,7 +90,7 @@ exports.getTimestamp = function() {
 		hours = 12;
 	}
 
-	return day + ' ' + pad(hours) + ':' + pad(minutes) + ' ' + meridiem;
+	return `${day} ${pad(hours)}:${pad(minutes)} ${meridiem}`;
 };
 
 /**
@@ -102,12 +102,12 @@ exports.getTimestamp = function() {
 exports.log = function(error, response) {
 	if (!response) {
 		if (!error) {
-			c.LOG.info('<API INFO> ' + exports.getTimestamp() + '  Successful API Call');
+			c.LOG.info(`<API INFO> ${exports.getTimestamp()}  Successful API Call`);
 		} else {
-			c.LOG.info('<API RESPONSE> ' + exports.getTimestamp() + '  ERROR: ' + error);			
+			c.LOG.info(`<API RESPONSE> ${exports.getTimestamp()}  ERROR: ${error}`);			
 		}
 	} else {
-		c.LOG.info('<API RESPONSE> ' + exports.getTimestamp() + '  ' + inspect(response));
+		c.LOG.info(`<API RESPONSE> ${exports.getTimestamp()}  ${inspect(response)}`);
 	}
 };
 
@@ -181,7 +181,7 @@ exports.sendEmbedMessage = function(title, description, image) {
  */
 exports.catfacts = function() {
 	const factIdx = exports.getRand(0,catFacts.length);
-	const msg = catFacts[factIdx] + '\n 🐈 Meeeeee-WOW!';
+	const msg = `${catFacts[factIdx]}\n 🐈 Meeeeee-WOW!`;
 	exports.sendEmbedMessage('Did you know?', msg);
 };
 
