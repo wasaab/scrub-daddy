@@ -55,13 +55,13 @@ client.on('message', message => {
 			case 'temp':
 				const channelType = args[1] || 'text';
 				const channelName = args[2] || 'temp-channel';
-				util.createChannelInCategory(cmd, channelType, channelName, message, ' Channel Created By ' + user);
+				util.createChannelInCategory(cmd, channelType, channelName, message, ' Channel Created By ' + user, userID);
 				break;
 			case 'issue':
 			case 'feature':
 				const chanName = args[1];
 				const feedback = args.slice(2).join(' ');
-				util.createChannelInCategory(cmd, 'text', chanName, message, ' Submitted By ' + user, feedback);
+				util.createChannelInCategory(cmd, 'text', chanName, message, ' Submitted By ' + user, userID, feedback);
 				break;
 			case 'implement':
 				args.splice(1, 0, cmd);

@@ -17,15 +17,21 @@ const catFacts = require('./catfacts.json');
  * @param {String} createdByMsg - msg to send to channel upon creation
  * @param {String} feedback - optional feedback provided if an issue/feature
  */
-exports.createChannelInCategory = function(command, channelType, channelName, message, createdByMsg, feedback) {
+exports.createChannelInCategory = function(command, channelType, channelName, message, createdByMsg, userID, feedback) {
 	if (channelName) {
 		const description = feedback || ' ';		
 		const channelCategoryName = command.charAt(0).toUpperCase() + command.slice(1);
 		
-		message.guild.createChannel(channelName, channelType)
+		const permissions = {
+			parent: c.CATEGORY_ID[channelCategoryName],
+			overwrites: [{
+				allowed: new Discord.Permissions(['MANAGE_CHANNELS']),
+				id: userID,
+				type: 'member'
+			}]
+		};
+		message.guild.createChannel(channelName, channelType, permissions)
 		.then((channel) => {			
-			//Moves channel to the Feedback category
-			channel.setParent(c.CATEGORY_ID[channelCategoryName]);
 			channel.send(new Discord.MessageEmbed({
 				color: 0xffff00,
 				title: channelCategoryName + createdByMsg,
