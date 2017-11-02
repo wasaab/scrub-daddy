@@ -33,6 +33,7 @@ function isArrivedForDutyMessage(message) {
 
 /**
  * Listen's for messages in Discord
+ * TODO: Refactor
  */
 client.on('message', message => {
 	const firstChar = message.content.substring(0, 1);
@@ -71,6 +72,7 @@ client.on('message', message => {
 				break;
 			case 'catfacts':
 				util.catfacts();
+				message.delete();
 				break;
 			case 'army':
 				gambling.army(userID, args);
@@ -81,9 +83,10 @@ client.on('message', message => {
 			case 'rank':
 			case 'ranks':
 				gambling.armyRanks();
+				message.delete();
 				break;
 			case 'clean':
-				gambling.maybeBetClean(userID, args);
+				gambling.maybeBetClean(userID, args, message);
 				break;
 			case 'revive':
 				if (userID !== '132944096347160576') { break; }
@@ -92,13 +95,14 @@ client.on('message', message => {
 				gambling.dischargeScrubBubble(userID); 
 				break;
 			case 'enlist':
-				gambling.enlist(userID);
+				gambling.enlist(userID, message);
 				break;
 			case 'p':
 				games.askToPlayPUBG();
 				break;
 			case 'playing':
 				games.getAndOutputCountOfGamesBeingPlayed(message.guild.members.array());
+				message.delete();
 				break;
 			case 'gameHistory':
 				games.maybeOutputGameHistory();
@@ -108,6 +112,7 @@ client.on('message', message => {
 				break;
 			case 'opt-in':
 				games.optIn(user, userID);
+				message.delete();
 				break;
 			//custom vote
 			case 'vote':
@@ -135,6 +140,7 @@ client.on('message', message => {
 			case 'info':
 			case 'helpinfo':
 				util.help();
+				message.delete();
 		 }
 	 } else if (isArrivedForDutyMessage(message)) {
 		gambling.maybeDeletePreviousMessage(message);

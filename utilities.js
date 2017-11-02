@@ -209,7 +209,9 @@ exports.help = function() {
 	}
 	bot.getBotSpam().awaitMessages(filter, { max: 1, time: 30000, errors: ['time'] })
 	.then((collected) => {
-		outputHelpCategory(parseInt(collected.array()[0].content)-1);
+		const response = collected.array()[0];
+		outputHelpCategory(parseInt(response.content)-1);
+		response.delete();		
 	})
 	.catch((collected) => {
 		c.LOG.info((`After 30 seconds, only ${collected.size} responses.`));

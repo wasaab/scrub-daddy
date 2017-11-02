@@ -76,13 +76,14 @@ function addToArmy(userID, amount) {
 /**
  * enlists a scrubbing bubble in userID's army.
  */
-exports.enlist = function(userID) {
+exports.enlist = function(userID, message) {
     if (dropped > 0) {
         addToArmy(userID, dropped);
         ledger[userID].totalEnlisted += dropped;
         const msg = '<@!' + userID + '>  ' + 'Your Scrubbing Bubbles army has grown by ' + dropped + '! You now have an army of ' + ledger[userID].armySize + '.';
         util.sendEmbedMessage(null, msg);
         previousMessage.delete();
+        message.delete();
         dropped = 0;
     }
 }
@@ -241,7 +242,7 @@ function betClean(userID, bet, type, side) {
 /**
  * Calls betClean if the bet is valid.
  */
-exports.maybeBetClean = function(userID, args) {
+exports.maybeBetClean = function(userID, args, message) {
     const bet = Number(args[1]);
     const side = args[2];
 
@@ -250,6 +251,7 @@ exports.maybeBetClean = function(userID, args) {
     }
 
     betClean(userID, bet, 'clean', side);
+    message.delete();
 }
 
 /**
