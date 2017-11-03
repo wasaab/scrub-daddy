@@ -84,13 +84,13 @@ function handleCommand(message) {
 	function cleanCalled () {
 		gambling.maybeBetClean(userID, args, message);		
 	}
+	function dischargeCalled () {
+		gambling.dischargeScrubBubble(userID); 
+	}
 	function reviveCalled () {
 		if (userID !== '132944096347160576') { return; }
 		userID = 'dev';
 		dischargeCalled();
-	}
-	function dischargeCalled () {
-		gambling.dischargeScrubBubble(userID); 
 	}
 	function enlistCalled () {
 		gambling.enlist(userID, message);		
@@ -164,7 +164,8 @@ function handleCommand(message) {
 		'help': helpCalled,
 		'info': helpCalled,
 		'helpinfo': helpCalled
-  }
+	};
+	
 	return commands[cmd]();
 }
 
