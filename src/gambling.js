@@ -235,7 +235,6 @@ function betClean(userID, bet, type, side) {
         }
         util.sendEmbedMessage(null, `<@!${userID}>  ${msg}`, img);
         resetLedgerAfterBet(userID, bet, type);
-        exports.exportLedger();
     }
 }
 

@@ -31,6 +31,14 @@ function isArrivedForDutyMessage(message) {
 			&& message.channel.id === c.BOT_SPAM_CHANNEL_ID;
 }
 
+function scheduleRecurringExport() {
+	(function(){
+		games.exportTimeSheet();
+		gambling.exportLedger();		
+		setTimeout(arguments.callee, 60000);
+	})();
+}
+
 /**
  * Handles valid commands.
  * 
@@ -224,7 +232,8 @@ client.on('ready', () => {
 	scrubsChannel = client.channels.find('id', c.SCRUBS_CHANNEL_ID);
 	purgatory = client.channels.find('id', c.PURGATORY_CHANNEL_ID);	
 	
-	util.scheduleRecurringJob();	
+	util.scheduleRecurringJobs();
+	scheduleRecurringExport();	
 });
 
 exports.getBotSpam = () => botSpam;

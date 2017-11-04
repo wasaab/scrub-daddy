@@ -5,6 +5,7 @@ var get = require('lodash.get');
 
 var c = require('./const.js');
 var bot = require('./bot.js');
+var games = require('./games.js');
 const private = require('../../private.json'); 
 const catFacts = require('../catfacts.json');
 
@@ -102,13 +103,9 @@ exports.getTimestamp = function() {
  * @param {Object} response - response returned from API request
  */
 exports.log = function(error, response) {
-	if (!response) {
-		if (!error) {
-			c.LOG.info(`<API INFO> ${exports.getTimestamp()}  Successful API Call`);
-		} else {
-			c.LOG.info(`<API RESPONSE> ${exports.getTimestamp()}  ERROR: ${error}`);			
-		}
-	} else {
+	if (error) {
+		c.LOG.info(`<API ERROR> ${exports.getTimestamp()}  ERROR: ${error}`);			
+	} else if (response) {
 		c.LOG.info(`<API RESPONSE> ${exports.getTimestamp()}  ${inspect(response)}`);
 	}
 };
@@ -231,22 +228,29 @@ exports.catfacts = function() {
 /**
  * Schedules a recurring job.
  */
-exports.scheduleRecurringJob = function() {
+exports.scheduleRecurringJobs = function() {
 	const job = private.job;
-	var rule = new schedule.RecurrenceRule();
+	var reviewRule = new schedule.RecurrenceRule();
 	
-	rule[job.key1] = job.val1;
-	rule[job.key2] = job.val2;
-	rule[job.key3] = job.val3;
+	reviewRule[job.key1] = job.val1;
+	reviewRule[job.key2] = job.val2;
+	reviewRule[job.key3] = job.val3;
 
-	schedule.scheduleJob(rule, function(){
+	schedule.scheduleJob(reviewRule, function(){
 		bot.getBotSpam().send(c.REVIEW_ROLE);
 		exports.sendEmbedMessage(null, null, job.img);
 	});
 
-	rule[job.key3] = job.val3 - 3;
-	schedule.scheduleJob(rule, function(){
+	reviewRule[job.key3] = job.val3 - 3;
+	schedule.scheduleJob(reviewRule, function(){
 		bot.getBotSpam().send(`${c.REVIEW_ROLE} Upcoming Review. Reserve the room and fire up that projector.`);
+	});
+
+	var exportRule = new schedule.RecurrenceRule();
+	exportRule.hour = 5;
+	
+	schedule.scheduleJob(exportRule, function(){
+	  games.clearTimeSheet();
 	});
 };
 

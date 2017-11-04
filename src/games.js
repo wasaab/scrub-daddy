@@ -7,16 +7,21 @@ var c = require('./const.js');
 var bot = require('./bot.js');
 var util = require('./utilities.js');
 var optedInUsers = require('../optedIn.json');
+var timeSheet = require('../timeSheet.json');		//map of userID to gameToTimePlayed map for that user
 
 var gameHistory = [];								//timestamped log of player counts for each game
-var timeSheet = {};									//map of userID to gameToTimePlayed map for that user
 
 /**
  * Exports the timesheet to a json file.
  */
 exports.exportTimeSheet = function() {
 	var json = JSON.stringify(timeSheet);	
-	fs.writeFile('../../timeSheet.json', json, 'utf8', util.log);
+	fs.writeFile('../timeSheet.json', json, 'utf8', util.log);
+};
+
+exports.clearTimeSheet = function() {
+	timeSheet = {};
+	exports.exportTimeSheet();
 };
 
 /**
@@ -93,7 +98,7 @@ exports.getAndOutputCountOfGamesBeingPlayed = function(scrubs) {
  */
 function getTimePlayed(currentlyPlaying) {
 	var startOfDay = new Date();
-	startOfDay.setHours(0,0,0,0);
+	startOfDay.setHours(5,0,0,0);
 	var utcSeconds = Number(currentlyPlaying.start) / 1000;
 	var startedPlaying = new Date(0); // The 0 there is the key, which sets the date to the epoch
 	startedPlaying.setUTCSeconds(utcSeconds);
@@ -311,7 +316,7 @@ function getUpdatedGameToTime(gameToTime, userName) {
 	
 	if (currentlyPlaying) {
 		var hoursPlayed = getTimePlayed(currentlyPlaying);
-		c.LOG.info(`<INFO> ${util.getTimestamp()}  Presence Update - ${userName} finished a ${hoursPlayed.toFixed(4)}hr session of ${currentlyPlaying.name}`);											
+		c.LOG.info(`<INFO> ${util.getTimestamp()}  Presence Update - ${userName} finished a ${hoursPlayed.toFixed(4)}hr session of ${currentlyPlaying.name}`);										
 		gameToTime[currentlyPlaying.name] += hoursPlayed;
 		gameToTime['playing'] = null;
 	}
@@ -346,6 +351,9 @@ exports.updateTimesheet = function(user, userID, oldGame, newGame) {
 	//started playing a game
 	if (newGame) {
 		gameToTime['playing'] = {name : newGame, start : (new Date).getTime()};
+		if (!gameToTime[newGame]) {
+			gameToTime[newGame] = 0;
+		}	
 	}
 	
 	timeSheet[userID] = gameToTime;
