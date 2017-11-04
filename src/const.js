@@ -26,7 +26,8 @@ define('REVIEW_ROLE_ID', '376391242105225216');
 define('DAYS', ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']);
 define('PUBG_ALIASES', ['scrubg', 'pubg', 'pugG', 'pabg', 'pobg', 'pebg', 'pibg', 'pybg', 'Mr. Pib G.', 'pub', 'pudgy', 'puh ba gee']);
 define('GREETINGS', ['you guys', 'yous guys', 'y\'all', 'hey buddies,', 'hey pals,', 'hey friends,', 'sup dudes,', 'hello fellow humans,']);
-define('BOT_IDS', ['172002275412279296', '86920406476292096', '188064764008726528', '263059218104320000', '116275390695079945', '362784198848675842']);
+define('BOT_IDS', ['172002275412279296', '86920406476292096', '188064764008726528',
+	'263059218104320000', '116275390695079945', '362784198848675842', '306583221565521921']);
 define('GAME_NAME_TO_IMG', {
     'World of Warcraft' : 'http://i.imgur.com/US59X7X.jpg', 
     'Overwatch' : 'http://i.imgur.com/WRQsSYp.png', 
