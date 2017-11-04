@@ -243,6 +243,11 @@ exports.scheduleRecurringJob = function() {
 		bot.getBotSpam().send(c.REVIEW_ROLE);
 		exports.sendEmbedMessage(null, null, job.img);
 	});
+
+	rule[job.key3] = job.val3 - 3;
+	schedule.scheduleJob(rule, function(){
+		bot.getBotSpam().send(`${c.REVIEW_ROLE} Upcoming Review. Reserve the room and fire up that projector.`);
+	});
 };
 
 /**
@@ -250,11 +255,13 @@ exports.scheduleRecurringJob = function() {
  */
 exports.addToReviewRole = function(target, roles) {
 	target.addRole(roles.find('id', c.REVIEW_ROLE_ID));	
+	exports.sendEmbedMessage(null, `Welcome to the team <@!${target.id}>!`);
 }
 
 /**
  * Removes the review role from the provided target.
  */
 exports.removeFromReviewRole = function(target, roles) {
-	target.removeRole(roles.find('id', c.REVIEW_ROLE_ID));	
+	target.removeRole(roles.find('id', c.REVIEW_ROLE_ID));
+	exports.sendEmbedMessage(null, `Good riddance. You were never there to review with us anyways, <@!${target.id}>!`);	
 }

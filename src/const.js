@@ -66,7 +66,6 @@ define('HELP_VOTING',[{ name: 'Please Note', value: '`You must be in a voice cha
 					  { name: '!vote <`thing to vote for`>', value: '`to do a custom vote.`', inline: 'false'},
 					  { name: '!voteinfo', value: '`for totals of all custom votes.`', inline: 'false'},
 					  { name: '!voteinfo <`@user`>', value: '`for total votes to kick/ban that user.`', inline: 'false'}]);
-					
 define('HELP_SCRUBBING_BUBBLES',[{ name: '!enlist', value: '`enlists the discharged Scrubbing Bubbles to your army.`', inline: 'false'},
 								 { name: '!discharge', value: '`honorably discharges a Scrubbing Bubble from your army.`', inline: 'false'},
 								 { name: '!clean <`numBubbles`> <`t|b`>', value: '`send numBubbles to clean toilet/bath.`', inline: 'false'},
