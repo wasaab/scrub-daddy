@@ -24,7 +24,7 @@ exports.createChannelInCategory = function(command, channelType, channelName, me
 	if (channelName) {
 		const description = feedback || ' ';		
 		const channelCategoryName = command.charAt(0).toUpperCase() + command.slice(1);
-		
+
 		const permissions = {
 			parent: c.CATEGORY_ID[channelCategoryName],
 			overwrites: [{
@@ -39,9 +39,12 @@ exports.createChannelInCategory = function(command, channelType, channelName, me
 				color: 0xffff00,
 				title: channelCategoryName + createdByMsg,
 				description: description,
+				image: {
+					url: c.SETTINGS_IMG
+				} 
 			}));	
 		})
-		.catch(`<ERROR> ${exports.getTimestamp()}  ${c.LOG.info(console.error)}`);
+		exports.sendEmbedMessage('Temp Channel Created', `You can find your channel, \`${channelName}\`, under the \`TEMP CHANNELS\` category.`)
 		c.LOG.info(`<INFO> ${exports.getTimestamp()}  ${channelCategoryName}${createdByMsg}  ${description}`);		
 	}
 };
@@ -246,10 +249,10 @@ exports.scheduleRecurringJobs = function() {
 		bot.getBotSpam().send(`${c.REVIEW_ROLE} Upcoming Review. Reserve the room and fire up that projector.`);
 	});
 
-	var exportRule = new schedule.RecurrenceRule();
-	exportRule.hour = 5;
+	var clearTimeSheetRule = new schedule.RecurrenceRule();
+	clearTimeSheetRule.hour = 5;
 	
-	schedule.scheduleJob(exportRule, function(){
+	schedule.scheduleJob(clearTimeSheetRule, function(){
 	  games.clearTimeSheet();
 	});
 };
