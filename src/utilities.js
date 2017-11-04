@@ -28,7 +28,7 @@ exports.createChannelInCategory = function(command, channelType, channelName, me
 		const permissions = {
 			parent: c.CATEGORY_ID[channelCategoryName],
 			overwrites: [{
-				allowed: new Discord.Permissions(['MANAGE_CHANNELS']),
+				allowed: new Discord.Permissions(['MANAGE_CHANNELS', 'MANAGE_ROLES']),
 				id: userID,
 				type: 'member'
 			}]
