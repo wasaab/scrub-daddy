@@ -9,9 +9,9 @@ var gambling = require('./gambling.js');
 var games = require('./games.js');
 var vote = require('./vote.js');
 
-var auth = require('../secureAuth.json'); 
+var private = require('../../private.json'); 
 var client = new Discord.Client();
-client.login(auth.token);
+client.login(private.token);
 
 var botSpam = {};
 var scrubsChannel = {};
@@ -95,6 +95,12 @@ function handleCommand(message) {
 	function enlistCalled () {
 		gambling.enlist(userID, message);		
 	}
+	function joinReviewTeamCalled() {
+		util.addToReviewRole(message.member, message.guild.roles);
+	}
+	function leaveReviewTeamCalled() {
+		util.removeFromReviewRole(message.member, message.guild.roles);
+	}
 	function pCalled () {
 		games.askToPlayPUBG();		
 	}
@@ -137,7 +143,7 @@ function handleCommand(message) {
 		message.delete();
 	}
 
-	var commands = {
+	var commandToHandler = {
 		'temp': tempCalled,
 		'issue': issueOrFeatureCalled,
 		'feature': issueOrFeatureCalled,
@@ -152,9 +158,11 @@ function handleCommand(message) {
 		'revive': reviveCalled,
 		'discharge': dischargeCalled,
 		'enlist': enlistCalled,
+		'join-review-team': joinReviewTeamCalled,
+		'leave-review-team': leaveReviewTeamCalled,
 		'p': pCalled,
 		'playing': playingCalled,
-		'gameHistory': gameHistoryCalled,
+		'game-history': gameHistoryCalled,
 		'time': timeCalled,
 		'opt-in': optInCalled,
 		'vote': voteCalled,
@@ -166,7 +174,9 @@ function handleCommand(message) {
 		'helpinfo': helpCalled
 	};
 	
-	return commands[cmd]();
+	if (typeof commandToHandler[cmd] == 'function') { 
+		return commandToHandler[cmd]();
+	}
 }
 
 /**
@@ -196,7 +206,7 @@ client.on('presenceUpdate', (oldMember, newMember) => {
  */
 client.on('disconnect', (event) => {
 	c.LOG.error(`<ERROR> ${util.getTimestamp()}  event: ${inspect(event)}`);
-	client.login(auth.token);
+	client.login(private.token);
 });
 
 /**
@@ -212,7 +222,9 @@ client.on('ready', () => {
 
 	botSpam = client.channels.find('id', c.BOT_SPAM_CHANNEL_ID);	
 	scrubsChannel = client.channels.find('id', c.SCRUBS_CHANNEL_ID);
-	purgatory = client.channels.find('id', c.PURGATORY_CHANNEL_ID);		
+	purgatory = client.channels.find('id', c.PURGATORY_CHANNEL_ID);	
+	
+	util.scheduleRecurringJob();	
 });
 
 exports.getBotSpam = () => botSpam;

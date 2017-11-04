@@ -108,7 +108,7 @@ exports.getTotalVotesForTarget = function(user, kickChannel, channelID, args) {
  * Gets the ID of the vote's target iff they are in the current vote's channel.
  * 
  * @param {Object} vote - the current vote 
- * @returns {String} the id of the target if found and 'none' otherwise
+ * @returns {Object} the member iff found.
  */
 function getTargetInVoteChannel(vote) {
 	var result;

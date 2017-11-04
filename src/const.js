@@ -1,6 +1,6 @@
 var util = require('./utilities.js');
-var auth = require('../secureAuth.json'); 
 var get = require('lodash.get');
+const private = require('../../private.json'); 
 
 function define(name, value) {
     Object.defineProperty(exports, name, {
@@ -13,13 +13,16 @@ define('LOG', require('winston'));
 define('LOOP_DELAY', 1500);							        //delay between each loop
 define('BOT_SPAM_CHANNEL_ID', '372570540482887701');		//listen's to messages from this channel
 define('SCRUBS_CHANNEL_ID', '370626384059695107');		    //channel ID of scrubs text channel
-define('SERVER_ID', auth.serverID);				    		//Bed Bath Server ID
+define('SERVER_ID', private.serverID);				    		//Bed Bath Server ID
 define('CATEGORY_ID', {
 	'Issue': '372143355070644255', 
 	'Feature': '374009714213781504',
 	'Temp': '374246719648694282',
 	'In Progress': '374702344316780567'
 });
+define('SCRUBS_ROLE', '<@&370671041644724226>');
+define('REVIEW_ROLE', '<@&376391242105225216>');
+define('REVIEW_ROLE_ID', '376391242105225216');
 define('DAYS', ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']);
 define('PUBG_ALIASES', ['scrubg', 'pubg', 'pugG', 'pabg', 'pobg', 'pebg', 'pibg', 'pybg', 'Mr. Pib G.', 'pub', 'pudgy', 'puh ba gee']);
 define('GREETINGS', ['you guys', 'yous guys', 'y\'all', 'hey buddies,', 'hey pals,', 'hey friends,', 'sup dudes,', 'hello fellow humans,']);
@@ -76,7 +79,7 @@ define('HELP_TIME_PLAYED',[{ name: '!time <`Game Name`> <`@user`>', value: '`use
 						   { name: '!opt-in', value: '`to opt into playtime tracking.`', inline: 'false'}]);
 
 define('HELP_PLAYER_COUNT',[{ name: '!playing', value: '`player count of games currently being played.`', inline: 'false'},
-							{ name: '!gameHistory', value: '`player counts for all games throughout the day.`', inline: 'false'}]);
+							{ name: '!game-history', value: '`player counts for all games throughout the day.`', inline: 'false'}]);
 
 define('HELP_BOT',[{ name: 'Please Note', value: '`Your issue title or feature title must be ONE WORD! msg is optional`', inline: 'false'},
 				   { name: '!issue <`issue-title`> <`msg detailing issue`>', value: '`to submit bot issues.`', inline: 'false'},
@@ -87,14 +90,16 @@ define('HELP_BOT',[{ name: 'Please Note', value: '`Your issue title or feature t
 define('HELP_MISC',[{ name: '!p', value: '`to ask @Scrubs to play PUBG in scrubs text channel.`', inline: 'false'},
 					{ name: '!temp', value: '`Creates a temporary text channel`', inline: 'false'},
 					{ name: '!temp <`text|voice`>', value: '`Creates a temp text/voice channel`', inline: 'false'},
-					{ name: '!temp <`text|voice`> <`channel-title`>', value: '`Creates a voice/text channel with the provided title`', inline: 'false'}]);
+					{ name: '!temp <`text|voice`> <`channel-title`>', value: '`Creates a voice/text channel with the provided title`', inline: 'false'},
+					{ name: '!join-review-team', value: '`to be added to the review team.`', inline: 'false'},
+					{ name: '!leave-review-team', value: '`to be removed from the review team.`', inline: 'false'}]);
 define('HELP_CATEGORIES_PROMPT',[{ name: 'To select a category:', value: '`Type one of the numbers below.`', inline: 'false'},
 						  { name: '1) Voting', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
 						  { name: '2) Scrubbing Bubbles', value: '`enlist`	`discharge`	`clean`	`army`', inline: 'false'},
 						  { name: '3) Time Played', value: '`time`	`opt-in`', inline: 'false'},
-						  { name: '4) Player Count', value: '`playing`	`gameHistory`', inline: 'false'},
+						  { name: '4) Player Count', value: '`playing`	`game-history`', inline: 'false'},
 						  { name: '5) Bot Issues, Feature Requests, and Help', value: '`issue`	`feature`	`implement`	`help`	`info`	`helpinfo`', inline: 'false'},
-						  { name: '6) Miscellaneous', value: '`p`	`temp`', inline: 'false'}]);
+						  { name: '6) Miscellaneous', value: '`p`	`temp`	`join-review-team`	`leave-review-team`', inline: 'false'}]);
 define('HELP_CATEGORIES', [{name: '`Voting`', fields: exports.HELP_VOTING},
 						   {name: '`Scrubbing Bubbles`', fields: exports.HELP_SCRUBBING_BUBBLES},
 						   {name: '`Time Played`', fields: exports.HELP_TIME_PLAYED},

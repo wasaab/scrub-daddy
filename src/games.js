@@ -391,5 +391,5 @@ exports.optIn = function(user, userID) {
  * Asks Scrubs if they want to play pubg.
  */
 exports.askToPlayPUBG = function() {
-	bot.getScrubsChannel().send(`<@&370671041644724226>  ${c.GREETINGS[util.getRand(0, c.GREETINGS.length)]} tryna play some ${c.PUBG_ALIASES[util.getRand(0, c.PUBG_ALIASES.length)]}?`);	
+	bot.getScrubsChannel().send(`${c.SCRUBS_ROLE}  ${c.GREETINGS[util.getRand(0, c.GREETINGS.length)]} tryna play some ${c.PUBG_ALIASES[util.getRand(0, c.PUBG_ALIASES.length)]}?`);	
 };

@@ -1,9 +1,11 @@
 var Discord = require('discord.js');
+var schedule = require('node-schedule');
 var inspect = require('util-inspect');
 var get = require('lodash.get');
 
 var c = require('./const.js');
 var bot = require('./bot.js');
+const private = require('../../private.json'); 
 const catFacts = require('../catfacts.json');
 
 /**
@@ -177,15 +179,6 @@ exports.sendEmbedMessage = function(title, description, image) {
 };
 
 /**
- * Outputs a cat fact.
- */
-exports.catfacts = function() {
-	const factIdx = exports.getRand(0,catFacts.length);
-	const msg = `${catFacts[factIdx]}\n 🐈 Meeeeee-WOW!`;
-	exports.sendEmbedMessage('Did you know?', msg);
-};
-
-/**
  * Gets a map of scrub's ids to nicknames.
  */
 exports.getScrubIDToNick = function() {
@@ -225,3 +218,43 @@ exports.help = function() {
 			'You have not selected a category, so I\'m not listening to you anymore 😛');
 	});
 };
+
+/**
+ * Outputs a cat fact.
+ */
+exports.catfacts = function() {
+	const factIdx = exports.getRand(0,catFacts.length);
+	const msg = `${catFacts[factIdx]}\n 🐈 Meeeeee-WOW!`;
+	exports.sendEmbedMessage('Did you know?', msg);
+};
+
+/**
+ * Schedules a recurring job.
+ */
+exports.scheduleRecurringJob = function() {
+	const job = private.job;
+	var rule = new schedule.RecurrenceRule();
+	
+	rule[job.key1] = job.val1;
+	rule[job.key2] = job.val2;
+	rule[job.key3] = job.val3;
+
+	schedule.scheduleJob(rule, function(){
+		bot.getBotSpam().send(c.REVIEW_ROLE);
+		exports.sendEmbedMessage(null, null, job.img);
+	});
+};
+
+/**
+ * Adds the provided target to the review role.
+ */
+exports.addToReviewRole = function(target, roles) {
+	target.addRole(roles.find('id', c.REVIEW_ROLE_ID));	
+}
+
+/**
+ * Removes the review role from the provided target.
+ */
+exports.removeFromReviewRole = function(target, roles) {
+	target.removeRole(roles.find('id', c.REVIEW_ROLE_ID));	
+}
