@@ -71,8 +71,11 @@ define('HELP_VOTING',[{ name: 'Please Note', value: '`You must be in a voice cha
 define('HELP_SCRUBBING_BUBBLES',[{ name: '!enlist', value: '`enlists the discharged Scrubbing Bubbles to your army.`', inline: 'false'},
 								 { name: '!discharge', value: '`honorably discharges a Scrubbing Bubble from your army.`', inline: 'false'},
 								 { name: '!clean <`numBubbles`> <`t|b`>', value: '`send numBubbles to clean toilet/bath.`', inline: 'false'},
-								 { name: '!army', value: '`retrieves the size of your army`', inline: 'false'},
-								 { name: '!army <`@user`>', value: '`retrieves the size of the user\'s army`', inline: 'false'}]);
+								 { name: '!army', value: '`retrieves the size of your army.`', inline: 'false'},
+								 { name: '!army <`@user`>', value: '`retrieves the size of the user\'s army.`', inline: 'false'},
+								 { name: '!ranks', value: '`outputs the army size of every user.`', inline: 'false'},
+								 { name: '!stats', value: '`outputs your clean stats.`', inline: 'false'},
+								 { name: '!stats <`@user`>', value: '`outputs the user\'s clean stats.`', inline: 'false'}]);
 define('HELP_TIME_PLAYED',[{ name: '!time <`Game Name`> <`@user`>', value: '`user\'s playtime for the specified Game Name.`', inline: 'false'},
 						   { name: '!time <`Game Name`>', value: '`cumulative playtime for the specified Game Name.`', inline: 'false'},
 						   { name: '!time <`@user`>', value: '`user\'s playtime for all games.`', inline: 'false'},
@@ -96,7 +99,7 @@ define('HELP_MISC',[{ name: '!p', value: '`to ask @Scrubs to play PUBG in scrubs
 					{ name: '!leave-review-team', value: '`to be removed from the review team.`', inline: 'false'}]);
 define('HELP_CATEGORIES_PROMPT',[{ name: 'To select a category:', value: '`Type one of the numbers below.`', inline: 'false'},
 						  { name: '1) Voting', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
-						  { name: '2) Scrubbing Bubbles', value: '`enlist`	`discharge`	`clean`	`army`', inline: 'false'},
+						  { name: '2) Scrubbing Bubbles', value: '`enlist`	`discharge`	`clean`	`army`	`ranks`	`stats`', inline: 'false'},
 						  { name: '3) Time Played', value: '`time`	`opt-in`', inline: 'false'},
 						  { name: '4) Player Count', value: '`playing`	`game-history`', inline: 'false'},
 						  { name: '5) Bot Issues, Feature Requests, and Help', value: '`issue`	`feature`	`implement`	`help`	`info`	`helpinfo`', inline: 'false'},
