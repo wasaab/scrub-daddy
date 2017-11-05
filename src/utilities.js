@@ -5,16 +5,21 @@ var inspect = require('util-inspect');
 var get = require('lodash.get');
 var fs = require('fs');
 
+const request = require('request')
+const mkdirp = require('mkdirp')
+const co = require('co')
+const pify = require('pify')
+
 var c = require('./const.js');
 var bot = require('./bot.js');
 var games = require('./games.js');
 const private = require('../../private.json'); 
 const catFacts = require('../catfacts.json');
 var userIDToColor = require('../colors.json');
+var soundBytes = require('../soundbytes.json');
 
 var dropped = 0;
 var previousTip = {};
-
 /**
  * Creates a channel in a category, specified by the command provided.
  * For submitting issues/features and creating temporary voice/text channels.
@@ -51,7 +56,8 @@ exports.createChannelInCategory = function(command, channelType, channelName, me
 				} 
 			}));	
 		})
-		exports.sendEmbedMessage('Temp Channel Created', `You can find your channel, \`${channelName}\`, under the \`TEMP CHANNELS\` category.`, userID);
+		exports.sendEmbedMessage(`${channelCategoryName} Channel Created`, 
+			`You can find your channel, \`${channelName}\`, under the \`${channelCategoryName}\` category.`, userID);
 		c.LOG.info(`<INFO> ${exports.getTimestamp()}  ${channelCategoryName}${createdByMsg}  ${description}`);		
 	}
 };
@@ -334,4 +340,71 @@ exports.setUserColor = function(targetColor, userID) {
 		}
 	}
 	exportColors(title, description, userID);	
+};
+
+/**
+ * Plays the target soundbyte in the command initiator's voice channel.
+ */
+exports.playSoundByte = function(channel, target) {
+	if (target && soundBytes.includes(target)) {
+		channel.join()
+		.then((connection) => {
+			console.log('Connected!')
+			const dispatcher = connection.playFile(`./audio/${target}.mp3`);
+			
+			dispatcher.on('end', () => {
+				channel.leave();
+			});
+		})
+		.catch(console.error);
+	}
+}
+
+const retry = (f, n) => f().catch(err => {
+	if (n > 0) return retry(f, n - 1)
+	else throw err
+})
+
+var downloadAttachment = co.wrap(function *(msg, userID) {
+	var fileName = 'none';
+	try {
+		if (msg.attachments.length == 0) return;
+		const nameData = msg.attachments.array()[0].name.split('.');
+		if (nameData[1] !== 'mp3') {
+			exports.sendEmbedMessage('Invalid File', 'You must attach a .mp3 file with the description set to `!add-sb`', userID);						
+			return;
+		}
+
+		yield Promise.all(msg.attachments.map(co.wrap(function *(file) {
+
+		// console.log(`Downloading ${file.name}...`)
+
+		yield retry(() => new Promise((ok, fail) => {
+			request(file.url)
+			.pipe(fs.createWriteStream(`./audio/${file.name}`))
+			.on('finish', ok)
+			.on('error', fail)
+		}), 3)
+
+		// console.log(`Downloaded ${file.name}`)
+		fileName = nameData[0];
+		}.bind(this))))
+	}
+	catch (err) {
+		// console.error(err)
+		exports.sendEmbedMessage('Invalid File', 'You must attach a .mp3 file with the description set to `!add-sb`', userID);			
+		return;
+	}
+
+	exports.sendEmbedMessage('Sound Byte Successfully Added', `You may now hear the sound byte by calling \`!sb ${fileName}\` from within a voice channel.`, userID);
+	soundBytes.push(fileName);				
+	var json = JSON.stringify(soundBytes);
+	fs.writeFile('soundbytes.json', json, 'utf8', exports.log);
+}.bind(this));
+
+/**
+ * Adds the attached soundbyte iff the attachment exists and is an mp3 file.
+ */
+exports.maybeAddSoundByte = function(message, userID) {
+	downloadAttachment(message, userID);
 };

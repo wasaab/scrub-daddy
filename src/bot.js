@@ -2,7 +2,7 @@ var Discord = require('discord.js');
 var inspect = require('util-inspect');
 var get = require('lodash.get');
 var fs = require('fs');
-
+ 
 var c = require('./const.js');
 var util = require('./utilities.js');
 var gambling = require('./gambling.js');
@@ -114,6 +114,12 @@ function handleCommand(message) {
 			util.setUserColor(args[1], userID);					
 		}
 	}
+	function sbCalled() {
+		util.playSoundByte(message.member.voiceChannel, args[1]);
+	}
+	function addSBCalled() {
+		util.maybeAddSoundByte(message, userID);
+	}
 	function pCalled () {
 		games.askToPlayPUBG();		
 	}
@@ -174,6 +180,8 @@ function handleCommand(message) {
 		'join-review-team': joinReviewTeamCalled,
 		'leave-review-team': leaveReviewTeamCalled,
 		'color': colorCalled,
+		'sb': sbCalled,
+		'add-sb': addSBCalled,
 		'p': pCalled,
 		'playing': playingCalled,
 		'game-history': gameHistoryCalled,
