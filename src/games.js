@@ -46,7 +46,7 @@ function getGameNameAndTarget(args) {
 /**
  * Gets and outputs the player count of every game currently being played 
  */
-exports.getAndOutputCountOfGamesBeingPlayed = function(scrubs) {
+exports.getAndOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
 	var games = [];
 	var max = 0;
 	var winner = '';
@@ -86,9 +86,9 @@ exports.getAndOutputCountOfGamesBeingPlayed = function(scrubs) {
 	if (c.GAME_NAME_TO_IMG[winner]) {
 		imageUrl = c.GAME_NAME_TO_IMG[winner];
 	}
-	util.sendEmbedMessage(`Winner - ${winner}`, null, imageUrl);
+	util.sendEmbedMessage(`Winner - ${winner}`, null, userID, imageUrl);
 	fields.sort(util.compareFieldValues);
-	util.sendEmbedFieldsMessage('Player Count', fields);
+	util.sendEmbedFieldsMessage('Player Count', fields, userID);
 };
 
 /**
@@ -195,7 +195,7 @@ function isOptedIn(user) {
  * 
  * @param {Object} timePlayedData 
  */
-function outputCumulativeTimePlayed(timePlayedData) {
+function outputCumulativeTimePlayed(timePlayedData, userID) {
 	var fields = [];
 	fields.push(util.buildField('All Games', timePlayedData.total.toFixed(1)));	
 	for (var gameName in timePlayedData.gameToTime) {
@@ -203,7 +203,7 @@ function outputCumulativeTimePlayed(timePlayedData) {
 		fields.push(util.buildField(gameName, playtime.toFixed(1)));
 	}
 	fields.sort(util.compareFieldValues);
-	util.sendEmbedFieldsMessage('Cumulative Hours Played', fields);
+	util.sendEmbedFieldsMessage('Cumulative Hours Played', fields, userID);
 	c.LOG.info(`<INFO> ${util.getTimestamp()}  Cumulative Hours Played All Games: ${inspect(fields)}`);
 }
 
@@ -212,14 +212,14 @@ function outputCumulativeTimePlayed(timePlayedData) {
  * 
  * @param {String[]} args - input arguments from the user
  */
-exports.maybeOutputTimePlayed = function(args) {
+exports.maybeOutputTimePlayed = function(args, userID) {
 	const nameAndTargetData = getGameNameAndTarget(args);
 	var target = nameAndTargetData.target;
 	var game = nameAndTargetData.game;
 
 	c.LOG.info(`<INFO> ${util.getTimestamp()}  Time Called - game: ${game} target: ${target}`);		
 	if (target !== '' && !isOptedIn(target)) { 
-		util.sendEmbedMessage(null,'I do not track that scrub\'s playtime.');
+		util.sendEmbedMessage(null,'I do not track that scrub\'s playtime.', userID);
 		c.LOG.info(`<INFO> ${util.getTimestamp()}  ${target} is not opted in.`);				
 		return; 
 	}
@@ -229,11 +229,11 @@ exports.maybeOutputTimePlayed = function(args) {
     } 
     var timePlayedData = getCumulativeTimePlayed(game,target);
     if (Object.keys(timePlayedData.gameToTime).length !== 0) {
-        outputCumulativeTimePlayed(timePlayedData);	
+        outputCumulativeTimePlayed(timePlayedData, userID);	
     } else {
 		var fields = [];
 		fields.push(util.buildField(game,timePlayedData.total.toFixed(1)));
-		util.sendEmbedFieldsMessage('Hours Played', fields);
+		util.sendEmbedFieldsMessage('Hours Played', fields, userID);
 		c.LOG.info(`<INFO> ${util.getTimestamp()}  Hours Played: ${inspect(fields)}`);
     }
 };
@@ -286,7 +286,7 @@ function compareTimestamps(a,b) {
 /**
  * Outputs history of game's player counts throughout the day if such a log exists.
  */
-exports.maybeOutputGameHistory = function () {
+exports.maybeOutputGameHistory = function (userID) {
 	var previousTime = '';
 	gameHistory.sort(compareTimestamps);
 	gameHistory.forEach((gamesLog) => {
@@ -298,7 +298,7 @@ exports.maybeOutputGameHistory = function () {
 					fields.push(util.buildField(gameData.game, gameData.count));
 				});
 				fields.sort(util.compareFieldValues);
-				util.sendEmbedFieldsMessage(`Player Count - ${time}`, fields);	
+				util.sendEmbedFieldsMessage(`Player Count - ${time}`, fields, userID);	
 				previousTime = time;			
 			}	
 		}
@@ -365,12 +365,12 @@ exports.updateTimesheet = function(user, userID, oldGame, newGame) {
  * @param {Number} attempts - loop iterator
  * @param {Number} seconds - duration of each loop
  */
-function waitAndSendScrubDaddyFact(attempts, seconds) {
+function waitAndSendScrubDaddyFact(attempts, seconds, userID) {
 	setTimeout(() => {
 		if (attempts === seconds) {
 			const title = 'You are now subscribed to Scrub Daddy Facts!';
 			const imgUrl = c.SCRUB_DADDY_FACT;
-			util.sendEmbedMessage(title, null, imgUrl);
+			util.sendEmbedMessage(title, null, userID, imgUrl);
 			return;
 		} else {
 			waitAndSendScrubDaddyFact(attempts+1, seconds);
@@ -388,8 +388,8 @@ exports.optIn = function(user, userID) {
 	optedInUsers.push(userID);
 	var fields = [];					
 	fields.push(util.buildField(user, 'I\'m watching you.'));
-	util.sendEmbedFieldsMessage('YOU ARE BEING WATCHED', fields);	
-	waitAndSendScrubDaddyFact(0,5);
+	util.sendEmbedFieldsMessage('YOU ARE BEING WATCHED', fields, userID);	
+	waitAndSendScrubDaddyFact(0, 5, userID);
 	c.LOG.info(`<INFO> ${util.getTimestamp()}  ${user} (${userID}) has opted into time`);	
 	var json = JSON.stringify(optedInUsers);	
 	fs.writeFile('../optedIn.json', json, 'utf8', util.log);

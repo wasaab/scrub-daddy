@@ -1,13 +1,27 @@
 var Discord = require('discord.js');
 var schedule = require('node-schedule');
+var tinycolor = require("tinycolor2");
 var inspect = require('util-inspect');
 var get = require('lodash.get');
+var fs = require('fs');
 
 var c = require('./const.js');
 var bot = require('./bot.js');
 var games = require('./games.js');
 const private = require('../../private.json'); 
 const catFacts = require('../catfacts.json');
+var userIDToColor = require('../colors.json');
+
+var dropped = 0;
+var previousMessage = {};
+
+/**
+ * exports the user color preferences to a json file.
+ */
+function exportColors() {
+    var json = JSON.stringify(userIDToColor);
+    fs.writeFile('colors.json', json, 'utf8', exports.log);
+};
 
 /**
  * Creates a channel in a category, specified by the command provided.
@@ -24,6 +38,7 @@ exports.createChannelInCategory = function(command, channelType, channelName, me
 	if (channelName) {
 		const description = feedback || ' ';		
 		const channelCategoryName = command.charAt(0).toUpperCase() + command.slice(1);
+		const color = userIDToColor[userID] || 0xffff00;
 
 		const permissions = {
 			parent: c.CATEGORY_ID[channelCategoryName],
@@ -36,7 +51,7 @@ exports.createChannelInCategory = function(command, channelType, channelName, me
 		message.guild.createChannel(channelName, channelType, permissions)
 		.then((channel) => {			
 			channel.send(new Discord.MessageEmbed({
-				color: 0xffff00,
+				color: color,
 				title: channelCategoryName + createdByMsg,
 				description: description,
 				image: {
@@ -44,7 +59,7 @@ exports.createChannelInCategory = function(command, channelType, channelName, me
 				} 
 			}));	
 		})
-		exports.sendEmbedMessage('Temp Channel Created', `You can find your channel, \`${channelName}\`, under the \`TEMP CHANNELS\` category.`)
+		exports.sendEmbedMessage('Temp Channel Created', `You can find your channel, \`${channelName}\`, under the \`TEMP CHANNELS\` category.`, userID);
 		c.LOG.info(`<INFO> ${exports.getTimestamp()}  ${channelCategoryName}${createdByMsg}  ${description}`);		
 	}
 };
@@ -147,13 +162,14 @@ exports.compareFieldValues = function(a,b) {
 /**
  * Output vote count to bot-spam channel
  */
-exports.sendEmbedFieldsMessage = function(title, fields) {
+exports.sendEmbedFieldsMessage = function(title, fields, userID) {
 	if (fields.length === 1 && fields[0].name === '') {
 		return;
 	}
 
+	const color = userIDToColor[userID] || 0xffff00;	
 	bot.getBotSpam().send(new Discord.MessageEmbed({
-		color: 0xffff00,
+		color: color,
 		title: title,
 		fields: fields
 	}));	
@@ -162,14 +178,15 @@ exports.sendEmbedFieldsMessage = function(title, fields) {
 /**
  * Sends an embed message to bot-spam with an optional title, description, and image.
  */
-exports.sendEmbedMessage = function(title, description, image) {
+exports.sendEmbedMessage = function(title, description, userID, image) {
 	//these are all optional parameters
 	title = title || '';
 	description = description || '';
 	image = image || '';
-
+	const color = userIDToColor[userID] || 0xffff00;
+	
 	bot.getBotSpam().send(new Discord.MessageEmbed({
-		color: 0xffff00,
+		color: color,
 		title: title,
 		description: description,
 		image: {
@@ -198,7 +215,7 @@ function outputHelpCategory(selection) {
 /**
  * Outputs help dialog to explain command usage.
  */
-exports.help = function() {
+exports.help = function(userID) {
 	exports.sendEmbedFieldsMessage('`Help Categories`', c.HELP_CATEGORIES_PROMPT);
 	const filter = (m) => {
 		var num = parseInt(m.content);
@@ -215,17 +232,17 @@ exports.help = function() {
 	.catch((collected) => {
 		c.LOG.info((`After 30 seconds, only ${collected.size} responses.`));
 		exports.sendEmbedMessage('Reponse Timed Out', 
-			'You have not selected a category, so I\'m not listening to you anymore 😛');
+			'You have not selected a category, so I\'m not listening to you anymore 😛', userID);
 	});
 };
 
 /**
  * Outputs a cat fact.
  */
-exports.catfacts = function() {
+exports.catfacts = function(userID) {
 	const factIdx = exports.getRand(0,catFacts.length);
 	const msg = `${catFacts[factIdx]}\n 🐈 Meeeeee-WOW!`;
-	exports.sendEmbedMessage('Did you know?', msg);
+	exports.sendEmbedMessage('Did you know?', msg, userID);
 };
 
 /**
@@ -241,7 +258,7 @@ exports.scheduleRecurringJobs = function() {
 
 	schedule.scheduleJob(reviewRule, function(){
 		bot.getBotSpam().send(c.REVIEW_ROLE);
-		exports.sendEmbedMessage(null, null, job.img);
+		exports.sendEmbedMessage(null, null, null, job.img);
 	});
 
 	reviewRule[job.key3] = job.val3 - 3;
@@ -255,6 +272,10 @@ exports.scheduleRecurringJobs = function() {
 	schedule.scheduleJob(clearTimeSheetRule, function(){
 	  games.clearTimeSheet();
 	});
+
+	schedule.scheduleJob('*/30 * * * *', function(){
+		exports.sendEmbedMessage('Wanna hide all dem text channels?', null, null, c.HELP_HIDE_IMG);
+	});
 };
 
 /**
@@ -262,13 +283,30 @@ exports.scheduleRecurringJobs = function() {
  */
 exports.addToReviewRole = function(target, roles) {
 	target.addRole(roles.find('id', c.REVIEW_ROLE_ID));	
-	exports.sendEmbedMessage(null, `Welcome to the team <@!${target.id}>!`);
-}
+	exports.sendEmbedMessage(null, `Welcome to the team <@!${target.id}>!`, target.id);
+};
 
 /**
  * Removes the review role from the provided target.
  */
 exports.removeFromReviewRole = function(target, roles) {
 	target.removeRole(roles.find('id', c.REVIEW_ROLE_ID));
-	exports.sendEmbedMessage(null, `Good riddance. You were never there to review with us anyways, <@!${target.id}>!`);	
-}
+	exports.sendEmbedMessage(null, `Good riddance. You were never there to review with us anyways, <@!${target.id}>!`, target.id);	
+};
+
+/**
+ * Sets the user's message response color to the provided color.
+ */
+exports.setUserColor = function(targetColor, userID) {
+	var color = tinycolor(targetColor);
+	const title = 'User Color Preference Set!';
+	const description = 'If the color on the left is not what you chose, then you typed something wrong or did not choose from the provided colors.\n' +
+	'You may use any of the colors on this list: http://www.w3.org/TR/css3-color/#svg-color';
+	
+	if (color) {
+		var hex = parseInt(color.toHexString().replace(/^#/, ''), 16);
+		userIDToColor[userID] = hex;
+		exportColors();
+	}
+	exports.sendEmbedMessage(title, description, userID);
+};

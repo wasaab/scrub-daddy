@@ -55,6 +55,7 @@ define('CHANNEL_ID_TO_BAN_ROLE_ID',{
 	'370625623736975372' : '370748471835230209',	        //The League
 	'370626139972042752' : '370747759130705922'	        	//They'll fix that b4 release
 });
+define('HELP_HIDE_IMG', 'https://i.imgur.com/ReWl7Ir.gif');
 define('SETTINGS_IMG', 'https://i.imgur.com/T2ABKgC.png');
 define('BUBBLE_IMAGES', ['https://i.imgur.com/rddtZR6.png','https://i.imgur.com/MdKfKVG.png','https://i.imgur.com/ZAyLJSJ.png','https://i.imgur.com/K6k4b3q.png','https://i.imgur.com/m7V6BEa.png',
 						 'https://i.imgur.com/Q7JO7Fn.png','https://i.imgur.com/lXZNXoz.png','https://i.imgur.com/xdwTSuG.png','https://i.imgur.com/PE99BJ8.png','https://i.imgur.com/VhFgbRQ.png',
@@ -96,14 +97,15 @@ define('HELP_MISC',[{ name: '!p', value: '`to ask @Scrubs to play PUBG in scrubs
 					{ name: '!temp <`text|voice`>', value: '`Creates a temp text/voice channel`', inline: 'false'},
 					{ name: '!temp <`text|voice`> <`channel-title`>', value: '`Creates a voice/text channel with the provided title`', inline: 'false'},
 					{ name: '!join-review-team', value: '`to be added to the review team.`', inline: 'false'},
-					{ name: '!leave-review-team', value: '`to be removed from the review team.`', inline: 'false'}]);
+					{ name: '!leave-review-team', value: '`to be removed from the review team.`', inline: 'false'},
+					{ name: '!color <colorName>', value: '`to set your response color preference.`', inline: 'false'}]);
 define('HELP_CATEGORIES_PROMPT',[{ name: 'To select a category:', value: '`Type one of the numbers below.`', inline: 'false'},
 						  { name: '1) Voting', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
 						  { name: '2) Scrubbing Bubbles', value: '`enlist`	`discharge`	`clean`	`army`	`ranks`	`stats`', inline: 'false'},
 						  { name: '3) Time Played', value: '`time`	`opt-in`', inline: 'false'},
 						  { name: '4) Player Count', value: '`playing`	`game-history`', inline: 'false'},
 						  { name: '5) Bot Issues, Feature Requests, and Help', value: '`issue`	`feature`	`implement`	`help`	`info`	`helpinfo`', inline: 'false'},
-						  { name: '6) Miscellaneous', value: '`p`	`temp`	`join-review-team`	`leave-review-team`', inline: 'false'}]);
+						  { name: '6) Miscellaneous', value: '`p`	`temp`	`join-review-team`	`leave-review-team`	`color`', inline: 'false'}]);
 define('HELP_CATEGORIES', [{name: '`Voting`', fields: exports.HELP_VOTING},
 						   {name: '`Scrubbing Bubbles`', fields: exports.HELP_SCRUBBING_BUBBLES},
 						   {name: '`Time Played`', fields: exports.HELP_TIME_PLAYED},

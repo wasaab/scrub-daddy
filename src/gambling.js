@@ -43,7 +43,7 @@ exports.dischargeScrubBubble = function (userID, botSpam) {
     }
 
     const title = `${dropped} Scrubbing ${msg} arrived for duty!`;
-    util.sendEmbedMessage(title, null, c.BUBBLE_IMAGES[droppedImg-1]);
+    util.sendEmbedMessage(title, null, userID, c.BUBBLE_IMAGES[droppedImg-1]);
 };
 
 /**
@@ -81,7 +81,7 @@ exports.enlist = function(userID, message) {
         addToArmy(userID, dropped);
         ledger[userID].totalEnlisted += dropped;
         const msg = `<@!${userID}>  Your Scrubbing Bubbles army has grown by ${dropped}! You now have an army of ${ledger[userID].armySize}.`;
-        util.sendEmbedMessage(null, msg);
+        util.sendEmbedMessage(null, msg, userID);
         previousMessage.delete();
         message.delete();
         dropped = 0;
@@ -217,7 +217,7 @@ function betClean(userID, bet, type, side) {
             msg = `Your ${wallet.armySize} soldier${maybeGetPlural(wallet.armySize)} would surely perish.`;
         }
         const description = `<@!${userID}>  You do not have enough Scrubbing Bubbles to clean the bathroom. ${msg}`;
-        util.sendEmbedMessage(null,description);
+        util.sendEmbedMessage(null, description, userID);
     } else {
         var img = '';
         takeBetFromUser(userID, bet, type);
@@ -233,7 +233,7 @@ function betClean(userID, bet, type, side) {
             msg = `Sorry bud, you lost ${bet} Scrubbing Bubble${maybeGetPlural(bet)} in the battle.`;
             //addToGamblingStats('Losses', 'Lost', bet, userID);
         }
-        util.sendEmbedMessage(null, `<@!${userID}>  ${msg}`, img);
+        util.sendEmbedMessage(null, `<@!${userID}>  ${msg}`, userID, img);
         resetLedgerAfterBet(userID, bet, type);
     }
 }
@@ -282,7 +282,7 @@ function outputUserGamblingData(userID, args) {
                 `Total Scrubs Discharged: ${wallet.totalDischarged} Scrubs\n` +
                 `Total Scrubs Enlisted: ${wallet.totalEnlisted} Scrubs`; 
         }
-        util.sendEmbedMessage(null, description);
+        util.sendEmbedMessage(null, description, userID);
     }
 }
 
@@ -304,14 +304,14 @@ exports.stats = function (userID, args) {
 /**
  * Outputs all member's army sizes in order.
  */
-exports.armyRanks = function() {
+exports.armyRanks = function(userID) {
     var fields = [];
     const scrubIDToNick = util.getScrubIDToNick();
     for (var userID in ledger) {
         fields.push(util.buildField(scrubIDToNick[userID], ledger[userID].armySize));
     }
     fields.sort(util.compareFieldValues);
-    util.sendEmbedFieldsMessage('Scrubbing Bubbles Army Sizes', fields);
+    util.sendEmbedFieldsMessage('Scrubbing Bubbles Army Sizes', fields, userID);
 };
 
 /**

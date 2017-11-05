@@ -51,7 +51,7 @@ function getTargetFromArgs(args) {
 /**
  * Outputs totals for custom votes to bot-spam channel.
  */
-exports.getCustomVoteTotals = function() {
+exports.getCustomVoteTotals = function(userID) {
 	var totals = [];
 	for (var targetConcat in votes) {
 		const target = targetConcat.split(':-:')[2];
@@ -64,7 +64,7 @@ exports.getCustomVoteTotals = function() {
 		}
 	}
 	if (totals.length > 0) {
-		util.sendEmbedFieldsMessage('Custom Vote Totals', totals);
+		util.sendEmbedFieldsMessage('Custom Vote Totals', totals, userID);
 	}
 };
 
@@ -76,10 +76,10 @@ exports.getCustomVoteTotals = function() {
  * @param {String} channelID - bot-spam channel to respond in
  * @param {String[]} args - input args of the requester (cmd and target)
  */
-exports.getTotalVotesForTarget = function(user, kickChannel, channelID, args) {
+exports.getTotalVotesForTarget = function(user, userID, kickChannel, channelID, args) {
 	if (!kickChannel) {
 		const description = `Sup ${user}! Tryna voteinfo @user from nothing, ey dumbass?`;
-		util.sendEmbedMessage(null, description);
+		util.sendEmbedMessage(null, description, userID);
 		c.LOG.info(`<INFO> ${util.getTimestamp()}  ${user} is trying to voteinfo @user from nothing.`);	
 		return;
 	}
@@ -100,7 +100,7 @@ exports.getTotalVotesForTarget = function(user, kickChannel, channelID, args) {
 		totals.push(util.buildField('Ban', votes[banTargetConcat]));
 	}
 	if (totals.length > 0) {
-		util.sendEmbedFieldsMessage(`${kickChannel.name}    -	Vote Totals for ${titleTarget}`, totals);
+		util.sendEmbedFieldsMessage(`${kickChannel.name}    -	Vote Totals for ${titleTarget}`, totals, userID);
 	}
 };
 
@@ -145,7 +145,7 @@ function endVote(vote, target, roles) {
  * 
  * @param {Object} voteData - the current vote
  */
-function maybeEndVote(voteData, roles) {
+function maybeEndVote(voteData, roles, userID) {
 	const target = getTargetInVoteChannel(voteData);
 	if (!target) {
 		return;
@@ -159,7 +159,7 @@ function maybeEndVote(voteData, roles) {
 		endVote(voteData, target, roles);
 		
 		const description = `${targetName} has been voted off the island, a.k.a. ${voteData.channelName}!` ;
-		util.sendEmbedMessage(null, description);
+		util.sendEmbedMessage(null, description, userID);
 		c.LOG.info(`<KICK> ${util.getTimestamp()}  Kicking ${targetName} from ${voteData.channelName}`);							
 	}
 }
@@ -184,7 +184,7 @@ exports.conductVote = function(user, userID, channelID, args, type, kickChannel,
 	//if voting user not in a voice channel
 	if (!kickChannel) {
 		const description = `Sup ${user}! Tryna vote${type} from nothing, ey dumbass?`;
-		util.sendEmbedMessage(null, description);
+		util.sendEmbedMessage(null, description, userID);
 		c.LOG.info(`<INFO> ${util.getTimestamp()}  ${user} is trying to kick from nothing.`);		
 		return;
 	}			
@@ -215,13 +215,13 @@ exports.conductVote = function(user, userID, channelID, args, type, kickChannel,
 				var memberData = {id: member.id, name: member.displayName, fullMember: member};
 				voteChannelMembers[kickChannel.id].push(memberData);
 			});
-			exports.getTotalVotesForTarget(user, kickChannel, channelID, args);		
+			exports.getTotalVotesForTarget(user, userID, kickChannel, channelID, args);		
 			var currVote =  {
 				channelID : kickChannel.id, 
 				channelName : kickChannel.name, 
 				targetConcat: targetConcat,
 			};			
-			maybeEndVote(currVote, roles);	
+			maybeEndVote(currVote, roles, userID);	
 			c.LOG.info(`<INFO> ${util.getTimestamp()}  ${votes[targetConcat]}${msg}${target} from ${kickChannel.name}`);	
 		} else {
 			//custom vote
@@ -233,12 +233,12 @@ exports.conductVote = function(user, userID, channelID, args, type, kickChannel,
 					maybeMoveTaskToInProgress(targetConcat.split(':')[0].slice(10));
 				}
 			}
-			util.sendEmbedMessage(null, message);
+			util.sendEmbedMessage(null, message, userID);
 			c.LOG.info(`<INFO> ${util.getTimestamp()}  ${message}`);				
 		}
 	} else {
 		const message = `Fuck yourself ${user}! You can only vote for a person once.`;
-		util.sendEmbedMessage(null, message);
+		util.sendEmbedMessage(null, message, userID);
 		c.LOG.info(`<INFO> ${util.getTimestamp()}  ${user} is attempting to vote for a person more than once.`);
 	}
 };

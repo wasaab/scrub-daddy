@@ -76,7 +76,7 @@ function handleCommand(message) {
 		games.exportTimeSheet();
 	}
 	function catfactsCalled () {
-		util.catfacts();
+		util.catfacts(userID);
 		message.delete();
 	}
 	function armyCalled () {
@@ -86,7 +86,7 @@ function handleCommand(message) {
 		gambling.stats(userID, args);		
 	}
 	function ranksCalled () {
-		gambling.armyRanks();
+		gambling.armyRanks(userID);
 		message.delete();		
 	}
 	function cleanCalled () {
@@ -109,18 +109,23 @@ function handleCommand(message) {
 	function leaveReviewTeamCalled() {
 		util.removeFromReviewRole(message.member, message.guild.roles);
 	}
+	function colorCalled() {
+		if (args[1]) {
+			util.setUserColor(args[1], userID);					
+		}
+	}
 	function pCalled () {
 		games.askToPlayPUBG();		
 	}
 	function playingCalled () {
-		games.getAndOutputCountOfGamesBeingPlayed(message.guild.members.array());
+		games.getAndOutputCountOfGamesBeingPlayed(message.guild.members.array(), userID);
 		message.delete();
 	}
 	function gameHistoryCalled () {
-		games.maybeOutputGameHistory();		
+		games.maybeOutputGameHistory(userID);		
 	}
 	function timeCalled () {
-		games.maybeOutputTimePlayed(args);		
+		games.maybeOutputTimePlayed(args, userID);		
 	}
 	function optInCalled () {
 		games.optIn(user, userID);
@@ -140,14 +145,14 @@ function handleCommand(message) {
 	function voteinfoCalled () {
 		if (!args[1]) {
 			c.LOG.info(`<VOTE Info Custom> ${util.getTimestamp()}  ${user}: ${message}`);								
-			vote.getCustomVoteTotals();
+			vote.getCustomVoteTotals(userID);
 		} else {
 			c.LOG.info(`<VOTE Info User> ${util.getTimestamp()}  ${user}: ${message}`);													
-			vote.getTotalVotesForTarget(user, message.member.voiceChannel, channelID, args);
+			vote.getTotalVotesForTarget(user, userID, message.member.voiceChannel, channelID, args);
 		}	
 	}
 	function helpCalled () {
-		util.help();
+		util.help(userID);
 		message.delete();
 	}
 
@@ -168,6 +173,7 @@ function handleCommand(message) {
 		'enlist': enlistCalled,
 		'join-review-team': joinReviewTeamCalled,
 		'leave-review-team': leaveReviewTeamCalled,
+		'color': colorCalled,
 		'p': pCalled,
 		'playing': playingCalled,
 		'game-history': gameHistoryCalled,
