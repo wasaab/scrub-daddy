@@ -306,7 +306,7 @@ exports.setUserColor = function(targetColor, userID) {
 	if (color) {
 		var hex = parseInt(color.toHexString().replace(/^#/, ''), 16);
 		userIDToColor[userID] = hex;
-		exportColors();
 	}
 	exports.sendEmbedMessage(title, description, userID);
+	exportColors();	
 };
