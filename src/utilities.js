@@ -13,8 +13,7 @@ const catFacts = require('../catfacts.json');
 var userIDToColor = require('../colors.json');
 
 var dropped = 0;
-var previousMessage = {};
-
+var previousTip = {};
 
 /**
  * Creates a channel in a category, specified by the command provided.
@@ -265,9 +264,25 @@ exports.scheduleRecurringJobs = function() {
 	schedule.scheduleJob(clearTimeSheetRule, function(){
 	  games.clearTimeSheet();
 	});
-
+	
+	firstRun = true;
+	//tips
 	schedule.scheduleJob('*/30 * * * *', function(){
-		exports.sendEmbedMessage('Wanna hide all dem text channels?', null, null, c.HELP_HIDE_IMG);
+		if (!firstRun) { 
+			previousTip.delete();						
+		}
+		firstRun = false;
+		bot.getBotSpam().send(new Discord.MessageEmbed({
+			color: 0xffff00,
+			title: 'Wanna hide all dem text channels?',
+			description: ' ',
+			image: {
+				url: c.HELP_HIDE_IMG
+			} 
+		}))
+		.then((message) => {
+			previousTip = message;
+		});
 	});
 };
 
@@ -290,10 +305,13 @@ exports.removeFromReviewRole = function(target, roles) {
 /**
  * exports the user color preferences to a json file.
  */
-function exportColors() {
-    var json = JSON.stringify(userIDToColor);
-	fs.writeFile('colors.json', json, 'utf8', exports.log);
+function exportColors(title, description, userID) {
 	exports.sendEmbedMessage(title, description, userID);	
+	var json = JSON.stringify(userIDToColor);
+	//If color not taken, write to colors.json
+	if (title.substring(0, 1) !== 'C') {
+		fs.writeFile('colors.json', json, 'utf8', exports.log);		
+	}
 };
 
 /**
@@ -301,13 +319,19 @@ function exportColors() {
  */
 exports.setUserColor = function(targetColor, userID) {
 	var color = tinycolor(targetColor);
-	const title = 'User Color Preference Set!';
-	const description = 'If the color on the left is not what you chose, then you typed something wrong or did not choose from the provided colors.\n' +
+	var title = 'User Color Preference Set!';
+	var description = 'If the color on the left is not what you chose, then you typed something wrong or did not choose from the provided colors.\n' +
 	'You may use any of the colors on this list: http://www.w3.org/TR/css3-color/#svg-color';
 	
 	if (color) {
 		var hex = parseInt(color.toHexString().replace(/^#/, ''), 16);
-		userIDToColor[userID] = hex;
+		if (Object.values(userIDToColor).includes(hex)) {
+			title = 'Color already taken 😛'
+			description = description.split('\n')[1];
+		}
+		else {
+			userIDToColor[userID] = hex;			
+		}
 	}
 	exportColors(title, description, userID);	
 };
