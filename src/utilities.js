@@ -15,13 +15,6 @@ var userIDToColor = require('../colors.json');
 var dropped = 0;
 var previousMessage = {};
 
-/**
- * exports the user color preferences to a json file.
- */
-function exportColors() {
-    var json = JSON.stringify(userIDToColor);
-    fs.writeFile('colors.json', json, 'utf8', exports.log);
-};
 
 /**
  * Creates a channel in a category, specified by the command provided.
@@ -295,6 +288,15 @@ exports.removeFromReviewRole = function(target, roles) {
 };
 
 /**
+ * exports the user color preferences to a json file.
+ */
+function exportColors() {
+    var json = JSON.stringify(userIDToColor);
+	fs.writeFile('colors.json', json, 'utf8', exports.log);
+	exports.sendEmbedMessage(title, description, userID);	
+};
+
+/**
  * Sets the user's message response color to the provided color.
  */
 exports.setUserColor = function(targetColor, userID) {
@@ -307,6 +309,5 @@ exports.setUserColor = function(targetColor, userID) {
 		var hex = parseInt(color.toHexString().replace(/^#/, ''), 16);
 		userIDToColor[userID] = hex;
 	}
-	exports.sendEmbedMessage(title, description, userID);
-	exportColors();	
+	exportColors(title, description, userID);	
 };
