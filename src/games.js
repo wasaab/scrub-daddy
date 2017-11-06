@@ -86,9 +86,9 @@ exports.getAndOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
 	if (c.GAME_NAME_TO_IMG[winner]) {
 		imageUrl = c.GAME_NAME_TO_IMG[winner];
 	}
-	util.sendEmbedMessage(`Winner - ${winner}`, null, userID, imageUrl);
+	util.sendEmbedMessage(`🏆 Winner - ${winner}`, null, userID, imageUrl);
 	fields.sort(util.compareFieldValues);
-	util.sendEmbedFieldsMessage('Player Count', fields, userID);
+	util.sendEmbedFieldsMessage('🎮 Player Count', fields, userID);
 };
 
 /**
@@ -203,7 +203,7 @@ function outputCumulativeTimePlayed(timePlayedData, userID) {
 		fields.push(util.buildField(gameName, playtime.toFixed(1)));
 	}
 	fields.sort(util.compareFieldValues);
-	util.sendEmbedFieldsMessage('Cumulative Hours Played', fields, userID);
+	util.sendEmbedFieldsMessage('🕒 Cumulative Hours Played', fields, userID);
 	c.LOG.info(`<INFO> ${util.getTimestamp()}  Cumulative Hours Played All Games: ${inspect(fields)}`);
 }
 
@@ -233,7 +233,7 @@ exports.maybeOutputTimePlayed = function(args, userID) {
     } else {
 		var fields = [];
 		fields.push(util.buildField(game,timePlayedData.total.toFixed(1)));
-		util.sendEmbedFieldsMessage('Hours Played', fields, userID);
+		util.sendEmbedFieldsMessage('🕒 Hours Played', fields, userID);
 		c.LOG.info(`<INFO> ${util.getTimestamp()}  Hours Played: ${inspect(fields)}`);
     }
 };
@@ -298,7 +298,7 @@ exports.maybeOutputGameHistory = function (userID) {
 					fields.push(util.buildField(gameData.game, gameData.count));
 				});
 				fields.sort(util.compareFieldValues);
-				util.sendEmbedFieldsMessage(`Player Count - ${time}`, fields, userID);	
+				util.sendEmbedFieldsMessage(`📕 Player Count - ${time}`, fields, userID);	
 				previousTime = time;			
 			}	
 		}
@@ -368,7 +368,7 @@ exports.updateTimesheet = function(user, userID, oldGame, newGame) {
 function waitAndSendScrubDaddyFact(attempts, seconds, userID) {
 	setTimeout(() => {
 		if (attempts === seconds) {
-			const title = 'You are now subscribed to Scrub Daddy Facts!';
+			const title = '➕ You are now subscribed to Scrub Daddy Facts!';
 			const imgUrl = c.SCRUB_DADDY_FACT;
 			util.sendEmbedMessage(title, null, userID, imgUrl);
 			return;
@@ -387,8 +387,8 @@ function waitAndSendScrubDaddyFact(attempts, seconds, userID) {
 exports.optIn = function(user, userID) {
 	optedInUsers.push(userID);
 	var fields = [];					
-	fields.push(util.buildField(user, 'I\'m watching you.'));
-	util.sendEmbedFieldsMessage('YOU ARE BEING WATCHED', fields, userID);	
+	fields.push(util.buildField(user, '👀 I\'m watching you.'));
+	util.sendEmbedFieldsMessage('👀 YOU ARE BEING WATCHED', fields, userID);	
 	waitAndSendScrubDaddyFact(0, 5, userID);
 	c.LOG.info(`<INFO> ${util.getTimestamp()}  ${user} (${userID}) has opted into time`);	
 	var json = JSON.stringify(optedInUsers);	

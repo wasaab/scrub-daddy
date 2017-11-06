@@ -182,6 +182,7 @@ function handleCommand(message) {
 		'color': colorCalled,
 		'sb': sbCalled,
 		'add-sb': addSBCalled,
+		'sb-add': addSBCalled,
 		'p': pCalled,
 		'playing': playingCalled,
 		'game-history': gameHistoryCalled,

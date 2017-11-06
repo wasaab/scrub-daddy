@@ -56,7 +56,7 @@ exports.createChannelInCategory = function(command, channelType, channelName, me
 				} 
 			}));	
 		})
-		exports.sendEmbedMessage(`${channelCategoryName} Channel Created`, 
+		exports.sendEmbedMessage(`➕ ${channelCategoryName} Channel Created`, 
 			`You can find your channel, \`${channelName}\`, under the \`${channelCategoryName}\` category.`, userID);
 		c.LOG.info(`<INFO> ${exports.getTimestamp()}  ${channelCategoryName}${createdByMsg}  ${description}`);		
 	}
@@ -214,7 +214,7 @@ function outputHelpCategory(selection) {
  * Outputs help dialog to explain command usage.
  */
 exports.help = function(userID) {
-	exports.sendEmbedFieldsMessage('`Help Categories`', c.HELP_CATEGORIES_PROMPT);
+	exports.sendEmbedFieldsMessage('`📖 Help Categories`', c.HELP_CATEGORIES_PROMPT);
 	const filter = (m) => {
 		var num = parseInt(m.content);
 		if (!isNaN(num) && num > 0 && num < 7) {
@@ -280,7 +280,7 @@ exports.scheduleRecurringJobs = function() {
 		firstRun = false;
 		bot.getBotSpam().send(new Discord.MessageEmbed({
 			color: 0xffff00,
-			title: 'Wanna hide all dem text channels?',
+			title: '💡 Wanna hide all dem text channels?',
 			description: ' ',
 			image: {
 				url: c.HELP_HIDE_IMG
@@ -340,7 +340,7 @@ function exportColors(title, description, userID, guild, hex, color) {
  */
 exports.setUserColor = function(targetColor, userID, guild) {
 	var color = tinycolor(targetColor);
-	var title = 'User Color Preference Set!';
+	var title = '🏳️‍🌈 User Color Preference Set!';
 	var description = 'If the color on the left is not what you chose, then you typed something wrong or did not choose from the provided colors.\n' +
 	'You may use any of the colors on this list: http://www.w3.org/TR/css3-color/#svg-color';
 	
@@ -366,7 +366,7 @@ exports.playSoundByte = function(channel, target, userID) {
 		soundBytes.forEach((sound) => {
 			list += `\`${sound}\`	`;
 		});
-		exports.sendEmbedMessage('Available Sound Bytes', list, userID);
+		exports.sendEmbedMessage('🎶 Available Sound Bytes', list, userID);
 		return;
 	}
 	if (soundBytes.includes(target)) {
@@ -394,7 +394,7 @@ var downloadAttachment = co.wrap(function *(msg, userID) {
 		if (msg.attachments.length == 0) return;
 		const nameData = msg.attachments.array()[0].name.split('.');
 		if (nameData[1] !== 'mp3') {
-			exports.sendEmbedMessage('Invalid File', 'You must attach a .mp3 file with the description set to `!add-sb`', userID);						
+			exports.sendEmbedMessage('🎶 Invalid File', 'You must attach a .mp3 file with the description set to `!add-sb`', userID);						
 			return;
 		}
 
@@ -415,11 +415,11 @@ var downloadAttachment = co.wrap(function *(msg, userID) {
 	}
 	catch (err) {
 		// console.error(err)
-		exports.sendEmbedMessage('Invalid File', 'You must attach a .mp3 file with the description set to `!add-sb`', userID);			
+		exports.sendEmbedMessage('🎶 Invalid File', 'You must attach a .mp3 file with the description set to `!add-sb`', userID);			
 		return;
 	}
 
-	exports.sendEmbedMessage('Sound Byte Successfully Added', `You may now hear the sound byte by calling \`!sb ${fileName}\` from within a voice channel.`, userID);
+	exports.sendEmbedMessage('🎶 Sound Byte Successfully Added', `You may now hear the sound byte by calling \`!sb ${fileName}\` from within a voice channel.`, userID);
 	soundBytes.push(fileName);				
 	var json = JSON.stringify(soundBytes);
 	fs.writeFile('soundbytes.json', json, 'utf8', exports.log);

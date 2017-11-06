@@ -100,16 +100,16 @@ define('HELP_MISC',[{ name: '!p', value: '`to ask @Scrubs to play PUBG in scrubs
 					{ name: '!join-review-team', value: '`to be added to the review team.`', inline: 'false'},
 					{ name: '!leave-review-team', value: '`to be removed from the review team.`', inline: 'false'},
 					{ name: '!color <`colorName`>', value: '`to set your response color preference.`', inline: 'false'},
-					{ name: '!sb', value: '`to get the list of available soundbytes.`', inline: 'false'},					
-					{ name: '!sb <`name`>', value: '`to play the sound byte of the given name in your voice channel.`', inline: 'false'},
-					{ name: '!add-sb + `ATTACHMENT IN SAME MESSAGE`', value: '`to add a sound byte.`', inline: 'false'}]);
+					{ name: '*sb', value: '`to get the list of available soundbytes.`', inline: 'false'},					
+					{ name: '*sb <`name`>', value: '`to play the sound byte of the given name in your voice channel.`', inline: 'false'},
+					{ name: '*add-sb + `ATTACHMENT IN SAME MESSAGE`', value: '`to add a sound byte.`', inline: 'false'}]);
 define('HELP_CATEGORIES_PROMPT',[{ name: 'To select a category:', value: '`Type one of the numbers below.`', inline: 'false'},
 						  { name: '1) Voting', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
 						  { name: '2) Scrubbing Bubbles', value: '`enlist`	`discharge`	`clean`	`army`	`ranks`	`stats`', inline: 'false'},
 						  { name: '3) Time Played', value: '`time`	`opt-in`', inline: 'false'},
 						  { name: '4) Player Count', value: '`playing`	`game-history`', inline: 'false'},
 						  { name: '5) Bot Issues, Feature Requests, and Help', value: '`issue`	`feature`	`implement`	`help`	`info`	`helpinfo`', inline: 'false'},
-						  { name: '6) Miscellaneous', value: '`p`	`temp`	`join-review-team`	`leave-review-team`	`color`	`sb`	`add-sb`', inline: 'false'}]);
+						  { name: '6) Miscellaneous', value: '`p`	`temp`	`join-review-team`	`leave-review-team`	`color`	`*sb`	`*add-sb`', inline: 'false'}]);
 define('HELP_CATEGORIES', [{name: '`Voting`', fields: exports.HELP_VOTING},
 						   {name: '`Scrubbing Bubbles`', fields: exports.HELP_SCRUBBING_BUBBLES},
 						   {name: '`Time Played`', fields: exports.HELP_TIME_PLAYED},

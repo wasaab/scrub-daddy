@@ -94,10 +94,10 @@ exports.getTotalVotesForTarget = function(user, userID, kickChannel, channelID, 
 	const banTargetConcat = `${target}:-:${kickChannel.id}:-:${c.VOTE_TYPE.BAN}`;
 	var totals = [];
 	if (votes[kickTargetConcat]) {
-		totals.push(util.buildField('Kick', votes[kickTargetConcat]));
+		totals.push(util.buildField('Kick 👢', votes[kickTargetConcat]));
 	}
 	if (votes[banTargetConcat]) {
-		totals.push(util.buildField('Ban', votes[banTargetConcat]));
+		totals.push(util.buildField('Ban 🔨', votes[banTargetConcat]));
 	}
 	if (totals.length > 0) {
 		util.sendEmbedFieldsMessage(`${kickChannel.name}    -	Vote Totals for ${titleTarget}`, totals, userID);
@@ -158,7 +158,7 @@ function maybeEndVote(voteData, roles, userID) {
 		const targetName = voteData.targetConcat.split(':-:')[0];
 		endVote(voteData, target, roles);
 		
-		const description = `${targetName} has been voted off the island, a.k.a. ${voteData.channelName}!` ;
+		const description = `${targetName} has been voted off the island, a.k.a. ${voteData.channelName}! 🔨` ;
 		util.sendEmbedMessage(null, description, userID);
 		c.LOG.info(`<KICK> ${util.getTimestamp()}  Kicking ${targetName} from ${voteData.channelName}`);							
 	}
@@ -227,7 +227,7 @@ exports.conductVote = function(user, userID, channelID, args, type, kickChannel,
 			//custom vote
 			var message = votes[targetConcat] + msg;
 			if (votes[targetConcat] > 2) {
-				message = `The vote has concluded with ${votes[targetConcat]}${msg}`;
+				message = `📋 The vote has concluded with ${votes[targetConcat]}${msg}`;
 
 				if (targetConcat.startsWith('implement')) {
 					maybeMoveTaskToInProgress(targetConcat.split(':')[0].slice(10));
