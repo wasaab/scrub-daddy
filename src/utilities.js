@@ -311,19 +311,32 @@ exports.removeFromReviewRole = function(target, roles) {
 /**
  * exports the user color preferences to a json file.
  */
-function exportColors(title, description, userID) {
+function exportColors(title, description, userID, guild, hex, color) {
 	exports.sendEmbedMessage(title, description, userID);	
-	var json = JSON.stringify(userIDToColor);
 	//If color not taken, write to colors.json
 	if (title.substring(0, 1) !== 'C') {
-		fs.writeFile('colors.json', json, 'utf8', exports.log);		
+		var json = JSON.stringify(userIDToColor);		
+		fs.writeFile('colors.json', json, 'utf8', exports.log);	
+		
+		guild.createRole({
+			data: {
+				name: color,
+				color: hex,
+				position: guild.roles.array().length - 3
+			}
+		})
+		.then((role) => {
+			const target = guild.members.find('id', userID);
+			target.addRole(role);				
+		})
+		.catch(console.error);
 	}
 };
 
 /**
  * Sets the user's message response color to the provided color.
  */
-exports.setUserColor = function(targetColor, userID) {
+exports.setUserColor = function(targetColor, userID, guild) {
 	var color = tinycolor(targetColor);
 	var title = 'User Color Preference Set!';
 	var description = 'If the color on the left is not what you chose, then you typed something wrong or did not choose from the provided colors.\n' +
@@ -339,14 +352,28 @@ exports.setUserColor = function(targetColor, userID) {
 			userIDToColor[userID] = hex;			
 		}
 	}
-	exportColors(title, description, userID);	
+	exportColors(title, description, userID, guild, hex, targetColor);	
 };
+
+exports.importColors = function(guild) {
+	for (var id in userIDToColor) {
+		exportColors('test post', 'please ignore.', id, guild, userIDToColor[id], tinycolor(userIDToColor[id]).toName);
+	}
+}
 
 /**
  * Plays the target soundbyte in the command initiator's voice channel.
  */
-exports.playSoundByte = function(channel, target) {
-	if (target && soundBytes.includes(target)) {
+exports.playSoundByte = function(channel, target, userID) {
+	if (!target) {
+		var list = '';
+		soundBytes.forEach((sound) => {
+			list += `\`${sound}\`	`;
+		});
+		exports.sendEmbedMessage('Available Sound Bytes', list, userID);
+		return;
+	}
+	if (soundBytes.includes(target)) {
 		channel.join()
 		.then((connection) => {
 			console.log('Connected!')
