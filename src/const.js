@@ -46,6 +46,7 @@ define('VOTE_TYPE', {
 	REMOVE_ROLE : 'remove role',
 	CUSTOM : 'custom'
 });
+define('BEYOND_ROLE_ID', '370670924992610305');
 define('CHANNEL_ID_TO_BAN_ROLE_ID',{
 	'370625207150575617' : '370746310346801164',	        //Beyond
 	'370625515293507584' : '370747862302326785',	        //Str8 Chillin

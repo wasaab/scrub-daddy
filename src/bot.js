@@ -161,11 +161,6 @@ function handleCommand(message) {
 		util.help(userID);
 		message.delete();
 	}
-	function colorImportCalled() {
-		if (userID === '132944096347160576') {
-			util.importColors(message.guild);			
-		}
-	}
 
 	var commandToHandler = {
 		'temp': tempCalled,
@@ -187,7 +182,6 @@ function handleCommand(message) {
 		'color': colorCalled,
 		'sb': sbCalled,
 		'add-sb': addSBCalled,
-		'color-import': colorImportCalled,
 		'p': pCalled,
 		'playing': playingCalled,
 		'game-history': gameHistoryCalled,

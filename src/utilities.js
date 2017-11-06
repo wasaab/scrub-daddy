@@ -317,19 +317,21 @@ function exportColors(title, description, userID, guild, hex, color) {
 	if (title.substring(0, 1) !== 'C') {
 		var json = JSON.stringify(userIDToColor);		
 		fs.writeFile('colors.json', json, 'utf8', exports.log);	
+		const target = guild.members.find('id', userID);
 		
-		guild.createRole({
-			data: {
-				name: color,
-				color: hex,
-				position: guild.roles.array().length - 3
-			}
-		})
-		.then((role) => {
-			const target = guild.members.find('id', userID);
-			target.addRole(role);				
-		})
-		.catch(console.error);
+		if (target.roles.find('id', c.BEYOND_ROLE_ID)) {
+			guild.createRole({
+				data: {
+					name: color,
+					color: hex,
+					position: guild.roles.array().length - 3
+				}
+			})
+			.then((role) => {
+				target.addRole(role);				
+			})
+			.catch(console.error);
+		}
 	}
 };
 
@@ -354,12 +356,6 @@ exports.setUserColor = function(targetColor, userID, guild) {
 	}
 	exportColors(title, description, userID, guild, hex, targetColor);	
 };
-
-exports.importColors = function(guild) {
-	for (var id in userIDToColor) {
-		exportColors('test post', 'please ignore.', id, guild, userIDToColor[id], tinycolor(userIDToColor[id]).toName);
-	}
-}
 
 /**
  * Plays the target soundbyte in the command initiator's voice channel.
