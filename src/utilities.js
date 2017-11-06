@@ -282,18 +282,12 @@ exports.scheduleRecurringJobs = function() {
 			previousTip.delete();						
 		}
 		firstRun = false;
-		bot.getBotSpam().send(new Discord.MessageEmbed({
-			color: 0xffff00,
-			title: '💡 Wanna hide all dem text channels?',
-			description: ' ',
-			image: {
-				url: c.HELP_HIDE_IMG
-			} 
-		}))
+		var tip = c.TIPS[Math.floor(Math.random()*c.TIPS.length)];		
+		bot.getBotSpam().send(new Discord.MessageEmbed(tip))
 		.then((message) => {
 			previousTip = message;
 		});
-	});
+	});		
 };
 
 /**

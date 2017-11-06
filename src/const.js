@@ -56,7 +56,6 @@ define('CHANNEL_ID_TO_BAN_ROLE_ID',{
 	'370625623736975372' : '370748471835230209',	        //The League
 	'370626139972042752' : '370747759130705922'	        	//They'll fix that b4 release
 });
-define('HELP_HIDE_IMG', 'https://i.imgur.com/ReWl7Ir.gif');
 define('SETTINGS_IMG', 'https://i.imgur.com/T2ABKgC.png');
 define('BUBBLE_IMAGES', ['https://i.imgur.com/rddtZR6.png','https://i.imgur.com/MdKfKVG.png','https://i.imgur.com/ZAyLJSJ.png','https://i.imgur.com/K6k4b3q.png','https://i.imgur.com/m7V6BEa.png',
 						 'https://i.imgur.com/Q7JO7Fn.png','https://i.imgur.com/lXZNXoz.png','https://i.imgur.com/xdwTSuG.png','https://i.imgur.com/PE99BJ8.png','https://i.imgur.com/VhFgbRQ.png',
@@ -131,3 +130,21 @@ define('NEW_LEDGER_ENTRY', {
 	scrubsLost: 0, 
 	totalDischarged: 0 
 });
+define('TIPS', 
+	[{
+		color: 0xffff00,
+		title: '💡 Lrn2Use !help Ya Scrub',
+		description: 'You do not need to type the `<`, `|`, or `>` symbols found within !help documentation.\n\n' +
+					 '<`parameter`> just lets you know the word within the arrows is a parameter for the user to input.\n\n' +
+					 '| stands for "or", so if you see that seperating two parameters it means you can choose one of them.\n' +
+					 'e.g. !temp <`text|voice`> <`channel-title`> --> !temp text cool-kids-club\n\n' +
+					 'The !temp command now accepts space seperated channel names as input. e.g. !temp text cool kids club'
+	},
+	{
+		color: 0xffff00,					
+		title: '💡 Wanna hide all dem text channels?',
+		description: ' ',					
+		image: {
+			url: 'https://i.imgur.com/ReWl7Ir.gif'
+		} 
+	}]);
