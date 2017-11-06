@@ -100,6 +100,7 @@ define('HELP_MISC',[{ name: '!p', value: '`to ask @Scrubs to play PUBG in scrubs
 					{ name: '!join-review-team', value: '`to be added to the review team.`', inline: 'false'},
 					{ name: '!leave-review-team', value: '`to be removed from the review team.`', inline: 'false'},
 					{ name: '!color <`colorName`>', value: '`to set your response color preference.`', inline: 'false'},
+					{ name: '!sb', value: '`to get the list of available soundbytes.`', inline: 'false'},					
 					{ name: '!sb <`name`>', value: '`to play the sound byte of the given name in your voice channel.`', inline: 'false'},
 					{ name: '!add-sb + `ATTACHMENT IN SAME MESSAGE`', value: '`to add a sound byte.`', inline: 'false'}]);
 define('HELP_CATEGORIES_PROMPT',[{ name: 'To select a category:', value: '`Type one of the numbers below.`', inline: 'false'},
