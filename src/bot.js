@@ -59,7 +59,7 @@ function handleCommand(message) {
 	
 	function tempCalled () {
 		const channelType = args[1] || 'text';
-		const channelName = args[2] || 'temp-channel';
+		const channelName = util.getTargetFromArgs(args, 2) || 'temp-channel';
 		util.createChannelInCategory(cmd, channelType, channelName, message, ` Channel Created By ${user}`, userID);
 	}
 	function issueOrFeatureCalled () {

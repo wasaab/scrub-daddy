@@ -33,6 +33,10 @@ var previousTip = {};
  */
 exports.createChannelInCategory = function(command, channelType, channelName, message, createdByMsg, userID, feedback) {
 	if (channelName) {
+		if (channelName.includes(' ')) {
+			//remove the leading/trailing whitespace and replace other spaces with '-'
+			channelName = channelName.trim().split(' ').join('-');
+		}
 		const description = feedback || ' ';		
 		const channelCategoryName = command.charAt(0).toUpperCase() + command.slice(1);
 		const color = userIDToColor[userID] || 0xffff00;
@@ -431,3 +435,17 @@ var downloadAttachment = co.wrap(function *(msg, userID) {
 exports.maybeAddSoundByte = function(message, userID) {
 	downloadAttachment(message, userID);
 };
+
+/**
+ * Builds a target which could be one word or multiple.
+ * 
+ * @param {String[]} args - command args passed in by user
+ * @param {number} startIdx - the start index of your target within args
+ */
+exports.getTargetFromArgs = function(args, startIdx) {
+	var target = args[startIdx];
+	for (var i=startIdx+1; i < args.length; i++) {
+		target += ` ${args[i]}`;
+	}
+	return target;
+}

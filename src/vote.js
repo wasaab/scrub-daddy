@@ -36,19 +36,6 @@ function maybeMoveTaskToInProgress(taskName) {
 }
 
 /**
- * Builds a target which could be one word or multiple.
- * 
- * @param {String[]} args 
- */
-function getTargetFromArgs(args) {
-	var target = args[1];
-	for (var k=2; k < args.length; k++) {
-		target += ` ${args[k]}`;
-	}
-	return target;
-}
-
-/**
  * Outputs totals for custom votes to bot-spam channel.
  */
 exports.getCustomVoteTotals = function(userID) {
@@ -83,7 +70,7 @@ exports.getTotalVotesForTarget = function(user, userID, kickChannel, channelID, 
 		c.LOG.info(`<INFO> ${util.getTimestamp()}  ${user} is trying to voteinfo @user from nothing.`);	
 		return;
 	}
-	var target = getTargetFromArgs(args);
+	var target = util.getTargetFromArgs(args, 1);
 	var titleTarget = 'The Provided User';
 	voteChannelMembers[kickChannel.id].forEach((vMember) => {
 		if (vMember.name === target || (target.match(/\d/g) !== null && vMember.id === target.match(/\d/g).join(''))) {
@@ -189,7 +176,7 @@ exports.conductVote = function(user, userID, channelID, args, type, kickChannel,
 		return;
 	}			
 
-	var target = getTargetFromArgs(args);
+	var target = util.getTargetFromArgs(args, 1);
 	if (type === c.VOTE_TYPE.CUSTOM) {
 		type = target;
 	}
@@ -227,13 +214,13 @@ exports.conductVote = function(user, userID, channelID, args, type, kickChannel,
 			//custom vote
 			var message = votes[targetConcat] + msg;
 			if (votes[targetConcat] > 2) {
-				message = `📋 The vote has concluded with ${votes[targetConcat]}${msg}`;
+				message = `The vote has concluded with ${votes[targetConcat]}${msg}`;
 
 				if (targetConcat.startsWith('implement')) {
 					maybeMoveTaskToInProgress(targetConcat.split(':')[0].slice(10));
 				}
 			}
-			util.sendEmbedMessage(null, message, userID);
+			util.sendEmbedMessage(null, `📋 ${message}`, userID);
 			c.LOG.info(`<INFO> ${util.getTimestamp()}  ${message}`);				
 		}
 	} else {
