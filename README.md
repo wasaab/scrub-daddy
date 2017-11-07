@@ -47,6 +47,6 @@ task-title is the channel title of the issue or feature.`
       + !join-review-team - `to be added to the review team.`
       + !leave-review-team - `to be removed from the review team.`
       + !color <`colorName`> - `to set your response color preference.`
-      + *sb - `to get the list of available soundbytes.`
-      + *sb <`name`> - `to play the sound byte of the given name in your voice channel.`
-      + *add-sb + `ATTACHMENT IN SAME MESSAGE` - `to add a sound byte.`
+      + !sb - `to get the list of available soundbytes.`
+      + !sb <`name`> - `to play the sound byte of the given name in your voice channel.`
+      + !add-sb + `ATTACHMENT IN SAME MESSAGE` - `to add a sound byte.`
