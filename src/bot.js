@@ -2,6 +2,7 @@ var Discord = require('discord.js');
 var inspect = require('util-inspect');
 var get = require('lodash.get');
 var fs = require('fs');
+var Fuse = require('fuse.js');
  
 var c = require('./const.js');
 var util = require('./utilities.js');
@@ -12,6 +13,11 @@ var vote = require('./vote.js');
 var private = require('../../private.json'); 
 var client = new Discord.Client();
 client.login(private.token);
+
+var options = {
+	keys: ['command']
+};
+var fuse = new Fuse(c.COMMANDS, options);
 
 var botSpam = {};
 var scrubsChannel = {};
@@ -203,9 +209,13 @@ function handleCommand(message) {
 		'helpinfo': helpCalled
 	};
 	
-	if (typeof commandToHandler[cmd] == 'function') { 
-		return commandToHandler[cmd]();
+
+	const fuzzyResults = fuse.search(cmd);
+	if (fuzzyResults.length === 0) {
+	 	return;
 	}
+
+	return commandToHandler[fuzzyResults[0].command]();
 }
 
 /**

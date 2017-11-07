@@ -164,4 +164,47 @@ define('TIPS',
 		image: {
 			url: 'https://media3.giphy.com/media/UGxfEt5POsukg/giphy.gif'
 		}
-	}]);
+	},
+	{
+		color: 0xffff00,
+		title: '💡 Is Typoeing Hard?',
+		description: '⌨ Fret no more, because fuzzy commands are here!\n\n' +
+					 'You can now activate the command which is the closest match to your input.\n' +
+					 'For example, `!adiky` --> `!army`, !lcan --> !clean, etc.\n' +
+					 'You really don\'t even have to be close anymore.'
+	}
+]);
+define('COMMANDS', 
+[{command: 'temp'},
+{command: 'issue'},
+{command: 'feature'},
+{command: 'implement'},
+{command: 'export'},
+{command: 'catfacts'},
+{command: 'army'},
+{command: 'stats'},
+{command: 'rank'},
+{command: 'ranks'},
+{command: 'clean'},
+{command: 'revive'},
+{command: 'discharge'},
+{command: 'enlist'},
+{command: 'join-review-team'},
+{command: 'leave-review-team'},
+{command: 'color'},
+{command: 'sb'},
+{command: 'add-sb'},
+{command: 'sb-add'},
+{command: 'update-readme'},
+{command: 'p'},
+{command: 'playing'},
+{command: 'game-history'},
+{command: 'time'},
+{command: 'opt-in'},
+{command: 'vote'},
+{command: 'votekick'},
+{command: 'voteban'},
+{command: 'voteinfo'},
+{command: 'help'},
+{command: 'info'},
+{command: 'helpinfo'}]);
