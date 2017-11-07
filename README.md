@@ -1,5 +1,4 @@
 # scrub-daddy
----
 
 Discord bot with the following commands:
 
@@ -13,12 +12,14 @@ Discord bot with the following commands:
 	+ !discharge    
 	+ !clean    
 	+ !army
+	+ !ranks
+	+ !stats
 3. Time Played
 	+ !time    
 	+ !opt-in
 4. Player Count
 	+ !playing    
-	+ !gameHistory
+	+ !game-history
 5. Bot Issues, Feature Requests, and Help
 	+ !issue    
 	+ !feature    
@@ -27,3 +28,6 @@ Discord bot with the following commands:
 6. Miscellaneous
 	+ !p    
 	+ !temp
+	+ !color
+	+ !sb
+	+ !add-sb
