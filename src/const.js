@@ -168,9 +168,9 @@ define('TIPS',
 	{
 		color: 0xffff00,
 		title: '💡 Is Typoeing Hard?',
-		description: '⌨ Fret no more, because fuzzy commands are here!\n\n' +
+		description: '⌨ **Fret no more, because fuzzy commands are here!**\n\n' +
 					 'You can now activate the command which is the closest match to your input.\n' +
-					 'For example, `!adiky` --> `!army`, !lcan --> !clean, etc.\n' +
+					 'For example, `!adiky` --> `!army`, `!lcan` --> `!clean`, etc.\n' +
 					 'You really don\'t even have to be close anymore.'
 	}
 ]);
