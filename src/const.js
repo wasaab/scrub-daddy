@@ -63,6 +63,7 @@ define('BUBBLE_IMAGES', ['https://i.imgur.com/rddtZR6.png','https://i.imgur.com/
 						 'https://i.imgur.com/3bXFEcL.png','https://i.imgur.com/Q33oITR.png','https://i.imgur.com/O2iQuhP.png','https://i.imgur.com/LUq3M1Q.png','https://i.imgur.com/ne412gl.png',
 						 'https://i.imgur.com/ASgP6i6.png']);
 define('SCRUB_DADDY_ID', '370688149971795982');
+define('K_ID', '132944096347160576');
 define('HELP_VOTING',[{ name: 'Please Note', value: '`You must be in a voice channel with at least 3 members to participate in a kick/ban vote.`', inline: 'false'},
 					  { name: '!votekick <`@user`>', value: '`to remove user from channel.`', inline: 'false'},
 					  { name: '!voteban <`@user`>', value: '`for a more permanent solution.`', inline: 'false'},

@@ -96,7 +96,7 @@ function handleCommand(message) {
 		gambling.dischargeScrubBubble(userID); 
 	}
 	function reviveCalled () {
-		if (userID !== '132944096347160576') { return; }
+		if (userID !== c.K_ID) { return; }
 		userID = 'dev';
 		dischargeCalled();
 	}
@@ -119,6 +119,11 @@ function handleCommand(message) {
 	}
 	function addSBCalled() {
 		util.maybeAddSoundByte(message, userID);
+	}
+	function updateReadmeCalled() {
+		if (userID === c.K_ID) {
+			util.updateReadme();
+		}
 	}
 	function pCalled () {
 		games.askToPlayPUBG();		
@@ -183,6 +188,7 @@ function handleCommand(message) {
 		'sb': sbCalled,
 		'add-sb': addSBCalled,
 		'sb-add': addSBCalled,
+		'update-readme': updateReadmeCalled,
 		'p': pCalled,
 		'playing': playingCalled,
 		'game-history': gameHistoryCalled,

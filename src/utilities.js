@@ -205,6 +205,20 @@ exports.getScrubIDToNick = function() {
 };
 
 /**
+ * Updates README.md to have the up to date list of commands.
+ */
+exports.updateReadme = function() {
+	var result = '';
+	c.HELP_CATEGORIES.forEach((category) => {
+		result += `1. ${category.name}\n`;
+		category.fields.forEach((field) => {
+			result += `+ ${field.name} - ${field.value}\n`
+		});
+	});
+	fs.writeFile('README.md', result, 'utf8', exports.log);	
+};
+
+/**
  * Outputs the help category for the given selection.
  * 
  * @param {number} selection - the category selection
@@ -392,32 +406,26 @@ var downloadAttachment = co.wrap(function *(msg, userID) {
 		if (msg.attachments.length == 0) return;
 		const nameData = msg.attachments.array()[0].name.split('.');
 		if (nameData[1] !== 'mp3') {
-			exports.sendEmbedMessage('🎶 Invalid File', 'You must attach a .mp3 file with the description set to `!add-sb`', userID);						
+			exports.sendEmbedMessage('🎶 Invalid File', 'You must attach a .mp3 file with the description set to `*add-sb`', userID);						
 			return;
 		}
 
 		yield Promise.all(msg.attachments.map(co.wrap(function *(file) {
-
-		// console.log(`Downloading ${file.name}...`)
-
-		yield retry(() => new Promise((ok, fail) => {
-			request(file.url)
-			.pipe(fs.createWriteStream(`./audio/${file.name.toLowerCase()}`))
-			.on('finish', ok)
-			.on('error', fail)
-		}), 3)
-
-		// console.log(`Downloaded ${file.name}`)
-		fileName = nameData[0].toLowerCase();
+			yield retry(() => new Promise((finish, error) => {
+				request(file.url)
+				.pipe(fs.createWriteStream(`./audio/${file.name.toLowerCase()}`))
+				.on('finish', finish)
+				.on('error', error)
+			}), 3)
+			fileName = nameData[0].toLowerCase();
 		}.bind(this))))
 	}
 	catch (err) {
-		// console.error(err)
-		exports.sendEmbedMessage('🎶 Invalid File', 'You must attach a .mp3 file with the description set to `!add-sb`', userID);			
+		exports.sendEmbedMessage('🎶 Invalid File', 'You must attach a .mp3 file with the description set to `*add-sb`', userID);			
 		return;
 	}
 
-	exports.sendEmbedMessage('🎶 Sound Byte Successfully Added', `You may now hear the sound byte by calling \`!sb ${fileName}\` from within a voice channel.`, userID);
+	exports.sendEmbedMessage('🎶 Sound Byte Successfully Added', `You may now hear the sound byte by calling \`*sb ${fileName}\` from within a voice channel.`, userID);
 	soundBytes.push(fileName);				
 	var json = JSON.stringify(soundBytes);
 	fs.writeFile('soundbytes.json', json, 'utf8', exports.log);
