@@ -9,6 +9,7 @@ Discord bot with the following commands:
       + !vote <`thing to vote for`> - `to do a custom vote.`
       + !voteinfo - `for totals of all custom votes.`
       + !voteinfo <`@user`> - `for total votes to kick/ban that user.`
+
 1. Scrubbing Bubbles
       + !enlist - `enlists the discharged Scrubbing Bubbles to your army.`
       + !discharge - `honorably discharges a Scrubbing Bubble from your army.`
@@ -18,22 +19,26 @@ Discord bot with the following commands:
       + !ranks - `outputs the army size of every user.`
       + !stats - `outputs your clean stats.`
       + !stats <`@user`> - `outputs the user's clean stats.`
+
 1. Time Played
       + !time <`Game Name`> <`@user`> - `user's playtime for the specified Game Name.`
       + !time <`Game Name`> - `cumulative playtime for the specified Game Name.`
       + !time <`@user`> - `user's playtime for all games.`
       + !time - `cumulative playtime for all games.`
       + !opt-in - `to opt into playtime tracking.`
+
 1. Player Count
       + !playing - `player count of games currently being played.`
       + !game-history - `player counts for all games throughout the day.`
+
 1. Bot Issues, Feature Requests, and Help
       + Please Note - `Your issue title or feature title must be ONE WORD! msg is optional`
       + !issue <`issue-title`> <`msg detailing issue`> - `to submit bot issues.`
       + !feature <`feature-title`> <`msg detailing feature`> - `to submit bot feature requests.`
-      + !implement <`task-title`> - `to vote for the next task to complete.`
-        + `task-title is the channel title of the issue or feature.`
+      + !implement <`task-title`> - `to vote for the next task to complete.
+task-title is the channel title of the issue or feature.`
       + !help, !info, or !helpinfo - `to show this message again.`
+
 1. Miscellaneous
       + !p - `to ask @Scrubs to play PUBG in scrubs text channel.`
       + !temp - `Creates a temporary text channel`

@@ -208,11 +208,11 @@ exports.getScrubIDToNick = function() {
  * Updates README.md to have the up to date list of commands.
  */
 exports.updateReadme = function() {
-	var result = '';
+	var result = '# scrub-daddy\n\nDiscord bot with the following commands:\n';
 	c.HELP_CATEGORIES.forEach((category) => {
-		result += `1. ${category.name}\n`;
+		result += `\n1. ${category.name.split('\`').join('')}\n`;
 		category.fields.forEach((field) => {
-			result += `+ ${field.name} - ${field.value}\n`
+			result += `      + ${field.name} - ${field.value}\n`
 		});
 	});
 	fs.writeFile('README.md', result, 'utf8', exports.log);	
