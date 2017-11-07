@@ -277,7 +277,7 @@ exports.scheduleRecurringJobs = function() {
 	
 	firstRun = true;
 	//tips
-	schedule.scheduleJob('*/30 * * * *', function(){
+	schedule.scheduleJob('*/15 * * * *', function(){
 		if (!firstRun) { 
 			previousTip.delete();						
 		}
@@ -402,13 +402,13 @@ var downloadAttachment = co.wrap(function *(msg, userID) {
 
 		yield retry(() => new Promise((ok, fail) => {
 			request(file.url)
-			.pipe(fs.createWriteStream(`./audio/${file.name}`))
+			.pipe(fs.createWriteStream(`./audio/${file.name.toLowerCase()}`))
 			.on('finish', ok)
 			.on('error', fail)
 		}), 3)
 
 		// console.log(`Downloaded ${file.name}`)
-		fileName = nameData[0];
+		fileName = nameData[0].toLowerCase();
 		}.bind(this))))
 	}
 	catch (err) {

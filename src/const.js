@@ -147,4 +147,20 @@ define('TIPS',
 		image: {
 			url: 'https://i.imgur.com/ReWl7Ir.gif'
 		} 
+	},
+	{
+		color: 0xffff00,							
+		title: '💡 Adding Soundbytes', 
+		description: 'You must call *add-sb and attach your .mp3 file in the same message as seen below.',
+		image: {
+			url: 'https://i.imgur.com/WdoyTXc.png'
+		}
+	},
+	{
+		color: 0xffff00,							
+		title: '💡 New Commands', 
+		description: '`*sb`	`*add-sb`	`!color`	`!join-review-team`	`!leave-review-team`	`!implement`	`!stats`	`!temp`	`!issue`	`!feature`',
+		image: {
+			url: 'https://media3.giphy.com/media/UGxfEt5POsukg/giphy.gif'
+		}
 	}]);
