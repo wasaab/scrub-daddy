@@ -266,6 +266,7 @@ exports.catfacts = function(userID) {
  */
 exports.scheduleRecurringJobs = function() {
 	const job = private.job;
+	if (!job) { return; }
 	var reviewRule = new schedule.RecurrenceRule();
 	
 	reviewRule[job.key1] = job.val1;
