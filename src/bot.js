@@ -47,9 +47,9 @@ function scheduleRecurringExport() {
 function findClosestCommandMatch(command) {
 	const fuzzyResults = fuse.search(command);
 	if (fuzzyResults.length !== 0) {
+		c.LOG.info(`1st: ${c.COMMANDS[fuzzyResults[0]]}, 2nd: ${c.COMMANDS[fuzzyResults[1]]}`);		
 		return c.COMMANDS[fuzzyResults[0]];
 	}
-	c.LOG.info(`1st: ${c.COMMANDS[fuzzyResults[0]]}, 2nd: ${c.COMMANDS[fuzzyResults[1]]}`);	
 }
 
 /**
@@ -179,7 +179,12 @@ function handleCommand(message) {
 		}	
 	}
 	function helpCalled () {
-		util.help(userID);
+		if (args[1]) {
+			util.outputHelpForCommand(args[1], userID);
+		} else {
+			util.help(userID);
+		}
+
 		message.delete();
 	}
 
@@ -230,7 +235,7 @@ function handleCommand(message) {
 client.on('message', (message) => {
 	const firstChar = message.content.substring(0, 1);
     //Scrub Daddy will listen for messages that will start with `!`
-    if (firstChar === '!') {
+    if (firstChar === '-') {
 		handleCommand(message);
 	 } else if (isArrivedForDutyMessage(message)) {
 		gambling.maybeDeletePreviousMessage(message);

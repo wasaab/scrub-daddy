@@ -219,6 +219,22 @@ exports.updateReadme = function() {
 };
 
 /**
+ * Outputs the help message for the provided command.
+ * 
+ * @param {String} cmd - the command to get help for
+ * @param {String} userID - the userID requesting help
+ */
+exports.outputHelpForCommand = function(cmd, userID) {
+	c.HELP_CATEGORIES.forEach((category) => {
+		category.fields.forEach((command) => {
+			if (command.name.substring(1).startsWith(cmd)) {
+				exports.sendEmbedMessage(command.name, command.value, userID);
+			}
+		});
+	});
+}
+
+/**
  * Outputs the help category for the given selection.
  * 
  * @param {number} selection - the category selection

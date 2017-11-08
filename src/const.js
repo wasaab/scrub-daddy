@@ -92,7 +92,6 @@ define('HELP_BOT',[{ name: 'Please Note', value: '`Your issue title or feature t
 				   { name: '!feature <`feature-title`> <`msg detailing feature`>', value: '`to submit bot feature requests.`', inline: 'false'},
 				   { name: '!implement <`task-title`>', value: '`to vote for the next task to complete.\ntask-title is the channel title of the issue or feature.`', inline: 'false'},
 				   { name: '!help, !info, or !helpinfo', value: '`to show this message again.`', inline: 'false'}]);
-				   
 define('HELP_MISC',[{ name: '!p', value: '`to ask @Scrubs to play PUBG in scrubs text channel.`', inline: 'false'},
 					{ name: '!temp', value: '`Creates a temporary text channel`', inline: 'false'},
 					{ name: '!temp <`text|voice`>', value: '`Creates a temp text/voice channel`', inline: 'false'},
@@ -104,6 +103,7 @@ define('HELP_MISC',[{ name: '!p', value: '`to ask @Scrubs to play PUBG in scrubs
 					{ name: '*sb <`name`>', value: '`to play the sound byte of the given name in your voice channel.`', inline: 'false'},
 					{ name: '*add-sb + `ATTACHMENT IN SAME MESSAGE`', value: '`to add a sound byte.`', inline: 'false'}]);
 define('HELP_CATEGORIES_PROMPT',[{ name: 'To select a category:', value: '`Type one of the numbers below.`', inline: 'false'},
+						  { name: '!help <`command`>', value: '`to get help for a specific command`', inline: 'false'},
 						  { name: '1) Voting', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
 						  { name: '2) Scrubbing Bubbles', value: '`enlist`	`discharge`	`clean`	`army`	`ranks`	`stats`', inline: 'false'},
 						  { name: '3) Time Played', value: '`time`	`opt-in`', inline: 'false'},
@@ -139,7 +139,8 @@ define('TIPS',
 					 '<`parameter`> just lets you know the word within the arrows is a parameter for the user to input.\n\n' +
 					 '| stands for "or", so if you see that seperating two parameters it means you can choose one of them.\n' +
 					 'e.g. !temp <`text|voice`> <`channel-title`> --> !temp text cool-kids-club\n\n' +
-					 'The !temp command now accepts space seperated channel names as input. e.g. !temp text cool kids club'
+					 '!help <`command`> - to get help with a specific command\n' +
+					 '!help - to get help with all commands'
 	},
 	{
 		color: 0xffff00,					
