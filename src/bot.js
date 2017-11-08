@@ -1,9 +1,9 @@
 var Discord = require('discord.js');
 var inspect = require('util-inspect');
+var Fuse = require('fuse.js');
 var get = require('lodash.get');
 var fs = require('fs');
-var Fuse = require('fuse.js');
- 
+
 var c = require('./const.js');
 var util = require('./utilities.js');
 var gambling = require('./gambling.js');
@@ -42,13 +42,27 @@ function scheduleRecurringExport() {
 }
 
 /**
+ * Returns the closest matching command to what was provided.
+ */
+function findClosestCommandMatch(command) {
+	const fuzzyResults = fuse.search(command);
+	if (fuzzyResults.length !== 0) {
+		return c.COMMANDS[fuzzyResults[0]];
+	}
+	console.log(`1st: ${c.COMMANDS[fuzzyResults[0]]}, 2nd: ${c.COMMANDS[fuzzyResults[1]]}`);	
+}
+
+/**
  * Handles valid commands.
  * 
  * @param {Object} message - the full message object.
  */
 function handleCommand(message) {
 	const args = message.content.substring(1).match(/\S+/g);
-	const cmd = args[0];
+	const cmd = findClosestCommandMatch(args[0]);
+	if (!cmd) { return; }
+	args[0] = cmd;
+
 	const channelID = message.channel.id;
 	const user = message.member.displayName;
 	var userID = message.member.id;
@@ -205,14 +219,8 @@ function handleCommand(message) {
 		'helpinfo': helpCalled
 	};
 
-	const fuzzyResults = fuse.search(cmd);
-	if (fuzzyResults.length === 0) {
-	 	return;
-	}
-	const command = c.COMMANDS[fuzzyResults[0]];
-	c.LOG.info(`command: ${command}, 2nd: ${c.COMMANDS[fuzzyResults[1]]}`);
-	
-	return commandToHandler[command]();
+
+	return commandToHandler[cmd]();		
 }
 
 /**

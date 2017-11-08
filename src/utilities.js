@@ -1,22 +1,22 @@
-var Discord = require('discord.js');
-var schedule = require('node-schedule');
 var tinycolor = require("tinycolor2");
+var schedule = require('node-schedule');
+var Discord = require('discord.js');
 var inspect = require('util-inspect');
 var get = require('lodash.get');
 var fs = require('fs');
 
 const request = require('request')
 const mkdirp = require('mkdirp')
-const co = require('co')
 const pify = require('pify')
+const co = require('co')
 
-var c = require('./const.js');
-var bot = require('./bot.js');
 var games = require('./games.js');
-const private = require('../../private.json'); 
-const catFacts = require('../catfacts.json');
+var bot = require('./bot.js');
+var c = require('./const.js');
 var userIDToColor = require('../colors.json');
 var soundBytes = require('../soundbytes.json');
+const catFacts = require('../catfacts.json');
+const private = require('../../private.json'); 
 
 var dropped = 0;
 var previousTip = {};
