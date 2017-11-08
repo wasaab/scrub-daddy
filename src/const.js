@@ -139,8 +139,8 @@ define('TIPS',
 					 '<`parameter`> just lets you know the word within the arrows is a parameter for the user to input.\n\n' +
 					 '| stands for "or", so if you see that seperating two parameters it means you can choose one of them.\n' +
 					 'e.g. !temp <`text|voice`> <`channel-title`> --> !temp text cool-kids-club\n\n' +
-					 '!help <`command`> - to get help with a specific command\n' +
-					 '!help - to get help with all commands'
+					 '!help <`command`> - to get help for a specific command\n' +
+					 '!help - to get help for all commands'
 	},
 	{
 		color: 0xffff00,					

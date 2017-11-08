@@ -180,7 +180,7 @@ function handleCommand(message) {
 	}
 	function helpCalled () {
 		if (args[1]) {
-			util.outputHelpForCommand(args[1], userID);
+			util.outputHelpForCommand(findClosestCommandMatch(args[1]), userID);				
 		} else {
 			util.help(userID);
 		}
