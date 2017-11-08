@@ -210,6 +210,7 @@ function handleCommand(message) {
 	 	return;
 	}
 	const command = c.COMMANDS[fuzzyResults[0]];
+	c.LOG.info(`command: ${command}, 2nd: ${c.COMMANDS[fuzzyResults[1]]}`);
 	
 	return commandToHandler[command]();
 }
