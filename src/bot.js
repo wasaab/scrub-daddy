@@ -49,7 +49,7 @@ function findClosestCommandMatch(command) {
 	if (fuzzyResults.length !== 0) {
 		return c.COMMANDS[fuzzyResults[0]];
 	}
-	console.log(`1st: ${c.COMMANDS[fuzzyResults[0]]}, 2nd: ${c.COMMANDS[fuzzyResults[1]]}`);	
+	c.LOG.info(`1st: ${c.COMMANDS[fuzzyResults[0]]}, 2nd: ${c.COMMANDS[fuzzyResults[1]]}`);	
 }
 
 /**
