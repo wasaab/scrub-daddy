@@ -11,6 +11,7 @@ function define(name, value) {
 
 define('LOG', require('winston'));
 define('LOOP_DELAY', 1500);							        //delay between each loop
+//Todo: pull up to line 26 from config.json
 define('BOT_SPAM_CHANNEL_ID', '372570540482887701');		//listen's to messages from this channel
 define('SCRUBS_CHANNEL_ID', '370626384059695107');		    //channel ID of scrubs text channel
 define('SERVER_ID', private.serverID);				    		//Bed Bath Server ID
@@ -26,8 +27,10 @@ define('REVIEW_ROLE_ID', '376391242105225216');
 define('DAYS', ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']);
 define('PUBG_ALIASES', ['scrubg', 'pubg', 'pugG', 'pabg', 'pobg', 'pebg', 'pibg', 'pybg', 'Mr. Pib G.', 'pub', 'pudgy', 'puh ba gee']);
 define('GREETINGS', ['you guys', 'yous guys', 'y\'all', 'hey buddies,', 'hey pals,', 'hey friends,', 'sup dudes,', 'hello fellow humans,']);
+//Todo: pull from config.json or determine programtically on start
 define('BOT_IDS', ['172002275412279296', '86920406476292096', '188064764008726528',
 	'263059218104320000', '116275390695079945', '362784198848675842', '306583221565521921']);
+//Todo: pull from config.json or make a system that searches web for img
 define('GAME_NAME_TO_IMG', {
     'World of Warcraft' : 'http://i.imgur.com/US59X7X.jpg', 
     'Overwatch' : 'http://i.imgur.com/WRQsSYp.png', 
@@ -38,6 +41,7 @@ define('THUMBS_UP_GIF', 'https://i.imgur.com/CLC53gf.gif');
 define('CLEAN_WIN_IMG', 'https://i.imgur.com/LDSm2sg.png');
 define('CLEAN_LOSE_IMG', 'https://i.imgur.com/gynZE1j.png');
 define('SCRUB_DADDY_FACT', 'https://i.imgur.com/FbAwRTj.jpg');
+//Todo: pull from config.json
 define('PURGATORY_CHANNEL_ID', '370626266786824192');	    //sends kicked user's to this channel    
 define('VOTE_TYPE', {
 	KICK : 'kick',
@@ -46,7 +50,9 @@ define('VOTE_TYPE', {
 	REMOVE_ROLE : 'remove role',
 	CUSTOM : 'custom'
 });
+//Todo: pull from config.json
 define('BEYOND_ROLE_ID', '370670924992610305');
+//Todo: pull from config.json
 define('CHANNEL_ID_TO_BAN_ROLE_ID',{
 	'370625207150575617' : '370746310346801164',	        //Beyond
 	'370625515293507584' : '370747862302326785',	        //Str8 Chillin
@@ -62,7 +68,9 @@ define('BUBBLE_IMAGES', ['https://i.imgur.com/rddtZR6.png','https://i.imgur.com/
 						 'https://i.imgur.com/hQvbZkP.png','https://i.imgur.com/LLdxaj4.png','https://i.imgur.com/cCiI4CE.png','https://i.imgur.com/fue3AAM.png','https://i.imgur.com/8cah0Ar.png',
 						 'https://i.imgur.com/3bXFEcL.png','https://i.imgur.com/Q33oITR.png','https://i.imgur.com/O2iQuhP.png','https://i.imgur.com/LUq3M1Q.png','https://i.imgur.com/ne412gl.png',
 						 'https://i.imgur.com/ASgP6i6.png']);
+//Todo: pull from config.json
 define('SCRUB_DADDY_ID', '370688149971795982');
+//Todo: pull from config.json
 define('K_ID', '132944096347160576');
 define('HELP_VOTING',[{ name: 'Please Note', value: '`You must be in a voice channel with at least 3 members to participate in a kick/ban vote.`', inline: 'false'},
 					  { name: '!votekick <`@user`>', value: '`to remove user from channel.`', inline: 'false'},
@@ -83,10 +91,8 @@ define('HELP_TIME_PLAYED',[{ name: '!time <`Game Name`> <`@user`>', value: '`use
 						   { name: '!time <`@user`>', value: '`user\'s playtime for all games.`', inline: 'false'},
 						   { name: '!time', value: '`cumulative playtime for all games.`', inline: 'false'},
 						   { name: '!opt-in', value: '`to opt into playtime tracking.`', inline: 'false'}]);
-
 define('HELP_PLAYER_COUNT',[{ name: '!playing', value: '`player count of games currently being played.`', inline: 'false'},
 							{ name: '!game-history', value: '`player counts for all games throughout the day.`', inline: 'false'}]);
-
 define('HELP_BOT',[{ name: 'Please Note', value: '`Your issue title or feature title must be ONE WORD! msg is optional`', inline: 'false'},
 				   { name: '!issue <`issue-title`> <`msg detailing issue`>', value: '`to submit bot issues.`', inline: 'false'},
 				   { name: '!feature <`feature-title`> <`msg detailing feature`>', value: '`to submit bot feature requests.`', inline: 'false'},
