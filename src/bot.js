@@ -14,11 +14,7 @@ var private = require('../../private.json');
 var client = new Discord.Client();
 client.login(private.token);
 
-var options = {
-	keys: ['command']
-};
-var fuse = new Fuse(c.COMMANDS, options);
-
+var fuse = new Fuse(c.COMMANDS, {verbose: false});
 var botSpam = {};
 var scrubsChannel = {};
 var purgatory = {};
@@ -208,14 +204,14 @@ function handleCommand(message) {
 		'info': helpCalled,
 		'helpinfo': helpCalled
 	};
-	
 
 	const fuzzyResults = fuse.search(cmd);
 	if (fuzzyResults.length === 0) {
 	 	return;
 	}
-
-	return commandToHandler[fuzzyResults[0].command]();
+	const command = c.COMMANDS[fuzzyResults[0]];
+	
+	return commandToHandler[command]();
 }
 
 /**
