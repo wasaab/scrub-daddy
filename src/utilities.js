@@ -239,10 +239,11 @@ exports.outputHelpForCommand = function(cmd, userID) {
  * Outputs the help category for the given selection.
  * 
  * @param {number} selection - the category selection
+ * @param {String} userID - the ID of the user requesting help
  */
-function outputHelpCategory(selection) {
+function outputHelpCategory(selection, userID) {
 	const helpCategory = c.HELP_CATEGORIES[selection];
-	exports.sendEmbedFieldsMessage(helpCategory.name, helpCategory.fields);
+	exports.sendEmbedFieldsMessage(helpCategory.name, helpCategory.fields, userID);
 }
 
 /**
@@ -259,7 +260,7 @@ exports.help = function(userID) {
 	bot.getBotSpam().awaitMessages(filter, { max: 1, time: 30000, errors: ['time'] })
 	.then((collected) => {
 		const response = collected.array()[0];
-		outputHelpCategory(parseInt(response.content)-1);
+		outputHelpCategory(parseInt(response.content)-1, userID);
 		response.delete();		
 	})
 	.catch((collected) => {

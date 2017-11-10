@@ -307,8 +307,8 @@ exports.stats = function (userID, args) {
 exports.armyRanks = function(userID) {
     var fields = [];
     const scrubIDToNick = util.getScrubIDToNick();
-    for (var userID in ledger) {
-        fields.push(util.buildField(scrubIDToNick[userID], ledger[userID].armySize));
+    for (var id in ledger) {
+        fields.push(util.buildField(scrubIDToNick[id], ledger[id].armySize));
     }
     fields.sort(util.compareFieldValues);
     util.sendEmbedFieldsMessage('Scrubbing Bubbles Army Sizes', fields, userID);
