@@ -249,7 +249,7 @@ function outputHelpCategory(selection) {
  * Outputs help dialog to explain command usage.
  */
 exports.help = function(userID) {
-	exports.sendEmbedFieldsMessage('`📖 Help Categories`', c.HELP_CATEGORIES_PROMPT);
+	exports.sendEmbedFieldsMessage('`📖 Help Categories`', c.HELP_CATEGORIES_PROMPT, userID);
 	const filter = (m) => {
 		var num = parseInt(m.content);
 		if (!isNaN(num) && num > 0 && num < 7) {
