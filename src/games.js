@@ -2,6 +2,7 @@ var Discord = require('discord.js');
 var inspect = require('util-inspect');
 var get = require('lodash.get');
 var fs = require('fs');
+var moment = require('moment');
 
 var c = require('./const.js');
 var bot = require('./bot.js');
@@ -14,9 +15,12 @@ var gameHistory = [];								//timestamped log of player counts for each game
 /**
  * Exports the timesheet to a json file.
  */
-exports.exportTimeSheet = function() {
+exports.exportTimeSheetAndGameHistory = function() {
 	var json = JSON.stringify(timeSheet);	
 	fs.writeFile('../timeSheet.json', json, 'utf8', util.log);
+
+	json = JSON.stringify(gameHistory);
+	fs.writeFile('../gameHistory.json', json, 'utf8', util.log);
 };
 
 exports.clearTimeSheet = function() {
@@ -44,12 +48,14 @@ function getGameNameAndTarget(args) {
 }
 
 /**
- * Gets and outputs the player count of every game currently being played 
+ * Gets and outputs the player count of every game currently being played, 
+ * unless called from recurring job, in which case it stores the result without outputting it.
  */
-exports.getAndOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
+exports.maybeOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
 	var games = [];
 	var max = 0;
 	var winner = '';
+	var total = 0;
 
 	scrubs.forEach((scrub) => {
 		const game = get(scrub, 'presence.activity.name');
@@ -63,12 +69,17 @@ exports.getAndOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
 				max = games[game];
 				winner = game;
 			}
+			total++;			
 		}	
 	});
 
 	var fields = [];
-	var time = util.getTimestamp();
-	var gamesLog = [];
+	var time = moment();
+	var gamesLog = {
+		time: time, 
+		playerCount: total, 
+		gameData: []
+	};
 	for (var gameID in games) {
 		fields.push(util.buildField(gameID, games[gameID]));
 
@@ -78,7 +89,7 @@ exports.getAndOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
 			count : games[gameID],
 			time : time
 		};
-		gamesLog.push(gameData);
+		gamesLog.gameData.push(gameData);
 	}
 	gameHistory.push(gamesLog);
 	
@@ -86,9 +97,11 @@ exports.getAndOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
 	if (c.GAME_NAME_TO_IMG[winner]) {
 		imageUrl = c.GAME_NAME_TO_IMG[winner];
 	}
-	util.sendEmbedMessage(`🏆 Winner - ${winner}`, null, userID, imageUrl);
-	fields.sort(util.compareFieldValues);
-	util.sendEmbedFieldsMessage('🎮 Player Count', fields, userID);
+	if (userID !== c.SCRUB_DADDY_ID) {
+		util.sendEmbedMessage(`🏆 Winner - ${winner}`, null, userID, imageUrl);
+		fields.sort(util.compareFieldValues);
+		util.sendEmbedFieldsMessage(`🎮 Player Count - ${total}`, fields, userID);
+	}
 };
 
 /**
@@ -239,66 +252,21 @@ exports.maybeOutputTimePlayed = function(args, userID) {
 };
 
 /**
- * Gets hours, mins, and meridiem from the provided timestamp.
- * 
- * @param {String} timestamp 
- */
-function getTimeData(timestamp) {
-	var timeData = timestamp.split(/[ :]+/);
-	var hours = parseInt(timeData[1]);
-	var mins = parseInt(timeData[2]);
-	var meridiem = timeData[3];
-	return {
-		hours : hours,
-		mins : mins,
-		meridiem : meridiem
-	};
-}
-
-/**
- * Comparator for two gameLog objects. Compares times.
- * 
- * @param {Object} a - gameLog containing array of gameData objects for comparison
- * @param {Object} b - gameLog containing array of gameData objects for comparison
- */
-function compareTimestamps(a,b) {
-	if (a[0] && b[0]) {
-		var aTimeData = getTimeData(a[0].time);
-		var bTimeData = getTimeData(b[0].time);
-		
-		//If a is AM and b is PM
-		if (aTimeData.meridiem < bTimeData.meridiem)
-			return 1;
-		if (aTimeData.meridiem > bTimeData.meridiem) 
-			return -1;
-
-		var aMins = (aTimeData.hours * 60) + aTimeData.mins;
-		var bMins = (bTimeData.hours * 60) + bTimeData.mins;
-
-		if (aMins < bMins)
-			return 1;
-		if (aMins > bMins)
-			return -1;
-		return 0;
-	}
-}
-
-/**
  * Outputs history of game's player counts throughout the day if such a log exists.
  */
 exports.maybeOutputGameHistory = function (userID) {
 	var previousTime = '';
-	gameHistory.sort(compareTimestamps);
+	gameHistory.sort((a, b) => (a.time.diff(b.time))); 	
 	gameHistory.forEach((gamesLog) => {
-		if (gamesLog[0]) {
-			var time = gamesLog[0].time;
-			if ( time !== previousTime) {
+		if (gamesLog.gameData) {
+			var time = gamesLog.time.format('ddd MMM Do, h:mm a');
+			if (time !== previousTime) {
 				var fields = [];					
-				gamesLog.forEach((gameData) => {
-					fields.push(util.buildField(gameData.game, gameData.count));
+				gamesLog.gameData.forEach((gameInfo) => {
+					fields.push(util.buildField(gameInfo.game, gameInfo.count));
 				});
 				fields.sort(util.compareFieldValues);
-				util.sendEmbedFieldsMessage(`📕 Player Count - ${time}`, fields, userID);	
+				util.sendEmbedFieldsMessage(`📕 Player Count - ${gamesLog.playerCount} - ${time}`, fields, userID);	
 				previousTime = time;			
 			}	
 		}

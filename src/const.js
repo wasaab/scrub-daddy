@@ -73,43 +73,44 @@ define('SCRUB_DADDY_ID', '370688149971795982');
 //Todo: pull from config.json
 define('K_ID', '132944096347160576');
 define('HELP_VOTING',[{ name: 'Please Note', value: '`You must be in a voice channel with at least 3 members to participate in a kick/ban vote.`', inline: 'false'},
-					  { name: '!votekick <`@user`>', value: '`to remove user from channel.`', inline: 'false'},
-					  { name: '!voteban <`@user`>', value: '`for a more permanent solution.`', inline: 'false'},
-					  { name: '!vote <`thing to vote for`>', value: '`to do a custom vote.`', inline: 'false'},
-					  { name: '!voteinfo', value: '`for totals of all custom votes.`', inline: 'false'},
-					  { name: '!voteinfo <`@user`>', value: '`for total votes to kick/ban that user.`', inline: 'false'}]);
-define('HELP_SCRUBBING_BUBBLES',[{ name: '!enlist', value: '`enlists the discharged Scrubbing Bubbles to your army.`', inline: 'false'},
-								 { name: '!discharge', value: '`honorably discharges a Scrubbing Bubble from your army.`', inline: 'false'},
-								 { name: '!clean <`numBubbles`> <`t|b`>', value: '`send numBubbles to clean toilet/bath.`', inline: 'false'},
-								 { name: '!army', value: '`retrieves the size of your army.`', inline: 'false'},
-								 { name: '!army <`@user`>', value: '`retrieves the size of the user\'s army.`', inline: 'false'},
-								 { name: '!ranks', value: '`outputs the army size of every user.`', inline: 'false'},
-								 { name: '!stats', value: '`outputs your clean stats.`', inline: 'false'},
-								 { name: '!stats <`@user`>', value: '`outputs the user\'s clean stats.`', inline: 'false'}]);
-define('HELP_TIME_PLAYED',[{ name: '!time <`Game Name`> <`@user`>', value: '`user\'s playtime for the specified Game Name.`', inline: 'false'},
-						   { name: '!time <`Game Name`>', value: '`cumulative playtime for the specified Game Name.`', inline: 'false'},
-						   { name: '!time <`@user`>', value: '`user\'s playtime for all games.`', inline: 'false'},
-						   { name: '!time', value: '`cumulative playtime for all games.`', inline: 'false'},
-						   { name: '!opt-in', value: '`to opt into playtime tracking.`', inline: 'false'}]);
-define('HELP_PLAYER_COUNT',[{ name: '!playing', value: '`player count of games currently being played.`', inline: 'false'},
-							{ name: '!game-history', value: '`player counts for all games throughout the day.`', inline: 'false'}]);
+					  { name: '.votekick <`@user`>', value: '`to remove user from channel.`', inline: 'false'},
+					  { name: '.voteban <`@user`>', value: '`for a more permanent solution.`', inline: 'false'},
+					  { name: '.vote <`thing to vote for`>', value: '`to do a custom vote.`', inline: 'false'},
+					  { name: '.voteinfo', value: '`for totals of all custom votes.`', inline: 'false'},
+					  { name: '.voteinfo <`@user`>', value: '`for total votes to kick/ban that user.`', inline: 'false'}]);
+define('HELP_SCRUBBING_BUBBLES',[{ name: '.enlist', value: '`enlists the discharged Scrubbing Bubbles to your army.`', inline: 'false'},
+								 { name: '.discharge', value: '`honorably discharges a Scrubbing Bubble from your army.`', inline: 'false'},
+								 { name: '.clean <`numBubbles`> <`t|b`>', value: '`send numBubbles to clean toilet/bath.`', inline: 'false'},
+								 { name: '.army', value: '`retrieves the size of your army.`', inline: 'false'},
+								 { name: '.army <`@user`>', value: '`retrieves the size of the user\'s army.`', inline: 'false'},
+								 { name: '.ranks', value: '`outputs the army size of every user.`', inline: 'false'},
+								 { name: '.stats', value: '`outputs your clean stats.`', inline: 'false'},
+								 { name: '.stats <`@user`>', value: '`outputs the user\'s clean stats.`', inline: 'false'}]);
+define('HELP_TIME_PLAYED',[{ name: '.time <`Game Name`> <`@user`>', value: '`user\'s playtime for the specified Game Name.`', inline: 'false'},
+						   { name: '.time <`Game Name`>', value: '`cumulative playtime for the specified Game Name.`', inline: 'false'},
+						   { name: '.time <`@user`>', value: '`user\'s playtime for all games.`', inline: 'false'},
+						   { name: '.time', value: '`cumulative playtime for all games.`', inline: 'false'},
+						   { name: '.opt-in', value: '`to opt into playtime tracking.`', inline: 'false'}]);
+define('HELP_PLAYER_COUNT',[{ name: '.playing', value: '`player count of games currently being played.`', inline: 'false'},
+							{ name: '.game-history', value: '`player counts for all games throughout the day.`', inline: 'false'}]);
 define('HELP_BOT',[{ name: 'Please Note', value: '`Your issue title or feature title must be ONE WORD! msg is optional`', inline: 'false'},
-				   { name: '!issue <`issue-title`> <`msg detailing issue`>', value: '`to submit bot issues.`', inline: 'false'},
-				   { name: '!feature <`feature-title`> <`msg detailing feature`>', value: '`to submit bot feature requests.`', inline: 'false'},
-				   { name: '!implement <`task-title`>', value: '`to vote for the next task to complete.\ntask-title is the channel title of the issue or feature.`', inline: 'false'},
-				   { name: '!help, !info, or !helpinfo', value: '`to show this message again.`', inline: 'false'}]);
-define('HELP_MISC',[{ name: '!p', value: '`to ask @Scrubs to play PUBG in scrubs text channel.`', inline: 'false'},
-					{ name: '!temp', value: '`Creates a temporary text channel`', inline: 'false'},
-					{ name: '!temp <`text|voice`>', value: '`Creates a temp text/voice channel`', inline: 'false'},
-					{ name: '!temp <`text|voice`> <`channel-title`>', value: '`Creates a voice/text channel with the provided title`', inline: 'false'},
-					{ name: '!join-review-team', value: '`to be added to the review team.`', inline: 'false'},
-					{ name: '!leave-review-team', value: '`to be removed from the review team.`', inline: 'false'},
-					{ name: '!color <`colorName`>', value: '`to set your response color preference.`', inline: 'false'},
+				   { name: '.issue <`issue-title`> <`msg detailing issue`>', value: '`to submit bot issues.`', inline: 'false'},
+				   { name: '.feature <`feature-title`> <`msg detailing feature`>', value: '`to submit bot feature requests.`', inline: 'false'},
+				   { name: '.implement <`task-title`>', value: '`to vote for the next task to complete.\ntask-title is the channel title of the issue or feature.`', inline: 'false'},
+				   { name: '.help, .info, or .helpinfo', value: '`to show this message again.`', inline: 'false'}]);
+define('HELP_MISC',[{ name: '.p', value: '`to ask @Scrubs to play PUBG in scrubs text channel.`', inline: 'false'},
+					{ name: '.temp', value: '`Creates a temporary text channel`', inline: 'false'},
+					{ name: '.temp <`text|voice`>', value: '`Creates a temp text/voice channel`', inline: 'false'},
+					{ name: '.temp <`text|voice`> <`channel-title`>', value: '`Creates a voice/text channel with the provided title`', inline: 'false'},
+					{ name: '.join-review-team', value: '`to be added to the review team.`', inline: 'false'},
+					{ name: '.leave-review-team', value: '`to be removed from the review team.`', inline: 'false'},
+					{ name: '.color <`colorName`>', value: '`to set your response color preference.`', inline: 'false'},
 					{ name: '*sb', value: '`to get the list of available soundbytes.`', inline: 'false'},					
 					{ name: '*sb <`name`>', value: '`to play the sound byte of the given name in your voice channel.`', inline: 'false'},
-					{ name: '*add-sb + `ATTACHMENT IN SAME MESSAGE`', value: '`to add a sound byte.`', inline: 'false'}]);
+					{ name: '*add-sb + `ATTACHMENT IN SAME MESSAGE`', value: '`to add a sound byte.`', inline: 'false'},
+                    { name: '*fav-sb', value: '`to get the list of your most frequently used soundbytes.`', inline: 'false'}]);					
 define('HELP_CATEGORIES_PROMPT',[{ name: 'To select a category:', value: '`Type one of the numbers below.`', inline: 'false'},
-						  { name: '!help <`command`>', value: '`to get help for a specific command`', inline: 'false'},
+						  { name: '.help <`command`>', value: '`to get help for a specific command`', inline: 'false'},
 						  { name: '1) Voting', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
 						  { name: '2) Scrubbing Bubbles', value: '`enlist`	`discharge`	`clean`	`army`	`ranks`	`stats`', inline: 'false'},
 						  { name: '3) Time Played', value: '`time`	`opt-in`', inline: 'false'},
@@ -140,13 +141,13 @@ define('NEW_LEDGER_ENTRY', {
 define('TIPS', 
 	[{
 		color: 0xffff00,
-		title: '💡 Lrn2Use !help Ya Scrub',
-		description: 'You do not need to type the `<`, `|`, or `>` symbols found within !help documentation.\n\n' +
+		title: '💡 Lrn2Use .help Ya Scrub',
+		description: 'You do not need to type the `<`, `|`, or `>` symbols found within .help documentation.\n\n' +
 					 '<`parameter`> just lets you know the word within the arrows is a parameter for the user to input.\n\n' +
 					 '| stands for "or", so if you see that seperating two parameters it means you can choose one of them.\n' +
-					 'e.g. !temp <`text|voice`> <`channel-title`> --> !temp text cool-kids-club\n\n' +
-					 '!help <`command`> - to get help for a specific command\n' +
-					 '!help - to get help for all commands'
+					 'e.g. .temp <`text|voice`> <`channel-title`> --> .temp text cool-kids-club\n\n' +
+					 '.help <`command`> - to get help for a specific command\n' +
+					 '.help - to get help for all commands'
 	},
 	{
 		color: 0xffff00,					
@@ -167,7 +168,7 @@ define('TIPS',
 	{
 		color: 0xffff00,							
 		title: '💡 New Commands', 
-		description: '`*sb`	`*add-sb`	`!color`	`!join-review-team`	`!leave-review-team`	`!implement`	`!stats`	`!temp`	`!issue`	`!feature`',
+		description: '`*fav-sb`	`*sb`	`*add-sb`	`.color`	`.join-review-team`	`.leave-review-team`	`.implement`	`.stats`	`.temp`	`.issue`	`.feature`',
 		image: {
 			url: 'https://media3.giphy.com/media/UGxfEt5POsukg/giphy.gif'
 		}
@@ -177,7 +178,7 @@ define('TIPS',
 		title: '💡 Is Typoeing Hard?',
 		description: '⌨ **Fret no more, because fuzzy commands are here!**\n\n' +
 					 'You can now activate the command which is the closest match to your input.\n' +
-					 'For example, `!adiky` --> `!army`, `!lcan` --> `!clean`, etc.\n' +
+					 'For example, `.adiky` --> `.army`, `.lcan` --> `.clean`, etc.\n' +
 					 'You really don\'t even have to be close anymore.'
 	}
 ]);

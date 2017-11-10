@@ -309,7 +309,7 @@ exports.scheduleRecurringJobs = function() {
 	
 	firstRun = true;
 	//tips
-	schedule.scheduleJob('*/15 * * * *', function(){
+	schedule.scheduleJob('*/60 * * * *', function(){
 		if (!firstRun) { 
 			previousTip.delete();						
 		}
@@ -319,6 +319,11 @@ exports.scheduleRecurringJobs = function() {
 		.then((message) => {
 			previousTip = message;
 		});
+	});		
+
+	schedule.scheduleJob('*/30 * * * *', function(){
+		var members = bot.getClient().guilds.find('id', c.SERVER_ID).members;
+		games.maybeOutputCountOfGamesBeingPlayed(members, c.SCRUB_DADDY_ID);
 	});		
 };
 
@@ -399,7 +404,7 @@ exports.playSoundByte = function(channel, target, userID) {
 		exports.sendEmbedMessage('🎶 Available Sound Bytes', list, userID);
 		return;
 	}
-	if (soundBytes.includes(target)) {
+	if (soundBytes.includes(target.toLowerCase())) {
 		channel.join()
 		.then((connection) => {
 			console.log('Connected!')
@@ -468,4 +473,4 @@ exports.getTargetFromArgs = function(args, startIdx) {
 		target += ` ${args[i]}`;
 	}
 	return target;
-}
+};

@@ -35,7 +35,7 @@ function isArrivedForDutyMessage(message) {
 
 function scheduleRecurringExport() {
 	(function(){
-		games.exportTimeSheet();
+		games.exportTimeSheetAndGameHistory();
 		gambling.exportLedger();		
 		setTimeout(arguments.callee, 60000);
 	})();
@@ -45,7 +45,7 @@ function scheduleRecurringExport() {
  * Returns the closest matching command to what was provided.
  */
 function findClosestCommandMatch(command) {
-	const fuzzyResults = fuse.search(command);
+	const fuzzyResults = fuse.search(command.toLowerCase());
 	if (fuzzyResults.length !== 0) {
 		c.LOG.info(`1st: ${c.COMMANDS[fuzzyResults[0]]}, 2nd: ${c.COMMANDS[fuzzyResults[1]]}`);		
 		return c.COMMANDS[fuzzyResults[0]];
@@ -89,7 +89,7 @@ function handleCommand(message) {
 	}
 	function exportCalled () {
 		gambling.exportLedger();
-		games.exportTimeSheet();
+		games.exportTimeSheetAndGameHistory();
 	}
 	function catfactsCalled () {
 		util.catfacts(userID);
@@ -145,7 +145,7 @@ function handleCommand(message) {
 		games.askToPlayPUBG();		
 	}
 	function playingCalled () {
-		games.getAndOutputCountOfGamesBeingPlayed(message.guild.members.array(), userID);
+		games.maybeOutputCountOfGamesBeingPlayed(message.guild.members.array(), userID);
 		message.delete();
 	}
 	function gameHistoryCalled () {
@@ -234,8 +234,8 @@ function handleCommand(message) {
  */
 client.on('message', (message) => {
 	const firstChar = message.content.substring(0, 1);
-    //Scrub Daddy will listen for messages that will start with `!`
-    if (firstChar === '!') {
+    //Scrub Daddy will listen for messages that will start with `.`
+    if (firstChar === '.') {
 		handleCommand(message);
 	 } else if (isArrivedForDutyMessage(message)) {
 		gambling.maybeDeletePreviousMessage(message);
