@@ -11,15 +11,12 @@
     "fuse.js": "^3.2.0",
     "lebab": "^2.7.7",
     "lodash.get": "^4.4.2",
-    "mkdirp": "^0.5.1",
     "moment": "^2.19.1",
     "node-schedule": "^1.2.5",
     "opusscript": "0.0.4",
-    "pify": "^2.3.0",
     "request": "^2.69.0",
     "tinycolor2": "^1.4.1",
     "util-inspect": "^0.1.8",
-    "winston": "^2.3.1",
-    "yargs": "^4.3.2"
+    "winston": "^2.3.1"
   }
 }
