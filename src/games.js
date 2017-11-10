@@ -353,6 +353,10 @@ function waitAndSendScrubDaddyFact(attempts, seconds, userID) {
  * @param {String} userID - the ID of the user to opt in
  */
 exports.optIn = function(user, userID) {
+	if (optedInUsers.includes(userID)) {
+		util.sendEmbedMessage(`You are already opted-in ${user}`, `Pray I do not opt you in further.`, userID);
+		return;
+	}
 	optedInUsers.push(userID);
 	var fields = [];					
 	fields.push(util.buildField(user, '👀 I\'m watching you.'));
