@@ -115,6 +115,6 @@ define('NEW_LEDGER_ENTRY', {
 	totalDischarged: 0,  //total scrubs the user has !discharged
 	highestStreakWon: 0, //highest bet win streak for user
 	highestStreakLost: 0,//highest bet lose streak for user
-	StreakWon: 0,        //current bet win streak for user
-	StreakLost: 0        //current bet lose streak for user
+	streakWon: 0,        //current bet win streak for user
+	streakLost: 0        //current bet lose streak for user
 });
