@@ -243,7 +243,9 @@ client.on('message', (message) => {
 		handleCommand(message);
 	 } else if (isArrivedForDutyMessage(message)) {
 		gambling.maybeDeletePreviousMessage(message);
-	} 
+	} else if (firstChar === '!') {
+		util.sendEmbedMessage('The Command Prefix Has Changed', 'Use `*` for sb commands and `.` for all others.', message.author.id);
+	}
 });
 
 /**
