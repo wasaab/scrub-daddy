@@ -151,6 +151,9 @@ function handleCommand(message) {
 	function gameHistoryCalled () {
 		games.maybeOutputGameHistory(userID);		
 	}
+	function whoPlaysCalled() {
+		games.whoPlays(args, userID);
+	}
 	function timeCalled () {
 		games.maybeOutputTimePlayed(args, userID);		
 	}
@@ -213,6 +216,7 @@ function handleCommand(message) {
 		'p': pCalled,
 		'playing': playingCalled,
 		'game-history': gameHistoryCalled,
+		'who-plays': whoPlaysCalled,
 		'time': timeCalled,
 		'opt-in': optInCalled,
 		'vote': voteCalled,

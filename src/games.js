@@ -9,6 +9,7 @@ var bot = require('./bot.js');
 var util = require('./utilities.js');
 var optedInUsers = require('../optedIn.json');
 var timeSheet = require('../timeSheet.json');		//map of userID to gameToTimePlayed map for that user
+var gameToUserIDs = require('../whoPlays.json');
 
 var gameHistory = [];								//timestamped log of player counts for each game
 
@@ -20,12 +21,15 @@ exports.exportTimeSheetAndGameHistory = function() {
 	fs.writeFile('../timeSheet.json', json, 'utf8', util.log);
 
 	json = JSON.stringify(gameHistory);
-	fs.writeFile('../gameHistory.json', json, 'utf8', util.log);
+	fs.writeFile('gameHistory.json', json, 'utf8', util.log);
+
+	json = JSON.stringify(gameToUserIDs);
+	fs.writeFile('whoPlays.json', json, 'utf8', util.log);
 };
 
 exports.clearTimeSheet = function() {
 	timeSheet = {};
-	exports.exportTimeSheet();
+	exports.exportTimeSheetAndGameHistory();
 };
 
 /**
@@ -254,7 +258,7 @@ exports.maybeOutputTimePlayed = function(args, userID) {
 /**
  * Outputs history of game's player counts throughout the day if such a log exists.
  */
-exports.maybeOutputGameHistory = function (userID) {
+exports.maybeOutputGameHistory = function(userID) {
 	var previousTime = '';
 	gameHistory.sort((a, b) => (a.time.diff(b.time))); 	
 	gameHistory.forEach((gamesLog) => {
@@ -272,6 +276,39 @@ exports.maybeOutputGameHistory = function (userID) {
 		}
 	});
 };
+
+/**
+ * Outputs the users who play the provided game, as well as their recent playtime.
+ */
+exports.whoPlays = function(args, userID) {
+	const game = util.getTargetFromArgs(args, 1);
+	var usersWhoPlay = gameToUserIDs[game];
+	if (usersWhoPlay) {
+		var fields = [];					
+		usersWhoPlay.forEach((user) => {
+			fields.push(util.buildField(user.name, `${user.playtime.toFixed(2)} Hours Played`));
+		});
+		fields.sort(util.compareFieldValues);
+		util.sendEmbedFieldsMessage(`Users Who Play ${game}`, fields, userID);
+	} else {
+		util.sendEmbedMessage('Literally Nobody Plays That', 'We are all judging you now.', userID);
+	}
+};
+
+/**
+ * Updates the games played for the provided user.
+ */
+function updateWhoPlays(userID, user, game) {
+	var usersWhoPlay = gameToUserIDs[game];
+
+	if (!usersWhoPlay) {
+		usersWhoPlay = [{ id: userID, name: user, playtime: timeSheet[userID][game] }];
+	} else {
+		usersWhoPlay.push({ id: userID, name: user, playtime: timeSheet[userID][game] });
+	}
+
+	gameToUserIDs[game] = usersWhoPlay;
+}
 
 /**
  * Updates the time played for a game when the user finishes playing it.
@@ -315,6 +352,7 @@ exports.updateTimesheet = function(user, userID, oldGame, newGame) {
 	//finished playing a game
 	if (oldGame) {
 		gameToTime = getUpdatedGameToTime(gameToTime, user);
+		updateWhoPlays(userID, user, oldGame);
 	}
 	//started playing a game
 	if (newGame) {
