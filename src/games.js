@@ -1,5 +1,6 @@
 var Discord = require('discord.js');
 var inspect = require('util-inspect');
+var Fuse = require('fuse.js');
 var get = require('lodash.get');
 var fs = require('fs');
 var moment = require('moment');
@@ -9,7 +10,7 @@ var bot = require('./bot.js');
 var util = require('./utilities.js');
 var optedInUsers = require('../optedIn.json');
 var timeSheet = require('../timeSheet.json');		//map of userID to gameToTimePlayed map for that user
-var gameToUserIDs = require('../whoPlays.json');
+var gamesPlayed = require('../gamesPlayed.json');
 
 var gameHistory = [];								//timestamped log of player counts for each game
 
@@ -23,8 +24,8 @@ exports.exportTimeSheetAndGameHistory = function() {
 	json = JSON.stringify(gameHistory);
 	fs.writeFile('gameHistory.json', json, 'utf8', util.log);
 
-	json = JSON.stringify(gameToUserIDs);
-	fs.writeFile('whoPlays.json', json, 'utf8', util.log);
+	json = JSON.stringify(gamesPlayed);
+	fs.writeFile('gamesPlayed.json', json, 'utf8', util.log);
 };
 
 exports.clearTimeSheet = function() {
@@ -278,19 +279,35 @@ exports.maybeOutputGameHistory = function(userID) {
 };
 
 /**
+ * Gets the user data for the provided game.
+ * 
+ * @param {String} gameName - the game to find players of
+ */
+function getGameUserData(gameName, fuzzyThreshold) {
+	var options = c.WHO_PLAYS_FUZZY_OPTIONS;
+	options.threshold = fuzzyThreshold;
+	var fuse = new Fuse(gamesPlayed, options);
+	var result = fuse.search(gameName);
+	if (result.length === 0) {return {};} 
+
+	return result[0];
+}
+
+/**
  * Outputs the users who play the provided game, as well as their recent playtime.
  */
 exports.whoPlays = function(args, userID) {
 	const game = util.getTargetFromArgs(args, 1);
-	//Todo: Fuzzy match on game name. slightly different setup, i need to provide options to fuse.
-	var usersWhoPlay = gameToUserIDs[game];
+	const gameUserData = getGameUserData(game, 0.3);
+
+	var usersWhoPlay = gameUserData.users;
 	if (usersWhoPlay) {
 		var fields = [];					
 		usersWhoPlay.forEach((user) => {
 			fields.push(util.buildField(user.name, `${user.playtime.toFixed(2)} Hours Played`));
 		});
 		fields.sort(util.compareFieldValues);
-		util.sendEmbedFieldsMessage(`Users Who Play ${game}`, fields, userID);
+		util.sendEmbedFieldsMessage(`Users Who Play ${gameUserData.title}`, fields, userID);
 	} else {
 		util.sendEmbedMessage('Literally Nobody Plays That', 'We are all judging you now.', userID);
 	}
@@ -301,8 +318,9 @@ exports.whoPlays = function(args, userID) {
  */
 function updateWhoPlays(userID, user, game) {
 	if (!game) {return;}
-	var usersWhoPlay = gameToUserIDs[game];
-
+	const gameUserData = getGameUserData(game, 0);
+	var usersWhoPlay = gameUserData.users;
+	
 	if (!usersWhoPlay) {
 		usersWhoPlay = [{ id: userID, name: user, playtime: timeSheet[userID][game] }];
 	} else {
@@ -315,7 +333,16 @@ function updateWhoPlays(userID, user, game) {
 		}
 	}
 
-	gameToUserIDs[game] = usersWhoPlay;
+	const gameIdx = gamesPlayed.map((game) => game.title.toLowerCase()).indexOf(game.toLowerCase());
+	if (gameIdx === -1) {
+		gamesPlayed.push({
+			title: game,
+			users: usersWhoPlay
+		});
+	} else {
+		gamesPlayed[gameIdx].users = usersWhoPlay;
+	}
+
 }
 
 /**

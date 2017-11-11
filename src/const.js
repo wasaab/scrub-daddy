@@ -186,3 +186,12 @@ define('TIPS',
 define('COMMANDS', ['temp','issue','feature','implement','export','catfacts','army','stats','rank','ranks','clean','revive','discharge',
 	'enlist','join-review-team','leave-review-team','color','sb','add-sb','sb-add','update-readme','p','playing','game-history','who-plays',
 	'time','opt-in','vote','votekick','voteban','voteinfo','help','info','helpinfo']);
+define('WHO_PLAYS_FUZZY_OPTIONS', {
+	shouldSort: true,
+	threshold: 0.3,
+	location: 0,
+	distance: 100,
+	maxPatternLength: 32,
+	minMatchCharLength: 1,
+	keys: ["title"]
+});
