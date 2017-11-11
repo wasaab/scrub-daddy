@@ -289,3 +289,8 @@ exports.getPurgatory = () => purgatory;
 exports.getScrubIDToNick = () => scrubIDtoNick;
 exports.getClient = () => client;
 
+		//return the elements of the array that match your conditional
+		// var userEntry = usersWhoPlay.filter((player) => {return player.id === userID;});
+		//get index of a an object with a specific property value in an array.
+		//const userEntryIdx = usersWhoPlay.map((player) => player.id).indexOf(userID);
+		

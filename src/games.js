@@ -18,7 +18,7 @@ var gameHistory = [];								//timestamped log of player counts for each game
  */
 exports.exportTimeSheetAndGameHistory = function() {
 	var json = JSON.stringify(timeSheet);	
-	fs.writeFile('../timeSheet.json', json, 'utf8', util.log);
+	fs.writeFile('timeSheet.json', json, 'utf8', util.log);
 
 	json = JSON.stringify(gameHistory);
 	fs.writeFile('gameHistory.json', json, 'utf8', util.log);
@@ -282,6 +282,7 @@ exports.maybeOutputGameHistory = function(userID) {
  */
 exports.whoPlays = function(args, userID) {
 	const game = util.getTargetFromArgs(args, 1);
+	//Todo: Fuzzy match on game name. slightly different setup, i need to provide options to fuse.
 	var usersWhoPlay = gameToUserIDs[game];
 	if (usersWhoPlay) {
 		var fields = [];					
@@ -299,12 +300,19 @@ exports.whoPlays = function(args, userID) {
  * Updates the games played for the provided user.
  */
 function updateWhoPlays(userID, user, game) {
+	if (!game) {return;}
 	var usersWhoPlay = gameToUserIDs[game];
 
 	if (!usersWhoPlay) {
 		usersWhoPlay = [{ id: userID, name: user, playtime: timeSheet[userID][game] }];
 	} else {
-		usersWhoPlay.push({ id: userID, name: user, playtime: timeSheet[userID][game] });
+		const userEntryIdx = usersWhoPlay.map((player) => player.id).indexOf(userID);
+		const newEntry = { id: userID, name: user, playtime: timeSheet[userID][game]};
+		if (userEntryIdx === -1) {
+			usersWhoPlay.push(newEntry);			
+		} else {
+			usersWhoPlay.splice(userEntryIdx, 1, newEntry);			
+		}
 	}
 
 	gameToUserIDs[game] = usersWhoPlay;
@@ -352,7 +360,6 @@ exports.updateTimesheet = function(user, userID, oldGame, newGame) {
 	//finished playing a game
 	if (oldGame) {
 		gameToTime = getUpdatedGameToTime(gameToTime, user);
-		updateWhoPlays(userID, user, oldGame);
 	}
 	//started playing a game
 	if (newGame) {
@@ -363,6 +370,7 @@ exports.updateTimesheet = function(user, userID, oldGame, newGame) {
 	}
 	
 	timeSheet[userID] = gameToTime;
+	updateWhoPlays(userID, user, oldGame);		
 };
 
 /**
