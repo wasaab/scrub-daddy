@@ -1,18 +1,20 @@
 var Discord = require('discord.js');
 var inspect = require('util-inspect');
+var moment = require('moment');
 var Fuse = require('fuse.js');
+var open = require("open");
 var get = require('lodash.get');
 var fs = require('fs');
-var moment = require('moment');
+var cp = require("copy-paste");
 
 var c = require('./const.js');
 var bot = require('./bot.js');
 var util = require('./utilities.js');
 var optedInUsers = require('../optedIn.json');
-var timeSheet = require('../timeSheet.json');		//map of userID to gameToTimePlayed map for that user
 var gamesPlayed = require('../gamesPlayed.json');
+var timeSheet = require('../timeSheet.json');		//map of userID to gameToTimePlayed map for that user
 
-var gameHistory = [];								//timestamped log of player counts for each game
+var gameHistory = require('../gameHistory.json');								//timestamped log of player counts for each game
 
 /**
  * Exports the timesheet to a json file.
@@ -256,26 +258,59 @@ exports.maybeOutputTimePlayed = function(args, userID) {
     }
 };
 
+function moveImage() {
+	function getImageUrl() {
+		var url = cp.paste();
+		console.log('url: ' + url);
+		util.sendEmbedMessage('Player Count Heat Map', null, null, url);
+		fs.rename('C:/Users/clan_/Downloads/pics/heatmap.png', 'C:/Users/clan_/Downloads/oldPics/heatmap.png', util.log);		
+	}
+	fs.rename('C:/Users/clan_/Downloads/heatmap.png', 'C:/Users/clan_/Downloads/pics/heatmap.png', util.log);
+	setTimeout(getImageUrl, 3000);	
+}
+
+function writeHistoryToTsvFile(rawHistory) {
+	const firstLine = 'day	hour	value\n';
+	formattedHistory = firstLine;
+	rawHistory.forEach((log) => {
+		formattedHistory += `${log.day}	${log.hour}	${log.count}\n`;
+	});
+
+	if (formattedHistory !== firstLine) {
+		fs.writeFile('./graphs/test.tsv', formattedHistory, 'utf8', util.log);
+		open("C:/workspace/scrub-daddy/graphs/exportPretty.html", "C:/workspace/scrub-daddy/graphs/Google Chrome.lnk");
+		setTimeout(moveImage, 3000);
+	}		
+}
 /**
  * Outputs history of game's player counts throughout the day if such a log exists.
  */
 exports.maybeOutputGameHistory = function(userID) {
 	var previousTime = '';
-	gameHistory.sort((a, b) => (a.time.diff(b.time))); 	
+	gameHistory.sort((a, b) => (moment(a.time).diff(b.time))); 	
+	historyData = [];
 	gameHistory.forEach((gamesLog) => {
 		if (gamesLog.gameData) {
-			var time = gamesLog.time.format('ddd MMM Do, h:mm a');
-			if (time !== previousTime) {
+			var time = moment(gamesLog.time); //.format('ddd MMM Do, h:mm a');
+			if (time !== previousTime && time.minute() === 0) {
 				var fields = [];					
 				gamesLog.gameData.forEach((gameInfo) => {
 					fields.push(util.buildField(gameInfo.game, gameInfo.count));
 				});
+				
 				fields.sort(util.compareFieldValues);
-				util.sendEmbedFieldsMessage(`📕 Player Count - ${gamesLog.playerCount} - ${time}`, fields, userID);	
+				var day = time.day();
+				if (day === 0) {
+					day = 7;
+				}
+				const dataField = {day: day, hour: time.hour() + 1, count: gamesLog.playerCount};
+				historyData.push(dataField);
+				//util.sendEmbedFieldsMessage(`📕 Player Count - ${gamesLog.playerCount} - ${time}`, fields, userID);	
 				previousTime = time;			
 			}	
 		}
 	});
+	writeHistoryToTsvFile(historyData);	
 };
 
 /**
