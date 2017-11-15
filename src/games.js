@@ -10,11 +10,14 @@ var cp = require("copy-paste");
 var c = require('./const.js');
 var bot = require('./bot.js');
 var util = require('./utilities.js');
+var heatmap = require('./heatmap.js');
 var optedInUsers = require('../optedIn.json');
 var gamesPlayed = require('../gamesPlayed.json');
 var timeSheet = require('../timeSheet.json');		//map of userID to gameToTimePlayed map for that user
 
 var gameHistory = require('../gameHistory.json');								//timestamped log of player counts for each game
+var heatMapData = require('../heatMapData.json');
+var heatMapImgUrl = '';
 
 /**
  * Exports the timesheet to a json file.
@@ -52,6 +55,23 @@ function getGameNameAndTarget(args) {
 	}
 	const result = {game : game, target : target};
 	return result;
+}
+
+/**
+ * Updates the player count heat map.
+ */
+exports.updateHeatMap = function(logTime, playerCount) {
+	const heatMapField = {day: logTime.day(), hour: logTime.hour() + 1, count: playerCount};
+	heatMapData.push(heatMapField);
+	writeHistoryToTsvFile(heatMapData);	
+	var json = JSON.stringify(heatMapData);	
+	fs.writeFile('heatMapData.json', json, 'utf8', util.log);
+};
+
+exports.generateHeatMap = function() {
+	writeHistoryToTsvFile(heatMapData);
+	var json = JSON.stringify(heatMapData);	
+	fs.writeFile('heatMapData.json', json, 'utf8', util.log);
 }
 
 /**
@@ -99,7 +119,7 @@ exports.maybeOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
 		gamesLog.gameData.push(gameData);
 	}
 	gameHistory.push(gamesLog);
-	
+
 	var imageUrl = c.THUMBS_UP_GIF;
 	if (c.GAME_NAME_TO_IMG[winner]) {
 		imageUrl = c.GAME_NAME_TO_IMG[winner];
@@ -108,6 +128,8 @@ exports.maybeOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
 		util.sendEmbedMessage(`🏆 Winner - ${winner}`, null, userID, imageUrl);
 		fields.sort(util.compareFieldValues);
 		util.sendEmbedFieldsMessage(`🎮 Player Count - ${total}`, fields, userID);
+	} else {
+		updateHeatMap(time, playerCount);		
 	}
 };
 
@@ -258,16 +280,6 @@ exports.maybeOutputTimePlayed = function(args, userID) {
     }
 };
 
-function moveImage() {
-	function getImageUrl() {
-		var url = cp.paste();
-		console.log('url: ' + url);
-		util.sendEmbedMessage('Player Count Heat Map', null, null, url);
-		fs.rename('C:/Users/clan_/Downloads/pics/heatmap.png', 'C:/Users/clan_/Downloads/oldPics/heatmap.png', util.log);		
-	}
-	fs.rename('C:/Users/clan_/Downloads/heatmap.png', 'C:/Users/clan_/Downloads/pics/heatmap.png', util.log);
-	setTimeout(getImageUrl, 3000);	
-}
 
 function writeHistoryToTsvFile(rawHistory) {
 	const firstLine = 'day	hour	value\n';
@@ -278,39 +290,14 @@ function writeHistoryToTsvFile(rawHistory) {
 
 	if (formattedHistory !== firstLine) {
 		fs.writeFile('./graphs/test.tsv', formattedHistory, 'utf8', util.log);
-		open("C:/workspace/scrub-daddy/graphs/exportPretty.html", "C:/workspace/scrub-daddy/graphs/Google Chrome.lnk");
-		setTimeout(moveImage, 3000);
+		heatmap.generateHeatMap();
 	}		
 }
 /**
  * Outputs history of game's player counts throughout the day if such a log exists.
  */
 exports.maybeOutputGameHistory = function(userID) {
-	var previousTime = '';
-	gameHistory.sort((a, b) => (moment(a.time).diff(b.time))); 	
-	historyData = [];
-	gameHistory.forEach((gamesLog) => {
-		if (gamesLog.gameData) {
-			var time = moment(gamesLog.time); //.format('ddd MMM Do, h:mm a');
-			if (time !== previousTime && time.minute() === 0) {
-				var fields = [];					
-				gamesLog.gameData.forEach((gameInfo) => {
-					fields.push(util.buildField(gameInfo.game, gameInfo.count));
-				});
-				
-				fields.sort(util.compareFieldValues);
-				var day = time.day();
-				if (day === 0) {
-					day = 7;
-				}
-				const dataField = {day: day, hour: time.hour() + 1, count: gamesLog.playerCount};
-				historyData.push(dataField);
-				//util.sendEmbedFieldsMessage(`📕 Player Count - ${gamesLog.playerCount} - ${time}`, fields, userID);	
-				previousTime = time;			
-			}	
-		}
-	});
-	writeHistoryToTsvFile(historyData);	
+	util.sendEmbedMessage('Player Count Heat Map', null, null, heatmap.getUpdatedHeatMapUrl());
 };
 
 /**
@@ -481,3 +468,36 @@ exports.optIn = function(user, userID) {
 exports.askToPlayPUBG = function() {
 	bot.getScrubsChannel().send(`${c.SCRUBS_ROLE}  ${c.GREETINGS[util.getRand(0, c.GREETINGS.length)]} tryna play some ${c.PUBG_ALIASES[util.getRand(0, c.PUBG_ALIASES.length)]}?`);	
 };
+
+
+
+
+
+	// var previousTime = '';
+	// gameHistory.sort((a, b) => (moment(a.time).diff(b.time))); 	
+	// historyData = [];
+	// gameHistory.forEach((gamesLog) => {
+	// 	if (gamesLog.gameData) {
+	// 		var time = moment(gamesLog.time); //.format('ddd MMM Do, h:mm a');
+	// 		if (time !== previousTime && time.minute() === 0) {
+	// 			var fields = [];					
+	// 			gamesLog.gameData.forEach((gameInfo) => {
+	// 				fields.push(util.buildField(gameInfo.game, gameInfo.count));
+	// 			});
+				
+	// 			fields.sort(util.compareFieldValues);
+	// 			var day = time.day();
+	// 			if (day === 0) {
+	// 				day = 7;
+	// 			}
+	// 			const dataField = {day: day, hour: time.hour() + 1, count: gamesLog.playerCount};
+	// 			heatMapData.push(dataField);
+	// 			//util.sendEmbedFieldsMessage(`📕 Player Count - ${gamesLog.playerCount} - ${time}`, fields, userID);	
+	// 			previousTime = time;			
+	// 		}	
+	// 	}
+	// });
+	// console.log('data: ' + inspect(heatMapData));
+	// writeHistoryToTsvFile(heatMapData);	
+	// var json = JSON.stringify(heatMapData);	
+	// fs.writeFile('heatMapData.jso@scn', json, 'utf8', util.log);

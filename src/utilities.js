@@ -322,10 +322,13 @@ exports.scheduleRecurringJobs = function() {
 		});
 	});		
 
-	schedule.scheduleJob('*/30 * * * *', function(){
+	var gameHistoryRule = new schedule.RecurrenceRule();
+	gameHistoryRule.minute = 0;
+	
+	schedule.scheduleJob(gameHistoryRule, function(){
 		var members = bot.getClient().guilds.find('id', c.SERVER_ID).members;
 		games.maybeOutputCountOfGamesBeingPlayed(members, c.SCRUB_DADDY_ID);
-	});		
+	});	
 };
 
 /**

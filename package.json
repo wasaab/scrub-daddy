@@ -11,6 +11,8 @@
     "discord.js": "git+https://github.com/hydrabolt/discord.js.git#master",
     "ffmpeg-binaries": "^3.2.2-3",
     "fuse.js": "^3.2.0",
+    "imgur": "^0.2.1",
+    "jsdom": "^11.3.0",
     "lebab": "^2.7.7",
     "lodash.get": "^4.4.2",
     "moment": "^2.19.1",
@@ -19,8 +21,10 @@
     "opusscript": "0.0.4",
     "pify": "^3.0.0",
     "request": "^2.69.0",
+    "svg-to-png": "^3.1.2",
     "tinycolor2": "^1.4.1",
     "util-inspect": "^0.1.8",
-    "winston": "^2.3.1"
+    "winston": "^2.3.1",
+    "xmlserializer": "^0.6.0"
   }
 }
