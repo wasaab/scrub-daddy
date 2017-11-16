@@ -148,8 +148,8 @@ function handleCommand(message) {
 		games.maybeOutputCountOfGamesBeingPlayed(message.guild.members.array(), userID);
 		message.delete();
 	}
-	function gameHistoryCalled () {
-		games.maybeOutputGameHistory(userID);		
+	function heatmapCalled () {
+		games.maybeOutputHeatMap(userID);		
 	}
 	function genHeatMapCalled() {
 		if (userID === c.K_ID) {
@@ -220,7 +220,7 @@ function handleCommand(message) {
 		'update-readme': updateReadmeCalled,
 		'p': pCalled,
 		'playing': playingCalled,
-		'game-history': gameHistoryCalled,
+		'heatmap': heatmapCalled,
 		'gen-heatmap': genHeatMapCalled,
 		'who-plays': whoPlaysCalled,
 		'time': timeCalled,

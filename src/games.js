@@ -294,9 +294,9 @@ function writeHistoryToTsvFile(rawHistory) {
 	}		
 }
 /**
- * Outputs history of game's player counts throughout the day if such a log exists.
+ * Outputs heatmap of game's player counts throughout the day if such a log exists.
  */
-exports.maybeOutputGameHistory = function(userID) {
+exports.maybeOutputHeatMap = function(userID) {
 	util.sendEmbedMessage('Player Count Heat Map', null, null, heatmap.getUpdatedHeatMapUrl());
 };
 

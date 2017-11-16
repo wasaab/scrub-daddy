@@ -184,7 +184,7 @@ define('TIPS',
 	}
 ]);
 define('COMMANDS', ['temp','issue','feature','implement','export','catfacts','army','stats','rank','ranks','clean','revive','discharge',
-	'enlist','join-review-team','leave-review-team','color','sb','add-sb','sb-add','update-readme','p','playing','game-history','gen-heatmap','who-plays',
+	'enlist','join-review-team','leave-review-team','color','sb','add-sb','sb-add','update-readme','p','playing','heatmap','gen-heatmap','who-plays',
 	'time','opt-in','vote','votekick','voteban','voteinfo','help','info','helpinfo']);
 define('WHO_PLAYS_FUZZY_OPTIONS', {
 	shouldSort: true,
