@@ -98,7 +98,7 @@ function writeSvgToFile() {
             c.LOG.info(`<API RESPONSE> ${util.getTimestamp()}  ${inspect(response)}`);
         }
     });  
-    setTimeout(convertSvgToPng, 1000);
+    setTimeout(convertSvgToPng, 4000);
 }
 
 var heatmapChart = function (tsvFile) {
