@@ -79,20 +79,21 @@ function saveSvg() {
             c.LOG.info(`<API ERROR> ${exports.getTimestamp()}  ERROR: ${error}`);			
         } else if (response) {
             c.LOG.info(`<API RESPONSE> ${exports.getTimestamp()}  ${inspect(response)}`);
+
+            svg_to_png.convert(path.join(__dirname.slice(0, -4), 'heatMap.svg'), path.join(__dirname.slice(0, -4), 'heatOutput.png'))
+            .then(() => {
+                console.log('png created: ' + fs.existsSync( path.join( __dirname.slice(0, -4), "heatOutput.png")));
+                imgur.uploadFile('./*.png/*.png')
+                .then(function (json) {
+                    console.log(json.data.link);
+                    imgUrl = json.data.link;
+                })
+                .catch(function (err) {
+                    console.error(err.message);
+                });
+            });
         }
     });    
-    svg_to_png.convert(path.join(__dirname.slice(0, -4), 'heatMap.svg'), path.join(__dirname.slice(0, -4), 'heatOutput.png'))
-    .then(() => {
-        console.log('png created: ' + fs.existsSync( path.join( __dirname.slice(0, -4), "heatOutput.png")));
-        imgur.uploadFile('./*.png/*.png')
-        .then(function (json) {
-            console.log(json.data.link);
-            imgUrl = json.data.link;
-        })
-        .catch(function (err) {
-            console.error(err.message);
-        });
-    });
 }
 
 var heatmapChart = function (tsvFile) {
