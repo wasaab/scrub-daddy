@@ -98,12 +98,11 @@ function writeSvgToFile() {
             c.LOG.info(`<API RESPONSE> ${util.getTimestamp()}  ${inspect(response)}`);
         }
     });  
-    setTimeout(convertSvgToPng, 4000);
+    setTimeout(convertSvgToPng, 1000);
 }
 
 var heatmapChart = function (tsvFile) {
-    const filePath = path.join(__dirname.split('src')[0], 'graphs', 'test.tsv');
-    c.LOG.info(`<INFO> ${util.getTimestamp()} filePath: ${filePath} dirname: ${__dirname}`);
+    const filePath = path.join(__dirname.slice(3, -4), 'graphs', 'test.tsv');
     d3.tsv(`file:///${filePath}`,
         function (d) {
             return {

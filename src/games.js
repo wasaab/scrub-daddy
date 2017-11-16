@@ -2,7 +2,6 @@ var Discord = require('discord.js');
 var inspect = require('util-inspect');
 var moment = require('moment');
 var Fuse = require('fuse.js');
-var open = require("open");
 var get = require('lodash.get');
 var fs = require('fs');
 var cp = require("copy-paste");
@@ -288,8 +287,8 @@ function writeHistoryToTsvFile(rawHistory) {
 		formattedHistory += `${log.day}	${log.hour}	${log.count}\n`;
 	});
 
-	if (formattedHistory !== firstLine) {
-		fs.writeFile('./graphs/test.tsv', formattedHistory, 'utf8', util.log);
+	if (formattedHistory !== firstLine) {		
+		fs.writeFile('../graphs/test.tsv', formattedHistory, 'utf8', util.log);
 		heatmap.generateHeatMap();
 	}		
 }
