@@ -103,6 +103,7 @@ function writeSvgToFile() {
 
 var heatmapChart = function (tsvFile) {
     const filePath = path.join(__dirname.split('src')[0], 'graphs', 'test.tsv');
+    c.LOG.info(`<INFO> ${util.getTimestamp()} filePath: ${filePath} dirname: ${__dirname}`);
     d3.tsv(`file:///${filePath}`,
         function (d) {
             return {
