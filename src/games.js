@@ -60,7 +60,7 @@ function getGameNameAndTarget(args) {
 /**
  * Updates the player count heat map.
  */
-exports.updateHeatMap = function(logTime, playerCount) {
+function updateHeatMap(logTime, playerCount) {
 	const heatMapField = {day: logTime.day(), hour: logTime.hour() + 1, count: playerCount};
 	heatMapData.push(heatMapField);
 	writeHistoryToTsvFile(heatMapData);	
@@ -129,7 +129,7 @@ exports.maybeOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
 		fields.sort(util.compareFieldValues);
 		util.sendEmbedFieldsMessage(`🎮 Player Count - ${total}`, fields, userID);
 	} else {
-		updateHeatMap(time, playerCount);		
+		updateHeatMap(time, total);		
 	}
 };
 

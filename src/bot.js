@@ -245,7 +245,7 @@ function handleCommand(message) {
 client.on('message', (message) => {
 	const firstChar = message.content.substring(0, 1);
     //Scrub Daddy will listen for messages that will start with `.`
-    if (firstChar === '-') {
+    if (firstChar === '.') {
 		handleCommand(message);
 	 } else if (isArrivedForDutyMessage(message)) {
 		gambling.maybeDeletePreviousMessage(message);
