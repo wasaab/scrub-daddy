@@ -33,10 +33,11 @@ function isArrivedForDutyMessage(message) {
 			&& message.channel.id === c.BOT_SPAM_CHANNEL_ID;
 }
 
-function scheduleRecurringExport() {
+function scheduleRecurringExportAndVCScan() {
 	(function(){
 		games.exportTimeSheetAndGameHistory();
 		gambling.exportLedger();		
+		games.maybeUpdateChannelNames(client.channels);
 		setTimeout(arguments.callee, 60000);
 	})();
 }
@@ -258,8 +259,15 @@ client.on('message', (message) => {
  * listens for updates to a user's presence (online status, game, etc).
  */
 client.on('presenceUpdate', (oldMember, newMember) => { 
-	games.updateTimesheet(newMember.displayName, newMember.id, get(oldMember, 'presence.activity.name'), get(newMember, 'presence.activity.name'));
-	gambling.maybeDischargeScrubBubble(botSpam);
+	const oldGame = get(oldMember, 'presence.activity.name');
+	const newGame = get(newMember, 'presence.activity.name');
+	
+	//ignore presence updates for bots and online status changes
+	if (!newMember.user.bot && oldGame !== newGame) {
+		games.maybeUpdateNickname(newMember, newGame);	
+		games.updateTimesheet(newMember.displayName, newMember.id, oldGame, newGame);
+		gambling.maybeDischargeScrubBubble(botSpam);
+	}
 });
 
 /**
@@ -286,7 +294,8 @@ client.on('ready', () => {
 	purgatory = client.channels.find('id', c.PURGATORY_CHANNEL_ID);	
 	
 	util.scheduleRecurringJobs();
-	scheduleRecurringExport();	
+	games.setDynamicGameChannels(client.channels);
+	scheduleRecurringExportAndVCScan();	
 });
 
 exports.getBotSpam = () => botSpam;

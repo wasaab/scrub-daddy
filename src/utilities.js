@@ -307,10 +307,15 @@ exports.scheduleRecurringJobs = function() {
 	schedule.scheduleJob(clearTimeSheetRule, function(){
 	  games.clearTimeSheet();
 	});
-	
+
+	var heatMapAndTipRule = new schedule.RecurrenceRule();
+	heatMapAndTipRule.minute = 0;
 	firstRun = true;
-	//tips
-	schedule.scheduleJob('*/60 * * * *', function(){
+	
+	schedule.scheduleJob(heatMapAndTipRule, function(){
+		var members = bot.getClient().guilds.find('id', c.SERVER_ID).members;
+		games.maybeOutputCountOfGamesBeingPlayed(members, c.SCRUB_DADDY_ID);
+
 		if (!firstRun) { 
 			previousTip.delete();						
 		}
@@ -320,14 +325,6 @@ exports.scheduleRecurringJobs = function() {
 		.then((message) => {
 			previousTip = message;
 		});
-	});		
-
-	var gameHistoryRule = new schedule.RecurrenceRule();
-	gameHistoryRule.minute = 0;
-	
-	schedule.scheduleJob(gameHistoryRule, function(){
-		var members = bot.getClient().guilds.find('id', c.SERVER_ID).members;
-		games.maybeOutputCountOfGamesBeingPlayed(members, c.SCRUB_DADDY_ID);
 	});	
 };
 

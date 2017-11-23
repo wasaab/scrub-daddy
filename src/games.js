@@ -13,10 +13,11 @@ var heatmap = require('./heatmap.js');
 var optedInUsers = require('../optedIn.json');
 var gamesPlayed = require('../gamesPlayed.json');
 var timeSheet = require('../timeSheet.json');		//map of userID to gameToTimePlayed map for that user
-
-var gameHistory = require('../gameHistory.json');								//timestamped log of player counts for each game
-var heatMapData = require('../heatMapData.json');
+var gameHistory = require('../gameHistory.json');	//timestamped log of player counts for each game
+//Heat map data for every day-hour combo.
+var heatMapData = require('../heatMapData.json'); //[[],[],[],[],[],[],[]] 0 = Sunday, 6 = Saturday
 var heatMapImgUrl = '';
+var gameChannels = [];
 
 /**
  * Exports the timesheet to a json file.
@@ -60,15 +61,21 @@ function getGameNameAndTarget(args) {
  * Updates the player count heat map.
  */
 function updateHeatMap(logTime, playerCount) {
-	const heatMapField = {day: logTime.day(), hour: logTime.hour() + 1, count: playerCount};
-	heatMapData.push(heatMapField);
-	writeHistoryToTsvFile(heatMapData);	
+	const dayHourData = heatMapData[logTime.day()][logTime.hour()] || {};
+	const count = dayHourData.playerCount || 0;
+	const size = dayHourData.sampleSize || 0;
+	heatMapData[logTime.day()][logTime.hour()] = {
+		playerCount: count + playerCount, 
+		sampleSize: size + 1
+	};
+	
+	writeHeatMapDataToTsvFile();	
 	var json = JSON.stringify(heatMapData);	
 	fs.writeFile('heatMapData.json', json, 'utf8', util.log);
 };
 
 exports.generateHeatMap = function() {
-	writeHistoryToTsvFile(heatMapData);
+	writeHeatMapDataToTsvFile();
 	var json = JSON.stringify(heatMapData);	
 	fs.writeFile('heatMapData.json', json, 'utf8', util.log);
 }
@@ -279,19 +286,30 @@ exports.maybeOutputTimePlayed = function(args, userID) {
     }
 };
 
-
-function writeHistoryToTsvFile(rawHistory) {
+/**
+ * Writes the heat map data to a tsv file.
+ */
+function writeHeatMapDataToTsvFile() {
 	const firstLine = 'day	hour	value\n';
 	formattedHistory = firstLine;
-	rawHistory.forEach((log) => {
-		formattedHistory += `${log.day}	${log.hour}	${log.count}\n`;
+
+	heatMapAverages.forEach((day, dayIdx) => {
+		day.forEach((hour, hourIdx) => {
+			const avgCount = Math.round(hour.playerCount / hour.sampleSize);
+			//convert from moment's day format to graph's day format
+			if (dayIdx === 0) {
+				dayIdx = 7;
+			}
+			formattedHistory += `${dayIdx}	${hourIdx}	${avgCount}\n`;
+		});
 	});
 
 	if (formattedHistory !== firstLine) {		
-		fs.writeFile('../graphs/test.tsv', formattedHistory, 'utf8', util.log);
+		fs.writeFile('./graphs/test.tsv', formattedHistory, 'utf8', util.log);
 		heatmap.generateHeatMap();
 	}		
 }
+
 /**
  * Outputs heatmap of game's player counts throughout the day if such a log exists.
  */
@@ -395,8 +413,6 @@ function getUpdatedGameToTime(gameToTime, userName) {
  * @param {Object} game 
  */
 exports.updateTimesheet = function(user, userID, oldGame, newGame) {
-	//ignore presence updates for bots and online status changes
-	if (c.BOT_IDS.indexOf(userID) > -1 || oldGame === newGame) { return; }
 	c.LOG.info(`<INFO> Presence Update - ${user} id: ${userID} old game: ${oldGame} new game: ${newGame}`);
 	
 	//get user's timesheet
@@ -468,35 +484,99 @@ exports.askToPlayPUBG = function() {
 	bot.getScrubsChannel().send(`${c.SCRUBS_ROLE}  ${c.GREETINGS[util.getRand(0, c.GREETINGS.length)]} tryna play some ${c.PUBG_ALIASES[util.getRand(0, c.PUBG_ALIASES.length)]}?`);	
 };
 
+/**
+ * Determines what game the majority of the users are playing 
+ * in the provided voice channel.
+ * 
+ * @param {Obejct} voiceChannel - the voice channel to find the majority game for.
+ */
+function determineMajorityGame(voiceChannel) {
+	//console.log('vC: ' + inspect(voiceChannel));
+	const majority = voiceChannel.members.size / 2;	
+	var gameToCount = {};	
+	var result = null;			
+	voiceChannel.members.some((member) => {
+		const game = get(member, 'presence.activity.name');
+		if (game) {
+			if (!gameToCount[game]) {
+				gameToCount[game] = 1;
+			} else {
+				gameToCount[game]++;
+			}
+			if (gameToCount[game] > majority) {
+				game.indexOf( 'B' ) == 0 ? result = game.replace( 'B', '🅱️' ) : game; 
+				return true;
+			}
+		}
+	});
+	return result;
+}
 
+/**
+ * Sets the provided channel's name back to its default.
+ * 
+ * @param {Object} voiceChannel - the voice channel to reset the name of
+ */
+function resetChannelName(voiceChannel) {
+	const defaultName = c.GAME_CHANNEL_NAMES[voiceChannel.id];
+	if (voiceChannel.name !== defaultName) {
+		voiceChannel.setName(defaultName);
+	}
+}
 
+/**
+ * Updates the dynamic voice channel names if the majority is playing a game.
+ * 
+ * @param {Object[]} channels - the server's channels
+ */
+exports.maybeUpdateChannelNames = function(channels) {
+	gameChannels.forEach((channel) => {
+		if (channel.members.length !== 0) {
+			const majorityGame = determineMajorityGame(channel);
+			if (majorityGame) {
+				channel.setName(`▶ ${majorityGame}`);
+			} else {
+				resetChannelName(channel);
+			}
+		} else {
+			resetChannelName(channel);
+		}
+	});
+}
 
+/**
+ * Populates the array of dynamic voice channels.
+ * 
+ * @param {Object[]} channels - the server's channels
+ */
+exports.setDynamicGameChannels = function(channels) {
+	Object.keys(c.GAME_CHANNEL_NAMES).forEach((channelID) => {
+		gameChannels.push(channels.find('id', channelID));	
+	});	
+};
 
-	// var previousTime = '';
-	// gameHistory.sort((a, b) => (moment(a.time).diff(b.time))); 	
-	// historyData = [];
-	// gameHistory.forEach((gamesLog) => {
-	// 	if (gamesLog.gameData) {
-	// 		var time = moment(gamesLog.time); //.format('ddd MMM Do, h:mm a');
-	// 		if (time !== previousTime && time.minute() === 0) {
-	// 			var fields = [];					
-	// 			gamesLog.gameData.forEach((gameInfo) => {
-	// 				fields.push(util.buildField(gameInfo.game, gameInfo.count));
-	// 			});
-				
-	// 			fields.sort(util.compareFieldValues);
-	// 			var day = time.day();
-	// 			if (day === 0) {
-	// 				day = 7;
-	// 			}
-	// 			const dataField = {day: day, hour: time.hour() + 1, count: gamesLog.playerCount};
-	// 			heatMapData.push(dataField);
-	// 			//util.sendEmbedFieldsMessage(`📕 Player Count - ${gamesLog.playerCount} - ${time}`, fields, userID);	
-	// 			previousTime = time;			
-	// 		}	
-	// 	}
-	// });
-	// console.log('data: ' + inspect(heatMapData));
-	// writeHistoryToTsvFile(heatMapData);	
-	// var json = JSON.stringify(heatMapData);	
-	// fs.writeFile('heatMapData.jso@scn', json, 'utf8', util.log);
+/**
+ * Updates the provided users nickname to contain the game they
+ * just started playing.
+ * 
+ * @param {Object} member - the member to update name of
+ * @param {String} game - the game they are playing
+ */
+exports.maybeUpdateNickname = function(member, game) {
+	const nameTokens = member.displayName.split(' ▫ ');	
+	if (game) {
+		const gameTokens = game.split(' ');
+		var nick = `${nameTokens[0]} ▫ `;
+		gameTokens.forEach((token) => {
+			const firstChar = token[0];
+			nick += c.ENCLOSED_CHARS[firstChar] || firstChar;
+		});
+		member.setNickname(nick);
+		console.log('nick: ' + member.displayName);		
+	} else {
+		if (nameTokens[1]) {
+			member.setNickname(nameTokens[0]);
+			console.log('nick: ' + member.displayName);
+		}
+	}
+};

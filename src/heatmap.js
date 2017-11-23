@@ -137,7 +137,7 @@ var heatmapChart = function (tsvFile) {
 
             cards.enter().append("rect")
                 .attr("x", function (d) {
-                    return (d.hour - 1) * gridSize;
+                    return (d.hour) * gridSize;
                 })
                 .attr("y", function (d) {
                     return (d.day - 1) * gridSize;

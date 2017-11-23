@@ -1,1 +1,636 @@
-[{"day":6,"hour":19,"count":5},{"day":6,"hour":20,"count":5},{"day":6,"hour":21,"count":6},{"day":6,"hour":22,"count":5},{"day":6,"hour":23,"count":6},{"day":6,"hour":24,"count":5},{"day":7,"hour":1,"count":5},{"day":7,"hour":2,"count":6},{"day":7,"hour":3,"count":3},{"day":7,"hour":4,"count":3},{"day":7,"hour":5,"count":2},{"day":7,"hour":6,"count":2},{"day":7,"hour":7,"count":2},{"day":7,"hour":8,"count":1},{"day":7,"hour":9,"count":1},{"day":7,"hour":10,"count":2},{"day":7,"hour":11,"count":1},{"day":7,"hour":12,"count":3},{"day":7,"hour":13,"count":4},{"day":7,"hour":14,"count":5},{"day":7,"hour":15,"count":6},{"day":7,"hour":16,"count":4},{"day":7,"hour":17,"count":3},{"day":7,"hour":18,"count":4},{"day":7,"hour":19,"count":3},{"day":7,"hour":20,"count":3},{"day":7,"hour":21,"count":7},{"day":7,"hour":22,"count":8},{"day":7,"hour":23,"count":6},{"day":7,"hour":24,"count":4},{"day":1,"hour":1,"count":3},{"day":1,"hour":2,"count":5},{"day":1,"hour":3,"count":4},{"day":1,"hour":4,"count":3},{"day":1,"hour":5,"count":1},{"day":1,"hour":6,"count":1},{"day":1,"hour":7,"count":1},{"day":1,"hour":8,"count":0},{"day":1,"hour":9,"count":1},{"day":1,"hour":10,"count":0},{"day":1,"hour":11,"count":1},{"day":1,"hour":12,"count":1},{"day":1,"hour":13,"count":1},{"day":1,"hour":14,"count":0},{"day":1,"hour":15,"count":1},{"day":1,"hour":16,"count":0},{"day":1,"hour":17,"count":0},{"day":1,"hour":18,"count":1},{"day":1,"hour":19,"count":3},{"day":1,"hour":20,"count":7},{"day":1,"hour":21,"count":7},{"day":6,"hour":19,"count":5},{"day":6,"hour":20,"count":5},{"day":6,"hour":21,"count":6},{"day":6,"hour":22,"count":5},{"day":6,"hour":23,"count":6},{"day":6,"hour":24,"count":5},{"day":7,"hour":1,"count":5},{"day":7,"hour":2,"count":6},{"day":7,"hour":3,"count":3},{"day":7,"hour":4,"count":3},{"day":7,"hour":5,"count":2},{"day":7,"hour":6,"count":2},{"day":7,"hour":7,"count":2},{"day":7,"hour":8,"count":1},{"day":7,"hour":9,"count":1},{"day":7,"hour":10,"count":2},{"day":7,"hour":11,"count":1},{"day":7,"hour":12,"count":3},{"day":7,"hour":13,"count":4},{"day":7,"hour":14,"count":5},{"day":7,"hour":15,"count":6},{"day":7,"hour":16,"count":4},{"day":7,"hour":17,"count":3},{"day":7,"hour":18,"count":4},{"day":7,"hour":19,"count":3},{"day":7,"hour":20,"count":3},{"day":7,"hour":21,"count":7},{"day":7,"hour":22,"count":8},{"day":7,"hour":23,"count":6},{"day":7,"hour":24,"count":4},{"day":1,"hour":1,"count":3},{"day":1,"hour":2,"count":5},{"day":1,"hour":3,"count":4},{"day":1,"hour":4,"count":3},{"day":1,"hour":5,"count":1},{"day":1,"hour":6,"count":1},{"day":1,"hour":7,"count":1},{"day":1,"hour":8,"count":0},{"day":1,"hour":9,"count":1},{"day":1,"hour":10,"count":0},{"day":1,"hour":11,"count":1},{"day":1,"hour":12,"count":1},{"day":1,"hour":13,"count":1},{"day":1,"hour":14,"count":0},{"day":1,"hour":15,"count":1},{"day":1,"hour":16,"count":0},{"day":1,"hour":17,"count":0},{"day":1,"hour":18,"count":1},{"day":1,"hour":19,"count":3},{"day":1,"hour":20,"count":7},{"day":1,"hour":21,"count":7},{"day":1,"hour":22,"count":8},{"day":1,"hour":23,"count":9},{"day":1,"hour":24,"count":5},{"day":6,"hour":19,"count":5},{"day":6,"hour":20,"count":5},{"day":6,"hour":21,"count":6},{"day":6,"hour":22,"count":5},{"day":6,"hour":23,"count":6},{"day":6,"hour":24,"count":5},{"day":7,"hour":1,"count":5},{"day":7,"hour":2,"count":6},{"day":7,"hour":3,"count":3},{"day":7,"hour":4,"count":3},{"day":7,"hour":5,"count":2},{"day":7,"hour":6,"count":2},{"day":7,"hour":7,"count":2},{"day":7,"hour":8,"count":1},{"day":7,"hour":9,"count":1},{"day":7,"hour":10,"count":2},{"day":7,"hour":11,"count":1},{"day":7,"hour":12,"count":3},{"day":7,"hour":13,"count":4},{"day":7,"hour":14,"count":5},{"day":7,"hour":15,"count":6},{"day":7,"hour":16,"count":4},{"day":7,"hour":17,"count":3},{"day":7,"hour":18,"count":4},{"day":7,"hour":19,"count":3},{"day":7,"hour":20,"count":3},{"day":7,"hour":21,"count":7},{"day":7,"hour":22,"count":8},{"day":7,"hour":23,"count":6},{"day":7,"hour":24,"count":4},{"day":1,"hour":1,"count":3},{"day":1,"hour":2,"count":5},{"day":1,"hour":3,"count":4},{"day":1,"hour":4,"count":3},{"day":1,"hour":5,"count":1},{"day":1,"hour":6,"count":1},{"day":1,"hour":7,"count":1},{"day":1,"hour":8,"count":0},{"day":1,"hour":9,"count":1},{"day":1,"hour":10,"count":0},{"day":1,"hour":11,"count":1},{"day":1,"hour":12,"count":1},{"day":1,"hour":13,"count":1},{"day":1,"hour":14,"count":0},{"day":1,"hour":15,"count":1},{"day":1,"hour":16,"count":0},{"day":1,"hour":17,"count":0},{"day":1,"hour":18,"count":1},{"day":1,"hour":19,"count":3},{"day":1,"hour":20,"count":7},{"day":1,"hour":21,"count":7},{"day":1,"hour":22,"count":8},{"day":1,"hour":23,"count":9},{"day":1,"hour":24,"count":5},{"day":2,"hour":1,"count":5},{"day":2,"hour":2,"count":6},{"day":2,"hour":3,"count":4},{"day":2,"hour":4,"count":3},{"day":2,"hour":5,"count":3},{"day":2,"hour":6,"count":3},{"day":2,"hour":7,"count":3},{"day":2,"hour":8,"count":4},{"day":2,"hour":9,"count":4},{"day":2,"hour":10,"count":5},{"day":2,"hour":11,"count":4},{"day":2,"hour":12,"count":4},{"day":2,"hour":13,"count":3},{"day":2,"hour":14,"count":3},{"day":2,"hour":15,"count":3},{"day":2,"hour":16,"count":1},{"day":2,"hour":17,"count":1},{"day":2,"hour":18,"count":2},{"day":2,"hour":19,"count":5},{"day":2,"hour":20,"count":5},{"day":3,"hour":21,"count":1}]
+[
+    [
+        {
+            "playerCount": 27,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 21,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 15,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 12,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 6,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 6,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 0,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 0,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 3
+        }
+    ],
+    [
+        {
+            "playerCount": 9,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 15,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 12,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 9,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 0,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 0,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 0,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 0,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 0,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 9,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 21,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 21,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 16,
+            "sampleSize": 2
+        },
+        {
+            "playerCount": 18,
+            "sampleSize": 2
+        },
+        {
+            "playerCount": 10,
+            "sampleSize": 2
+        }
+    ],
+    [
+        {
+            "playerCount": 5,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 6,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 4,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 4,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 4,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 5,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 4,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 4,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 6,
+            "sampleSize": 2
+        },
+        {
+            "playerCount": 6,
+            "sampleSize": 2
+        },
+        {
+            "playerCount": 6,
+            "sampleSize": 2
+        },
+        {
+            "playerCount": 10,
+            "sampleSize": 2
+        },
+        {
+            "playerCount": 14,
+            "sampleSize": 2
+        },
+        {
+            "playerCount": 13,
+            "sampleSize": 2
+        },
+        {
+            "playerCount": 9,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 11,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 9,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 10,
+            "sampleSize": 1
+        }
+    ],
+    [
+        {
+            "playerCount": 6,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 9,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 6,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 2,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 1,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 0,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 0,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 0,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 0,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 0,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 1,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 0,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 1,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 0,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 4,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 5,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 6,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 7,
+            "sampleSize": 2
+        },
+        {
+            "playerCount": 8,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 8,
+            "sampleSize": 2
+        },
+        {
+            "playerCount": 7,
+            "sampleSize": 1
+        }
+    ],
+    [
+        {
+            "playerCount": 5,
+            "sampleSize": 2
+        },
+        {
+            "playerCount": 6,
+            "sampleSize": 2
+        },
+        {
+            "playerCount": 5,
+            "sampleSize": 2
+        },
+        {
+            "playerCount": 5,
+            "sampleSize": 2
+        },
+        {
+            "playerCount": 4,
+            "sampleSize": 2
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 2
+        },
+        {
+            "playerCount": 6,
+            "sampleSize": 2
+        },
+        {
+            "playerCount": 5,
+            "sampleSize": 2
+        },
+        {
+            "playerCount": 5,
+            "sampleSize": 2
+        },
+        {
+            "playerCount": 6,
+            "sampleSize": 2
+        },
+        {
+            "playerCount": 4,
+            "sampleSize": 2
+        },
+        {
+            "playerCount": 2,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 2,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 2,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 4,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 6,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 6,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 8,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 9,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 9,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 7,
+            "sampleSize": 1
+        }
+    ],
+    [
+        {
+            "playerCount": 5,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 5,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 5,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 4,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 2,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 2,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 1,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 1,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 1,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 2,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 1,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 1,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 1,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 1,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 2,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 2,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 2,
+            "sampleSize": 1
+        },
+        {
+            "playerCount": 6,
+            "sampleSize": 2
+        },
+        {
+            "playerCount": 8,
+            "sampleSize": 2
+        },
+        {
+            "playerCount": 14,
+            "sampleSize": 2
+        },
+        {
+            "playerCount": 21,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 12,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 18,
+            "sampleSize": 3
+        }
+    ],
+    [
+        {
+            "playerCount": 18,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 21,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 21,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 9,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 6,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 9,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 15,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 21,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 3,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 21,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 24,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 15,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 15,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 18,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 15,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 18,
+            "sampleSize": 3
+        },
+        {
+            "playerCount": 15,
+            "sampleSize": 3
+        }
+    ]
+]

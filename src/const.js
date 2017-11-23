@@ -59,9 +59,17 @@ define('CHANNEL_ID_TO_BAN_ROLE_ID',{
 	'370625345138720809' : '370747704621662218',	        //D. Va licious
 	'370626021227233290' : '370748388578295808',	        //Spazzy's Scrub Shack
 	'370625671833190400' : '370747928400232448',	        //Cartoon Network
-	'370625623736975372' : '370748471835230209',	        //The League
+	'378656154726957067' : '370748471835230209',	        //The League
 	'370626139972042752' : '370747759130705922'	        	//They'll fix that b4 release
 });
+define('GAME_CHANNEL_NAMES', {
+	'370625345138720809': 'D. Va licious',
+	'370626021227233290': `Spazzy's Scrub Shack`, 
+	'370625671833190400': 'Cartoon Network', 
+	'378656154726957067': 'The League', 
+	'370626139972042752': `They'll fix that b4 release`, 
+});
+
 define('SETTINGS_IMG', 'https://i.imgur.com/T2ABKgC.png');
 define('BUBBLE_IMAGES', ['https://i.imgur.com/rddtZR6.png','https://i.imgur.com/MdKfKVG.png','https://i.imgur.com/ZAyLJSJ.png','https://i.imgur.com/K6k4b3q.png','https://i.imgur.com/m7V6BEa.png',
 						 'https://i.imgur.com/Q7JO7Fn.png','https://i.imgur.com/lXZNXoz.png','https://i.imgur.com/xdwTSuG.png','https://i.imgur.com/PE99BJ8.png','https://i.imgur.com/VhFgbRQ.png',
@@ -169,7 +177,7 @@ define('TIPS',
 	{
 		color: 0xffff00,							
 		title: '💡 New Commands', 
-		description: '`.who-plays`	`*fav-sb`	`*sb`	`*add-sb`	`.color`	`.join-review-team`	`.leave-review-team`	`.implement`	`.stats`	`.temp`	`.issue`	`.feature`',
+		description: '`.heatmap`	`.who-plays`	`*fav-sb`	`*sb`	`*add-sb`	`.color`	`.join-review-team`	`.leave-review-team`	`.implement`	`.stats`	`.temp`	`.issue`	`.feature`',
 		image: {
 			url: 'https://media3.giphy.com/media/UGxfEt5POsukg/giphy.gif'
 		}
@@ -194,4 +202,42 @@ define('WHO_PLAYS_FUZZY_OPTIONS', {
 	maxPatternLength: 32,
 	minMatchCharLength: 1,
 	keys: ["title"]
+});
+define('ENCLOSED_CHARS', {
+	'A': '🄰',
+	'B': '🄱',
+	'C': '🄲',
+	'D': '🄳',
+	'E': '🄴',
+	'F': '🄵',
+	'G': '🄶',
+	'H': '🄷',
+	'I': '🄸',
+	'J': '🄹',
+	'K': '🄺',
+	'L': '🄻',
+	'M': '🄼',
+	'N': '🄽',
+	'O': '🄾',
+	'P': '🄿',
+	'Q': '🅀',
+	'R': '🅁',
+	'S': '🅂',
+	'T': '🅃',
+	'U': '🅄',
+	'V': '🅅',
+	'W': '🅆',
+	'X': '🅇',
+	'Y': '🅈',
+	'Z': '🅉',
+	'0': '⓪',
+	'1': '①',
+	'2': '②',
+	'3': '③',
+	'4': '④',
+	'5': '⑤',
+	'6': '⑥',
+	'7': '⑦',
+	'8': '⑧',
+	'9': '⑨'
 });
