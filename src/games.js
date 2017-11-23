@@ -293,7 +293,7 @@ function writeHeatMapDataToTsvFile() {
 	const firstLine = 'day	hour	value\n';
 	formattedHistory = firstLine;
 
-	heatMapAverages.forEach((day, dayIdx) => {
+	heatMapData.forEach((day, dayIdx) => {
 		day.forEach((hour, hourIdx) => {
 			const avgCount = Math.round(hour.playerCount / hour.sampleSize);
 			//convert from moment's day format to graph's day format
