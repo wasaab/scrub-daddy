@@ -308,14 +308,15 @@ exports.scheduleRecurringJobs = function() {
 	  games.clearTimeSheet();
 	});
 
-	var heatMapAndTipRule = new schedule.RecurrenceRule();
-	heatMapAndTipRule.minute = 0;
-	firstRun = true;
-	
-	schedule.scheduleJob(heatMapAndTipRule, function(){
+	var heatMapRule = new schedule.RecurrenceRule();
+	heatMapRule.minute = 0;
+
+	schedule.scheduleJob(heatMapRule, function(){
 		var members = bot.getClient().guilds.find('id', c.SERVER_ID).members;
 		games.maybeOutputCountOfGamesBeingPlayed(members, c.SCRUB_DADDY_ID);
+	});
 
+	var outputTip = schedule.scheduleJob('*/180 * * * *', function(){		
 		if (!firstRun) { 
 			previousTip.delete();						
 		}

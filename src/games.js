@@ -10,14 +10,13 @@ var c = require('./const.js');
 var bot = require('./bot.js');
 var util = require('./utilities.js');
 var heatmap = require('./heatmap.js');
-var optedInUsers = require('../optedIn.json');
-var gamesPlayed = require('../gamesPlayed.json');
-var timeSheet = require('../timeSheet.json');		//map of userID to gameToTimePlayed map for that user
+var optedInUsers = require('../optedIn.json');		//users that have opted in to playtime tracking
+var gamesPlayed = require('../gamesPlayed.json');	//map of game name to users that play that game
 var gameHistory = require('../gameHistory.json');	//timestamped log of player counts for each game
-//Heat map data for every day-hour combo.
-var heatMapData = require('../heatMapData.json'); //[[],[],[],[],[],[],[]] 0 = Sunday, 6 = Saturday
-var heatMapImgUrl = '';
-var gameChannels = [];
+var timeSheet = require('../timeSheet.json');		//map of userID to gameToTimePlayed map for that user
+var heatMapData = require('../heatMapData.json');	//Heat map data for every day-hour combo.
+var heatMapImgUrl = '';		//url for the newest player count heat map image
+var gameChannels = [];		//voice channels that change name based upon what the users are playing
 
 /**
  * Exports the timesheet to a json file.
@@ -33,6 +32,9 @@ exports.exportTimeSheetAndGameHistory = function() {
 	fs.writeFile('gamesPlayed.json', json, 'utf8', util.log);
 };
 
+/**
+ * Clears the time sheet and exports jsons. Called at the start of each day.
+ */
 exports.clearTimeSheet = function() {
 	timeSheet = {};
 	exports.exportTimeSheetAndGameHistory();
@@ -338,7 +340,8 @@ function getGameUserData(gameName, fuzzyThreshold) {
 exports.whoPlays = function(args, userID) {
 	const game = util.getTargetFromArgs(args, 1);
 	const gameUserData = getGameUserData(game, 0.3);
-
+	c.LOG.info(`<INFO> ${util.getTimestamp()}  Who Plays ${game} - ${inspect(gameUserData)}`);						
+	
 	var usersWhoPlay = gameUserData.users;
 	if (usersWhoPlay) {
 		var fields = [];					
@@ -491,7 +494,6 @@ exports.askToPlayPUBG = function() {
  * @param {Obejct} voiceChannel - the voice channel to find the majority game for.
  */
 function determineMajorityGame(voiceChannel) {
-	//console.log('vC: ' + inspect(voiceChannel));
 	const majority = voiceChannel.members.size / 2;	
 	var gameToCount = {};	
 	var result = null;			
@@ -520,6 +522,7 @@ function determineMajorityGame(voiceChannel) {
 function resetChannelName(voiceChannel) {
 	const defaultName = c.GAME_CHANNEL_NAMES[voiceChannel.id];
 	if (voiceChannel.name !== defaultName) {
+		c.LOG.info(`<INFO> ${util.getTimestamp()}  Resetting Channel Name - ${voiceChannel.name} -> ${defaultName}`);							
 		voiceChannel.setName(defaultName);
 	}
 }
@@ -534,6 +537,7 @@ exports.maybeUpdateChannelNames = function(channels) {
 		if (channel.members.length !== 0) {
 			const majorityGame = determineMajorityGame(channel);
 			if (majorityGame) {
+				c.LOG.info(`<INFO> ${util.getTimestamp()}  Updating Channel Name - ${channel.name} -> ▶ ${majorityGame}`);					
 				channel.setName(`▶ ${majorityGame}`);
 			} else {
 				resetChannelName(channel);
@@ -568,15 +572,15 @@ exports.maybeUpdateNickname = function(member, game) {
 		const gameTokens = game.split(' ');
 		var nick = `${nameTokens[0]} ▫ `;
 		gameTokens.forEach((token) => {
-			const firstChar = token[0];
+			const firstChar = token[0].toUpperCase();
 			nick += c.ENCLOSED_CHARS[firstChar] || firstChar;
 		});
+		c.LOG.info(`<INFO> ${util.getTimestamp()}  Updating Nickname - ${member.displayName} -> ${nick}`);	
 		member.setNickname(nick);
-		console.log('nick: ' + member.displayName);		
 	} else {
 		if (nameTokens[1]) {
+			c.LOG.info(`<INFO> ${util.getTimestamp()}  Updating Nickname - ${member.displayName} -> ${nameTokens[0]}`);				
 			member.setNickname(nameTokens[0]);
-			console.log('nick: ' + member.displayName);
 		}
 	}
 };

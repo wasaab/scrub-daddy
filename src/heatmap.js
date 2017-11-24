@@ -74,6 +74,7 @@ var timeLabels = svg.selectAll(".timeLabel")
     });
 
 function convertSvgToPng() {
+    c.LOG.info(`dirName: ${__dirname}  sliced: ${__dirname.slice(0, -4)}`);
     svg_to_png.convert(path.join(__dirname.slice(0, -4), 'heatMap.svg'), path.join(__dirname.slice(0, -4), 'heatOutput.png'))
     .then(() => {
         c.LOG.info(`<INFO> ${util.getTimestamp()} png created: ${fs.existsSync( path.join( __dirname.slice(0, -4), "heatOutput.png"))}`);
@@ -112,7 +113,6 @@ var heatmapChart = function (tsvFile) {
             };
         },
         function (error, data) {
-            //console.log('quantile: ' + d3.quantile());
             var colorScale = d3.scaleQuantile()
                 .domain([0, buckets - 1, d3.max(data, function (d) {
                     return d.value;
