@@ -506,7 +506,7 @@ function determineMajorityGame(voiceChannel) {
 				gameToCount[game]++;
 			}
 			if (gameToCount[game] > majority) {
-				game.indexOf( 'B' ) == 0 ? result = game.replace( 'B', '🅱️' ) : game; 
+				game.indexOf( 'B' ) == 0 ? result = game.replace( 'B', '🅱️' ) : result = game; 
 				return true;
 			}
 		}
