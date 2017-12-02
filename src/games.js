@@ -536,11 +536,15 @@ exports.maybeUpdateChannelNames = function(channels) {
 	gameChannels.forEach((channel) => {
 		if (channel.members.length !== 0) {
 			const majorityGame = determineMajorityGame(channel);
-			if (majorityGame && channel.name !== `▶ ${majorityGame}`) {
-				c.LOG.info(`<INFO> ${util.getTimestamp()}  Updating Channel Name - ${channel.name} -> ▶ ${majorityGame}`);					
-				channel.setName(`▶ ${majorityGame}`);
-			} else {
-				resetChannelName(channel);
+			var fuse = new Fuse([channel.name], c.CHANNEL_NAME_FUZZY_OPTIONS);
+			//only rename if the name is not already up to date
+			if (fuse.search(`▶ ${majorityGame}`).length === 0) {
+				if (majorityGame) {
+					c.LOG.info(`<INFO> ${util.getTimestamp()}  Updating Channel Name - ${channel.name} -> ▶ ${majorityGame}`);					
+					channel.setName(`▶ ${majorityGame}`);
+				} else {
+					resetChannelName(channel);
+				}
 			}
 		} else {
 			resetChannelName(channel);

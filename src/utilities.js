@@ -316,6 +316,7 @@ exports.scheduleRecurringJobs = function() {
 		games.maybeOutputCountOfGamesBeingPlayed(members, c.SCRUB_DADDY_ID);
 	});
 
+	var firstRun = true;
 	var outputTip = schedule.scheduleJob('*/180 * * * *', function(){		
 		if (!firstRun) { 
 			previousTip.delete();						

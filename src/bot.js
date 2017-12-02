@@ -264,10 +264,18 @@ client.on('presenceUpdate', (oldMember, newMember) => {
 	
 	//ignore presence updates for bots and online status changes
 	if (!newMember.user.bot && oldGame !== newGame) {
-		games.maybeUpdateNickname(newMember, newGame);	
+		games.maybeUpdateNickname(newMember, newGame);			
 		games.updateTimesheet(newMember.displayName, newMember.id, oldGame, newGame);
 		gambling.maybeDischargeScrubBubble(botSpam);
 	}
+});
+
+client.on('voiceStateUpdate', (oldMember, newMember) => { 
+	//ignore presence updates for bots, mute/unmute, and changing between voice channels
+	if (!newMember.user.bot && !newMember.voiceChannel !== !oldMember.voiceChannel) {
+		games.maybeUpdateNickname(newMember, get(newMember, 'presence.activity.name'));	
+	}		
+	
 });
 
 /**
