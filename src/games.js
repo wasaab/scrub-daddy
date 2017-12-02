@@ -316,7 +316,7 @@ function writeHeatMapDataToTsvFile() {
  * Outputs heatmap of game's player counts throughout the day if such a log exists.
  */
 exports.maybeOutputHeatMap = function(userID) {
-	util.sendEmbedMessage('Player Count Heat Map', null, null, heatmap.getUpdatedHeatMapUrl());
+	util.sendEmbedMessage('🔥 Player Count Heat Map', null, null, heatmap.getUpdatedHeatMapUrl());
 };
 
 /**

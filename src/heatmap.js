@@ -84,7 +84,7 @@ function convertSvgToPng() {
             imgUrl = json.data.link;
         })
         .catch(function (err) {
-            c.LOG.info(`<ERROR> ${util.getTimestamp()} converting to png failed - ${err.message}`);
+            c.LOG.info(`<ERROR> ${util.getTimestamp()} uploading to imgur failed - ${err.message}`);
         });
     });
 }
