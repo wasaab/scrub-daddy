@@ -536,7 +536,7 @@ exports.maybeUpdateChannelNames = function(channels) {
 	gameChannels.forEach((channel) => {
 		if (channel.members.length !== 0) {
 			const majorityGame = determineMajorityGame(channel);
-			if (majorityGame) {
+			if (majorityGame && channel.name !== `▶ ${majorityGame}`) {
 				c.LOG.info(`<INFO> ${util.getTimestamp()}  Updating Channel Name - ${channel.name} -> ▶ ${majorityGame}`);					
 				channel.setName(`▶ ${majorityGame}`);
 			} else {
@@ -568,7 +568,7 @@ exports.setDynamicGameChannels = function(channels) {
  */
 exports.maybeUpdateNickname = function(member, game) {
 	const nameTokens = member.displayName.split(' ▫ ');	
-	if (game) {
+	if (game && member.voiceChannel) {
 		const gameTokens = game.split(' ');
 		var nick = `${nameTokens[0]} ▫ `;
 		gameTokens.forEach((token) => {
