@@ -316,8 +316,10 @@ exports.scheduleRecurringJobs = function() {
 		games.maybeOutputCountOfGamesBeingPlayed(members, c.SCRUB_DADDY_ID);
 	});
 
+	var tipRule = new schedule.RecurrenceRule();
+	tipRule.hour = [2, 10, 13, 17, 20, 23];
 	var firstRun = true;
-	var outputTip = schedule.scheduleJob('*/180 * * * *', function(){		
+	var outputTip = schedule.scheduleJob(tipRule, function(){		
 		if (!firstRun) { 
 			previousTip.delete();						
 		}
