@@ -94,7 +94,9 @@ exports.maybeOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
 
 	scrubs.forEach((scrub) => {
 		const game = get(scrub, 'presence.activity.name');
-		if (game && !scrub.user.bot) {
+		const status = get(scrub, 'presence.status');
+		
+		if (game && !scrub.user.bot && status !== 'idle') {
 			if (!games[game]){
 				games[game] = 1;
 			} else {
@@ -572,7 +574,9 @@ exports.setDynamicGameChannels = function(channels) {
  */
 exports.maybeUpdateNickname = function(member, game) {
 	const nameTokens = member.displayName.split(' ▫ ');	
-	if (game && member.voiceChannel) {
+	const status = get(member, 'presence.status');
+
+	if (game && member.voiceChannel && status !== 'idle') {
 		const gameTokens = game.split(' ');
 		var nick = `${nameTokens[0]} ▫ `;
 		gameTokens.forEach((token) => {
