@@ -1,6 +1,6 @@
 # scrub-daddy
 
-Discord bot with the following commands:
+Discord bot with the following 32 commands:
 
 1. Voting
       + Please Note - `You must be in a voice channel with at least 3 members to participate in a kick/ban vote.`
@@ -36,8 +36,8 @@ Discord bot with the following commands:
       + Please Note - `Your issue title or feature title must be ONE WORD! msg is optional`
       + .issue <`issue-title`> <`msg detailing issue`> - `to submit bot issues.`
       + .feature <`feature-title`> <`msg detailing feature`> - `to submit bot feature requests.`
-      + .implement <`task-title`> - `to vote for the next task to complete.
-      + .help, .info, or .helpinfo - `to show this message again.`
+      + .implement <`task-title`> - `to vote for the next task to complete.`
+      + .help, .info, or .helpinfo - `to show help message.`
 
 1. Miscellaneous
       + .p - `to ask @Scrubs to play PUBG in scrubs text channel.`
