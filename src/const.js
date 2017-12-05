@@ -100,20 +100,21 @@ define('HELP_TIME_PLAYED',[{ name: '.time <`Game Name`> <`@user`>', value: '`use
 						   { name: '.time', value: '`cumulative playtime for all games.`', inline: 'false'},
 						   { name: '.opt-in', value: '`to opt into playtime tracking.`', inline: 'false'}]);
 define('HELP_PLAYER_COUNT',[{ name: '.playing', value: '`player count of games currently being played.`', inline: 'false'},
-							{ name: '.game-history', value: '`player counts for all games throughout the day.`', inline: 'false'},
-							{ name: '.who-plays <Game Name>', value: '`to get list of players and playtime for Game Name.`', inline: 'false'},]);
+							{ name: '.heatmap', value: '`heatmap of player count for all games.`', inline: 'false'},
+							{ name: '.who-plays <`Game Name`>', value: '`to get list of players and playtime for Game Name.`', inline: 'false'},]);
 define('HELP_BOT',[{ name: 'Please Note', value: '`Your issue title or feature title must be ONE WORD! msg is optional`', inline: 'false'},
 				   { name: '.issue <`issue-title`> <`msg detailing issue`>', value: '`to submit bot issues.`', inline: 'false'},
 				   { name: '.feature <`feature-title`> <`msg detailing feature`>', value: '`to submit bot feature requests.`', inline: 'false'},
 				   { name: '.implement <`task-title`>', value: '`to vote for the next task to complete.\ntask-title is the channel title of the issue or feature.`', inline: 'false'},
 				   { name: '.help, .info, or .helpinfo', value: '`to show this message again.`', inline: 'false'}]);
 define('HELP_MISC',[{ name: '.p', value: '`to ask @Scrubs to play PUBG in scrubs text channel.`', inline: 'false'},
+					{ name: '.alias <alias> <command to call>', value: '`creates an alias for the provided command call. \ne.g. .alias ow who-plays Overwatch ... will allow you to call .ow`', inline: 'false'},
 					{ name: '.temp', value: '`Creates a temporary text channel`', inline: 'false'},
 					{ name: '.temp <`text|voice`>', value: '`Creates a temp text/voice channel`', inline: 'false'},
 					{ name: '.temp <`text|voice`> <`channel-title`>', value: '`Creates a voice/text channel with the provided title`', inline: 'false'},
 					{ name: '.join-review-team', value: '`to be added to the review team.`', inline: 'false'},
 					{ name: '.leave-review-team', value: '`to be removed from the review team.`', inline: 'false'},
-					{ name: '.color <`colorName`>', value: '`to set your response color preference.`', inline: 'false'},
+					{ name: '.color <`colorName`>', value: '`to set your role/response color preference.`', inline: 'false'},
 					{ name: '*sb', value: '`to get the list of available soundbytes.`', inline: 'false'},					
 					{ name: '*sb <`name`>', value: '`to play the sound byte of the given name in your voice channel.`', inline: 'false'},
 					{ name: '*add-sb + `ATTACHMENT IN SAME MESSAGE`', value: '`to add a sound byte.`', inline: 'false'},
@@ -123,9 +124,9 @@ define('HELP_CATEGORIES_PROMPT',[{ name: 'To select a category:', value: '`Type 
 						  { name: '1) Voting', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
 						  { name: '2) Scrubbing Bubbles', value: '`enlist`	`discharge`	`clean`	`army`	`ranks`	`stats`', inline: 'false'},
 						  { name: '3) Time Played', value: '`time`	`opt-in`', inline: 'false'},
-						  { name: '4) Player Count', value: '`playing`	`game-history`	`who-plays`', inline: 'false'},
+						  { name: '4) Player Count', value: '`playing`	`heatmap`	`who-plays`', inline: 'false'},
 						  { name: '5) Bot Issues, Feature Requests, and Help', value: '`issue`	`feature`	`implement`	`help`	`info`	`helpinfo`', inline: 'false'},
-						  { name: '6) Miscellaneous', value: '`p`	`temp`	`join-review-team`	`leave-review-team`	`color`	`*sb`	`*add-sb`	`*fav-sb`', inline: 'false'}]);
+						  { name: '6) Miscellaneous', value: '`p`	`alias`	`temp`	`join-review-team`	`leave-review-team`	`color`	`*sb`	`*add-sb`	`*fav-sb`', inline: 'false'}]);
 define('HELP_CATEGORIES', [{name: '`Voting`', fields: exports.HELP_VOTING},
 						   {name: '`Scrubbing Bubbles`', fields: exports.HELP_SCRUBBING_BUBBLES},
 						   {name: '`Time Played`', fields: exports.HELP_TIME_PLAYED},
@@ -177,7 +178,7 @@ define('TIPS',
 	{
 		color: 0xffff00,							
 		title: '💡 New Commands', 
-		description: '`.heatmap`	`.who-plays`	`*fav-sb`	`*sb`	`*add-sb`	`.color`	`.join-review-team`	`.leave-review-team`	`.implement`	`.stats`	`.temp`	`.issue`	`.feature`',
+		description: '`.alias`	`.heatmap`	`.who-plays`	`*fav-sb`	`*sb`	`*add-sb`	`.color`	`.join-review-team`	`.leave-review-team`	`.implement`	`.stats`	`.temp`	`.issue`	`.feature`',
 		image: {
 			url: 'https://media3.giphy.com/media/UGxfEt5POsukg/giphy.gif'
 		}
@@ -191,7 +192,7 @@ define('TIPS',
 					 'You really don\'t even have to be close anymore.'
 	}
 ]);
-define('COMMANDS', ['temp','issue','feature','implement','export','catfacts','army','stats','rank','ranks','clean','revive','discharge',
+define('COMMANDS', ['alias', 'temp','issue','feature','implement','export','catfacts','army','stats','rank','ranks','clean','revive','discharge',
 	'enlist','join-review-team','leave-review-team','color','sb','add-sb','sb-add','update-readme','p','playing','heatmap','gen-heatmap','who-plays',
 	'time','opt-in','vote','votekick','voteban','voteinfo','help','info','helpinfo']);
 define('WHO_PLAYS_FUZZY_OPTIONS', {

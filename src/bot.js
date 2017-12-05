@@ -59,14 +59,21 @@ function findClosestCommandMatch(command) {
  * @param {Object} message - the full message object.
  */
 function handleCommand(message) {
-	const args = message.content.substring(1).match(/\S+/g);
-	const cmd = findClosestCommandMatch(args[0]);
-	if (!cmd) { return; }
-	args[0] = cmd;
+	var args = message.content.substring(1).match(/\S+/g);
+	var userID = message.member.id;	
+	var cmd;
+	const aliasCmd = util.maybeGetAlias(args[0], userID);
+	if (aliasCmd) {
+		args = aliasCmd.split(' ');
+		cmd = args[0];
+	} else {
+		cmd = findClosestCommandMatch(args[0]);		
+		if (!cmd) { return; }		
+		args[0] = cmd;		
+	}
 
 	const channelID = message.channel.id;
 	const user = message.member.displayName;
-	var userID = message.member.id;
 	
 	//stops if the message is not from bot-spam text channel, with the exception of the message !p.
 	if (channelID !== c.BOT_SPAM_CHANNEL_ID && !(channelID === c.SCRUBS_CHANNEL_ID && cmd === 'p')) {
@@ -74,6 +81,13 @@ function handleCommand(message) {
 	}
 	c.LOG.info(`<CMD> ${util.getTimestamp()}  ${cmd} called`);	
 	
+	function aliasCalled () {
+		if (args.length > 1) {			
+			util.createAlias(userID, user, args);
+		} else {
+			util.outputAliases(userID, user);
+		}
+	}
 	function tempCalled () {
 		const channelType = args[1] || 'text';
 		const channelName = util.getTargetFromArgs(args, 2) || 'temp-channel';
@@ -198,6 +212,7 @@ function handleCommand(message) {
 	}
 
 	var commandToHandler = {
+		'alias': aliasCalled,
 		'temp': tempCalled,
 		'issue': issueOrFeatureCalled,
 		'feature': issueOrFeatureCalled,
@@ -234,7 +249,6 @@ function handleCommand(message) {
 		'info': helpCalled,
 		'helpinfo': helpCalled
 	};
-
 
 	return commandToHandler[cmd]();		
 }

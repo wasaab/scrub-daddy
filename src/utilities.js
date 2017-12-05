@@ -14,6 +14,7 @@ var games = require('./games.js');
 var bot = require('./bot.js');
 var c = require('./const.js');
 var userIDToColor = require('../colors.json');
+var userIDToAliases = require('../aliases.json');
 var soundBytes = require('../soundbytes.json');
 const catFacts = require('../catfacts.json');
 const private = require('../../private.json'); 
@@ -479,4 +480,55 @@ exports.getTargetFromArgs = function(args, startIdx) {
 		target += ` ${args[i]}`;
 	}
 	return target;
+};
+
+/**
+ * Creates an alias for a command, that only works for the provided user.
+ * 
+ * @param {String} userID - ID of the user to create the cmd alias for
+ * @param {String} user - name of the user to create the cmd alias for
+ * @param {String[]} args - command args passed in by user
+ */
+exports.createAlias = function(userID, user, args) {
+	const command = args[1];
+	var aliases = userIDToAliases[userID] || {};
+	aliases[command] = exports.getTargetFromArgs(args, 2);
+	userIDToAliases[userID] = aliases;
+	const msg = `Calling \`.${command}\` will now trigger a call to \`.${aliases[command]}\``; 
+	exports.sendEmbedMessage(`Alias Created for ${user}`, msg, userID)
+
+	var json = JSON.stringify(userIDToAliases);		
+	fs.writeFile('aliases.json', json, 'utf8', exports.log);	
+};
+
+/**
+ * Gets the alias if it exists for the provided command and user
+ * 
+ * @param {String} command - the command to check for an alias value
+ * @param {String} userID - the ID of the user calling the command
+ */
+exports.maybeGetAlias = function(command, userID) {
+	const aliases = userIDToAliases[userID];
+	if (aliases) {
+		return aliases[command];
+	} 
+	return null;
+};
+
+/**
+ * Outputs all of the provided user's command aliases
+ * 
+ * @param {String} userID - the ID of the user to output aliases for
+ * @param {String} user - the name of the user to output aliases for
+ */
+exports.outputAliases = function(userID, user) {
+	const aliases = userIDToAliases[userID];
+	var msg = 'None. Call `.help alias` for more info.';
+	if (aliases) {
+		msg = '';
+		for (var alias in aliases) {
+			msg += `\`.${alias}\` = \`.${aliases[alias]}\``
+		}
+	}
+	exports.sendEmbedMessage(`Aliases Created by ${user}`, msg, userID)	
 };
