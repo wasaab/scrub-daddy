@@ -318,6 +318,7 @@ exports.scheduleRecurringJobs = function() {
 
 	var tipRule = new schedule.RecurrenceRule();
 	tipRule.hour = [2, 10, 13, 17, 20, 23];
+	tipRule.minute = 0;
 	var firstRun = true;
 	var outputTip = schedule.scheduleJob(tipRule, function(){		
 		if (!firstRun) { 
