@@ -277,7 +277,7 @@ client.on('presenceUpdate', (oldMember, newMember) => {
 	const newGame = get(newMember, 'presence.activity.name');
 	
 	//ignore presence updates for bots and online status changes
-	if (!newMember.user.bot && scrub.highestRole.name !== 'Pleb' && oldGame !== newGame) {
+	if (!newMember.user.bot && newMember.highestRole.name !== 'Pleb' && oldGame !== newGame) {
 		games.maybeUpdateNickname(newMember, newGame);			
 		games.updateTimesheet(newMember.displayName, newMember.id, oldGame, newGame);
 		gambling.maybeDischargeScrubBubble(botSpam);
