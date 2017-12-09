@@ -175,7 +175,7 @@ function handleCommand(message) {
 		games.whoPlays(args, userID);
 	}
 	function letsPlayCalled() {
-		games.letsPlay(args, userID);
+		games.letsPlay(args, userID, message.guild.emojis);
 	}
 	function timeCalled () {
 		games.maybeOutputTimePlayed(args, userID);		
@@ -283,7 +283,7 @@ client.on('presenceUpdate', (oldMember, newMember) => {
 	//ignore presence updates for bots and online status changes
 	if (!newMember.user.bot && newMember.highestRole.name !== 'Pleb' && oldGame !== newGame) {
 		games.maybeUpdateNickname(newMember, newGame);			
-		games.updateTimesheet(newMember.displayName, newMember.id, oldGame, newGame);
+		games.updateTimesheet(newMember.displayName, newMember.id, newMember.highestRole, oldGame, newGame);
 		gambling.maybeDischargeScrubBubble(botSpam);
 	}
 });

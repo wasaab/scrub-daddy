@@ -358,16 +358,24 @@ exports.whoPlays = function(args, userID) {
 	}
 };
 
-exports.letsPlay = function(args, userID) {
-	const game = util.getTargetFromArgs(args, 1);
+exports.letsPlay = function(args, userID, emojis) {
+	const gameIdx = args[1] === '-ss' ? 2 : 1;
+	var game = util.getTargetFromArgs(args, gameIdx);
+	const gameTokens = game.split(':');
+	if (gameTokens && gameTokens.length === 3) {
+		game = gameTokens[1];
+	}
 	const gameUserData = getGameUserData(game, 0.3);
-	c.LOG.info(`<INFO> ${util.getTimestamp()}  Who Plays ${game} - ${inspect(gameUserData)}`);						
+	c.LOG.info(`<INFO> ${util.getTimestamp()}  Lets Play ${game} - ${inspect(gameUserData)}`);						
 	
 	var usersWhoPlay = gameUserData.users;
 	if (usersWhoPlay) {
-		var msg = game + '?';					
+		game = emojis.find('name', game) || game;		
+		var msg = `${game}?`;					
 		usersWhoPlay.forEach((user) => {
-			msg += ` <@!${user.id}>`;
+			if (gameIdx === 1 || user.role !== '(ᵔᴥᵔ) ͡Super ͡Scrubs ™') {
+				msg += ` <@!${user.id}>`;
+			}
 		});
 		bot.getScrubsChannel().send(msg);
 	} else {
@@ -378,16 +386,16 @@ exports.letsPlay = function(args, userID) {
 /**
  * Updates the games played for the provided user.
  */
-function updateWhoPlays(userID, user, game) {
+function updateWhoPlays(userID, user, role, game) {
 	if (!game) {return;}
 	const gameUserData = getGameUserData(game, 0);
 	var usersWhoPlay = gameUserData.users;
 	
 	if (!usersWhoPlay) {
-		usersWhoPlay = [{ id: userID, name: user, playtime: timeSheet[userID][game] }];
+		usersWhoPlay = [{ id: userID, name: user, playtime: timeSheet[userID][game], role: role.name }];
 	} else {
 		const userEntryIdx = usersWhoPlay.map((player) => player.id).indexOf(userID);
-		const newEntry = { id: userID, name: user, playtime: timeSheet[userID][game]};
+		const newEntry = { id: userID, name: user, playtime: timeSheet[userID][game], role: role.name };
 		if (userEntryIdx === -1) {
 			usersWhoPlay.push(newEntry);			
 		} else {
@@ -435,7 +443,7 @@ function getUpdatedGameToTime(gameToTime, userName) {
  * @param {String} userID 
  * @param {Object} game 
  */
-exports.updateTimesheet = function(user, userID, oldGame, newGame) {
+exports.updateTimesheet = function(user, userID, highestRole, oldGame, newGame) {
 	c.LOG.info(`<INFO> Presence Update - ${user} id: ${userID} old game: ${oldGame} new game: ${newGame}`);
 	
 	//get user's timesheet
@@ -457,7 +465,7 @@ exports.updateTimesheet = function(user, userID, oldGame, newGame) {
 	}
 	
 	timeSheet[userID] = gameToTime;
-	updateWhoPlays(userID, user, oldGame);		
+	updateWhoPlays(userID, user, highestRole, oldGame);		
 };
 
 /**
