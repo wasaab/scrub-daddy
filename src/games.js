@@ -358,7 +358,7 @@ exports.whoPlays = function(args, userID) {
 	}
 };
 
-exports.letsPlay = function(args, userID, emojis) {
+exports.letsPlay = function(args, userID, userName, emojis) {
 	const gameIdx = args[1] === '-ss' ? 2 : 1;
 	var game = util.getTargetFromArgs(args, gameIdx);
 	const gameTokens = game.split(':');
@@ -371,7 +371,7 @@ exports.letsPlay = function(args, userID, emojis) {
 	var usersWhoPlay = gameUserData.users;
 	if (usersWhoPlay) {
 		game = emojis.find('name', game) || game;		
-		var msg = `${game}?`;					
+		var msg = `↪️${userName}: ${game}?`;					
 		usersWhoPlay.forEach((user) => {
 			if (gameIdx === 1 || user.role !== '(ᵔᴥᵔ) ͡Super ͡Scrubs ™') {
 				msg += ` <@!${user.id}>`;

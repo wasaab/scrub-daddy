@@ -102,8 +102,8 @@ define('HELP_TIME_PLAYED',[{ name: '.time <`Game Name`> <`@user`>', value: '`use
 define('HELP_PLAYER_COUNT',[{ name: '.playing', value: '`player count of games currently being played.`', inline: 'false'},
 							{ name: '.heatmap', value: '`heatmap of player count for all games.`', inline: 'false'},
 							{ name: '.who-plays <`Game Name`>', value: '`to get list of players and playtime for Game Name.`', inline: 'false'},
-							{ name: '.lets-play <`Game Name`>', value: '`to ask all players of Game Name if they want to play.`', inline: 'false'},
-							{ name: '.lets-play -ss <`Game Name`>', value: '`.lets-play without @mentioning Super ͡Scrubs.`', inline: 'false'}]);							
+							{ name: '.lets-play <`Game Name|Game Emoji`>', value: '`to ask all players of Game Name if they want to play.`', inline: 'false'},
+							{ name: '.lets-play -ss <`Game Name|Game Emoji`>', value: '`.lets-play without @mentioning Super ͡Scrubs.`', inline: 'false'}]);							
 define('HELP_BOT',[{ name: 'Please Note', value: '`Your issue title or feature title must be ONE WORD! msg is optional`', inline: 'false'},
 				   { name: '.issue <`issue-title`> <`msg detailing issue`>', value: '`to submit bot issues.`', inline: 'false'},
 				   { name: '.feature <`feature-title`> <`msg detailing feature`>', value: '`to submit bot feature requests.`', inline: 'false'},

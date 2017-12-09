@@ -175,7 +175,7 @@ function handleCommand(message) {
 		games.whoPlays(args, userID);
 	}
 	function letsPlayCalled() {
-		games.letsPlay(args, userID, message.guild.emojis);
+		games.letsPlay(args, userID, user, message.guild.emojis);
 	}
 	function timeCalled () {
 		games.maybeOutputTimePlayed(args, userID);		
