@@ -357,6 +357,23 @@ exports.whoPlays = function(args, userID) {
 	}
 };
 
+exports.letsPlay = function(args, userID) {
+	const game = util.getTargetFromArgs(args, 1);
+	const gameUserData = getGameUserData(game, 0.3);
+	c.LOG.info(`<INFO> ${util.getTimestamp()}  Who Plays ${game} - ${inspect(gameUserData)}`);						
+	
+	var usersWhoPlay = gameUserData.users;
+	if (usersWhoPlay) {
+		var msg = game + '?';					
+		usersWhoPlay.forEach((user) => {
+			msg += ` <@!${user.id}>`;
+		});
+		bot.getScrubsChannel().send(msg);
+	} else {
+		util.sendEmbedMessage('Literally Nobody Plays That', 'You\'re on your own bud.', userID);
+	}
+};
+
 /**
  * Updates the games played for the provided user.
  */

@@ -101,7 +101,8 @@ define('HELP_TIME_PLAYED',[{ name: '.time <`Game Name`> <`@user`>', value: '`use
 						   { name: '.opt-in', value: '`to opt into playtime tracking.`', inline: 'false'}]);
 define('HELP_PLAYER_COUNT',[{ name: '.playing', value: '`player count of games currently being played.`', inline: 'false'},
 							{ name: '.heatmap', value: '`heatmap of player count for all games.`', inline: 'false'},
-							{ name: '.who-plays <`Game Name`>', value: '`to get list of players and playtime for Game Name.`', inline: 'false'},]);
+							{ name: '.who-plays <`Game Name`>', value: '`to get list of players and playtime for Game Name.`', inline: 'false'},
+							{ name: '.lets-play <`Game Name`>', value: '`to ask all players of Game Name if they want to play.`', inline: 'false'}]);
 define('HELP_BOT',[{ name: 'Please Note', value: '`Your issue title or feature title must be ONE WORD! msg is optional`', inline: 'false'},
 				   { name: '.issue <`issue-title`> <`msg detailing issue`>', value: '`to submit bot issues.`', inline: 'false'},
 				   { name: '.feature <`feature-title`> <`msg detailing feature`>', value: '`to submit bot feature requests.`', inline: 'false'},
@@ -124,7 +125,7 @@ define('HELP_CATEGORIES_PROMPT',[{ name: 'To select a category:', value: '`Type 
 						  { name: '1) Voting', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
 						  { name: '2) Scrubbing Bubbles', value: '`enlist`	`discharge`	`clean`	`army`	`ranks`	`stats`', inline: 'false'},
 						  { name: '3) Time Played', value: '`time`	`opt-in`', inline: 'false'},
-						  { name: '4) Player Count', value: '`playing`	`heatmap`	`who-plays`', inline: 'false'},
+						  { name: '4) Player Count', value: '`playing`	`heatmap`	`who-plays`	`lets-play`', inline: 'false'},
 						  { name: '5) Bot Issues, Feature Requests, and Help', value: '`issue`	`feature`	`implement`	`help`	`info`	`helpinfo`', inline: 'false'},
 						  { name: '6) Miscellaneous', value: '`p`	`alias`	`temp`	`join-review-team`	`leave-review-team`	`color`	`*sb`	`*add-sb`	`*fav-sb`', inline: 'false'}]);
 define('HELP_CATEGORIES', [{name: '`Voting`', fields: exports.HELP_VOTING},
@@ -178,7 +179,7 @@ define('TIPS',
 	{
 		color: 0xffff00,							
 		title: '💡 New Commands', 
-		description: '`.alias`	`.heatmap`	`.who-plays`	`*fav-sb`	`*sb`	`*add-sb`	`.color`	`.join-review-team`	`.leave-review-team`	`.implement`	`.stats`	`.temp`	`.issue`	`.feature`',
+		description: '`.lets-play`	`.alias`	`.heatmap`	`.who-plays`	`*fav-sb`	`*sb`	`*add-sb`',
 		image: {
 			url: 'https://media3.giphy.com/media/UGxfEt5POsukg/giphy.gif'
 		}
@@ -194,7 +195,7 @@ define('TIPS',
 ]);
 define('COMMANDS', ['alias', 'temp','issue','feature','implement','export','catfacts','army','stats','rank','ranks','clean','revive','discharge',
 	'enlist','join-review-team','leave-review-team','color','sb','add-sb','sb-add','update-readme','p','playing','heatmap','gen-heatmap','who-plays',
-	'time','opt-in','vote','votekick','voteban','voteinfo','help','info','helpinfo']);
+	'lets-play','time','opt-in','vote','votekick','voteban','voteinfo','help','info','helpinfo']);
 define('WHO_PLAYS_FUZZY_OPTIONS', {
 	shouldSort: true,
 	threshold: 0.3,

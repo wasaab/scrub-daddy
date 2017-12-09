@@ -174,6 +174,9 @@ function handleCommand(message) {
 	function whoPlaysCalled() {
 		games.whoPlays(args, userID);
 	}
+	function letsPlayCalled() {
+		games.letsPlay(args, userID);
+	}
 	function timeCalled () {
 		games.maybeOutputTimePlayed(args, userID);		
 	}
@@ -239,6 +242,7 @@ function handleCommand(message) {
 		'heatmap': heatmapCalled,
 		'gen-heatmap': genHeatMapCalled,
 		'who-plays': whoPlaysCalled,
+		'lets-play': letsPlayCalled,
 		'time': timeCalled,
 		'opt-in': optInCalled,
 		'vote': voteCalled,
