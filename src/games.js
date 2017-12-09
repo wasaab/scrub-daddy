@@ -348,6 +348,7 @@ exports.whoPlays = function(args, userID) {
 	if (usersWhoPlay) {
 		var fields = [];					
 		usersWhoPlay.forEach((user) => {
+			user.playtime = user.playtime || 0;
 			fields.push(util.buildField(user.name, `${user.playtime.toFixed(2)} Hours Played`));
 		});
 		fields.sort(util.compareFieldValues);
