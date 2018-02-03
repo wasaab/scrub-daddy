@@ -318,7 +318,7 @@ exports.scheduleRecurringJobs = function() {
 	});
 
 	var tipRule = new schedule.RecurrenceRule();
-	tipRule.hour = [2, 10, 13, 17, 20, 23];
+	tipRule.hour = [10, 17, 24];
 	tipRule.minute = 0;
 	var firstRun = true;
 	var outputTip = schedule.scheduleJob(tipRule, function(){		
@@ -333,6 +333,24 @@ exports.scheduleRecurringJobs = function() {
 		});
 	});	
 };
+
+/**
+ * Replaces first letter of all Scrub's nicknames.
+ */
+exports.shuffleScrubs = function(scrubs, caller, args) {
+	if (!caller.roles.find('id', c.BEYOND_ROLE_ID) || (args[1] && args[1].length > 1)) { return; }
+	var randLetter = args[1] || c.ALPHABET.substr( Math.floor(Math.random() * 26), 1);
+	randLetter = randLetter.toUpperCase();
+
+	scrubs.forEach((scrub) => {
+		console.log('looping');
+		console.log(`highest id: ${scrub.highestRole.id}  scrubs role id: ${c.SCRUBS_ROLE_ID}`)
+		if (scrub.highestRole.id === c.SCRUBS_ROLE_ID) {
+			console.log('changing to' + randLetter);
+			scrub.setNickname(`:${randLetter}${scrub.displayName.slice(2)}`);
+		}
+	});
+} 
 
 /**
  * Adds the provided target to the review role.

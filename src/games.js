@@ -1,6 +1,8 @@
 var Discord = require('discord.js');
 var inspect = require('util-inspect');
 var moment = require('moment');
+var http = require('http');
+var gUrl = require( 'google-url' );
 var Fuse = require('fuse.js');
 var get = require('lodash.get');
 var fs = require('fs');
@@ -10,7 +12,10 @@ var c = require('./const.js');
 var bot = require('./bot.js');
 var util = require('./utilities.js');
 var heatmap = require('./heatmap.js');
+var private = require('../../private.json'); 
 var optedInUsers = require('../optedIn.json');		//users that have opted in to playtime tracking
+var userIDToFortniteUserName = require('../fortniteUserData.json'); //map of Discord userID to Fornite username
+var userIDToStreamingUrl = require('../streaming.json') //map of user id to the url of their stream
 var gamesPlayed = require('../gamesPlayed.json');	//map of game name to users that play that game
 var gameHistory = require('../gameHistory.json');	//timestamped log of player counts for each game
 var timeSheet = require('../timeSheet.json');		//map of userID to gameToTimePlayed map for that user
@@ -76,6 +81,9 @@ function updateHeatMap(logTime, playerCount) {
 	fs.writeFile('heatMapData.json', json, 'utf8', util.log);
 };
 
+/**
+ * Generates the player count heat map.
+ */
 exports.generateHeatMap = function() {
 	writeHeatMapDataToTsvFile();
 	var json = JSON.stringify(heatMapData);	
@@ -358,6 +366,9 @@ exports.whoPlays = function(args, userID) {
 	}
 };
 
+/**
+ * @Mentions every user that plays the provided game, asking them if they want to play.
+ */
 exports.letsPlay = function(args, userID, userName, emojis) {
 	const gameIdx = args[1] === '-ss' ? 2 : 1;
 	var game = util.getTargetFromArgs(args, gameIdx);
@@ -371,7 +382,7 @@ exports.letsPlay = function(args, userID, userName, emojis) {
 	var usersWhoPlay = gameUserData.users;
 	if (usersWhoPlay) {
 		game = emojis.find('name', game) || game;		
-		var msg = `↪️${userName}: ${game}?`;					
+		var msg = `↪️ ${userName}: ${game}?`;					
 		usersWhoPlay.forEach((user) => {
 			if (gameIdx === 1 || user.role !== '(ᵔᴥᵔ) ͡Super ͡Scrubs ™') {
 				msg += ` <@!${user.id}>`;
@@ -592,6 +603,38 @@ exports.setDynamicGameChannels = function(channels) {
 };
 
 /**
+ * Sets the user's streaming url for use with toggle-streaming.
+ */
+exports.setStreamingUrl = function(member, url) {
+	var shortener = new gUrl({key: private.googleUrlApiKey});
+	shortener.shorten(url, function(err, shortUrl) {
+		if (shortUrl) {
+			userIDToStreamingUrl[member.id] = shortUrl;
+			const json = JSON.stringify(userIDToStreamingUrl);
+			fs.writeFile('streaming.json', json, 'utf8', util.log);
+			util.sendEmbedMessage(`Stream Url Set For ${member.displayName}`, `Your stream can be watched at ${shortUrl}`)
+		}
+	});
+
+}
+
+/**
+ * Toggles nickname streaming icon.
+ */
+exports.toggleStreaming = function(member) {
+	if (member.displayName.includes('📺')) {
+		member.setNickname(member.displayName.split('📺')[0].slice(0,-1))
+	} else {
+		const url = userIDToStreamingUrl[member.id] || '?';
+		var name = member.displayName;
+		if (name.length > 16) {
+			name = name.slice(0, 16);
+		}
+		member.setNickname(`${name} 📺@${url.split('//')[1]}`);
+	}
+}
+
+/**
  * Updates the provided users nickname to contain the game they
  * just started playing.
  * 
@@ -603,6 +646,9 @@ exports.maybeUpdateNickname = function(member, game) {
 	const status = get(member, 'presence.status');
 
 	if (game && member.voiceChannel && status !== 'idle') {
+		if (game === `Sid Meier's Civilization VI`) {
+			game = 'C I V 6'
+		}
 		const gameTokens = game.split(' ');
 		var nick = `${nameTokens[0]} ▫ `;
 		gameTokens.forEach((token) => {
@@ -618,3 +664,98 @@ exports.maybeUpdateNickname = function(member, game) {
 		}
 	}
 };
+
+/**
+ * Outputs the fortnite stats leaderboard for the provided game mode and stat.
+ */
+exports.fortniteLeaderboard = async function(gameMode, stat, callingUserID) {
+	const gameModeTitle = `${gameMode.charAt(0).toUpperCase()}${gameMode.slice(1)}`;
+	var label;						
+	var fields = [];
+	for (var userID in userIDToFortniteUserName) {
+		const fortniteUserName = userIDToFortniteUserName[userID];
+		const result = await exports.getFortniteStatsForPlayer(fortniteUserName, userID, gameMode, stat, true);
+		console.log('after await');
+		if (result.value) {
+			fields.push(result);
+			if (!label) {
+				label = result.label;
+			}
+		}
+	}
+	if (fields.length > 0) {
+		util.sendEmbedFieldsMessage(`Fornite ${gameModeTitle} ${label} Leaderboard`, fields, callingUserID)
+	}
+}
+
+/**
+ * Stores the user's fortnite username
+ */
+exports.setFortniteName = function(userID, userName) {
+	userIDToFortniteUserName[userID] = userName;
+	const json = JSON.stringify(userIDToFortniteUserName);
+	fs.writeFile('fortniteUserData.json', json, 'utf8', util.log);
+}
+
+/**
+ * Retrieves Fortnite stats for the provided player(s)
+ */
+exports.getFortniteStatsForPlayer = function(userName, userID, gameMode, stat, supressOutput) {
+	console.log('getting stats');
+	if (userName === 'me') {
+		userName = userIDToFortniteUserName[userID];
+	}
+	const gameModeToKey = {
+		'solo': 'stats.p2',
+		'duo':  'stats.p10',
+		'squad': 'stats.p9',
+		'all': 'lifeTimeStats'
+	};
+	const options= {
+		hostname: 'api.fortnitetracker.com',
+		path: `/v1/profile/pc/${userName}`,
+		method: 'GET',
+		headers: {
+			'TRN-Api-Key': private.trnApiKey
+		}
+	}
+	
+	const req = http.request(options, (res) => {
+		var player = '';
+		console.log(`STATUS: ${res.statusCode}`);
+		console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
+		res.setEncoding('utf8');
+		res.on('data', (chunk) => {
+			player += chunk;
+		});
+		res.on('end', () => {
+			player = JSON.parse(player);
+			if (gameMode && gameModeToKey[gameMode.toLowerCase()]) {
+				if (gameMode !== 'all') {
+					const statKeyBase = `${gameModeToKey[gameMode.toLowerCase()]}.${stat}`;
+					const label = get(player, `${statKeyBase}.label`);					
+					const value = get(player, `${statKeyBase}.displayValue`);
+					const percentile = get(player, `${statKeyBase}.percentile`);
+					const gameModeTitle = `${gameMode.charAt(0).toUpperCase()}${gameMode.slice(1)}`;					
+					const title = `Fortnite ${gameModeTitle} ${label} for ${userName}`;
+					if (!supressOutput) {					
+						util.sendEmbedMessage(title, `${value}\nTop ${percentile}% in the world`, userID);
+					}
+					return { label: label, value: util.buildField(bot.getScrubIDToNick()[userID], value) };			
+				} else {
+					var fields = [];					
+					get(player, gameModeToKey[gameMode.toLowerCase()]).forEach((category) => {
+						fields.push(util.buildField(category.key, category.value));						
+					});
+					util.sendEmbedFieldsMessage(`Fortnite Lifetime Stats for ${userName}`, fields, userID);					
+				}
+			} 
+		});
+	  });
+	  
+	  req.on('error', (e) => {
+		console.error(`problem with request: ${e.message}`);
+	  });
+	  
+	  req.end();
+}

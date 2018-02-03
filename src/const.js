@@ -22,6 +22,7 @@ define('CATEGORY_ID', {
 	'In Progress': '374702344316780567'
 });
 define('SCRUBS_ROLE', '<@&370671041644724226>');
+define('SCRUBS_ROLE_ID', '370671041644724226');
 define('REVIEW_ROLE', '<@&376391242105225216>');
 define('REVIEW_ROLE_ID', '376391242105225216');
 define('DAYS', ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']);
@@ -195,7 +196,7 @@ define('TIPS',
 	}
 ]);
 define('COMMANDS', ['alias', 'temp','issue','feature','implement','export','catfacts','army','stats','rank','ranks','clean','revive','discharge',
-	'enlist','join-review-team','leave-review-team','color','sb','add-sb','sb-add','update-readme','p','playing','heatmap','gen-heatmap','who-plays',
+	'enlist','join-review-team','leave-review-team','color','sb','add-sb','sb-add','shuffle-scrubs', 'update-readme','fortnite-stats','fortnite-leaderboard','set-fortnite-name','set-stream','toggle-streaming','p','playing','heatmap','gen-heatmap','who-plays',
 	'lets-play','time','opt-in','vote','votekick','voteban','voteinfo','help','info','helpinfo']);
 define('WHO_PLAYS_FUZZY_OPTIONS', {
 	shouldSort: true,
@@ -213,7 +214,10 @@ define('CHANNEL_NAME_FUZZY_OPTIONS', {
 	maxPatternLength: 32,
 	minMatchCharLength: 1
 });
+define('ALPHABET',  "ABCDEFGHIJKLMNOPQURSTUVWXYZ");
 define('ENCLOSED_CHARS', {'A': '🄰', 'B': '🄱', 'C': '🄲', 'D': '🄳', 'E': '🄴', 'F': '🄵', 'G': '🄶', 'H': '🄷', 
 	'I': '🄸', 'J': '🄹', 'K': '🄺', 'L': '🄻', 'M': '🄼', 'N': '🄽', 'O': '🄾', 'P': '🄿', 'Q': '🅀', 
 	'R': '🅁', 'S': '🅂', 'T': '🅃', 'U': '🅄', 'V': '🅅', 'W': '🅆', 'X': '🅇', 'Y': '🅈', 'Z': '🅉', 
 	'0': '⓪', '1': '①', '2': '②', '3': '③', '4': '④', '5': '⑤', '6': '⑥', '7': '⑦', '8': '⑧', '9': '⑨'});
+define('STATS', ['trnRating','score' ,'top1','top3','top5','top6','top10','top12','top25','kd','winRatio',
+	'matches','kills','minutesPlayed','kpm','kpg','avgTimePlayed','scorePerMatch','scorePerMin'])

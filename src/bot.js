@@ -156,6 +156,42 @@ function handleCommand(message) {
 			util.updateReadme();
 		}
 	}
+	function shuffleScrubsCalled() {
+		util.shuffleScrubs(message.guild.members.array(), message.member, args);
+	}
+	function fortniteStatsCalled() {
+		if (args[1] && args[2]) {
+			const targetStat = args[3] || 'all';
+			games.getFortniteStatsForPlayer(args[1], userID, args[2], targetStat);
+		} else {
+			var possibleStats = '';
+			c.STATS.forEach((stat) => {
+				possibleStats += `${stat}	`;
+			});
+			util.sendEmbedMessage('Fornite Stats Help', 'Usage: fornite-stats <userName> <gameMode> <stat>\n'
+				+ 'e.g. fornite-stats wasaab squad kills\n\n'
+				+ 'gameMode options: solo, duo, squad, all\n\n'
+				+ `stat options: ${possibleStats}`);	
+		}
+	}
+	function fortniteLeaderboardCalled() {
+		if (args[1] && args[2]) {
+			games.fortniteLeaderboard(args[1], args[2], userID);
+		}
+	}
+	function setFortniteNameCalled() {
+		if (args[1]) {
+			games.setFortniteName(userID, args[1]);
+		}
+	}
+	function setStreamCalled() {
+		if (args[1]) {
+			games.setStreamingUrl(message.member, args[1]);
+		}
+	}
+	function toggleStreamingCalled() {
+		games.toggleStreaming(message.member)
+	}
 	function pCalled () {
 		games.askToPlayPUBG();		
 	}
@@ -237,6 +273,12 @@ function handleCommand(message) {
 		'add-sb': addSBCalled,
 		'sb-add': addSBCalled,
 		'update-readme': updateReadmeCalled,
+		'shuffle-scrubs': shuffleScrubsCalled,
+		'fortnite-stats': fortniteStatsCalled,
+		'fortnite-leaderboard': fortniteLeaderboardCalled,
+		'set-fortnite-name': setFortniteNameCalled,
+		'toggle-streaming': toggleStreamingCalled,
+		'set-stream': setStreamCalled,
 		'p': pCalled,
 		'playing': playingCalled,
 		'heatmap': heatmapCalled,
