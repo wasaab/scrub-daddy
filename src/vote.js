@@ -10,7 +10,7 @@ var voteChannelMembers = {
 	'370625345138720809' : [],						//D. Va licious
 	'370626021227233290' : [],						//Spazzy's Scrub Shack
 	'370625671833190400' : [],						//Cartoon Network
-	'370625623736975372' : [],						//League
+	'370625623736975372' : [],						//Civ Anonymous
 	'370626139972042752' : [],						//They'll fix that b4 release
 	'370628203523473408' : []						//Where he at doe?
 };
