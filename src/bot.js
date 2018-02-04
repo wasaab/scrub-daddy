@@ -296,7 +296,12 @@ function handleCommand(message) {
 		'helpinfo': helpCalled
 	};
 
-	return commandToHandler[cmd]();		
+	if (args[1] === 'help') {
+		args[1] = args[0]; 
+		helpCalled();
+	} else {
+		return commandToHandler[cmd]();		
+	}
 }
 
 /**
