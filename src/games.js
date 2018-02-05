@@ -1,25 +1,23 @@
 var Discord = require('discord.js');
 var inspect = require('util-inspect');
 var moment = require('moment');
-var http = require('http');
 var gUrl = require( 'google-url' );
 var Fuse = require('fuse.js');
 var get = require('lodash.get');
 var fs = require('fs');
-var cp = require("copy-paste");
-
+var rp = require('request-promise');
 var c = require('./const.js');
 var bot = require('./bot.js');
 var util = require('./utilities.js');
 var heatmap = require('./heatmap.js');
 var private = require('../../private.json'); 
-var optedInUsers = require('../optedIn.json');		//users that have opted in to playtime tracking
-var userIDToFortniteUserName = require('../fortniteUserData.json'); //map of Discord userID to Fornite username
-var userIDToStreamingUrl = require('../streaming.json') //map of user id to the url of their stream
-var gamesPlayed = require('../gamesPlayed.json');	//map of game name to users that play that game
-var gameHistory = require('../gameHistory.json');	//timestamped log of player counts for each game
-var timeSheet = require('../timeSheet.json');		//map of userID to gameToTimePlayed map for that user
-var heatMapData = require('../heatMapData.json');	//Heat map data for every day-hour combo.
+var optedInUsers = require('../data/optedIn.json');		//users that have opted in to playtime tracking
+var userIDToFortniteUserName = require('../data/fortniteUserData.json'); //map of Discord userID to Fornite username
+var userIDToStreamingUrl = require('../data/streaming.json') //map of user id to the url of their stream
+var gamesPlayed = require('../data/gamesPlayed.json');	//map of game name to users that play that game
+var gameHistory = require('../data/gameHistory.json');	//timestamped log of player counts for each game
+var timeSheet = require('../data/timeSheet.json');		//map of userID to gameToTimePlayed map for that user
+var heatMapData = require('../data/heatMapData.json');	//Heat map data for every day-hour combo.
 var heatMapImgUrl = '';		//url for the newest player count heat map image
 var gameChannels = [];		//voice channels that change name based upon what the users are playing
 
@@ -28,13 +26,13 @@ var gameChannels = [];		//voice channels that change name based upon what the us
  */
 exports.exportTimeSheetAndGameHistory = function() {
 	var json = JSON.stringify(timeSheet);	
-	fs.writeFile('timeSheet.json', json, 'utf8', util.log);
+	fs.writeFile('./data/timeSheet.json', json, 'utf8', util.log);
 
 	json = JSON.stringify(gameHistory);
-	fs.writeFile('gameHistory.json', json, 'utf8', util.log);
+	fs.writeFile('./data/gameHistory.json', json, 'utf8', util.log);
 
 	json = JSON.stringify(gamesPlayed);
-	fs.writeFile('gamesPlayed.json', json, 'utf8', util.log);
+	fs.writeFile('./data/gamesPlayed.json', json, 'utf8', util.log);
 };
 
 /**
@@ -78,7 +76,7 @@ function updateHeatMap(logTime, playerCount) {
 	
 	writeHeatMapDataToTsvFile();	
 	var json = JSON.stringify(heatMapData);	
-	fs.writeFile('heatMapData.json', json, 'utf8', util.log);
+	fs.writeFile('./data/heatMapData.json', json, 'utf8', util.log);
 };
 
 /**
@@ -87,7 +85,7 @@ function updateHeatMap(logTime, playerCount) {
 exports.generateHeatMap = function() {
 	writeHeatMapDataToTsvFile();
 	var json = JSON.stringify(heatMapData);	
-	fs.writeFile('heatMapData.json', json, 'utf8', util.log);
+	fs.writeFile('./data/heatMapData.json', json, 'utf8', util.log);
 }
 
 /**
@@ -104,7 +102,7 @@ exports.maybeOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
 		const game = get(scrub, 'presence.activity.name');
 		const status = get(scrub, 'presence.status');
 		
-		if (game && !scrub.user.bot && scrub.highestRole.name !== 'Pleb' && status !== 'idle') {
+		if (game && !scrub.user.bot && scrub.roles.highest.name !== 'Pleb' && status !== 'idle') {
 			if (!games[game]){
 				games[game] = 1;
 			} else {
@@ -516,7 +514,7 @@ exports.optIn = function(user, userID) {
 	waitAndSendScrubDaddyFact(0, 5, userID);
 	c.LOG.info(`<INFO> ${util.getTimestamp()}  ${user} (${userID}) has opted into time`);	
 	var json = JSON.stringify(optedInUsers);	
-	fs.writeFile('../optedIn.json', json, 'utf8', util.log);
+	fs.writeFile('./data/optedIn.json', json, 'utf8', util.log);
 };
 
 /**
@@ -611,7 +609,7 @@ exports.setStreamingUrl = function(member, url) {
 		if (shortUrl) {
 			userIDToStreamingUrl[member.id] = shortUrl;
 			const json = JSON.stringify(userIDToStreamingUrl);
-			fs.writeFile('streaming.json', json, 'utf8', util.log);
+			fs.writeFile('./data/streaming.json', json, 'utf8', util.log);
 			util.sendEmbedMessage(`Stream Url Set For ${member.displayName}`, `Your stream can be watched at ${shortUrl}`)
 		}
 	});
@@ -666,27 +664,80 @@ exports.maybeUpdateNickname = function(member, game) {
 };
 
 /**
- * Outputs the fortnite stats leaderboard for the provided game mode and stat.
+ * Retrieves Fortnite stats for the provided player or shows leaderboard in stat/mode for all players
  */
-exports.fortniteLeaderboard = async function(gameMode, stat, callingUserID) {
-	const gameModeTitle = `${gameMode.charAt(0).toUpperCase()}${gameMode.slice(1)}`;
-	var label;						
-	var fields = [];
-	for (var userID in userIDToFortniteUserName) {
-		const fortniteUserName = userIDToFortniteUserName[userID];
-		const result = await exports.getFortniteStatsForPlayer(fortniteUserName, userID, gameMode, stat, true);
-		console.log('after await');
-		if (result.value) {
-			fields.push(result);
-			if (!label) {
-				label = result.label;
+exports.getFortniteStats = function(gameMode, stat, callingUserID, fortniteUserName) {
+	function requestStats(userID) {
+		options.uri += fortniteUserName || userIDToFortniteUserName[userID];
+		rp(options)
+		.then(function (response) {
+			const player = JSON.parse(response);
+			if (gameMode && c.GAME_MODE_TO_KEY[gameMode.toLowerCase()]) {
+				if (gameMode !== 'all') {
+					const statKeyBase = `${c.GAME_MODE_TO_KEY[gameMode.toLowerCase()]}.${stat}`;
+					const label = get(player, `${statKeyBase}.label`);					
+					const value = get(player, `${statKeyBase}.displayValue`);
+					const percentile = get(player, `${statKeyBase}.percentile`);
+					const gameModeTitle = `${gameMode.charAt(0).toUpperCase()}${gameMode.slice(1)}`;
+					if (fortniteUserName) {
+						const title = `Fortnite ${gameModeTitle} ${label} for ${fortniteUserName}`;	
+						util.sendEmbedMessage(title, `${value}\nTop ${percentile}% in the world`, callingUserID);	
+					} else if (label) {
+						fields.push(util.buildField(bot.getScrubIDToNick()[userID], value));
+						if (!statTitleLabel) {
+							statTitleLabel = label;
+						}
+					}		
+				} else {
+					var allFields = [];					
+					get(player, c.GAME_MODE_TO_KEY[gameMode.toLowerCase()]).forEach((category) => {
+						allFields.push(util.buildField(category.key, category.value));						
+					});
+					util.sendEmbedFieldsMessage(`Fortnite Lifetime Stats for ${fortniteUserName}`, allFields, callingUserID);					
+				}
+			} 
+		})
+		.catch(function (err) {
+			console.log(err);
+		})
+		.finally(() => {
+			if (userIDs.length > 0 && !fortniteUserName) {
+				options.uri = baseUri;
+				requestStats(userIDs.pop());
+			} else if (fields.length > 0) {
+				fields.sort(util.compareFieldValues);				
+				util.sendEmbedFieldsMessage(`Fornite ${gameModeTitle} ${statTitleLabel} Leaderboard`, fields, callingUserID)
 			}
+		});
+	}
+
+	const gameModeTitle = `${gameMode.charAt(0).toUpperCase()}${gameMode.slice(1)}`;	
+	var userIDs = Object.keys(userIDToFortniteUserName);
+	var fields = [];
+	var statTitleLabel;						
+	const baseUri = 'http://api.fortnitetracker.com/v1/profile/pc/';
+
+	var options= {
+		uri: baseUri,
+		method: 'GET',
+		headers: {
+			'TRN-Api-Key': private.trnApiKey
 		}
 	}
-	if (fields.length > 0) {
-		util.sendEmbedFieldsMessage(`Fornite ${gameModeTitle} ${label} Leaderboard`, fields, callingUserID)
+
+	//get stats of @mentioned user
+	if (fortniteUserName && fortniteUserName.match(/\d/g) !== null) {
+		const matchedName = userIDToFortniteUserName[fortniteUserName.match(/\d/g).join('')];
+		if (matchedName) {
+			fortniteUserName = matchedName;
+			requestStats();
+		} else {
+			util.sendEmbedMessage('Fortnite Stats Lookup Error', 'The provided user does not have their Fortnite account linked to Scrub Daddy.', callingUserID);
+		}
+	} else {
+		requestStats(userIDs.pop());
 	}
-}
+};
 
 /**
  * Stores the user's fortnite username
@@ -694,68 +745,5 @@ exports.fortniteLeaderboard = async function(gameMode, stat, callingUserID) {
 exports.setFortniteName = function(userID, userName) {
 	userIDToFortniteUserName[userID] = userName;
 	const json = JSON.stringify(userIDToFortniteUserName);
-	fs.writeFile('fortniteUserData.json', json, 'utf8', util.log);
-}
-
-/**
- * Retrieves Fortnite stats for the provided player(s)
- */
-exports.getFortniteStatsForPlayer = function(userName, userID, gameMode, stat, supressOutput) {
-	console.log('getting stats');
-	if (userName === 'me') {
-		userName = userIDToFortniteUserName[userID];
-	}
-	const gameModeToKey = {
-		'solo': 'stats.p2',
-		'duo':  'stats.p10',
-		'squad': 'stats.p9',
-		'all': 'lifeTimeStats'
-	};
-	const options= {
-		hostname: 'api.fortnitetracker.com',
-		path: `/v1/profile/pc/${userName}`,
-		method: 'GET',
-		headers: {
-			'TRN-Api-Key': private.trnApiKey
-		}
-	}
-	
-	const req = http.request(options, (res) => {
-		var player = '';
-		console.log(`STATUS: ${res.statusCode}`);
-		console.log(`HEADERS: ${JSON.stringify(res.headers)}`);
-		res.setEncoding('utf8');
-		res.on('data', (chunk) => {
-			player += chunk;
-		});
-		res.on('end', () => {
-			player = JSON.parse(player);
-			if (gameMode && gameModeToKey[gameMode.toLowerCase()]) {
-				if (gameMode !== 'all') {
-					const statKeyBase = `${gameModeToKey[gameMode.toLowerCase()]}.${stat}`;
-					const label = get(player, `${statKeyBase}.label`);					
-					const value = get(player, `${statKeyBase}.displayValue`);
-					const percentile = get(player, `${statKeyBase}.percentile`);
-					const gameModeTitle = `${gameMode.charAt(0).toUpperCase()}${gameMode.slice(1)}`;					
-					const title = `Fortnite ${gameModeTitle} ${label} for ${userName}`;
-					if (!supressOutput) {					
-						util.sendEmbedMessage(title, `${value}\nTop ${percentile}% in the world`, userID);
-					}
-					return { label: label, value: util.buildField(bot.getScrubIDToNick()[userID], value) };			
-				} else {
-					var fields = [];					
-					get(player, gameModeToKey[gameMode.toLowerCase()]).forEach((category) => {
-						fields.push(util.buildField(category.key, category.value));						
-					});
-					util.sendEmbedFieldsMessage(`Fortnite Lifetime Stats for ${userName}`, fields, userID);					
-				}
-			} 
-		});
-	  });
-	  
-	  req.on('error', (e) => {
-		console.error(`problem with request: ${e.message}`);
-	  });
-	  
-	  req.end();
-}
+	fs.writeFile('./data/fortniteUserData.json', json, 'utf8', util.log);
+};

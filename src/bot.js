@@ -103,8 +103,20 @@ function handleCommand(message) {
 		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.CUSTOM);		
 	}
 	function exportCalled () {
-		gambling.exportLedger();
-		games.exportTimeSheetAndGameHistory();
+		if (userID === c.K_ID) {
+			gambling.exportLedger();
+			games.exportTimeSheetAndGameHistory();
+		}
+	}
+	function backupCalled() {
+		if (userID === c.K_ID) {
+			util.backupJson();
+		}
+	}
+	function restoreCalled() {
+		if (userID === c.K_ID) {
+			util.restoreJsonFromBackup(args[1]);
+		}
 	}
 	function catfactsCalled () {
 		util.catfacts(userID);
@@ -162,7 +174,7 @@ function handleCommand(message) {
 	function fortniteStatsCalled() {
 		if (args[1] && args[2]) {
 			const targetStat = args[3] || 'all';
-			games.getFortniteStatsForPlayer(args[1], userID, args[2], targetStat);
+			games.getFortniteStats(args[2], targetStat, userID, args[1]);
 		} else {
 			var possibleStats = '';
 			c.STATS.forEach((stat) => {
@@ -176,7 +188,7 @@ function handleCommand(message) {
 	}
 	function fortniteLeaderboardCalled() {
 		if (args[1] && args[2]) {
-			games.fortniteLeaderboard(args[1], args[2], userID);
+			games.getFortniteStats(args[1], args[2], userID);
 		}
 	}
 	function setFortniteNameCalled() {
@@ -257,6 +269,8 @@ function handleCommand(message) {
 		'feature': issueOrFeatureCalled,
 		'implement': implementCalled,
 		'export': exportCalled,
+		'backup': backupCalled,
+		'restore': restoreCalled,
 		'catfacts': catfactsCalled,
 		'army': armyCalled,
 		'stats': statsCalled,
@@ -328,9 +342,9 @@ client.on('presenceUpdate', (oldMember, newMember) => {
 	const newGame = get(newMember, 'presence.activity.name');
 	
 	//ignore presence updates for bots and online status changes
-	if (!newMember.user.bot && newMember.highestRole.name !== 'Pleb' && oldGame !== newGame) {
+	if (!newMember.user.bot && newMember.roles.highest.name !== 'Pleb' && oldGame !== newGame) {
 		games.maybeUpdateNickname(newMember, newGame);			
-		games.updateTimesheet(newMember.displayName, newMember.id, newMember.highestRole, oldGame, newGame);
+		games.updateTimesheet(newMember.displayName, newMember.id, newMember.roles.highest, oldGame, newGame);
 		gambling.maybeDischargeScrubBubble(botSpam);
 	}
 });

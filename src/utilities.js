@@ -2,6 +2,8 @@ var tinycolor = require("tinycolor2");
 var schedule = require('node-schedule');
 var Discord = require('discord.js');
 var inspect = require('util-inspect');
+var moment = require('moment');
+var backup = require('backup');
 var get = require('lodash.get');
 var fs = require('fs');
 
@@ -13,10 +15,11 @@ const co = require('co')
 var games = require('./games.js');
 var bot = require('./bot.js');
 var c = require('./const.js');
-var userIDToColor = require('../colors.json');
-var userIDToAliases = require('../aliases.json');
-var soundBytes = require('../soundbytes.json');
-const catFacts = require('../catfacts.json');
+var public = require('../data/public.json');
+var userIDToColor = require('../data/colors.json');
+var userIDToAliases = require('../data/aliases.json');
+var soundBytes = require('../data/soundbytes.json');
+const catFacts = require('../data/catfacts.json');
 const private = require('../../private.json'); 
 
 var dropped = 0;
@@ -344,8 +347,8 @@ exports.shuffleScrubs = function(scrubs, caller, args) {
 
 	scrubs.forEach((scrub) => {
 		console.log('looping');
-		console.log(`highest id: ${scrub.highestRole.id}  scrubs role id: ${c.SCRUBS_ROLE_ID}`)
-		if (scrub.highestRole.id === c.SCRUBS_ROLE_ID) {
+		console.log(`highest id: ${scrub.roles.highest.id}  scrubs role id: ${c.SCRUBS_ROLE_ID}`)
+		if (scrub.roles.highest.id === c.SCRUBS_ROLE_ID) {
 			console.log('changing to' + randLetter);
 			scrub.setNickname(`:${randLetter}${scrub.displayName.slice(2)}`);
 		}
@@ -376,7 +379,7 @@ function exportColors(title, description, userID, guild, hex, color) {
 	//If color not taken, write to colors.json
 	if (title.substring(0, 1) !== 'C') {
 		var json = JSON.stringify(userIDToColor);		
-		fs.writeFile('colors.json', json, 'utf8', exports.log);	
+		fs.writeFile('./data/colors.json', json, 'utf8', exports.log);	
 		const target = guild.members.find('id', userID);
 		
 		if (target.roles.find('id', c.BEYOND_ROLE_ID)) {
@@ -476,7 +479,7 @@ var downloadAttachment = co.wrap(function *(msg, userID) {
 	exports.sendEmbedMessage('🎶 Sound Byte Successfully Added', `You may now hear the sound byte by calling \`*sb ${fileName}\` from within a voice channel.`, userID);
 	soundBytes.push(fileName);				
 	var json = JSON.stringify(soundBytes);
-	fs.writeFile('soundbytes.json', json, 'utf8', exports.log);
+	fs.writeFile('./data/soundbytes.json', json, 'utf8', exports.log);
 }.bind(this));
 
 /**
@@ -516,7 +519,7 @@ exports.createAlias = function(userID, user, args) {
 	exports.sendEmbedMessage(`Alias Created for ${user}`, msg, userID)
 
 	var json = JSON.stringify(userIDToAliases);		
-	fs.writeFile('aliases.json', json, 'utf8', exports.log);	
+	fs.writeFile('./data/aliases.json', json, 'utf8', exports.log);	
 };
 
 /**
@@ -550,3 +553,30 @@ exports.outputAliases = function(userID, user) {
 	}
 	exports.sendEmbedMessage(`Aliases Created by ${user}`, msg, userID)	
 };
+
+exports.backupJson = function() {
+	const time = moment().format('M[-]D[-]YY[@]h[-]mm[-]a');
+	public.lastBackup = time;		
+	var json = JSON.stringify(public);
+	fs.writeFile('./data/public.json', json, 'utf8', exports.log);	
+	backup.backup('./data', `../jsonBackups/${time}.backup`);
+}
+
+exports.restoreJsonFromBackup = function(backupTarget) {
+	if (!backupTarget && public.lastBackup) {
+		backupTarget = public.lastBackup
+	}
+
+	const backupPath = `../jsonBackups/${backupTarget}.backup`
+	if (fs.existsSync(backupPath)) {
+		backup.restore(backupPath, './data');
+		setTimeout(() => {
+			var spawn = require('child_process').execSync,
+				mv = spawn('mv ./data/data/* data/');
+			fs.rmdirSync('./data/data')
+			exports.sendEmbedMessage('Json Restored From Backup', `All json files have been restored to the state they were in on ${backupTarget}.`);			
+		}, 2000);
+	} else {
+		exports.sendEmbedMessage('Invalid Backup Specified', `There is no backup for the provided time of ${backupTarget}.`);
+	}
+}

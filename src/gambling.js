@@ -3,7 +3,7 @@ var fs = require('fs');
 
 var c = require('./const.js');
 var util = require('./utilities.js');
-var ledger = require('../ledger.json');   //keeps track of how big of an army each member has as well as bet amounts
+var ledger = require('../data/ledger.json');   //keeps track of how big of an army each member has as well as bet amounts
 
 var dropped = 0;
 var previousMessage = {};
@@ -13,7 +13,7 @@ var previousMessage = {};
  */
 exports.exportLedger = function() {
     var json = JSON.stringify(ledger);
-    fs.writeFile('../ledger.json', json, 'utf8', util.log);
+    fs.writeFile('./data/ledger.json', json, 'utf8', util.log);
 };
 
 /**
