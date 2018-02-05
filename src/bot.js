@@ -60,6 +60,7 @@ function findClosestCommandMatch(command) {
  */
 function handleCommand(message) {
 	var args = message.content.substring(1).match(/\S+/g);
+	if (!args) { return; }
 	var userID = message.member.id;	
 	var cmd;
 	const aliasCmd = util.maybeGetAlias(args[0], userID);
