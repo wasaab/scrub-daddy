@@ -181,8 +181,8 @@ function handleCommand(message) {
 			c.STATS.forEach((stat) => {
 				possibleStats += `${stat}	`;
 			});
-			util.sendEmbedMessage('Fornite Stats Help', 'Usage: fornite-stats <userName> <gameMode> <stat>\n'
-				+ 'e.g. fornite-stats wasaab squad kills\n\n'
+			util.sendEmbedMessage('Fortnite Stats Help', 'Usage: fortnite-stats <userName> <gameMode> <stat>\n'
+				+ 'e.g. fortnite-stats wasaab squad kills\n\n'
 				+ 'gameMode options: solo, duo, squad, all\n\n'
 				+ `stat options: ${possibleStats}`);	
 		}

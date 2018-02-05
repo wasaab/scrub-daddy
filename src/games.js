@@ -12,7 +12,7 @@ var util = require('./utilities.js');
 var heatmap = require('./heatmap.js');
 var private = require('../../private.json'); 
 var optedInUsers = require('../data/optedIn.json');		//users that have opted in to playtime tracking
-var userIDToFortniteUserName = require('../data/fortniteUserData.json'); //map of Discord userID to Fornite username
+var userIDToFortniteUserName = require('../data/fortniteUserData.json'); //map of Discord userID to Fortnite username
 var userIDToStreamingUrl = require('../data/streaming.json') //map of user id to the url of their stream
 var gamesPlayed = require('../data/gamesPlayed.json');	//map of game name to users that play that game
 var gameHistory = require('../data/gameHistory.json');	//timestamped log of player counts for each game
@@ -706,7 +706,7 @@ exports.getFortniteStats = function(gameMode, stat, callingUserID, fortniteUserN
 				requestStats(userIDs.pop());
 			} else if (fields.length > 0) {
 				fields.sort(util.compareFieldValues);				
-				util.sendEmbedFieldsMessage(`Fornite ${gameModeTitle} ${statTitleLabel} Leaderboard`, fields, callingUserID)
+				util.sendEmbedFieldsMessage(`Fortnite ${gameModeTitle} ${statTitleLabel} Leaderboard`, fields, callingUserID)
 			}
 		});
 	}

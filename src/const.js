@@ -105,7 +105,7 @@ define('HELP_GAMING',[{ name: '.playing', value: '`player count of games current
 							{ name: '.who-plays <`Game Name`>', value: '`to get list of players and playtime for Game Name.`', inline: 'false'},
 							{ name: '.lets-play <`Game Name|Game Emoji`>', value: '`to ask all players of Game Name if they want to play.`', inline: 'false'},
 							{ name: '.lets-play -ss <`Game Name|Game Emoji`>', value: '`.lets-play without @mentioning Super ͡Scrubs.`', inline: 'false'},
-							{ name: '.fornite-stats <`fortniteUserName|@user`> <`gameMode`> <`stat`>', value: '`to lookup fortnite stats for the provided player.`', inline: 'false'},
+							{ name: '.fortnite-stats <`fortniteUserName|@user`> <`gameMode`> <`stat`>', value: '`to lookup fortnite stats for the provided player.`', inline: 'false'},
 							{ name: '.fortnite-leaderboard <`gameMode`> <`stat`>', value: '`to show the leaderboard for the provided game mode + stat.`', inline: 'false'},
 							{ name: '.set-fortnite-name <`fortniteUserName`>', value: '`to link your Fortnite account to Scrub Daddy for stat lookup.`', inline: 'false'}]);							
 define('HELP_BOT',[{ name: 'Please Note', value: '`Your issue title or feature title must be ONE WORD! msg is optional`', inline: 'false'},

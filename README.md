@@ -33,7 +33,7 @@ Discord bot with the following 49 commands:
       + .who-plays <`Game Name`> - `to get list of players and playtime for Game Name.`
       + .lets-play <`Game Name|Game Emoji`> - `to ask all players of Game Name if they want to play.`
       + .lets-play -ss <`Game Name|Game Emoji`> - `.lets-play without @mentioning Super ͡Scrubs.`
-      + .fornite-stats <`fortniteUserName|@user`> <`gameMode`> <`stat`> - `to lookup fortnite stats for the provided player.`
+      + .fortnite-stats <`fortniteUserName|@user`> <`gameMode`> <`stat`> - `to lookup fortnite stats for the provided player.`
       + .fortnite-leaderboard <`gameMode`> <`stat`> - `to show the leaderboard for the provided game mode + stat.`
       + .set-fortnite-name <`fortniteUserName`> - `to link your Fortnite account to Scrub Daddy for stat lookup.`
 
