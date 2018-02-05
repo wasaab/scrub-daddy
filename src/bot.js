@@ -103,8 +103,20 @@ function handleCommand(message) {
 		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.CUSTOM);		
 	}
 	function exportCalled () {
-		gambling.exportLedger();
-		games.exportTimeSheetAndGameHistory();
+		if (userID === c.K_ID) {
+			gambling.exportLedger();
+			games.exportTimeSheetAndGameHistory();
+		}
+	}
+	function backupCalled() {
+		if (userID === c.K_ID) {
+			util.backupJson();
+		}
+	}
+	function restoreCalled() {
+		if (userID === c.K_ID) {
+			util.restoreJsonFromBackup(args[1]);
+		}
 	}
 	function catfactsCalled () {
 		util.catfacts(userID);
@@ -257,6 +269,8 @@ function handleCommand(message) {
 		'feature': issueOrFeatureCalled,
 		'implement': implementCalled,
 		'export': exportCalled,
+		'backup': backupCalled,
+		'restore': restoreCalled,
 		'catfacts': catfactsCalled,
 		'army': armyCalled,
 		'stats': statsCalled,

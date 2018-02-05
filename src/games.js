@@ -11,13 +11,13 @@ var bot = require('./bot.js');
 var util = require('./utilities.js');
 var heatmap = require('./heatmap.js');
 var private = require('../../private.json'); 
-var optedInUsers = require('../optedIn.json');		//users that have opted in to playtime tracking
-var userIDToFortniteUserName = require('../fortniteUserData.json'); //map of Discord userID to Fornite username
-var userIDToStreamingUrl = require('../streaming.json') //map of user id to the url of their stream
-var gamesPlayed = require('../gamesPlayed.json');	//map of game name to users that play that game
-var gameHistory = require('../gameHistory.json');	//timestamped log of player counts for each game
-var timeSheet = require('../timeSheet.json');		//map of userID to gameToTimePlayed map for that user
-var heatMapData = require('../heatMapData.json');	//Heat map data for every day-hour combo.
+var optedInUsers = require('../data/optedIn.json');		//users that have opted in to playtime tracking
+var userIDToFortniteUserName = require('../data/fortniteUserData.json'); //map of Discord userID to Fornite username
+var userIDToStreamingUrl = require('../data/streaming.json') //map of user id to the url of their stream
+var gamesPlayed = require('../data/gamesPlayed.json');	//map of game name to users that play that game
+var gameHistory = require('../data/gameHistory.json');	//timestamped log of player counts for each game
+var timeSheet = require('../data/timeSheet.json');		//map of userID to gameToTimePlayed map for that user
+var heatMapData = require('../data/heatMapData.json');	//Heat map data for every day-hour combo.
 var heatMapImgUrl = '';		//url for the newest player count heat map image
 var gameChannels = [];		//voice channels that change name based upon what the users are playing
 
@@ -26,13 +26,13 @@ var gameChannels = [];		//voice channels that change name based upon what the us
  */
 exports.exportTimeSheetAndGameHistory = function() {
 	var json = JSON.stringify(timeSheet);	
-	fs.writeFile('timeSheet.json', json, 'utf8', util.log);
+	fs.writeFile('./data/timeSheet.json', json, 'utf8', util.log);
 
 	json = JSON.stringify(gameHistory);
-	fs.writeFile('gameHistory.json', json, 'utf8', util.log);
+	fs.writeFile('./data/gameHistory.json', json, 'utf8', util.log);
 
 	json = JSON.stringify(gamesPlayed);
-	fs.writeFile('gamesPlayed.json', json, 'utf8', util.log);
+	fs.writeFile('./data/gamesPlayed.json', json, 'utf8', util.log);
 };
 
 /**
@@ -76,7 +76,7 @@ function updateHeatMap(logTime, playerCount) {
 	
 	writeHeatMapDataToTsvFile();	
 	var json = JSON.stringify(heatMapData);	
-	fs.writeFile('heatMapData.json', json, 'utf8', util.log);
+	fs.writeFile('./data/heatMapData.json', json, 'utf8', util.log);
 };
 
 /**
@@ -85,7 +85,7 @@ function updateHeatMap(logTime, playerCount) {
 exports.generateHeatMap = function() {
 	writeHeatMapDataToTsvFile();
 	var json = JSON.stringify(heatMapData);	
-	fs.writeFile('heatMapData.json', json, 'utf8', util.log);
+	fs.writeFile('./data/heatMapData.json', json, 'utf8', util.log);
 }
 
 /**
@@ -514,7 +514,7 @@ exports.optIn = function(user, userID) {
 	waitAndSendScrubDaddyFact(0, 5, userID);
 	c.LOG.info(`<INFO> ${util.getTimestamp()}  ${user} (${userID}) has opted into time`);	
 	var json = JSON.stringify(optedInUsers);	
-	fs.writeFile('../optedIn.json', json, 'utf8', util.log);
+	fs.writeFile('./data/optedIn.json', json, 'utf8', util.log);
 };
 
 /**
@@ -609,7 +609,7 @@ exports.setStreamingUrl = function(member, url) {
 		if (shortUrl) {
 			userIDToStreamingUrl[member.id] = shortUrl;
 			const json = JSON.stringify(userIDToStreamingUrl);
-			fs.writeFile('streaming.json', json, 'utf8', util.log);
+			fs.writeFile('./data/streaming.json', json, 'utf8', util.log);
 			util.sendEmbedMessage(`Stream Url Set For ${member.displayName}`, `Your stream can be watched at ${shortUrl}`)
 		}
 	});
@@ -745,5 +745,5 @@ exports.getFortniteStats = function(gameMode, stat, callingUserID, fortniteUserN
 exports.setFortniteName = function(userID, userName) {
 	userIDToFortniteUserName[userID] = userName;
 	const json = JSON.stringify(userIDToFortniteUserName);
-	fs.writeFile('fortniteUserData.json', json, 'utf8', util.log);
+	fs.writeFile('./data/fortniteUserData.json', json, 'utf8', util.log);
 };
