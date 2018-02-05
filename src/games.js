@@ -102,7 +102,7 @@ exports.maybeOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
 		const game = get(scrub, 'presence.activity.name');
 		const status = get(scrub, 'presence.status');
 		
-		if (game && !scrub.user.bot && scrub.roles.highest.name !== 'Pleb' && status !== 'idle') {
+		if (game && !scrub.user.bot && scrub.highestRole.name !== 'Pleb' && status !== 'idle') {
 			if (!games[game]){
 				games[game] = 1;
 			} else {

@@ -55,7 +55,7 @@ exports.createChannelInCategory = function(command, channelType, channelName, me
 		};
 		message.guild.createChannel(channelName, channelType, permissions)
 		.then((channel) => {			
-			channel.send(new Discord.MessageEmbed({
+			channel.send(new Discord.RichEmbed({
 				color: color,
 				title: channelCategoryName + createdByMsg,
 				description: description,
@@ -174,7 +174,7 @@ exports.sendEmbedFieldsMessage = function(title, fields, userID) {
 	}
 
 	const color = userIDToColor[userID] || 0xffff00;	
-	bot.getBotSpam().send(new Discord.MessageEmbed({
+	bot.getBotSpam().send(new Discord.RichEmbed({
 		color: color,
 		title: title,
 		fields: fields
@@ -191,7 +191,7 @@ exports.sendEmbedMessage = function(title, description, userID, image) {
 	image = image || '';
 	const color = userIDToColor[userID] || 0xffff00;
 	
-	bot.getBotSpam().send(new Discord.MessageEmbed({
+	bot.getBotSpam().send(new Discord.RichEmbed({
 		color: color,
 		title: title,
 		description: description,
@@ -330,7 +330,7 @@ exports.scheduleRecurringJobs = function() {
 		}
 		firstRun = false;
 		var tip = c.TIPS[Math.floor(Math.random()*c.TIPS.length)];		
-		bot.getBotSpam().send(new Discord.MessageEmbed(tip))
+		bot.getBotSpam().send(new Discord.RichEmbed(tip))
 		.then((message) => {
 			previousTip = message;
 		});
@@ -347,8 +347,8 @@ exports.shuffleScrubs = function(scrubs, caller, args) {
 
 	scrubs.forEach((scrub) => {
 		console.log('looping');
-		console.log(`highest id: ${scrub.roles.highest.id}  scrubs role id: ${c.SCRUBS_ROLE_ID}`)
-		if (scrub.roles.highest.id === c.SCRUBS_ROLE_ID) {
+		console.log(`highest id: ${scrub.highestRole.id}  scrubs role id: ${c.SCRUBS_ROLE_ID}`)
+		if (scrub.highestRole.id === c.SCRUBS_ROLE_ID) {
 			console.log('changing to' + randLetter);
 			scrub.setNickname(`:${randLetter}${scrub.displayName.slice(2)}`);
 		}
