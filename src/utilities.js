@@ -344,8 +344,8 @@ exports.shuffleScrubs = function(scrubs, caller, args) {
 
 	scrubs.forEach((scrub) => {
 		console.log('looping');
-		console.log(`highest id: ${scrub.highestRole.id}  scrubs role id: ${c.SCRUBS_ROLE_ID}`)
-		if (scrub.highestRole.id === c.SCRUBS_ROLE_ID) {
+		console.log(`highest id: ${scrub.roles.highest.id}  scrubs role id: ${c.SCRUBS_ROLE_ID}`)
+		if (scrub.roles.highest.id === c.SCRUBS_ROLE_ID) {
 			console.log('changing to' + randLetter);
 			scrub.setNickname(`:${randLetter}${scrub.displayName.slice(2)}`);
 		}

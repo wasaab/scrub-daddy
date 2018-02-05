@@ -99,41 +99,49 @@ define('HELP_TIME_PLAYED',[{ name: '.time <`Game Name`> <`@user`>', value: '`use
 						   { name: '.time <`Game Name`>', value: '`cumulative playtime for the specified Game Name.`', inline: 'false'},
 						   { name: '.time <`@user`>', value: '`user\'s playtime for all games.`', inline: 'false'},
 						   { name: '.time', value: '`cumulative playtime for all games.`', inline: 'false'},
-						   { name: '.opt-in', value: '`to opt into playtime tracking.`', inline: 'false'}]);
-define('HELP_PLAYER_COUNT',[{ name: '.playing', value: '`player count of games currently being played.`', inline: 'false'},
-							{ name: '.heatmap', value: '`heatmap of player count for all games.`', inline: 'false'},
+						   { name: '.opt-in', value: '`to opt into playtime tracking.`', inline: 'false'},
+						   { name: '.heatmap', value: '`heatmap of player count for all games.`', inline: 'false'}]);
+define('HELP_GAMING',[{ name: '.playing', value: '`player count of games currently being played.`', inline: 'false'},
 							{ name: '.who-plays <`Game Name`>', value: '`to get list of players and playtime for Game Name.`', inline: 'false'},
 							{ name: '.lets-play <`Game Name|Game Emoji`>', value: '`to ask all players of Game Name if they want to play.`', inline: 'false'},
-							{ name: '.lets-play -ss <`Game Name|Game Emoji`>', value: '`.lets-play without @mentioning Super ͡Scrubs.`', inline: 'false'}]);							
+							{ name: '.lets-play -ss <`Game Name|Game Emoji`>', value: '`.lets-play without @mentioning Super ͡Scrubs.`', inline: 'false'},
+							{ name: '.fornite-stats <`fortniteUserName|@user`> <`gameMode`> <`stat`>', value: '`to lookup fortnite stats for the provided player.`', inline: 'false'},
+							{ name: '.fortnite-leaderboard <`gameMode`> <`stat`>', value: '`to show the leaderboard for the provided game mode + stat.`', inline: 'false'},
+							{ name: '.set-fortnite-name <`fortniteUserName`>', value: '`to link your Fortnite account to Scrub Daddy for stat lookup.`', inline: 'false'}]);							
 define('HELP_BOT',[{ name: 'Please Note', value: '`Your issue title or feature title must be ONE WORD! msg is optional`', inline: 'false'},
 				   { name: '.issue <`issue-title`> <`msg detailing issue`>', value: '`to submit bot issues.`', inline: 'false'},
 				   { name: '.feature <`feature-title`> <`msg detailing feature`>', value: '`to submit bot feature requests.`', inline: 'false'},
 				   { name: '.implement <`task-title`>', value: '`to vote for the next task to complete.\ntask-title is the channel title of the issue or feature.`', inline: 'false'},
 				   { name: '.help, .info, or .helpinfo', value: '`to show this message again.`', inline: 'false'}]);
 define('HELP_MISC',[{ name: '.p', value: '`to ask @Scrubs to play PUBG in scrubs text channel.`', inline: 'false'},
-					{ name: '.alias <alias> <command to call>', value: '`creates an alias for the provided command call. \ne.g. .alias ow who-plays Overwatch ... will allow you to call .ow`', inline: 'false'},
+					{ name: '.alias <`alias`> <`command to call`>', value: '`creates an alias for the provided command call. \ne.g. .alias ow who-plays Overwatch ... will allow you to call .ow`', inline: 'false'},
 					{ name: '.temp', value: '`Creates a temporary text channel`', inline: 'false'},
 					{ name: '.temp <`text|voice`>', value: '`Creates a temp text/voice channel`', inline: 'false'},
 					{ name: '.temp <`text|voice`> <`channel-title`>', value: '`Creates a voice/text channel with the provided title`', inline: 'false'},
 					{ name: '.join-review-team', value: '`to be added to the review team.`', inline: 'false'},
 					{ name: '.leave-review-team', value: '`to be removed from the review team.`', inline: 'false'},
 					{ name: '.color <`colorName`>', value: '`to set your role/response color preference.`', inline: 'false'},
+					{ name: '.shuffle-scrubs', value: '`to randomize the first letter of every Srub\'s name.`', inline: 'false'},
+					{ name: '.shuffle-scrubs <`letter`>', value: '`to set the first letter of every Srub\'s name.`', inline: 'false'},
+					{ name: '.set-stream <`url`>', value: '`to set the url for either your stream or the stream you are watching.`', inline: 'false'},					
+					{ name: '.toggle-streaming', value: '`to toggle your streaming state on/off, which will update your nickname.`', inline: 'false'},										
 					{ name: '*sb', value: '`to get the list of available soundbytes.`', inline: 'false'},					
 					{ name: '*sb <`name`>', value: '`to play the sound byte of the given name in your voice channel.`', inline: 'false'},
 					{ name: '*add-sb + `ATTACHMENT IN SAME MESSAGE`', value: '`to add a sound byte.`', inline: 'false'},
-                    { name: '*fav-sb', value: '`to get the list of your most frequently used soundbytes.`', inline: 'false'}]);					
+					{ name: '*fav-sb', value: '`to get the list of your most frequently used soundbytes.`', inline: 'false'},
+					{ name: '*volume + `ATTACHMENT IN SAME MESSAGE`', value: '`to add a sound byte.`', inline: 'false'}]);
 define('HELP_CATEGORIES_PROMPT',[{ name: 'To select a category:', value: '`Type one of the numbers below.`', inline: 'false'},
 						  { name: '.help <`command`>', value: '`to get help for a specific command`', inline: 'false'},
 						  { name: '1) Voting', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
 						  { name: '2) Scrubbing Bubbles', value: '`enlist`	`discharge`	`clean`	`army`	`ranks`	`stats`', inline: 'false'},
-						  { name: '3) Time Played', value: '`time`	`opt-in`', inline: 'false'},
-						  { name: '4) Player Count', value: '`playing`	`heatmap`	`who-plays`	`lets-play`', inline: 'false'},
+						  { name: '3) Time Played', value: '`time`	`opt-in`	`heatmap`', inline: 'false'},
+						  { name: '4) Gaming', value: '`playing`	`who-plays`	`lets-play`	`fortnite-stats`	`fortnite-leaderboard`	`set-fortnite-name`', inline: 'false'},
 						  { name: '5) Bot Issues, Feature Requests, and Help', value: '`issue`	`feature`	`implement`	`help`	`info`	`helpinfo`', inline: 'false'},
-						  { name: '6) Miscellaneous', value: '`p`	`alias`	`temp`	`join-review-team`	`leave-review-team`	`color`	`*sb`	`*add-sb`	`*fav-sb`', inline: 'false'}]);
+						  { name: '6) Miscellaneous', value: '`p`	`alias`	`temp`	`join-review-team`	`leave-review-team`	`color`	`*sb`	`*add-sb`	`*fav-sb`	`*volume`	`shuffle-scrubs`	`set-stream`	`toggle-streaming`', inline: 'false'}]);
 define('HELP_CATEGORIES', [{name: '`Voting`', fields: exports.HELP_VOTING},
 						   {name: '`Scrubbing Bubbles`', fields: exports.HELP_SCRUBBING_BUBBLES},
 						   {name: '`Time Played`', fields: exports.HELP_TIME_PLAYED},
-						   {name: '`Player Count`', fields: exports.HELP_PLAYER_COUNT},
+						   {name: '`Gaming`', fields: exports.HELP_GAMING},
 						   {name: '`Bot Issues, Feature Requests, and Help`', fields: exports.HELP_BOT}, 
 						   {name: '`Miscellaneous`', fields: exports.HELP_MISC}]);
 define('NEW_LEDGER_ENTRY', { 
@@ -221,3 +229,9 @@ define('ENCLOSED_CHARS', {'A': '🄰', 'B': '🄱', 'C': '🄲', 'D': '🄳', 'E
 	'0': '⓪', '1': '①', '2': '②', '3': '③', '4': '④', '5': '⑤', '6': '⑥', '7': '⑦', '8': '⑧', '9': '⑨'});
 define('STATS', ['trnRating','score' ,'top1','top3','top5','top6','top10','top12','top25','kd','winRatio',
 	'matches','kills','minutesPlayed','kpm','kpg','avgTimePlayed','scorePerMatch','scorePerMin'])
+define('GAME_MODE_TO_KEY', {
+		'solo': 'stats.p2',
+		'duo':  'stats.p10',
+		'squad': 'stats.p9',
+		'all': 'lifeTimeStats'
+});

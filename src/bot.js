@@ -162,7 +162,7 @@ function handleCommand(message) {
 	function fortniteStatsCalled() {
 		if (args[1] && args[2]) {
 			const targetStat = args[3] || 'all';
-			games.getFortniteStatsForPlayer(args[1], userID, args[2], targetStat);
+			games.getFortniteStats(args[2], targetStat, userID, args[1]);
 		} else {
 			var possibleStats = '';
 			c.STATS.forEach((stat) => {
@@ -176,7 +176,7 @@ function handleCommand(message) {
 	}
 	function fortniteLeaderboardCalled() {
 		if (args[1] && args[2]) {
-			games.fortniteLeaderboard(args[1], args[2], userID);
+			games.getFortniteStats(args[1], args[2], userID);
 		}
 	}
 	function setFortniteNameCalled() {
@@ -311,7 +311,7 @@ function handleCommand(message) {
 client.on('message', (message) => {
 	const firstChar = message.content.substring(0, 1);
     //Scrub Daddy will listen for messages that will start with `.`
-    if (firstChar === '.') {
+    if (firstChar === '-') {
 		handleCommand(message);
 	 } else if (isArrivedForDutyMessage(message)) {
 		gambling.maybeDeletePreviousMessage(message);
@@ -328,9 +328,9 @@ client.on('presenceUpdate', (oldMember, newMember) => {
 	const newGame = get(newMember, 'presence.activity.name');
 	
 	//ignore presence updates for bots and online status changes
-	if (!newMember.user.bot && newMember.highestRole.name !== 'Pleb' && oldGame !== newGame) {
+	if (!newMember.user.bot && newMember.roles.highest.name !== 'Pleb' && oldGame !== newGame) {
 		games.maybeUpdateNickname(newMember, newGame);			
-		games.updateTimesheet(newMember.displayName, newMember.id, newMember.highestRole, oldGame, newGame);
+		games.updateTimesheet(newMember.displayName, newMember.id, newMember.roles.highest, oldGame, newGame);
 		gambling.maybeDischargeScrubBubble(botSpam);
 	}
 });
