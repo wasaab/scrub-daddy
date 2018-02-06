@@ -7,6 +7,8 @@ var backup = require('backup');
 var get = require('lodash.get');
 var fs = require('fs');
 
+const winston = require('winston');
+const Transport = require('winston-transport');
 const request = require('request')
 const mkdirp = require('mkdirp')
 const pify = require('pify')
@@ -45,6 +47,7 @@ exports.createChannelInCategory = function(command, channelType, channelName, me
 		const channelCategoryName = command.charAt(0).toUpperCase() + command.slice(1);
 		const color = userIDToColor[userID] || 0xffff00;
 
+		//TODO: Update permissions to new 11.3.0 syntax.
 		const permissions = {
 			parent: c.CATEGORY_ID[channelCategoryName],
 			overwrites: [{
@@ -70,15 +73,45 @@ exports.createChannelInCategory = function(command, channelType, channelName, me
 	}
 };
 
+const discordServerTransport = class DiscordServerTransport extends Transport {
+	constructor(opts) {
+		super(opts);
+	}
+	
+	log(info, callback) {
+		// setImmediate(function () {
+		// 	self.emit('logged', info);
+		// });
+		
+		bot.getLogChannel().send(info.message);
+		callback();
+	}
+};
+
+//TODO: strip timestamp and maybe info/error/apiReq logic out of the rest of my code. instead use this printf format combined with timestamp format.
+//look at winstons documentation for an example
+exports.logger = new winston.createLogger({
+	level: 'info',
+	format: winston.format.printf(info => {
+		return `${info.message}`;
+	}),
+	transports: [ new winston.transports.Console() ]
+})
+
 /**
- * initializes the logger.
+ * Toggles the logger redirect to discord text channel on or off.
  */
-exports.initLogger = function() {
-	c.LOG.remove(c.LOG.transports.Console);
-	c.LOG.add(c.LOG.transports.Console, {
-    	colorize: true
-	});
-	c.LOG.level = 'debug';
+exports.toggleServerLogRedirect = function(userID) {
+	if (c.LOG.transports.length === 2) {
+		const discordTransport = c.LOG.transports.find(transport => {
+			return transport.constructor.name === 'DiscordServerTransport';
+		});
+		c.LOG.remove(discordTransport);
+		exports.sendEmbedMessage('Server Log Redirection Disabled', 'Server logs will stay where they belong!', userID)		
+	} else {
+		c.LOG.add(new discordServerTransport());	
+		exports.sendEmbedMessage('Server Log Redirection Enabled', 'The server log will now be redirected to `#server-log`', userID)
+	}
 };
 
 /**

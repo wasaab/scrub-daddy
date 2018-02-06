@@ -17,6 +17,7 @@ client.login(private.token);
 var fuse = new Fuse(c.COMMANDS, {verbose: false});
 var botSpam = {};
 var scrubsChannel = {};
+var logChannel = {};
 var purgatory = {};
 var feedbackCategory = {};
 var scrubIDtoNick = {};
@@ -117,6 +118,11 @@ function handleCommand(message) {
 	function restoreCalled() {
 		if (userID === c.K_ID) {
 			util.restoreJsonFromBackup(args[1]);
+		}
+	}
+	function logCalled() {
+		if (userID === c.K_ID) {
+			util.toggleServerLogRedirect(userID);
 		}
 	}
 	function catfactsCalled () {
@@ -272,6 +278,7 @@ function handleCommand(message) {
 		'export': exportCalled,
 		'backup': backupCalled,
 		'restore': restoreCalled,
+		'log': logCalled,
 		'catfacts': catfactsCalled,
 		'army': armyCalled,
 		'stats': statsCalled,
@@ -370,8 +377,6 @@ client.on('disconnect', (event) => {
  * Logs the bot into Discord, stores id to nick map, and retrieves 3 crucial channels.
  */
 client.on('ready', () => {
-	c.LOG.info(`<INFO> ${util.getTimestamp()}  Connected`);
-	
 	const members = client.guilds.find('id', c.SERVER_ID).members;
 	members.forEach((member) => {
 		scrubIDtoNick[member.id] = member.displayName;
@@ -380,14 +385,18 @@ client.on('ready', () => {
 	botSpam = client.channels.find('id', c.BOT_SPAM_CHANNEL_ID);	
 	scrubsChannel = client.channels.find('id', c.SCRUBS_CHANNEL_ID);
 	purgatory = client.channels.find('id', c.PURGATORY_CHANNEL_ID);	
-	
+	logChannel = client.channels.find('id', c.LOG_CHANNEL_ID);	
+
 	util.scheduleRecurringJobs();
 	games.setDynamicGameChannels(client.channels);
 	scheduleRecurringExportAndVCScan();	
+
+	c.LOG.info(`<INFO> ${util.getTimestamp()}  Connected`);
 });
 
 exports.getBotSpam = () => botSpam;
 exports.getScrubsChannel = () => scrubsChannel;
+exports.getLogChannel = () => logChannel;
 exports.getPurgatory = () => purgatory;
 exports.getScrubIDToNick = () => scrubIDtoNick;
 exports.getClient = () => client;

@@ -26,7 +26,8 @@
     "svg-to-png": "^3.1.2",
     "tinycolor2": "^1.4.1",
     "util-inspect": "^0.1.8",
-    "winston": "^2.3.1",
+    "winston": "git+http://github.com/winstonjs/winston.git#master",
+    "winston-transport": "^3.0.1",
     "xmlserializer": "^0.6.0"
   }
 }

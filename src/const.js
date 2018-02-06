@@ -1,5 +1,6 @@
+var winston = require('winston');
 var util = require('./utilities.js');
-var get = require('lodash.get');
+
 const private = require('../../private.json'); 
 
 function define(name, value) {
@@ -9,12 +10,13 @@ function define(name, value) {
     });
 }
 
-define('LOG', require('winston'));
-define('LOOP_DELAY', 1500);							        //delay between each loop
+define('LOG', util.logger);
+define('LOOP_DELAY', 1500);							//delay between each loop
 //Todo: pull up to line 26 from config.json
-define('BOT_SPAM_CHANNEL_ID', '372570540482887701');		//listen's to messages from this channel
-define('SCRUBS_CHANNEL_ID', '370626384059695107');		    //channel ID of scrubs text channel
-define('SERVER_ID', private.serverID);				    		//Bed Bath Server ID
+define('BOT_SPAM_CHANNEL_ID', '372570540482887701');//listen's to messages from this channel
+define('SCRUBS_CHANNEL_ID', '370626384059695107');	//channel ID of scrubs text channel
+define('LOG_CHANNEL_ID', '410258655322308608');		    	//channel ID of the text channel used for redirecting the console
+define('SERVER_ID', private.serverID);				//Bed Bath Server ID
 define('CATEGORY_ID', {
 	'Issue': '372143355070644255', 
 	'Feature': '374009714213781504',
@@ -203,7 +205,7 @@ define('TIPS',
 					 'You really don\'t even have to be close anymore.'
 	}
 ]);
-define('COMMANDS', ['alias', 'temp','issue','feature','implement','export','backup','restore','catfacts','army','stats','rank','ranks','clean','revive','discharge',
+define('COMMANDS', ['alias', 'temp','issue','feature','implement','export','backup','restore','log','catfacts','army','stats','rank','ranks','clean','revive','discharge',
 	'enlist','join-review-team','leave-review-team','color','sb','add-sb','sb-add','shuffle-scrubs', 'update-readme','fortnite-stats','fortnite-leaderboard','set-fortnite-name','set-stream','toggle-streaming','p','playing','heatmap','gen-heatmap','who-plays',
 	'lets-play','time','opt-in','vote','votekick','voteban','voteinfo','help','info','helpinfo']);
 define('WHO_PLAYS_FUZZY_OPTIONS', {
