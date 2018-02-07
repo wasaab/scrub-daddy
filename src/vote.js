@@ -7,7 +7,7 @@ var util = require('./utilities.js');
 var voteChannelMembers = {
 	'370625207150575617' : [],						//Beyond
 	'370625515293507584' : [],						//Str8 Chillin
-	'370625345138720809' : [],						//D. Va licious
+	'370625345138720809' : [],						//Post Beta
 	'370626021227233290' : [],						//Spazzy's Scrub Shack
 	'370625671833190400' : [],						//Cartoon Network
 	'370625623736975372' : [],						//Civ Anonymous
