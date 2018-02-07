@@ -28,10 +28,10 @@ var scrubIDtoNick = {};
  * @param {Object} message - the full message object
  */
 function isArrivedForDutyMessage(message) {
-	return message.member.id === c.SCRUB_DADDY_ID 
+	return message.channel.id === c.BOT_SPAM_CHANNEL_ID
+			&& message.member.id === c.SCRUB_DADDY_ID 
 			&& get (message, 'embeds[0].title') 
-			&& message.embeds[0].title.indexOf('duty') !== -1 
-			&& message.channel.id === c.BOT_SPAM_CHANNEL_ID;
+			&& message.embeds[0].title.indexOf('duty') !== -1;
 }
 
 function scheduleRecurringExportAndVCScan() {
@@ -371,6 +371,13 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
 client.on('disconnect', (event) => {
 	c.LOG.error(`<ERROR> ${util.getTimestamp()}  event: ${inspect(event)}`);
 	client.login(private.token);
+});
+
+/**
+ * Listens for error events and logs them.
+ */
+client.on('error', (error) => {
+	c.LOG.error(`<ERROR> ${util.getTimestamp()}  message: ${inspect(error)}`);
 });
 
 /**

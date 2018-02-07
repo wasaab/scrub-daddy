@@ -1,4 +1,3 @@
-var winston = require('winston');
 var util = require('./utilities.js');
 
 const private = require('../../private.json'); 
