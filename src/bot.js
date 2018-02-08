@@ -346,8 +346,8 @@ client.on('message', (message) => {
  * listens for updates to a user's presence (online status, game, etc).
  */
 client.on('presenceUpdate', (oldMember, newMember) => { 
-	const oldGame = get(oldMember, 'presence.activity.name');
-	const newGame = get(newMember, 'presence.activity.name');
+	const oldGame = get(oldMember, 'presence.game.name');
+	const newGame = get(newMember, 'presence.game.name');
 	
 	//ignore presence updates for bots and online status changes
 	if (!newMember.user.bot && newMember.highestRole.name !== 'Pleb' && oldGame !== newGame) {
@@ -360,7 +360,7 @@ client.on('presenceUpdate', (oldMember, newMember) => {
 client.on('voiceStateUpdate', (oldMember, newMember) => { 
 	//ignore presence updates for bots, mute/unmute, and changing between voice channels
 	if (!newMember.user.bot && !newMember.voiceChannel !== !oldMember.voiceChannel) {
-		games.maybeUpdateNickname(newMember, get(newMember, 'presence.activity.name'));	
+		games.maybeUpdateNickname(newMember, get(newMember, 'presence.game.name'));	
 	}		
 	
 });

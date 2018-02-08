@@ -74,7 +74,6 @@ var timeLabels = svg.selectAll(".timeLabel")
     });
 
 function convertSvgToPng() {
-    c.LOG.info(`dirName: ${__dirname}  sliced: ${__dirname.slice(0, -4)}`);
     svg_to_png.convert(path.join(__dirname.slice(0, -4), 'heatMap.svg'), path.join(__dirname.slice(0, -4), 'heatOutput.png'))
     .then(() => {
         c.LOG.info(`<INFO> ${util.getTimestamp()} png created: ${fs.existsSync( path.join( __dirname.slice(0, -4), "heatOutput.png"))}`);
@@ -84,7 +83,7 @@ function convertSvgToPng() {
             imgUrl = json.data.link;
         })
         .catch(function (err) {
-            c.LOG.info(`<ERROR> ${util.getTimestamp()} uploading to imgur failed - ${err.message}`);
+            c.LOG.error(`<ERROR> ${util.getTimestamp()} uploading to imgur failed - ${err.message}`);
         });
     });
 }
@@ -94,7 +93,7 @@ function writeSvgToFile() {
     svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="960" height="430" style="background: rgba(54, 57, 62, 0.74);" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml" type="text/css"/>    <g transform="translate(30,50)"> ${svgString.split('type="text/css"></style>')[1]} </svg>`;
     fs.writeFile('heatMap.svg', svgString, 'utf8', function(error, response) {
         if (error) {
-            c.LOG.info(`<API ERROR> ${util.getTimestamp()}  ERROR: ${error}`);			
+            c.LOG.error(`<API ERROR> ${util.getTimestamp()}  ERROR: ${error}`);			
         } else if (response) {
             c.LOG.info(`<API RESPONSE> ${util.getTimestamp()}  ${inspect(response)}`);
         }

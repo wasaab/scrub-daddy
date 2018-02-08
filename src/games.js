@@ -99,7 +99,7 @@ exports.maybeOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
 	var total = 0;
 
 	scrubs.forEach((scrub) => {
-		const game = get(scrub, 'presence.activity.name');
+		const game = get(scrub, 'presence.game.name');
 		const status = get(scrub, 'presence.status');
 		
 		if (game && !scrub.user.bot && scrub.highestRole.name !== 'Pleb' && status !== 'idle') {
@@ -535,7 +535,7 @@ function determineMajorityGame(voiceChannel) {
 	var gameToCount = {};	
 	var result = null;			
 	voiceChannel.members.some((member) => {
-		const game = get(member, 'presence.activity.name');
+		const game = get(member, 'presence.game.name');
 		if (game) {
 			if (!gameToCount[game]) {
 				gameToCount[game] = 1;
