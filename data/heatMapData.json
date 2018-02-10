@@ -1,636 +1,184 @@
 [
     [
-        {
-            "playerCount": 27,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 21,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 15,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 12,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 6,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 6,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 0,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 0,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 3
-        }
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
     ],
     [
-        {
-            "playerCount": 9,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 15,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 12,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 9,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 0,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 0,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 0,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 0,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 0,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 9,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 21,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 21,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 16,
-            "sampleSize": 2
-        },
-        {
-            "playerCount": 18,
-            "sampleSize": 2
-        },
-        {
-            "playerCount": 10,
-            "sampleSize": 2
-        }
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
     ],
     [
-        {
-            "playerCount": 5,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 6,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 4,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 4,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 4,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 5,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 4,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 4,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 6,
-            "sampleSize": 2
-        },
-        {
-            "playerCount": 6,
-            "sampleSize": 2
-        },
-        {
-            "playerCount": 6,
-            "sampleSize": 2
-        },
-        {
-            "playerCount": 10,
-            "sampleSize": 2
-        },
-        {
-            "playerCount": 14,
-            "sampleSize": 2
-        },
-        {
-            "playerCount": 13,
-            "sampleSize": 2
-        },
-        {
-            "playerCount": 9,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 11,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 9,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 10,
-            "sampleSize": 1
-        }
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
     ],
     [
-        {
-            "playerCount": 6,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 9,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 6,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 2,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 1,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 0,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 0,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 0,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 0,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 0,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 1,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 0,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 1,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 0,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 4,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 5,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 6,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 7,
-            "sampleSize": 2
-        },
-        {
-            "playerCount": 8,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 8,
-            "sampleSize": 2
-        },
-        {
-            "playerCount": 7,
-            "sampleSize": 1
-        }
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
     ],
     [
-        {
-            "playerCount": 5,
-            "sampleSize": 2
-        },
-        {
-            "playerCount": 6,
-            "sampleSize": 2
-        },
-        {
-            "playerCount": 5,
-            "sampleSize": 2
-        },
-        {
-            "playerCount": 5,
-            "sampleSize": 2
-        },
-        {
-            "playerCount": 4,
-            "sampleSize": 2
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 2
-        },
-        {
-            "playerCount": 6,
-            "sampleSize": 2
-        },
-        {
-            "playerCount": 5,
-            "sampleSize": 2
-        },
-        {
-            "playerCount": 5,
-            "sampleSize": 2
-        },
-        {
-            "playerCount": 6,
-            "sampleSize": 2
-        },
-        {
-            "playerCount": 4,
-            "sampleSize": 2
-        },
-        {
-            "playerCount": 2,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 2,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 2,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 4,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 6,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 6,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 8,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 9,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 9,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 7,
-            "sampleSize": 1
-        }
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
     ],
     [
-        {
-            "playerCount": 5,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 5,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 5,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 4,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 2,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 2,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 1,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 1,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 1,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 2,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 1,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 1,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 1,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 1,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 2,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 2,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 2,
-            "sampleSize": 1
-        },
-        {
-            "playerCount": 6,
-            "sampleSize": 2
-        },
-        {
-            "playerCount": 8,
-            "sampleSize": 2
-        },
-        {
-            "playerCount": 14,
-            "sampleSize": 2
-        },
-        {
-            "playerCount": 21,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 12,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 18,
-            "sampleSize": 3
-        }
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
     ],
     [
-        {
-            "playerCount": 18,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 21,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 21,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 9,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 6,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 9,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 15,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 21,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 3,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 21,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 24,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 15,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 15,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 18,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 15,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 18,
-            "sampleSize": 3
-        },
-        {
-            "playerCount": 15,
-            "sampleSize": 3
-        }
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {},
+        {}
     ]
 ]

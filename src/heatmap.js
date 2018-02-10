@@ -102,7 +102,7 @@ function writeSvgToFile() {
 }
 
 var heatmapChart = function (tsvFile) {
-    const filePath = path.join(__dirname.slice(3, -4), 'graphs', 'test.tsv');
+    const filePath = path.join(__dirname.slice(3, -4), 'graphs', 'heatmapData.tsv');
     d3.tsv(`file:///${filePath}`,
         function (d) {
             return {
@@ -204,7 +204,7 @@ function getSVGString(svgNode) {
 }
 
 exports.generateHeatMap = function() {
-    heatmapChart('test.tsv');    
+    heatmapChart('heatmapData.tsv');    
 }
 
 exports.getUpdatedHeatMapUrl = function() {
