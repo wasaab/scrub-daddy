@@ -49,7 +49,7 @@ function scheduleRecurringExportAndVCScan() {
 function findClosestCommandMatch(command) {
 	const fuzzyResults = fuse.search(command.toLowerCase());
 	if (fuzzyResults.length !== 0) {
-		c.LOG.info(`1st: ${c.COMMANDS[fuzzyResults[0]]}, 2nd: ${c.COMMANDS[fuzzyResults[1]]}`);		
+		c.LOG.info(`<INFO> ${util.getTimestamp()}	1st: ${c.COMMANDS[fuzzyResults[0]]}, 2nd: ${c.COMMANDS[fuzzyResults[1]]}`);		
 		return c.COMMANDS[fuzzyResults[0]];
 	}
 }
@@ -81,7 +81,6 @@ function handleCommand(message) {
 	if (channelID !== c.BOT_SPAM_CHANNEL_ID && !(channelID === c.SCRUBS_CHANNEL_ID && cmd === 'p')) {
 		return;
 	}
-	c.LOG.info(`<CMD> ${util.getTimestamp()}  ${cmd} called`);	
 	
 	function aliasCalled () {
 		if (args.length > 1) {			
@@ -319,9 +318,11 @@ function handleCommand(message) {
 	};
 
 	if (args[1] === 'help') {
-		args[1] = args[0]; 
+		args[1] = args[0];
+		c.LOG.info(`<CMD> ${util.getTimestamp()}  help for ${cmd} called`);			
 		helpCalled();
 	} else {
+		c.LOG.info(`<CMD> ${util.getTimestamp()}  ${cmd} called`);			
 		return commandToHandler[cmd]();		
 	}
 }

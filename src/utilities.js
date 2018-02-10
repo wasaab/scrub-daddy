@@ -48,16 +48,13 @@ exports.createChannelInCategory = function(command, channelType, channelName, me
 		const color = userIDToColor[userID] || 0xffff00;
 
 		//TODO: Update permissions to new 11.3.0 syntax.
-		const permissions = {
-			parent: c.CATEGORY_ID[channelCategoryName],
-			overwrites: [{
-				allowed: new Discord.Permissions(['MANAGE_CHANNELS', 'MANAGE_ROLES']),
-				id: userID,
-				type: 'member'
-			}]
-		};
-		message.guild.createChannel(channelName, channelType, permissions)
-		.then((channel) => {			
+		const overwrites = [{
+			allow: ['MANAGE_CHANNELS', 'MANAGE_ROLES'],
+			id: userID
+		}];
+		message.guild.createChannel(channelName, channelType, overwrites)
+		.then((channel) => {
+			channel.setParent(c.CATEGORY_ID[channelCategoryName]);			
 			channel.send(new Discord.RichEmbed({
 				color: color,
 				title: channelCategoryName + createdByMsg,
@@ -161,7 +158,7 @@ exports.getTimestamp = function() {
  */
 exports.log = function(error, response) {
 	if (error) {
-		c.LOG.info(`<API ERROR> ${exports.getTimestamp()}  ERROR: ${error}`);			
+		c.LOG.error(`<API ERROR> ${exports.getTimestamp()}  ERROR: ${error}`);			
 	} else if (response) {
 		c.LOG.info(`<API RESPONSE> ${exports.getTimestamp()}  ${inspect(response)}`);
 	}
@@ -379,10 +376,7 @@ exports.shuffleScrubs = function(scrubs, caller, args) {
 	randLetter = randLetter.toUpperCase();
 
 	scrubs.forEach((scrub) => {
-		console.log('looping');
-		console.log(`highest id: ${scrub.highestRole.id}  scrubs role id: ${c.SCRUBS_ROLE_ID}`)
 		if (scrub.highestRole.id === c.SCRUBS_ROLE_ID) {
-			console.log('changing to' + randLetter);
 			scrub.setNickname(`:${randLetter}${scrub.displayName.slice(2)}`);
 		}
 	});
@@ -468,7 +462,7 @@ exports.playSoundByte = function(channel, target, userID) {
 	if (soundBytes.includes(target.toLowerCase())) {
 		channel.join()
 		.then((connection) => {
-			console.log('Connected!')
+			c.LOG.error(`<INFO> ${exports.getTimestamp()}  Connected to channel!`);			
 			const dispatcher = connection.playFile(`./audio/${target}.mp3`);
 			
 			dispatcher.on('end', () => {

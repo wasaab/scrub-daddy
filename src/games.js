@@ -698,7 +698,7 @@ exports.getFortniteStats = function(gameMode, stat, callingUserID, fortniteUserN
 			} 
 		})
 		.catch(function (err) {
-			console.log(err);
+			c.LOG.error(`<ERROR> ${exports.getTimestamp()}  ERROR: ${err}`);			
 		})
 		.finally(() => {
 			if (userIDs.length > 0 && !fortniteUserName) {
