@@ -581,6 +581,14 @@ exports.outputAliases = function(userID, user) {
 	exports.sendEmbedMessage(`Aliases Created by ${user}`, msg, userID)	
 };
 
+exports.listBackups = function() {
+	var filesMsg = '';
+	fs.readdirSync('../jsonBackups/').forEach(file => {
+		filesMsg += `\`${file.split('.')[0]}\`\n`;
+	})
+	exports.sendEmbedMessage('Available Backups', filesMsg, c.K_ID)
+}
+
 exports.backupJson = function() {
 	const time = moment().format('M[-]D[-]YY[@]h[-]mm[-]a');
 	public.lastBackup = time;		

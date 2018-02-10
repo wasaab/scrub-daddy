@@ -109,6 +109,11 @@ function handleCommand(message) {
 			games.exportTimeSheetAndGameHistory();
 		}
 	}
+	function listBackupsCalled() {
+		if (userID === c.K_ID) {			
+			util.listBackups();
+		}
+	}
 	function backupCalled() {
 		if (userID === c.K_ID) {
 			util.backupJson();
@@ -275,6 +280,7 @@ function handleCommand(message) {
 		'feature': issueOrFeatureCalled,
 		'implement': implementCalled,
 		'export': exportCalled,
+		'list-backups': listBackupsCalled,
 		'backup': backupCalled,
 		'restore': restoreCalled,
 		'log': logCalled,
