@@ -582,10 +582,17 @@ exports.outputAliases = function(userID, user) {
 };
 
 exports.listBackups = function() {
+	var timestamps = [];
 	var filesMsg = '';
 	fs.readdirSync('../jsonBackups/').forEach(file => {
-		filesMsg += `\`${file.split('.')[0]}\`\n`;
+		const time = moment(file.split('.')[0],'M[-]D[-]YY[@]h[-]mm[-]a')
+		timestamps.push(time.valueOf());
 	})
+	timestamps.sort((a,b) => b - a);
+	timestamps.forEach((timestamp) => {
+		const time = moment(timestamp).format('M[-]D[-]YY[@]h[-]mm[-]a');
+		filesMsg += `\`${time.toString()}\`\n`;
+	});
 	exports.sendEmbedMessage('Available Backups', filesMsg, c.K_ID)
 }
 
