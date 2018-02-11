@@ -315,7 +315,7 @@ function writeHeatMapDataToTsvFile() {
 	});
 
 	if (formattedHistory !== firstLine) {		
-		fs.writeFile('./graphs/test.tsv', formattedHistory, 'utf8', util.log);
+		fs.writeFile('./graphs/heatmapData.tsv', formattedHistory, 'utf8', util.log);
 		heatmap.generateHeatMap();
 	}		
 }
