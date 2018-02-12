@@ -10,6 +10,7 @@ var gambling = require('./gambling.js');
 var games = require('./games.js');
 var vote = require('./vote.js');
 
+var public = require('../data/public.json');
 var private = require('../../private.json'); 
 var client = new Discord.Client();
 client.login(private.token);
@@ -406,6 +407,9 @@ client.on('error', (error) => {
  * Logs the bot into Discord, stores id to nick map, and retrieves 3 crucial channels.
  */
 client.on('ready', () => {
+	if (public.lottoTime) {
+		client.user.setPresence({game: {name: `lotto ${gambling.getTimeUntilLottoEnd().timeUntil}`}});
+	}
 	const members = client.guilds.find('id', c.SERVER_ID).members;
 	members.forEach((member) => {
 		scrubIDtoNick[member.id] = member.displayName;

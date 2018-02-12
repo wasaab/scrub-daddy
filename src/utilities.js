@@ -376,9 +376,9 @@ exports.scheduleRecurringJobs = function() {
 		});	
 
 		var lottoCountdownRule = new schedule.RecurrenceRule();
-		lottoCountdownRule.minute = 25;
+		lottoCountdownRule.mintue = 0;
 		var updateCountdown = schedule.scheduleJob(lottoCountdownRule, function() {	
-			bot.getClient().user.setPresence({game: {name: `lotto ${gambling.getTimeUntilLottoEnd().timeUntil}`}})
+			bot.getClient().user.setPresence({game: {name: `lotto ${gambling.getTimeUntilLottoEnd().timeUntil}`}});
 		});	
 	}
 };

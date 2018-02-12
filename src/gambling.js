@@ -416,7 +416,7 @@ exports.endLotto = function() {
         `Today the Gods of RNG have shined their light upon ${winner}!`];
     const winningMsg = winningMsgs[Math.floor(Math.random()*winningMsgs.length)];
     util.sendEmbedMessage('The Beyond Lotto Has Concluded', winningMsg, null, c.BEYOND_LOTTO_IMG);
-    c.LOG.info(`<INFO> ${exports.getTimestamp()}  Beyond lotto winner = ${winner}`);    
+    c.LOG.info(`<INFO> ${util.getTimestamp()}  Beyond lotto winner = ${winner}`);    
 
     const server = bot.getClient().guilds.find('id', c.SERVER_ID);
     const winningUser = server.members.find('id', winnerID);
