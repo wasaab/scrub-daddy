@@ -307,8 +307,12 @@ function writeHeatMapDataToTsvFile() {
 		day.forEach((hour, hourIdx) => {
 			const avgCount = Math.round(hour.playerCount / hour.sampleSize);
 			//convert from moment's day format to graph's day format
+			hourIdx--;
 			if (dayIdx === 0) {
 				dayIdx = 7;
+			} 
+			if (hourIdx === -1) {
+				hourIdx = 23;
 			}
 			formattedHistory += `${dayIdx}	${hourIdx}	${avgCount}\n`;
 		});
@@ -567,9 +571,8 @@ function resetChannelName(voiceChannel) {
 /**
  * Updates the dynamic voice channel names if the majority is playing a game.
  * 
- * @param {Object[]} channels - the server's channels
  */
-exports.maybeUpdateChannelNames = function(channels) {
+exports.maybeUpdateChannelNames = function() {
 	gameChannels.forEach((channel) => {
 		if (channel.members.length !== 0) {
 			const majorityGame = determineMajorityGame(channel);
@@ -585,6 +588,33 @@ exports.maybeUpdateChannelNames = function(channels) {
 			}
 		} else {
 			resetChannelName(channel);
+		}
+	});
+}
+
+/**
+* Raises audio quality for channels with only beyond members. Vice versa for all others.
+* 
+* @param {Object[]} channels - the server's channels
+*/
+exports.maybeChangeAudioQuality = function(channels) {
+	channels.forEach((channel) => {
+		if (channel.type === "voice") {
+			const memberCount = get(channel, 'members.size');
+			if (memberCount) {
+				const beyondCount = channel.members.array().filter((member) => { 
+					return member.hoistRole.id === c.BEYOND_ROLE_ID; 
+				}).length;
+				if (memberCount === beyondCount) {
+					channel.setBitrate(96)
+					.then(c.LOG.info(`<INFO> ${util.getTimestamp()}  Raising Channel Bitrate - ${channel.name}`))
+					.catch(console.error);
+				} else if (channel.bitrate === 96) {
+					channel.setBitrate(64)
+					.then(c.LOG.info(`<INFO> ${util.getTimestamp()}  Lowering Channel Bitrate - ${channel.name}`))
+					.catch(console.error);
+				}
+			}
 		}
 	});
 }

@@ -14,6 +14,7 @@ const mkdirp = require('mkdirp')
 const pify = require('pify')
 const co = require('co')
 
+var gambling = require('./gambling.js');
 var games = require('./games.js');
 var bot = require('./bot.js');
 var c = require('./const.js');
@@ -351,7 +352,7 @@ exports.scheduleRecurringJobs = function() {
 	});
 
 	var tipRule = new schedule.RecurrenceRule();
-	tipRule.hour = [10, 17, 24];
+	tipRule.hour = [10, 17, 23];
 	tipRule.minute = 0;
 	var firstRun = true;
 	var outputTip = schedule.scheduleJob(tipRule, function(){		
@@ -364,7 +365,22 @@ exports.scheduleRecurringJobs = function() {
 		.then((message) => {
 			previousTip = message;
 		});
-	});	
+	});
+
+	if (public.lottoTime) {
+		const lottoTime = public.lottoTime;
+		const lottoRule = `0 ${lottoTime.hour} ${lottoTime.day} ${lottoTime.month} *`;
+		var endLotto = schedule.scheduleJob(lottoRule, function() {
+			c.LOG.info(`<INFO> ${exports.getTimestamp()}  Beyond lotto ending`);		
+			gambling.endLotto();
+		});	
+
+		var lottoCountdownRule = new schedule.RecurrenceRule();
+		lottoCountdownRule.minute = 25;
+		var updateCountdown = schedule.scheduleJob(lottoCountdownRule, function() {	
+			bot.getClient().user.setPresence({game: {name: `lotto ${gambling.getTimeUntilLottoEnd().timeUntil}`}})
+		});	
+	}
 };
 
 /**

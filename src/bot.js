@@ -38,7 +38,8 @@ function scheduleRecurringExportAndVCScan() {
 	(function(){
 		games.exportTimeSheetAndGameHistory();
 		gambling.exportLedger();		
-		games.maybeUpdateChannelNames(client.channels);
+		games.maybeUpdateChannelNames();
+		games.maybeChangeAudioQuality(client.channels);
 		setTimeout(arguments.callee, 60000);
 	})();
 }
@@ -132,6 +133,18 @@ function handleCommand(message) {
 	function catfactsCalled () {
 		util.catfacts(userID);
 		message.delete();
+	}
+	function startLottoCalled() {
+		if (args[1] && args[2]) {
+			gambling.startLotto(user, userID, args[1], args[2]);
+		}
+	}
+	function lottoCalled() {
+		if (args[1] && args[1] === 'check') {
+			gambling.checkLotto(userID);
+		} else {
+			gambling.joinLotto(user, userID);
+		}
 	}
 	function armyCalled () {
 		gambling.army(userID, args);		
@@ -285,6 +298,8 @@ function handleCommand(message) {
 		'restore': restoreCalled,
 		'log': logCalled,
 		'catfacts': catfactsCalled,
+		'start-lotto': startLottoCalled,
+		'lotto': lottoCalled,
 		'army': armyCalled,
 		'stats': statsCalled,
 		'rank': ranksCalled,

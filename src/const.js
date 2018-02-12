@@ -43,6 +43,7 @@ define('THUMBS_UP_GIF', 'https://i.imgur.com/CLC53gf.gif');
 define('CLEAN_WIN_IMG', 'https://i.imgur.com/LDSm2sg.png');
 define('CLEAN_LOSE_IMG', 'https://i.imgur.com/gynZE1j.png');
 define('SCRUB_DADDY_FACT', 'https://i.imgur.com/FbAwRTj.jpg');
+define('BEYOND_LOTTO_IMG', 'https://i.imgur.com/viDJZi3.png');
 //Todo: pull from config.json
 define('PURGATORY_CHANNEL_ID', '370626266786824192');	    //sends kicked user's to this channel    
 define('VOTE_TYPE', {
@@ -125,7 +126,9 @@ define('HELP_MISC',[{ name: '.p', value: '`to ask @Scrubs to play PUBG in scrubs
 					{ name: '.shuffle-scrubs', value: '`to randomize the first letter of every Srub\'s name.`', inline: 'false'},
 					{ name: '.shuffle-scrubs <`letter`>', value: '`to set the first letter of every Srub\'s name.`', inline: 'false'},
 					{ name: '.set-stream <`url`>', value: '`to set the url for either your stream or the stream you are watching.`', inline: 'false'},					
-					{ name: '.toggle-streaming', value: '`to toggle your streaming state on/off, which will update your nickname.`', inline: 'false'},										
+					{ name: '.toggle-streaming', value: '`to toggle your streaming state on/off, which will update your nickname.`', inline: 'false'},
+					{ name: '.start-lotto <`MM/DD`> <`HH`>', value: '`to start a Beyond lotto that will end at the specified time (`HH` can be 0-23).`', inline: 'false'},
+					{ name: '.lotto', value: '`to join the currently running Beyond lotto or get the time remaining.`', inline: 'false'},													
 					{ name: '*sb', value: '`to get the list of available soundbytes.`', inline: 'false'},					
 					{ name: '*sb <`name`>', value: '`to play the sound byte of the given name in your voice channel.`', inline: 'false'},
 					{ name: '*add-sb + `ATTACHMENT IN SAME MESSAGE`', value: '`to add a sound byte.`', inline: 'false'},
@@ -138,7 +141,7 @@ define('HELP_CATEGORIES_PROMPT',[{ name: 'To select a category:', value: '`Type 
 						  { name: '3) Time Played', value: '`time`	`opt-in`	`heatmap`', inline: 'false'},
 						  { name: '4) Gaming', value: '`playing`	`who-plays`	`lets-play`	`fortnite-stats`	`fortnite-leaderboard`	`set-fortnite-name`', inline: 'false'},
 						  { name: '5) Bot Issues, Feature Requests, and Help', value: '`issue`	`feature`	`implement`	`help`	`info`	`helpinfo`', inline: 'false'},
-						  { name: '6) Miscellaneous', value: '`p`	`alias`	`temp`	`join-review-team`	`leave-review-team`	`color`	`*sb`	`*add-sb`	`*fav-sb`	`*volume`	`shuffle-scrubs`	`set-stream`	`toggle-streaming`', inline: 'false'}]);
+						  { name: '6) Miscellaneous', value: '`p`	`alias`	`temp`	`join-review-team`	`leave-review-team`	`color`	`*sb`	`*add-sb`	`*fav-sb`	`*volume`	`shuffle-scrubs`	`set-stream`	`toggle-streaming`	`start-lotto`	`lotto`', inline: 'false'}]);
 define('HELP_CATEGORIES', [{name: '`Voting`', fields: exports.HELP_VOTING},
 						   {name: '`Scrubbing Bubbles`', fields: exports.HELP_SCRUBBING_BUBBLES},
 						   {name: '`Time Played`', fields: exports.HELP_TIME_PLAYED},
@@ -204,7 +207,7 @@ define('TIPS',
 					 'You really don\'t even have to be close anymore.'
 	}
 ]);
-define('COMMANDS', ['alias', 'temp','issue','feature','implement','export','list-backups','backup','restore','log','catfacts','army','stats','rank','ranks','clean','revive','discharge',
+define('COMMANDS', ['alias', 'temp','issue','feature','implement','export','list-backups','backup','restore','log','catfacts','start-lotto','lotto','army','stats','rank','ranks','clean','revive','discharge',
 	'enlist','join-review-team','leave-review-team','color','sb','add-sb','sb-add','shuffle-scrubs', 'update-readme','fortnite-stats','fortnite-leaderboard','set-fortnite-name','set-stream','toggle-streaming','p','playing','heatmap','gen-heatmap','who-plays',
 	'lets-play','time','opt-in','vote','votekick','voteban','voteinfo','help','info','helpinfo']);
 define('WHO_PLAYS_FUZZY_OPTIONS', {
