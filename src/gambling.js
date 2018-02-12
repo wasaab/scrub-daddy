@@ -377,8 +377,9 @@ exports.getTimeUntilLottoEnd = function() {
     const endTime = Object.assign({}, public.lottoTime);
     endTime.year = present.year();
     endTime.month--;
-    const endDate = `${endTime.month}/${endTime.day} @ ${endTime.hour}:00`;
-    const timeUntil = moment(endTime).fromNow();
+    const endMoment = moment(endTime);
+    const endDate = endMoment.format('LLLL');
+    const timeUntil = endMoment.fromNow();
 
     return { timeUntil: timeUntil, endDate: endDate };
 }
@@ -400,7 +401,7 @@ exports.checkLotto = function(userID) {
 
     const { timeUntil, endDate } = exports.getTimeUntilLottoEnd();
     util.sendEmbedMessage('Beyond Lotto Information', 
-        `The lotto will end \`${timeUntil}\` on ${endDate} EST(24-hour format)\n\n` +
+        `The lotto will end \`${timeUntil}\` on ${endDate} EST\n\n` +
         `**The following ${public.lottoEntries.length} users have entered:**\n${entries}`, userID);
 };
 
