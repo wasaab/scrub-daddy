@@ -612,12 +612,15 @@ exports.listBackups = function() {
 	exports.sendEmbedMessage('Available Backups', filesMsg, c.K_ID)
 }
 
-function waitForFileToExist(time, path, timeout) {
+function waitForFileToExist(time, path, timeout, restart) {
 	const retriesLeft = 15;
 	const interval = setInterval(function() {
 		if (fs.existsSync(path)) {
 			clearInterval(interval);
 			exports.sendEmbedMessage('Backup Successfully Created', `**${time}**`, c.K_ID);
+			if (restart) {
+				exports.restartBot(restart);
+			}
 		} else if (retriesLeft === 0){
 			clearInterval(interval);
 			exports.sendEmbedMessage('There Was An Issue Creating The Backup', `**${time}**`, c.K_ID);
@@ -627,7 +630,7 @@ function waitForFileToExist(time, path, timeout) {
 	}, timeout);
 };
 
-exports.backupJson = function() {
+exports.backupJson = function(restart) {
 	const time = moment().format('M[-]D[-]YY[@]h[-]mm[-]a');
 	public.lastBackup = time;		
 	var json = JSON.stringify(public);
@@ -635,7 +638,7 @@ exports.backupJson = function() {
 	backup.backup('./data', `../jsonBackups/${time}.backup`);
 
 	const backupPath = `../jsonBackups/${time}.backup`
-	waitForFileToExist(time, backupPath, 2000);
+	waitForFileToExist(time, backupPath, 2000, restart);
 }
 
 exports.restoreJsonFromBackup = function(backupTarget) {
@@ -655,4 +658,16 @@ exports.restoreJsonFromBackup = function(backupTarget) {
 	} else {
 		exports.sendEmbedMessage('Invalid Backup Specified', `There is no backup for the provided time of ${backupTarget}.`);
 	}
+}
+
+exports.restartBot = function(update) {
+	const updateParam = update || '';
+	require('child_process').exec(`restart.sh ${updateParam}`,
+	function (error, stdout, stderr) {
+	  console.log('stdout: ' + stdout);
+	  console.log('stderr: ' + stderr);
+	  if (error !== null) {
+		console.log('exec error: ' + error);
+	  }
+  });
 }

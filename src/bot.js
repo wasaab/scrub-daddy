@@ -118,12 +118,17 @@ function handleCommand(message) {
 	}
 	function backupCalled() {
 		if (userID === c.K_ID) {
-			util.backupJson();
+			util.backupJson(args[1]);
 		}
 	}
 	function restoreCalled() {
 		if (userID === c.K_ID) {
 			util.restoreJsonFromBackup(args[1]);
+		}
+	}
+	function restartCalled() {
+		if (userID === c.K_ID) {
+			util.restartBot(args[1]);
 		}
 	}
 	function logCalled() {
@@ -297,6 +302,7 @@ function handleCommand(message) {
 		'list-backups': listBackupsCalled,
 		'backup': backupCalled,
 		'restore': restoreCalled,
+		'restart': restartCalled,
 		'log': logCalled,
 		'catfacts': catfactsCalled,
 		'start-lotto': startLottoCalled,
