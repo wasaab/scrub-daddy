@@ -612,12 +612,30 @@ exports.listBackups = function() {
 	exports.sendEmbedMessage('Available Backups', filesMsg, c.K_ID)
 }
 
+function waitForFileToExist(time, path, timeout) {
+	const retriesLeft = 15;
+	const interval = setInterval(function() {
+		if (fs.existsSync(path)) {
+			clearInterval(interval);
+			exports.sendEmbedMessage('Backup Successfully Created', `**${time}**`, c.K_ID);
+		} else if (retriesLeft === 0){
+			clearInterval(interval);
+			exports.sendEmbedMessage('There Was An Issue Creating The Backup', `**${time}**`, c.K_ID);
+		} else {
+			retriesLeft--;
+		}
+	}, timeout);
+};
+
 exports.backupJson = function() {
 	const time = moment().format('M[-]D[-]YY[@]h[-]mm[-]a');
 	public.lastBackup = time;		
 	var json = JSON.stringify(public);
 	fs.writeFile('./data/public.json', json, 'utf8', exports.log);	
 	backup.backup('./data', `../jsonBackups/${time}.backup`);
+
+	const backupPath = `../jsonBackups/${time}.backup`
+	waitForFileToExist(time, backupPath, 2000);
 }
 
 exports.restoreJsonFromBackup = function(backupTarget) {
