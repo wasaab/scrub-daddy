@@ -1,4 +1,5 @@
-# scrub-daddy
+# scrub-daddy 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/8f59c3e85df049d3bd319a21576f37c4)](https://www.codacy.com/app/Scrubs/scrub-daddy?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=kenthannigan/scrub-daddy&amp;utm_campaign=Badge_Grade)
 
 Discord bot with the following 49 commands:
 
