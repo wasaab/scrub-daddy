@@ -13,8 +13,8 @@ var suits = ["Spades", "Hearts", "Diamonds", "Clubs"];
 var values = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"];
 var deck = new Array();
 
-var cardSuit = ''
-var cardNumber = 0
+var cardSuit = '';
+var cardNumber = 0;
 
 /**
  * exports the ledger to a json file.
@@ -51,7 +51,7 @@ function checkGameState(userID) {
 function resetGame(userID) {
     ledger.blackJack[userID].gameOver = true;
     ledger.blackJack[userID].gameStarted = false;
-    exportLedger();
+    exports.exportLedger();
 }
 //creats deck of 52 standard playing cards
 function createDeck() {
@@ -101,7 +101,7 @@ function createPlayers(userID, userName) {
     ledger[userID].player.acesCount = 0;
     ledger[userID].dealer.acesCount = 0;
     ledger[userID].bjBet = 0;
-    exportLedger();
+    exports.exportLedger();
 }
 /**
  * Checks to see if Aces should be worth 11 points or 1 point
