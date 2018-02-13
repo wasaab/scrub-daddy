@@ -1,9 +1,12 @@
+var moment = require('moment');
 var get = require('lodash.get');
 var fs = require('fs');
 
 var c = require('./const.js');
+var bot = require('./bot.js');
 var util = require('./utilities.js');
-var ledger = require('../ledger.json');   //keeps track of how big of an army each member has as well as bet amounts
+var ledger = require('../data/ledger.json');   //keeps track of how big of an army each member has as well as bet amounts
+var public = require('../data/public.json');
 
 var dropped = 0;
 var previousMessage = {};
@@ -13,7 +16,7 @@ var previousMessage = {};
  */
 exports.exportLedger = function() {
     var json = JSON.stringify(ledger);
-    fs.writeFile('../ledger.json', json, 'utf8', util.log);
+    fs.writeFile('./data/ledger.json', json, 'utf8', util.log);
 };
 
 /**
@@ -324,3 +327,112 @@ exports.maybeDeletePreviousMessage = function (msg) {
     }
     previousMessage = msg;
 };
+
+function isValidTime(monthDayTokens, hour) {
+    if (monthDayTokens.length !== 2) { return false; }
+    const month = monthDayTokens[0];
+    const day = monthDayTokens[1];
+
+    return !isNaN(month) && !isNaN(day) && !isNaN(hour) &&
+        month > 0 && month < 13 &&
+        day > 0 && day < 32 &&
+        hour > -1 && hour < 24
+}
+
+function exportPublic() {
+    var json = JSON.stringify(public);
+    fs.writeFile('./data/public.json', json, 'utf8', util.log);
+}
+
+exports.startLotto = function(user, userID, monthDay, hour) {
+    if (public.lottoTime && userID !== c.K_ID) { return; }
+
+    const monthDayTokens = monthDay.split("/");
+    if (isValidTime(monthDayTokens, hour)) {
+        public.lottoTime = {
+            month: monthDayTokens[0],
+            day: monthDayTokens[1],
+            hour: hour
+        }
+        exportPublic();
+    }
+    util.sendEmbedMessage('Beyond Lotto Started', `The lotto will end on ${monthDay} @ ${hour}:00 EST(24-hour format)`)
+};
+
+exports.joinLotto = function(user, userID) {
+    var entries = public.lottoEntries || [];
+    if (entries.includes(userID)) {
+        util.sendEmbedMessage(`You Have Already Entered The Lotto`, `${user} allow me to show you the current lotto information...`, userID);
+        exports.checkLotto(userID);
+    } else {
+        entries.push(userID);
+        public.lottoEntries = entries;
+        exportPublic();
+        util.sendEmbedMessage(`${user} has entered the Beyond Lotto`, `There are now ${entries.length} participants.`, userID);
+    }
+};
+
+exports.getTimeUntilLottoEnd = function() {
+    const present = moment();
+    const endTime = Object.assign({}, public.lottoTime);
+    endTime.year = present.year();
+    endTime.month--;
+    const endMoment = moment(endTime);
+    const endDate = endMoment.format('LLLL');
+    const timeUntil = endMoment.fromNow();
+
+    return { timeUntil: timeUntil, endDate: endDate };
+}
+
+exports.checkLotto = function(userID) {
+    if (!public.lottoEntries) { 
+        util.sendEmbedMessage('Beyond Lotto Information', 'There are currently no entries for the Beyond Lotto.', userID);
+        return;
+    } 
+    if (!public.lottoTime) {
+        util.sendEmbedMessage('Beyond Lotto Information', 'There is no Beyond lotto currently running.', userID);
+        return;    
+    }
+    
+    var entries = '';
+    public.lottoEntries.forEach((entry) => {
+        entries += `${bot.getScrubIDToNick()[entry]}\n`
+    })
+
+    const { timeUntil, endDate } = exports.getTimeUntilLottoEnd();
+    util.sendEmbedMessage('Beyond Lotto Information', 
+        `The lotto will end \`${timeUntil}\` on ${endDate} EST\n\n` +
+        `**The following ${public.lottoEntries.length} users have entered:**\n${entries}`, userID);
+};
+
+exports.endLotto = function() {	
+	if (!public.lottoEntries || public.lottoEntries.length <= 1) { return; }
+    
+    const {fakeWinner, winner, winnerID} = getFakeAndRealWinner();
+    const winningMsgs = [`...and ${winner} has risen from the filth to become...\nBEYOND!`,
+        `Amongst the trashcans, ${winner} has been plucked from obscurity to become...\nBEYOND!`,
+        `May your name once again be your own. Welcome to Beyond, ${winner}!`,
+        `...and ${fakeWinner} is the winner in our hearts. However, the real winner is ${winner}!`,
+        `Today the Gods of RNG have shined their light upon ${winner}!`];
+    const winningMsg = winningMsgs[Math.floor(Math.random()*winningMsgs.length)];
+    util.sendEmbedMessage('The Beyond Lotto Has Concluded', winningMsg, null, c.BEYOND_LOTTO_IMG);
+    c.LOG.info(`<INFO> ${util.getTimestamp()}  Beyond lotto winner = ${winner}`);    
+
+    const server = bot.getClient().guilds.find('id', c.SERVER_ID);
+    const winningUser = server.members.find('id', winnerID);
+    winningUser.addRole(server.roles.find('id', c.BEYOND_ROLE_ID));
+};
+
+function getFakeAndRealWinner() {
+	var winnerID;
+	var fakeWinnerID;
+	while (winnerID === fakeWinnerID) {
+		winnerID = public.lottoEntries[Math.floor(Math.random()*public.lottoEntries.length)];
+		fakeWinnerID = public.lottoEntries[Math.floor(Math.random()*public.lottoEntries.length)];
+    }
+    return { 
+        fakeWinner: bot.getScrubIDToNick()[fakeWinnerID],
+        winner: bot.getScrubIDToNick()[winnerID],
+        winnerID: winnerID
+    };
+}

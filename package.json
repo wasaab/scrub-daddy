@@ -5,18 +5,29 @@
   "main": "bot.js",
   "author": "Kent",
   "dependencies": {
+    "backup": "^1.1.0",
     "co": "^4.6.0",
-    "discord.js": "git+https://github.com/hydrabolt/discord.js.git#master",
+    "d3-node": "^1.1.1",
+    "discord.js": "^11.3.0",
     "ffmpeg-binaries": "^3.2.2-3",
     "fuse.js": "^3.2.0",
+    "google-url": "0.0.4",
+    "imgur": "^0.2.1",
+    "jsdom": "^11.3.0",
     "lebab": "^2.7.7",
     "lodash.get": "^4.4.2",
     "moment": "^2.19.1",
     "node-schedule": "^1.2.5",
+    "open": "0.0.5",
     "opusscript": "0.0.4",
-    "request": "^2.69.0",
+    "pify": "^3.0.0",
+    "request": "^2.83.0",
+    "request-promise": "^4.2.2",
+    "svg-to-png": "^3.1.2",
     "tinycolor2": "^1.4.1",
     "util-inspect": "^0.1.8",
-    "winston": "^2.3.1"
+    "winston": "git+http://github.com/winstonjs/winston.git#master",
+    "winston-transport": "^3.0.1",
+    "xmlserializer": "^0.6.0"
   }
 }

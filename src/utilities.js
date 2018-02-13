@@ -2,20 +2,27 @@ var tinycolor = require("tinycolor2");
 var schedule = require('node-schedule');
 var Discord = require('discord.js');
 var inspect = require('util-inspect');
+var moment = require('moment');
+var backup = require('backup');
 var get = require('lodash.get');
 var fs = require('fs');
 
+const winston = require('winston');
+const Transport = require('winston-transport');
 const request = require('request')
 const mkdirp = require('mkdirp')
 const pify = require('pify')
 const co = require('co')
 
+var gambling = require('./gambling.js');
 var games = require('./games.js');
 var bot = require('./bot.js');
 var c = require('./const.js');
-var userIDToColor = require('../colors.json');
-var soundBytes = require('../soundbytes.json');
-const catFacts = require('../catfacts.json');
+var public = require('../data/public.json');
+var userIDToColor = require('../data/colors.json');
+var userIDToAliases = require('../data/aliases.json');
+var soundBytes = require('../data/soundbytes.json');
+const catFacts = require('../data/catfacts.json');
 const private = require('../../private.json'); 
 
 var dropped = 0;
@@ -41,17 +48,15 @@ exports.createChannelInCategory = function(command, channelType, channelName, me
 		const channelCategoryName = command.charAt(0).toUpperCase() + command.slice(1);
 		const color = userIDToColor[userID] || 0xffff00;
 
-		const permissions = {
-			parent: c.CATEGORY_ID[channelCategoryName],
-			overwrites: [{
-				allowed: new Discord.Permissions(['MANAGE_CHANNELS', 'MANAGE_ROLES']),
-				id: userID,
-				type: 'member'
-			}]
-		};
-		message.guild.createChannel(channelName, channelType, permissions)
-		.then((channel) => {			
-			channel.send(new Discord.MessageEmbed({
+		//TODO: Update permissions to new 11.3.0 syntax.
+		const overwrites = [{
+			allow: ['MANAGE_CHANNELS', 'MANAGE_ROLES'],
+			id: userID
+		}];
+		message.guild.createChannel(channelName, channelType, overwrites)
+		.then((channel) => {
+			channel.setParent(c.CATEGORY_ID[channelCategoryName]);			
+			channel.send(new Discord.RichEmbed({
 				color: color,
 				title: channelCategoryName + createdByMsg,
 				description: description,
@@ -66,15 +71,45 @@ exports.createChannelInCategory = function(command, channelType, channelName, me
 	}
 };
 
+const discordServerTransport = class DiscordServerTransport extends Transport {
+	constructor(opts) {
+		super(opts);
+	}
+	
+	log(info, callback) {
+		// setImmediate(function () {
+		// 	self.emit('logged', info);
+		// });
+		
+		bot.getLogChannel().send(info.message);
+		callback();
+	}
+};
+
+//TODO: strip timestamp and maybe info/error/apiReq logic out of the rest of my code. instead use this printf format combined with timestamp format.
+//look at winstons documentation for an example
+exports.logger = new winston.createLogger({
+	level: 'info',
+	format: winston.format.printf(info => {
+		return `${info.message}`;
+	}),
+	transports: [ new winston.transports.Console() ]
+})
+
 /**
- * initializes the logger.
+ * Toggles the logger redirect to discord text channel on or off.
  */
-exports.initLogger = function() {
-	c.LOG.remove(c.LOG.transports.Console);
-	c.LOG.add(c.LOG.transports.Console, {
-    	colorize: true
-	});
-	c.LOG.level = 'debug';
+exports.toggleServerLogRedirect = function(userID) {
+	if (c.LOG.transports.length === 2) {
+		const discordTransport = c.LOG.transports.find(transport => {
+			return transport.constructor.name === 'DiscordServerTransport';
+		});
+		c.LOG.remove(discordTransport);
+		exports.sendEmbedMessage('Server Log Redirection Disabled', 'Server logs will stay where they belong!', userID)		
+	} else {
+		c.LOG.add(new discordServerTransport());	
+		exports.sendEmbedMessage('Server Log Redirection Enabled', 'The server log will now be redirected to `#server-log`', userID)
+	}
 };
 
 /**
@@ -124,7 +159,7 @@ exports.getTimestamp = function() {
  */
 exports.log = function(error, response) {
 	if (error) {
-		c.LOG.info(`<API ERROR> ${exports.getTimestamp()}  ERROR: ${error}`);			
+		c.LOG.error(`<API ERROR> ${exports.getTimestamp()}  ERROR: ${error}`);			
 	} else if (response) {
 		c.LOG.info(`<API RESPONSE> ${exports.getTimestamp()}  ${inspect(response)}`);
 	}
@@ -170,7 +205,7 @@ exports.sendEmbedFieldsMessage = function(title, fields, userID) {
 	}
 
 	const color = userIDToColor[userID] || 0xffff00;	
-	bot.getBotSpam().send(new Discord.MessageEmbed({
+	bot.getBotSpam().send(new Discord.RichEmbed({
 		color: color,
 		title: title,
 		fields: fields
@@ -187,7 +222,7 @@ exports.sendEmbedMessage = function(title, description, userID, image) {
 	image = image || '';
 	const color = userIDToColor[userID] || 0xffff00;
 	
-	bot.getBotSpam().send(new Discord.MessageEmbed({
+	bot.getBotSpam().send(new Discord.RichEmbed({
 		color: color,
 		title: title,
 		description: description,
@@ -307,26 +342,61 @@ exports.scheduleRecurringJobs = function() {
 	schedule.scheduleJob(clearTimeSheetRule, function(){
 	  games.clearTimeSheet();
 	});
-	
-	firstRun = true;
-	//tips
-	schedule.scheduleJob('*/60 * * * *', function(){
+
+	var heatMapRule = new schedule.RecurrenceRule();
+	heatMapRule.minute = 0;
+
+	schedule.scheduleJob(heatMapRule, function(){
+		var members = bot.getClient().guilds.find('id', c.SERVER_ID).members;
+		games.maybeOutputCountOfGamesBeingPlayed(members, c.SCRUB_DADDY_ID);
+	});
+
+	var tipRule = new schedule.RecurrenceRule();
+	tipRule.hour = [10, 17, 23];
+	tipRule.minute = 0;
+	var firstRun = true;
+	var outputTip = schedule.scheduleJob(tipRule, function(){		
 		if (!firstRun) { 
 			previousTip.delete();						
 		}
 		firstRun = false;
 		var tip = c.TIPS[Math.floor(Math.random()*c.TIPS.length)];		
-		bot.getBotSpam().send(new Discord.MessageEmbed(tip))
+		bot.getBotSpam().send(new Discord.RichEmbed(tip))
 		.then((message) => {
 			previousTip = message;
 		});
-	});		
+	});
 
-	schedule.scheduleJob('*/30 * * * *', function(){
-		var members = bot.getClient().guilds.find('id', c.SERVER_ID).members;
-		games.maybeOutputCountOfGamesBeingPlayed(members, c.SCRUB_DADDY_ID);
-	});		
+	if (public.lottoTime) {
+		const lottoTime = public.lottoTime;
+		const lottoRule = `0 ${lottoTime.hour} ${lottoTime.day} ${lottoTime.month} *`;
+		var endLotto = schedule.scheduleJob(lottoRule, function() {
+			c.LOG.info(`<INFO> ${exports.getTimestamp()}  Beyond lotto ending`);		
+			gambling.endLotto();
+		});	
+
+		var lottoCountdownRule = new schedule.RecurrenceRule();
+		lottoCountdownRule.mintue = 0;
+		var updateCountdown = schedule.scheduleJob(lottoCountdownRule, function() {	
+			bot.getClient().user.setPresence({game: {name: `lotto ${gambling.getTimeUntilLottoEnd().timeUntil}`}});
+		});	
+	}
 };
+
+/**
+ * Replaces first letter of all Scrub's nicknames.
+ */
+exports.shuffleScrubs = function(scrubs, caller, args) {
+	if (!caller.roles.find('id', c.BEYOND_ROLE_ID) || (args[1] && args[1].length > 1)) { return; }
+	var randLetter = args[1] || c.ALPHABET.substr( Math.floor(Math.random() * 26), 1);
+	randLetter = randLetter.toUpperCase();
+
+	scrubs.forEach((scrub) => {
+		if (scrub.highestRole.id === c.SCRUBS_ROLE_ID) {
+			scrub.setNickname(`:${randLetter}${scrub.displayName.slice(2)}`);
+		}
+	});
+} 
 
 /**
  * Adds the provided target to the review role.
@@ -352,7 +422,7 @@ function exportColors(title, description, userID, guild, hex, color) {
 	//If color not taken, write to colors.json
 	if (title.substring(0, 1) !== 'C') {
 		var json = JSON.stringify(userIDToColor);		
-		fs.writeFile('colors.json', json, 'utf8', exports.log);	
+		fs.writeFile('./data/colors.json', json, 'utf8', exports.log);	
 		const target = guild.members.find('id', userID);
 		
 		if (target.roles.find('id', c.BEYOND_ROLE_ID)) {
@@ -408,7 +478,7 @@ exports.playSoundByte = function(channel, target, userID) {
 	if (soundBytes.includes(target.toLowerCase())) {
 		channel.join()
 		.then((connection) => {
-			console.log('Connected!')
+			c.LOG.error(`<INFO> ${exports.getTimestamp()}  Connected to channel!`);			
 			const dispatcher = connection.playFile(`./audio/${target}.mp3`);
 			
 			dispatcher.on('end', () => {
@@ -452,7 +522,7 @@ var downloadAttachment = co.wrap(function *(msg, userID) {
 	exports.sendEmbedMessage('🎶 Sound Byte Successfully Added', `You may now hear the sound byte by calling \`*sb ${fileName}\` from within a voice channel.`, userID);
 	soundBytes.push(fileName);				
 	var json = JSON.stringify(soundBytes);
-	fs.writeFile('soundbytes.json', json, 'utf8', exports.log);
+	fs.writeFile('./data/soundbytes.json', json, 'utf8', exports.log);
 }.bind(this));
 
 /**
@@ -475,3 +545,129 @@ exports.getTargetFromArgs = function(args, startIdx) {
 	}
 	return target;
 };
+
+/**
+ * Creates an alias for a command, that only works for the provided user.
+ * 
+ * @param {String} userID - ID of the user to create the cmd alias for
+ * @param {String} user - name of the user to create the cmd alias for
+ * @param {String[]} args - command args passed in by user
+ */
+exports.createAlias = function(userID, user, args) {
+	const command = args[1];
+	var aliases = userIDToAliases[userID] || {};
+	aliases[command] = exports.getTargetFromArgs(args, 2);
+	userIDToAliases[userID] = aliases;
+	const msg = `Calling \`.${command}\` will now trigger a call to \`.${aliases[command]}\``; 
+	exports.sendEmbedMessage(`Alias Created for ${user}`, msg, userID)
+
+	var json = JSON.stringify(userIDToAliases);		
+	fs.writeFile('./data/aliases.json', json, 'utf8', exports.log);	
+};
+
+/**
+ * Gets the alias if it exists for the provided command and user
+ * 
+ * @param {String} command - the command to check for an alias value
+ * @param {String} userID - the ID of the user calling the command
+ */
+exports.maybeGetAlias = function(command, userID) {
+	const aliases = userIDToAliases[userID];
+	if (aliases) {
+		return aliases[command];
+	} 
+	return null;
+};
+
+/**
+ * Outputs all of the provided user's command aliases
+ * 
+ * @param {String} userID - the ID of the user to output aliases for
+ * @param {String} user - the name of the user to output aliases for
+ */
+exports.outputAliases = function(userID, user) {
+	const aliases = userIDToAliases[userID];
+	var msg = 'None. Call `.help alias` for more info.';
+	if (aliases) {
+		msg = '';
+		for (var alias in aliases) {
+			msg += `\`.${alias}\` = \`.${aliases[alias]}\``
+		}
+	}
+	exports.sendEmbedMessage(`Aliases Created by ${user}`, msg, userID)	
+};
+
+exports.listBackups = function() {
+	var timestamps = [];
+	var filesMsg = '';
+	fs.readdirSync('../jsonBackups/').forEach(file => {
+		const time = moment(file.split('.')[0],'M[-]D[-]YY[@]h[-]mm[-]a')
+		timestamps.push(time.valueOf());
+	})
+	timestamps.sort((a,b) => b - a);
+	timestamps.forEach((timestamp) => {
+		const time = moment(timestamp).format('M[-]D[-]YY[@]h[-]mm[-]a');
+		filesMsg += `\`${time.toString()}\`\n`;
+	});
+	exports.sendEmbedMessage('Available Backups', filesMsg, c.K_ID)
+}
+
+function waitForFileToExist(time, path, timeout, restart) {
+	const retriesLeft = 15;
+	const interval = setInterval(function() {
+		if (fs.existsSync(path)) {
+			clearInterval(interval);
+			exports.sendEmbedMessage('Backup Successfully Created', `**${time}**`, c.K_ID);
+			if (restart) {
+				exports.restartBot(restart);
+			}
+		} else if (retriesLeft === 0){
+			clearInterval(interval);
+			exports.sendEmbedMessage('There Was An Issue Creating The Backup', `**${time}**`, c.K_ID);
+		} else {
+			retriesLeft--;
+		}
+	}, timeout);
+};
+
+exports.backupJson = function(restart) {
+	const time = moment().format('M[-]D[-]YY[@]h[-]mm[-]a');
+	public.lastBackup = time;		
+	var json = JSON.stringify(public);
+	fs.writeFile('./data/public.json', json, 'utf8', exports.log);	
+	backup.backup('./data', `../jsonBackups/${time}.backup`);
+
+	const backupPath = `../jsonBackups/${time}.backup`
+	waitForFileToExist(time, backupPath, 2000, restart);
+}
+
+exports.restoreJsonFromBackup = function(backupTarget) {
+	if (!backupTarget && public.lastBackup) {
+		backupTarget = public.lastBackup
+	}
+
+	const backupPath = `../jsonBackups/${backupTarget}.backup`
+	if (fs.existsSync(backupPath)) {
+		backup.restore(backupPath, './data');
+		setTimeout(() => {
+			var spawn = require('child_process').execSync,
+				mv = spawn('mv ./data/data/* data/');
+			fs.rmdirSync('./data/data')
+			exports.sendEmbedMessage('Json Restored From Backup', `All json files have been restored to the state they were in on ${backupTarget}.`);			
+		}, 2000);
+	} else {
+		exports.sendEmbedMessage('Invalid Backup Specified', `There is no backup for the provided time of ${backupTarget}.`);
+	}
+}
+
+exports.restartBot = function(update) {
+	const updateParam = update || '';
+	require('child_process').exec(`restart.sh ${updateParam}`,
+	function (error, stdout, stderr) {
+	  console.log('stdout: ' + stdout);
+	  console.log('stderr: ' + stderr);
+	  if (error !== null) {
+		console.log('exec error: ' + error);
+	  }
+  });
+}

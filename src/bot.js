@@ -10,6 +10,7 @@ var gambling = require('./gambling.js');
 var games = require('./games.js');
 var vote = require('./vote.js');
 
+var public = require('../data/public.json');
 var private = require('../../private.json'); 
 var client = new Discord.Client();
 client.login(private.token);
@@ -17,6 +18,7 @@ client.login(private.token);
 var fuse = new Fuse(c.COMMANDS, {verbose: false});
 var botSpam = {};
 var scrubsChannel = {};
+var logChannel = {};
 var purgatory = {};
 var feedbackCategory = {};
 var scrubIDtoNick = {};
@@ -27,16 +29,18 @@ var scrubIDtoNick = {};
  * @param {Object} message - the full message object
  */
 function isArrivedForDutyMessage(message) {
-	return message.member.id === c.SCRUB_DADDY_ID 
+	return message.channel.id === c.BOT_SPAM_CHANNEL_ID
+			&& message.member.id === c.SCRUB_DADDY_ID 
 			&& get (message, 'embeds[0].title') 
-			&& message.embeds[0].title.indexOf('duty') !== -1 
-			&& message.channel.id === c.BOT_SPAM_CHANNEL_ID;
+			&& message.embeds[0].title.indexOf('duty') !== -1;
 }
 
-function scheduleRecurringExport() {
+function scheduleRecurringExportAndVCScan() {
 	(function(){
 		games.exportTimeSheetAndGameHistory();
 		gambling.exportLedger();		
+		games.maybeUpdateChannelNames();
+		games.maybeChangeAudioQuality(client.channels);
 		setTimeout(arguments.callee, 60000);
 	})();
 }
@@ -47,7 +51,7 @@ function scheduleRecurringExport() {
 function findClosestCommandMatch(command) {
 	const fuzzyResults = fuse.search(command.toLowerCase());
 	if (fuzzyResults.length !== 0) {
-		c.LOG.info(`1st: ${c.COMMANDS[fuzzyResults[0]]}, 2nd: ${c.COMMANDS[fuzzyResults[1]]}`);		
+		c.LOG.info(`<INFO> ${util.getTimestamp()}	1st: ${c.COMMANDS[fuzzyResults[0]]}, 2nd: ${c.COMMANDS[fuzzyResults[1]]}`);		
 		return c.COMMANDS[fuzzyResults[0]];
 	}
 }
@@ -58,42 +62,105 @@ function findClosestCommandMatch(command) {
  * @param {Object} message - the full message object.
  */
 function handleCommand(message) {
-	const args = message.content.substring(1).match(/\S+/g);
-	const cmd = findClosestCommandMatch(args[0]);
-	if (!cmd) { return; }
-	args[0] = cmd;
+	var args = message.content.substring(1).match(/\S+/g);
+	if (!args) { return; }
+	var userID = message.member.id;	
+	var cmd;
+	const aliasCmd = util.maybeGetAlias(args[0], userID);
+	if (aliasCmd) {
+		args = aliasCmd.split(' ');
+		cmd = args[0];
+	} else {
+		cmd = findClosestCommandMatch(args[0]);		
+		if (!cmd) { return; }		
+		args[0] = cmd;		
+	}
 
 	const channelID = message.channel.id;
 	const user = message.member.displayName;
-	var userID = message.member.id;
 	
 	//stops if the message is not from bot-spam text channel, with the exception of the message !p.
 	if (channelID !== c.BOT_SPAM_CHANNEL_ID && !(channelID === c.SCRUBS_CHANNEL_ID && cmd === 'p')) {
 		return;
 	}
-	c.LOG.info(`<CMD> ${util.getTimestamp()}  ${cmd} called`);	
 	
+	function aliasCalled () {
+		if (args.length > 1) {			
+			util.createAlias(userID, user, args);
+		} else {
+			util.outputAliases(userID, user);
+		}
+	}
 	function tempCalled () {
 		const channelType = args[1] || 'text';
 		const channelName = util.getTargetFromArgs(args, 2) || 'temp-channel';
 		util.createChannelInCategory(cmd, channelType, channelName, message, ` Channel Created By ${user}`, userID);
 	}
 	function issueOrFeatureCalled () {
-		const chanName = args[1];
-		const feedback = args.slice(2).join(' ');
-		util.createChannelInCategory(cmd, 'text', chanName, message, ` Submitted By ${user}`, userID, feedback);		
+		if (args.length > 2) {
+			const chanName = args[1];
+			const feedback = args.slice(2).join(' ');
+			util.createChannelInCategory(cmd, 'text', chanName, message, ` Submitted By ${user}`, userID, feedback);
+		} else {
+			util.outputHelpForCommand(cmd, userID);
+		}
 	}
 	function implementCalled () {
-		args.splice(1, 0, cmd);
-		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.CUSTOM);		
+		if (args[1]) {
+			args.splice(1, 0, cmd);
+			vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.CUSTOM);
+		} else {
+			util.outputHelpForCommand(cmd, userID);
+		}
 	}
 	function exportCalled () {
-		gambling.exportLedger();
-		games.exportTimeSheetAndGameHistory();
+		if (userID === c.K_ID) {
+			gambling.exportLedger();
+			games.exportTimeSheetAndGameHistory();
+		}
+	}
+	function listBackupsCalled() {
+		if (userID === c.K_ID) {			
+			util.listBackups();
+		}
+	}
+	function backupCalled() {
+		if (userID === c.K_ID) {
+			util.backupJson(args[1]);
+		}
+	}
+	function restoreCalled() {
+		if (userID === c.K_ID) {
+			util.restoreJsonFromBackup(args[1]);
+		}
+	}
+	function restartCalled() {
+		if (userID === c.K_ID) {
+			util.restartBot(args[1]);
+		}
+	}
+	function logCalled() {
+		if (userID === c.K_ID) {
+			util.toggleServerLogRedirect(userID);
+		}
 	}
 	function catfactsCalled () {
 		util.catfacts(userID);
 		message.delete();
+	}
+	function startLottoCalled() {
+		if (args.length > 2) {
+			gambling.startLotto(user, userID, args[1], args[2]);
+		} else {
+			util.outputHelpForCommand(cmd, userID);
+		}
+	}
+	function lottoCalled() {
+		if (args[1] && args[1] === 'check') {
+			gambling.checkLotto(userID);
+		} else {
+			gambling.joinLotto(user, userID);
+		}
 	}
 	function armyCalled () {
 		gambling.army(userID, args);		
@@ -106,7 +173,11 @@ function handleCommand(message) {
 		message.delete();		
 	}
 	function cleanCalled () {
-		gambling.maybeBetClean(userID, args, message);		
+		if (args.length > 2) {
+			gambling.maybeBetClean(userID, args, message);
+		} else {
+			util.outputHelpForCommand(cmd, userID);
+		}
 	}
 	function dischargeCalled () {
 		gambling.dischargeScrubBubble(userID); 
@@ -128,6 +199,8 @@ function handleCommand(message) {
 	function colorCalled() {
 		if (args[1]) {
 			util.setUserColor(args[1], userID, message.guild);					
+		} else {
+			util.outputHelpForCommand(cmd, userID);
 		}
 	}
 	function sbCalled() {
@@ -141,6 +214,48 @@ function handleCommand(message) {
 			util.updateReadme();
 		}
 	}
+	function shuffleScrubsCalled() {
+		util.shuffleScrubs(message.guild.members.array(), message.member, args);
+	}
+	function fortniteStatsCalled() {
+		if (args.length > 2) {
+			const targetStat = args[3] || 'all';
+			games.getFortniteStats(args[2], targetStat, userID, args[1]);
+		} else {
+			var possibleStats = '';
+			c.STATS.forEach((stat) => {
+				possibleStats += `${stat}	`;
+			});
+			util.sendEmbedMessage('Fortnite Stats Help', 'Usage: fortnite-stats <`fortniteUserName|@user`> <`gameMode`> <`stat`>\n'
+				+ 'e.g. fortnite-stats wasaab squad kills\n\n'
+				+ 'gameMode options: solo, duo, squad, all\n\n'
+				+ `stat options: ${possibleStats}`);	
+		}
+	}
+	function fortniteLeaderboardCalled() {
+		if (args.length > 2) {
+			games.getFortniteStats(args[1], args[2], userID);
+		} else {
+			util.outputHelpForCommand(cmd, userID);
+		}
+	}
+	function setFortniteNameCalled() {
+		if (args[1]) {
+			games.setFortniteName(userID, args[1]);
+		} else {
+			util.outputHelpForCommand(cmd, userID);
+		}
+	}
+	function setStreamCalled() {
+		if (args[1]) {
+			games.setStreamingUrl(message.member, args[1]);
+		} else {
+			util.outputHelpForCommand(cmd, userID);
+		}
+	}
+	function toggleStreamingCalled() {
+		games.toggleStreaming(message.member)
+	}
 	function pCalled () {
 		games.askToPlayPUBG();		
 	}
@@ -148,8 +263,19 @@ function handleCommand(message) {
 		games.maybeOutputCountOfGamesBeingPlayed(message.guild.members.array(), userID);
 		message.delete();
 	}
-	function gameHistoryCalled () {
-		games.maybeOutputGameHistory(userID);		
+	function heatmapCalled () {
+		games.maybeOutputHeatMap(userID);		
+	}
+	function genHeatMapCalled() {
+		if (userID === c.K_ID) {
+			games.generateHeatMap();
+		}
+	}
+	function whoPlaysCalled() {
+		games.whoPlays(args, userID);
+	}
+	function letsPlayCalled() {
+		games.letsPlay(args, userID, user, message.guild.emojis);
 	}
 	function timeCalled () {
 		games.maybeOutputTimePlayed(args, userID);		
@@ -159,15 +285,27 @@ function handleCommand(message) {
 		message.delete();
 	}
 	function voteCalled () {
-		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.CUSTOM);					
+		if (args[1]) {
+			vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.CUSTOM);	
+		} else {
+			util.outputHelpForCommand(cmd, userID);
+		}				
 	}
 	function votekickCalled () {
-		c.LOG.info(`<VOTE Kick> ${util.getTimestamp()}  ${user}: ${message}`);
-		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.KICK, message.member.voiceChannel, message.guild.roles);		
+		if (args[1]) {
+			c.LOG.info(`<VOTE Kick> ${util.getTimestamp()}  ${user}: ${message}`);
+			vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.KICK, message.member.voiceChannel, message.guild.roles);
+		} else {
+			util.outputHelpForCommand(cmd, userID);
+		}			
 	}
 	function votebanCalled () {
-		c.LOG.info(`<VOTE Ban> ${util.getTimestamp()}  ${user}: ${message}`);			
-		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.BAN, message.member.voiceChannel, message.guild.roles);		
+		if (args[1]) {
+			c.LOG.info(`<VOTE Ban> ${util.getTimestamp()}  ${user}: ${message}`);			
+			vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.BAN, message.member.voiceChannel, message.guild.roles);		
+		} else {
+			util.outputHelpForCommand(cmd, userID);
+		}	
 	}
 	function voteinfoCalled () {
 		if (!args[1]) {
@@ -189,12 +327,20 @@ function handleCommand(message) {
 	}
 
 	var commandToHandler = {
+		'alias': aliasCalled,
 		'temp': tempCalled,
 		'issue': issueOrFeatureCalled,
 		'feature': issueOrFeatureCalled,
 		'implement': implementCalled,
 		'export': exportCalled,
+		'list-backups': listBackupsCalled,
+		'backup': backupCalled,
+		'restore': restoreCalled,
+		'restart': restartCalled,
+		'log': logCalled,
 		'catfacts': catfactsCalled,
+		'start-lotto': startLottoCalled,
+		'lotto': lottoCalled,
 		'army': armyCalled,
 		'stats': statsCalled,
 		'rank': ranksCalled,
@@ -210,9 +356,18 @@ function handleCommand(message) {
 		'add-sb': addSBCalled,
 		'sb-add': addSBCalled,
 		'update-readme': updateReadmeCalled,
+		'shuffle-scrubs': shuffleScrubsCalled,
+		'fortnite-stats': fortniteStatsCalled,
+		'fortnite-leaderboard': fortniteLeaderboardCalled,
+		'set-fortnite-name': setFortniteNameCalled,
+		'toggle-streaming': toggleStreamingCalled,
+		'set-stream': setStreamCalled,
 		'p': pCalled,
 		'playing': playingCalled,
-		'game-history': gameHistoryCalled,
+		'heatmap': heatmapCalled,
+		'gen-heatmap': genHeatMapCalled,
+		'who-plays': whoPlaysCalled,
+		'lets-play': letsPlayCalled,
 		'time': timeCalled,
 		'opt-in': optInCalled,
 		'vote': voteCalled,
@@ -224,8 +379,14 @@ function handleCommand(message) {
 		'helpinfo': helpCalled
 	};
 
-
-	return commandToHandler[cmd]();		
+	if (args[1] === 'help') {
+		args[1] = args[0];
+		c.LOG.info(`<CMD> ${util.getTimestamp()}  help for ${cmd} called`);			
+		helpCalled();
+	} else {
+		c.LOG.info(`<CMD> ${util.getTimestamp()}  ${cmd} called`);			
+		return commandToHandler[cmd]();		
+	}
 }
 
 /**
@@ -239,15 +400,32 @@ client.on('message', (message) => {
 		handleCommand(message);
 	 } else if (isArrivedForDutyMessage(message)) {
 		gambling.maybeDeletePreviousMessage(message);
-	} 
+	} else if (firstChar === '!') {
+		util.sendEmbedMessage('The Command Prefix Has Changed', 'Use `*` for sb commands and `.` for all others.', message.author.id);
+	}
 });
 
 /**
  * listens for updates to a user's presence (online status, game, etc).
  */
 client.on('presenceUpdate', (oldMember, newMember) => { 
-	games.updateTimesheet(newMember.displayName, newMember.id, get(oldMember, 'presence.activity.name'), get(newMember, 'presence.activity.name'));
-	gambling.maybeDischargeScrubBubble(botSpam);
+	const oldGame = get(oldMember, 'presence.game.name');
+	const newGame = get(newMember, 'presence.game.name');
+	
+	//ignore presence updates for bots and online status changes
+	if (!newMember.user.bot && newMember.highestRole.name !== 'Pleb' && oldGame !== newGame) {
+		games.maybeUpdateNickname(newMember, newGame);			
+		games.updateTimesheet(newMember.displayName, newMember.id, newMember.highestRole, oldGame, newGame);
+		gambling.maybeDischargeScrubBubble(botSpam);
+	}
+});
+
+client.on('voiceStateUpdate', (oldMember, newMember) => { 
+	//ignore presence updates for bots, mute/unmute, and changing between voice channels
+	if (!newMember.user.bot && !newMember.voiceChannel !== !oldMember.voiceChannel) {
+		games.maybeUpdateNickname(newMember, get(newMember, 'presence.game.name'));	
+	}		
+	
 });
 
 /**
@@ -259,11 +437,19 @@ client.on('disconnect', (event) => {
 });
 
 /**
+ * Listens for error events and logs them.
+ */
+client.on('error', (error) => {
+	c.LOG.error(`<ERROR> ${util.getTimestamp()}  message: ${inspect(error)}`);
+});
+
+/**
  * Logs the bot into Discord, stores id to nick map, and retrieves 3 crucial channels.
  */
 client.on('ready', () => {
-	c.LOG.info(`<INFO> ${util.getTimestamp()}  Connected`);
-	
+	if (public.lottoTime) {
+		client.user.setPresence({game: {name: `lotto ${gambling.getTimeUntilLottoEnd().timeUntil}`}});
+	}
 	const members = client.guilds.find('id', c.SERVER_ID).members;
 	members.forEach((member) => {
 		scrubIDtoNick[member.id] = member.displayName;
@@ -272,14 +458,24 @@ client.on('ready', () => {
 	botSpam = client.channels.find('id', c.BOT_SPAM_CHANNEL_ID);	
 	scrubsChannel = client.channels.find('id', c.SCRUBS_CHANNEL_ID);
 	purgatory = client.channels.find('id', c.PURGATORY_CHANNEL_ID);	
-	
+	logChannel = client.channels.find('id', c.LOG_CHANNEL_ID);	
+
 	util.scheduleRecurringJobs();
-	scheduleRecurringExport();	
+	games.setDynamicGameChannels(client.channels);
+	scheduleRecurringExportAndVCScan();	
+
+	c.LOG.info(`<INFO> ${util.getTimestamp()}  Connected`);
 });
 
 exports.getBotSpam = () => botSpam;
 exports.getScrubsChannel = () => scrubsChannel;
+exports.getLogChannel = () => logChannel;
 exports.getPurgatory = () => purgatory;
 exports.getScrubIDToNick = () => scrubIDtoNick;
 exports.getClient = () => client;
 
+		//return the elements of the array that match your conditional
+		// var userEntry = usersWhoPlay.filter((player) => {return player.id === userID;});
+		//get index of a an object with a specific property value in an array.
+		//const userEntryIdx = usersWhoPlay.map((player) => player.id).indexOf(userID);
+		
