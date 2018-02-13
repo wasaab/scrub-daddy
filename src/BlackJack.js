@@ -7,7 +7,7 @@
 var fs = require('fs');
 const c = require("./const.js");
 const util = require("./utilities.js");
-const ledger = require('../data/ledger.json');
+const ledger = require('../resources/data/ledger.json');
 
 var suits = ["Spades", "Hearts", "Diamonds", "Clubs"];
 var values = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"];
@@ -22,7 +22,7 @@ var cardNumber = 0;
  */
 exports.exportLedger = function () {
     var json = JSON.stringify(ledger);
-    fs.writeFile('./data/ledger.json', json, 'utf8', util.log);
+    fs.writeFile('./resources/data/ledger.json', json, 'utf8', util.log);
 };
 /** Adds Scrubbing Bubbles winnings to user's army
  * 
@@ -32,16 +32,6 @@ exports.exportLedger = function () {
  */
 function addToArmy(userID, amount) {
     ledger[userID].armySize += amount;
-}
-/** Checks if a game is already started
- * 
- * @param {number} userID - user ID of the player
- * 
- */
-function checkGameState(userID) {
-    if (ledger[userID].gameStarted === false) {
-        gamestate = false;
-    } else gamestate = true;
 }
 /** resets game of Blackjack
  * 
@@ -112,7 +102,7 @@ function createPlayers(userID, userName) {
  */
 function checkAces(userID, player) {
     if (ledger[userID][player].points > 21) {
-        for (i = 0; i < ledger[userID][player].hand.length; i++) {
+        for (var i = 0; i < ledger[userID][player].hand.length; i++) {
             if (ledger[userID][player].hand[i].Value.indexOf('11') === 0) {
                 ledger[userID][player].aces += 1;
             }
@@ -133,7 +123,7 @@ function checkAces(userID, player) {
  * 
 **/
 function dealCards(userID, player) {
-    userName = ledger[userID].name;
+    var userName = ledger[userID].name;
     var card = deck.pop();
     ledger[userID][player].hand.push(card);
     var points = card.Weight;
@@ -148,6 +138,37 @@ function dealCards(userID, player) {
     }
 }
 /** 
+ * Checks for outcome of blackjack game
+ * 
+ * @param {number} userID - User's ID of player 
+ * @param {string} userName - Username of player 
+ * 
+**/
+function checkOutcome(userID, userName) {
+    var bet = ledger[userID].bjBet;
+    var amount;
+    if (ledger[userID].player.points > 21) {
+        util.sendEmbedMessageThumbnail(userName + ' Busted! You lost ' + bet + ' Scrubbing Bubbles!', 'The Dealer Wins!', userID, null);
+        resetGame(userID);
+    }
+    if (ledger[userID].player.points === 21) {
+        amount = bet * 3;
+        addToArmy(userID, amount);
+        util.sendEmbedMessageThumbnail(userName + ' got BlackJack!', 'You win ' + amount + ' Scrubbing Bubbles!', userID, null);
+        resetGame(userID);
+    }
+    if (ledger[userID].dealer.points > 21) {
+        amount = bet * 2;
+        addToArmy(userID, amount);
+        util.sendEmbedMessageThumbnail(userName + ' you win ' + amount + ' Scrubbing Bubbles!', 'The Dealer busted!', userID, null);
+        resetGame(userID);
+    }
+    if (ledger[userID].dealer.points <= 21 && ledger[userID].dealer.points > ledger[userID].player.points) {
+        util.sendEmbedMessageThumbnail(userName + " you lose " + bet + ' Scrubbing Bubbles!', 'The Dealer Wins!', userID, null);
+        resetGame(userID);
+    }
+}
+/** 
  * Deals starting hands for blackjack and creates array for new player
  * 
  * @param {number} userID - User's ID of player 
@@ -158,7 +179,6 @@ function dealHands(userID, userName, bet) {
     if (bet > ledger[userID].armySize) {
         util.sendEmbedMessageThumbnail(userName + ' your army is not big enough!', null, userID, null);
         ledger[userID].gameStarted = false;
-        gamestate = false;
         return;
     }
     ledger[userID].bjBet = bet;
@@ -176,36 +196,7 @@ function dealHands(userID, userName, bet) {
         util.sendEmbedMessageThumbnail(userName + ' you need to finish your game in progress!', null, userID, null);
     }
 }
-/** 
- * Checks for outcome of blackjack game
- * 
- * @param {number} userID - User's ID of player 
- * @param {string} userName - Username of player 
- * 
-**/
-function checkOutcome(userID, userName) {
-    var bet = ledger[userID].bjBet;
-    if (ledger[userID].player.points > 21) {
-        util.sendEmbedMessageThumbnail(userName + ' Busted! You lost ' + bet + ' Scrubbing Bubbles!', 'The Dealer Wins!', userID, null);
-        resetGame(userID);
-    }
-    if (ledger[userID].player.points === 21) {
-        var amount = bet * 3;
-        addToArmy(userID, amount);
-        util.sendEmbedMessageThumbnail(userName + ' got BlackJack!', 'You win ' + amount + ' Scrubbing Bubbles!', userID, null);
-        resetGame(userID);
-    }
-    if (ledger[userID].dealer.points > 21) {
-        var amount = bet * 2;
-        addToArmy(userID, amount);
-        util.sendEmbedMessageThumbnail(userName + ' you win ' + amount + ' Scrubbing Bubbles!', 'The Dealer busted!', userID, null);
-        resetGame(userID);
-    }
-    if (ledger[userID].dealer.points <= 21 && ledger[userID].dealer.points > ledger[userID].player.points) {
-        util.sendEmbedMessageThumbnail(userName + " you lose " + bet + ' Scrubbing Bubbles!', 'The Dealer Wins!', userID, null);
-        resetGame(userID);
-    }
-}
+
 /**
  * Populates the blackjack fields for the provided user in the ledger 
  * iff they don't already exist.
@@ -233,7 +224,7 @@ exports.hitMe = function (userID, userName) {
     } else {
         util.sendEmbedMessageThumbnail(userName + " you need to start a new game!", null, userID, null);
     }
-}
+};
 /** 
  * Finalizes Player's hand and intitiates dealer's turn
  * 
@@ -252,7 +243,7 @@ exports.stay = function (userID, userName) {
     } else {
         util.sendEmbedMessageThumbnail(userName + " you need to start a new game!", null, userID, null);
     }
-}
+};
 /**Checks to see if the bet is a valid number
  * 
  * @param {number} userID -user ID of player
@@ -267,11 +258,9 @@ exports.checkUserData = function (userID, userName, args) {
         util.sendEmbedMessageThumbnail(userName + " that's an invalid bet.", null, userID, null);
         return;
     }
-    checkGameState(userID);
-    if (gamestate === false) {
+    if (!ledger[userID].gameStarted) {
         dealHands(userID, userName, bet);
-    }
-    if (gamestate === true) {
+    } else {
         util.sendEmbedMessageThumbnail(userName + " you already have a game in progress!", null, userID, null);
     }
-}
+};
