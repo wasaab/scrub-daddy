@@ -1,6 +1,7 @@
-# scrub-daddy
+# scrub-daddy 
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/8f59c3e85df049d3bd319a21576f37c4)](https://www.codacy.com/app/Scrubs/scrub-daddy?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=kenthannigan/scrub-daddy&amp;utm_campaign=Badge_Grade)
 
-Discord bot with the following 49 commands:
+Discord bot with the following 55 commands:
 
 1. Voting
       + Please Note - `You must be in a voice channel with at least 3 members to participate in a kick/ban vote.`
@@ -64,3 +65,15 @@ Discord bot with the following 49 commands:
       + *add-sb + `ATTACHMENT IN SAME MESSAGE` - `to add a sound byte.`
       + *fav-sb - `to get the list of your most frequently used soundbytes.`
       + *volume + `ATTACHMENT IN SAME MESSAGE` - `to add a sound byte.`
+
+1. Admin Commands
+      + backup - `backs up all json files within the data folder to ../jsonBackups.`
+      + restore <`backupFileName`> - `restores json files to the specified backup.`
+      + list-backups - `lists the available backups.`
+      + restart <`up|hard| `> - `restarts and updates the bot if specified.`
+      + export - `writes all local data to their appropriate json files immediately.`
+      + log - `toggles server output redirection to discord channel #server-log.`
+      + revive - `revives a fallen Scrubbing Bubble.`
+      + update-readme - `updates the readme to include new commands.`
+      + gen-heatmap - `generates the player count heatmap.`
+ 
