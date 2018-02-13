@@ -59,10 +59,8 @@ function createDeck() {
     for (var i = 0; i < values.length; i++) {
         for (var x = 0; x < suits.length; x++) {
             var weight = parseInt(values[i]);
-            if (values[i] == "12" || values[i] == "13" || values[i] == "14")
+            if (weight > 11 && weight < 15)
                 weight = 10;
-            if (values[i] == "11")
-                weight = 11;
             var card = { Value: values[i], Suit: suits[x], Weight: weight };
             deck.push(card);
         }
@@ -115,7 +113,7 @@ function createPlayers(userID, userName) {
 function checkAces(userID, player) {
     if (ledger[userID][player].points > 21) {
         for (i = 0; i < ledger[userID][player].hand.length; i++) {
-            if (ledger[userID][player].hand[i].Value.indexOf('11') == 0) {
+            if (ledger[userID][player].hand[i].Value.indexOf('11') === 0) {
                 ledger[userID][player].aces += 1;
             }
         }
@@ -191,7 +189,7 @@ function checkOutcome(userID, userName) {
         util.sendEmbedMessageThumbnail(userName + ' Busted! You lost ' + bet + ' Scrubbing Bubbles!', 'The Dealer Wins!', userID, null);
         resetGame(userID);
     }
-    if (ledger[userID].player.points == 21) {
+    if (ledger[userID].player.points === 21) {
         var amount = bet * 3;
         addToArmy(userID, amount);
         util.sendEmbedMessageThumbnail(userName + ' got BlackJack!', 'You win ' + amount + ' Scrubbing Bubbles!', userID, null);
@@ -216,7 +214,6 @@ function checkOutcome(userID, userName) {
  * @param {String} userName - the name of the user
  */
 function maybePopulateBlackjackUserFields(userID, userName) {
-
     if (!ledger[userID] || !ledger[userID].player) {
         createPlayers(userID, userName);
     }
@@ -266,7 +263,7 @@ exports.stay = function (userID, userName) {
 exports.checkUserData = function (userID, userName, args) {
     maybePopulateBlackjackUserFields(userID, userName);
     const bet = Number(args[0]);
-    if (!bet || bet < 0 || !Number.isInteger(bet)) {
+    if (!bet || !Number.isInteger(bet) || bet < 0) {
         util.sendEmbedMessageThumbnail(userName + " that's an invalid bet.", null, userID, null);
         return;
     }
