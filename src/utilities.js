@@ -233,6 +233,26 @@ exports.sendEmbedMessage = function(title, description, userID, image) {
 };
 
 /**
+ * Sends an embed message to bot-spam with an optional title, description, and image.
+ */
+exports.sendEmbedMessageThumbnail = function(title, description, userID, image) {
+	//these are all optional parameters
+	title = title || '';
+	description = description || '';
+	image = image || '';
+	const color = userIDToColor[userID] || 0xffff00;
+	
+	bot.getBotSpam().send(new Discord.RichEmbed({
+		color: color,
+		title: title,
+		description: description,
+		thumbnail: {
+			url: image
+		} 
+	}));	
+};
+
+/**
  * Gets a map of scrub's ids to nicknames.
  */
 exports.getScrubIDToNick = function() {
