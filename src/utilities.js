@@ -213,23 +213,22 @@ exports.sendEmbedFieldsMessage = function(title, fields, userID) {
 };
 
 /**
- * Sends an embed message to bot-spam with an optional title, description, and image.
+ * Sends an embed message to bot-spam with an optional title, description, image and thumbnail(true/false)
  */
-exports.sendEmbedMessage = function(title, description, userID, image) {
+exports.sendEmbedMessage = function(title, description, userID, image, thumbnail) {
 	//these are all optional parameters
 	title = title || '';
 	description = description || '';
 	image = image || '';
+	const picType = thumbnail ? 'thumbnail' : 'image';
 	const color = userIDToColor[userID] || 0xffff00;
-	
-	bot.getBotSpam().send(new Discord.RichEmbed({
+	var message = {
 		color: color,
 		title: title,
-		description: description,
-		image: {
-			url: image
-		} 
-	}));	
+		description: description
+	};
+	message[picType] = { url: image };
+	bot.getBotSpam().send(new Discord.RichEmbed(message));	
 };
 
 /**
