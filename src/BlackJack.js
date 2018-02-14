@@ -73,7 +73,7 @@ function shuffle() {
  * @param {string} userName - Username of player 
  * 
  **/
-function createPlayers(userID, userName) {
+function createPlayers(userID) {
     if (!ledger[userID]) {
         ledger[userID] = Object.assign({}, c.NEW_LEDGER_ENTRY);
     } else if (!ledger[userID].player) {
@@ -81,7 +81,6 @@ function createPlayers(userID, userName) {
         ledger[userID].dealer = {};
     }
     ledger[userID].gameOver = false;
-    ledger[userID].name = userName;
     ledger[userID].player.hand = new Array();
     ledger[userID].dealer.hand = new Array();
     ledger[userID].player.points = 0;
@@ -122,8 +121,7 @@ function checkAces(userID, player) {
  * @param {string} player - player or dealer identifier
  * 
 **/
-function dealCards(userID, player) {
-    var userName = ledger[userID].name;
+function dealCards(userID, player, userName) {
     var card = deck.pop();
     ledger[userID][player].hand.push(card);
     var points = card.Weight;
@@ -132,9 +130,9 @@ function dealCards(userID, player) {
     cardNumber = card.Value;
     checkAces(userID, player);
     if (player === "player") {
-        util.sendEmbedMessageThumbnail(userName + " 's score: ", ledger[userID][player].points, userID, c[cardSuit][cardNumber - 2]);
+        util.sendEmbedMessageThumbnail(userName + " 's score: ", ledger[userID][player].points, userID, c[cardSuit][cardNumber - 2], true);
     } else {
-        util.sendEmbedMessageThumbnail(player + " 's score: ", ledger[userID][player].points, userID, c[cardSuit][cardNumber - 2]);
+        util.sendEmbedMessageThumbnail(player + " 's score: ", ledger[userID][player].points, userID, c[cardSuit][cardNumber - 2], true);
     }
 }
 /** 
@@ -186,9 +184,9 @@ function dealHands(userID, userName, bet) {
     if (!ledger[userID].gameStarted) {
         ledger[userID].gameStarted = true;
         shuffle();
-        createPlayers(userID, userName);
+        createPlayers(userID);
         for (var i = 1; i <= 2; i++) {
-            dealCards(userID, "player");
+            dealCards(userID, "player", userName);
         }
         checkOutcome(userID, userName, );
 
