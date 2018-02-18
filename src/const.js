@@ -161,8 +161,22 @@ define('NEW_LEDGER_ENTRY', {
 	scrubsBet: 0, 
 	scrubsWon: 0,
 	scrubsLost: 0, 
-	totalDischarged: 0 
+    totalDischarged: 0,
+	gameStarted: false,
+	gameOver: true,
+   	bjBet: 0,
+    	player: {acesCount: 0, aces: 0, points: 0, hand:{}},
+	dealer:{acesCount: 0, aces: 0, points:0, hand:{}}
+
 });
+define('Clubs', ['https://i.imgur.com/o7m74ae.png', 'https://i.imgur.com/s15mB52.png', 'https://i.imgur.com/8zKQuRh.png?1', 'https://i.imgur.com/cCGAnwz.png', 'https://i.imgur.com/aw8SjKM.png', 'https://i.imgur.com/fDYMBkl.png', 'https://i.imgur.com/9GdN1xf.png', 'https://i.imgur.com/KT1weaO.png', 'https://i.imgur.com/qt9QC39.png', 'https://i.imgur.com/Z13JEy5.png', 'https://i.imgur.com/ihire3h.png', 'https://i.imgur.com/YghMO9j.png', 'https://i.imgur.com/LzMzKTB.png']);
+
+define('Spades', ['https://i.imgur.com/FHvk0sp.png', 'https://i.imgur.com/sLDI1Bo.png', 'https://i.imgur.com/WjJ2puv.png', 'https://i.imgur.com/kQC54bz.png', 'https://i.imgur.com/9LwWVZY.png', 'https://i.imgur.com/xl4iMRD.png', 'https://i.imgur.com/QZGxsEn.png', 'https://i.imgur.com/LTwacw5.png', 'https://i.imgur.com/ktDrrsF.png', 'https://i.imgur.com/1XSryPi.png', 'https://i.imgur.com/ve4ImOC.png', 'https://i.imgur.com/gedGmML.png', 'https://i.imgur.com/8AR2XPY.png']);
+
+define('Diamonds', ['https://i.imgur.com/0yoc7jc.png', 'https://i.imgur.com/TjpZNj4.png', 'https://i.imgur.com/RT3lgO9.png', 'https://i.imgur.com/VknG03X.png', 'https://i.imgur.com/KzRjlUJ.png', 'https://i.imgur.com/yqQFHn5.png', 'https://i.imgur.com/AOPOjZI.png', 'https://i.imgur.com/2EypWwj.png', 'https://i.imgur.com/TS00BlT.png', 'https://i.imgur.com/to5qn8r.png', 'https://i.imgur.com/bulA3sS.png', 'https://i.imgur.com/WOLNfRq.png', 'https://i.imgur.com/54qFEo9.png']);
+
+define('Hearts', ['https://i.imgur.com/gQVUlQW.png', 'https://i.imgur.com/az3oztW.png', 'https://i.imgur.com/YzJB3ee.png', 'https://i.imgur.com/3BwKfue.png', 'https://i.imgur.com/1wQv85L.png', 'https://i.imgur.com/1fRlihh.png', 'https://i.imgur.com/7JZP5Gj.png', 'https://i.imgur.com/lXizCrc.png', 'https://i.imgur.com/Cdib2wr.png', 'https://i.imgur.com/6FVwLvj.png', 'https://i.imgur.com/dT8taqF.png', 'https://i.imgur.com/yOJPOvz.png', 'https://i.imgur.com/NfHoAdu.png']);
+
 define('TIPS', 
 	[{
 		color: 0xffff00,
