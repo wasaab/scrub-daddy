@@ -1,5 +1,6 @@
 var Discord = require('discord.js');
 var inspect = require('util-inspect');
+var txtgen = require('txtgen');
 var moment = require('moment');
 var gUrl = require( 'google-url' );
 var Fuse = require('fuse.js');
@@ -11,13 +12,13 @@ var bot = require('./bot.js');
 var util = require('./utilities.js');
 var heatmap = require('./heatmap.js');
 var private = require('../../private.json'); 
-var optedInUsers = require('../data/optedIn.json');		//users that have opted in to playtime tracking
-var userIDToFortniteUserName = require('../data/fortniteUserData.json'); //map of Discord userID to Fortnite username
-var userIDToStreamingUrl = require('../data/streaming.json') //map of user id to the url of their stream
-var gamesPlayed = require('../data/gamesPlayed.json');	//map of game name to users that play that game
-var gameHistory = require('../data/gameHistory.json');	//timestamped log of player counts for each game
-var timeSheet = require('../data/timeSheet.json');		//map of userID to gameToTimePlayed map for that user
-var heatMapData = require('../data/heatMapData.json');	//Heat map data for every day-hour combo.
+var optedInUsers = require('../resources/data/optedIn.json');		//users that have opted in to playtime tracking
+var userIDToFortniteUserName = require('../resources/data/fortniteUserData.json'); //map of Discord userID to Fortnite username
+var userIDToStreamingUrl = require('../resources/data/streaming.json') //map of user id to the url of their stream
+var gamesPlayed = require('../resources/data/gamesPlayed.json');	//map of game name to users that play that game
+var gameHistory = require('../resources/data/gameHistory.json');	//timestamped log of player counts for each game
+var timeSheet = require('../resources/data/timeSheet.json');		//map of userID to gameToTimePlayed map for that user
+var heatMapData = require('../resources/data/rawHeatMapData.json');	//Heat map data for every day-hour combo.
 var heatMapImgUrl = '';		//url for the newest player count heat map image
 var gameChannels = [];		//voice channels that change name based upon what the users are playing
 
@@ -26,13 +27,13 @@ var gameChannels = [];		//voice channels that change name based upon what the us
  */
 exports.exportTimeSheetAndGameHistory = function() {
 	var json = JSON.stringify(timeSheet);	
-	fs.writeFile('./data/timeSheet.json', json, 'utf8', util.log);
+	fs.writeFile('./resources/data/timeSheet.json', json, 'utf8', util.log);
 
 	json = JSON.stringify(gameHistory);
-	fs.writeFile('./data/gameHistory.json', json, 'utf8', util.log);
+	fs.writeFile('./resources/data/gameHistory.json', json, 'utf8', util.log);
 
 	json = JSON.stringify(gamesPlayed);
-	fs.writeFile('./data/gamesPlayed.json', json, 'utf8', util.log);
+	fs.writeFile('./resources/data/gamesPlayed.json', json, 'utf8', util.log);
 };
 
 /**
@@ -73,10 +74,7 @@ function updateHeatMap(logTime, playerCount) {
 		playerCount: count + playerCount, 
 		sampleSize: size + 1
 	};
-	
-	writeHeatMapDataToTsvFile();	
-	var json = JSON.stringify(heatMapData);	
-	fs.writeFile('./data/heatMapData.json', json, 'utf8', util.log);
+	exports.generateHeatMap();
 };
 
 /**
@@ -85,7 +83,7 @@ function updateHeatMap(logTime, playerCount) {
 exports.generateHeatMap = function() {
 	writeHeatMapDataToTsvFile();
 	var json = JSON.stringify(heatMapData);	
-	fs.writeFile('./data/heatMapData.json', json, 'utf8', util.log);
+	fs.writeFile('./resources/data/rawHeatMapData.json', json, 'utf8', util.log);
 }
 
 /**
@@ -319,7 +317,7 @@ function writeHeatMapDataToTsvFile() {
 	});
 
 	if (formattedHistory !== firstLine) {		
-		fs.writeFile('./graphs/heatmapData.tsv', formattedHistory, 'utf8', util.log);
+		fs.writeFile('./resources/data/avgHeatMapData.tsv', formattedHistory, 'utf8', util.log);
 		heatmap.generateHeatMap();
 	}		
 }
@@ -518,7 +516,7 @@ exports.optIn = function(user, userID) {
 	waitAndSendScrubDaddyFact(0, 5, userID);
 	c.LOG.info(`<INFO> ${util.getTimestamp()}  ${user} (${userID}) has opted into time`);	
 	var json = JSON.stringify(optedInUsers);	
-	fs.writeFile('./data/optedIn.json', json, 'utf8', util.log);
+	fs.writeFile('./resources/data/optedIn.json', json, 'utf8', util.log);
 };
 
 /**
@@ -605,11 +603,11 @@ exports.maybeChangeAudioQuality = function(channels) {
 				const beyondCount = channel.members.array().filter((member) => { 
 					return member.hoistRole.id === c.BEYOND_ROLE_ID; 
 				}).length;
-				if (memberCount === beyondCount) {
+				if (memberCount === beyondCount && channel.bitrate !== 96) {
 					channel.setBitrate(96)
 					.then(c.LOG.info(`<INFO> ${util.getTimestamp()}  Raising Channel Bitrate - ${channel.name}`))
 					.catch(console.error);
-				} else if (channel.bitrate === 96) {
+				} else if (channel.bitrate === 96 && memberCount !== beyondCount) {
 					channel.setBitrate(64)
 					.then(c.LOG.info(`<INFO> ${util.getTimestamp()}  Lowering Channel Bitrate - ${channel.name}`))
 					.catch(console.error);
@@ -639,7 +637,7 @@ exports.setStreamingUrl = function(member, url) {
 		if (shortUrl) {
 			userIDToStreamingUrl[member.id] = shortUrl;
 			const json = JSON.stringify(userIDToStreamingUrl);
-			fs.writeFile('./data/streaming.json', json, 'utf8', util.log);
+			fs.writeFile('./resources/data/streaming.json', json, 'utf8', util.log);
 			util.sendEmbedMessage(`Stream Url Set For ${member.displayName}`, `Your stream can be watched at ${shortUrl}`)
 		}
 	});
@@ -775,5 +773,14 @@ exports.getFortniteStats = function(gameMode, stat, callingUserID, fortniteUserN
 exports.setFortniteName = function(userID, userName) {
 	userIDToFortniteUserName[userID] = userName;
 	const json = JSON.stringify(userIDToFortniteUserName);
-	fs.writeFile('./data/fortniteUserData.json', json, 'utf8', util.log);
+	fs.writeFile('./resources/data/fortniteUserData.json', json, 'utf8', util.log);
+};
+
+exports.sunkenSailer = function(secretWord) {
+	txtgen.generateSunkenSailerSentenceTemplates(secretWord);
+	//do this for numPlayers - 1
+	var sailerSentence = txtgen.sentence(false);
+	//do this for 1 player
+	var sunkenSentence = txtgen.sentence(false);
+	//send sailer sentences and sunken sentence in private messages
 };

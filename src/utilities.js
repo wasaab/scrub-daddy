@@ -18,15 +18,17 @@ var gambling = require('./gambling.js');
 var games = require('./games.js');
 var bot = require('./bot.js');
 var c = require('./const.js');
-var public = require('../data/public.json');
-var userIDToColor = require('../data/colors.json');
-var userIDToAliases = require('../data/aliases.json');
-var soundBytes = require('../data/soundbytes.json');
-const catFacts = require('../data/catfacts.json');
+var config = require('../resources/data/config.json');
+var userIDToColor = require('../resources/data/colors.json');
+var userIDToAliases = require('../resources/data/aliases.json');
+var soundBytes = require('../resources/data/soundbytes.json');
+const catFacts = require('../resources/data/catfacts.json');
 const private = require('../../private.json'); 
+const quotes = require('../resources/data/quotes.json');
 
 var dropped = 0;
 var previousTip = {};
+var quotingUserIDToQuotes = {};
 /**
  * Creates a channel in a category, specified by the command provided.
  * For submitting issues/features and creating temporary voice/text channels.
@@ -367,8 +369,8 @@ exports.scheduleRecurringJobs = function() {
 		});
 	});
 
-	if (public.lottoTime) {
-		const lottoTime = public.lottoTime;
+	if (config.lottoTime) {
+		const lottoTime = config.lottoTime;
 		const lottoRule = `0 ${lottoTime.hour} ${lottoTime.day} ${lottoTime.month} *`;
 		var endLotto = schedule.scheduleJob(lottoRule, function() {
 			c.LOG.info(`<INFO> ${exports.getTimestamp()}  Beyond lotto ending`);		
@@ -422,7 +424,7 @@ function exportColors(title, description, userID, guild, hex, color) {
 	//If color not taken, write to colors.json
 	if (title.substring(0, 1) !== 'C') {
 		var json = JSON.stringify(userIDToColor);		
-		fs.writeFile('./data/colors.json', json, 'utf8', exports.log);	
+		fs.writeFile('./resources/data/colors.json', json, 'utf8', exports.log);	
 		const target = guild.members.find('id', userID);
 		
 		if (target.roles.find('id', c.BEYOND_ROLE_ID)) {
@@ -479,7 +481,7 @@ exports.playSoundByte = function(channel, target, userID) {
 		channel.join()
 		.then((connection) => {
 			c.LOG.error(`<INFO> ${exports.getTimestamp()}  Connected to channel!`);			
-			const dispatcher = connection.playFile(`./audio/${target}.mp3`);
+			const dispatcher = connection.playFile(`./resources/audio/${target}.mp3`);
 			
 			dispatcher.on('end', () => {
 				channel.leave();
@@ -507,7 +509,7 @@ var downloadAttachment = co.wrap(function *(msg, userID) {
 		yield Promise.all(msg.attachments.map(co.wrap(function *(file) {
 			yield retry(() => new Promise((finish, error) => {
 				request(file.url)
-				.pipe(fs.createWriteStream(`./audio/${file.name.toLowerCase()}`))
+				.pipe(fs.createWriteStream(`./resources/audio/${file.name.toLowerCase()}`))
 				.on('finish', finish)
 				.on('error', error)
 			}), 3)
@@ -522,7 +524,7 @@ var downloadAttachment = co.wrap(function *(msg, userID) {
 	exports.sendEmbedMessage('🎶 Sound Byte Successfully Added', `You may now hear the sound byte by calling \`*sb ${fileName}\` from within a voice channel.`, userID);
 	soundBytes.push(fileName);				
 	var json = JSON.stringify(soundBytes);
-	fs.writeFile('./data/soundbytes.json', json, 'utf8', exports.log);
+	fs.writeFile('./resources/data/soundbytes.json', json, 'utf8', exports.log);
 }.bind(this));
 
 /**
@@ -562,7 +564,7 @@ exports.createAlias = function(userID, user, args) {
 	exports.sendEmbedMessage(`Alias Created for ${user}`, msg, userID)
 
 	var json = JSON.stringify(userIDToAliases);		
-	fs.writeFile('./data/aliases.json', json, 'utf8', exports.log);	
+	fs.writeFile('./resources/data/aliases.json', json, 'utf8', exports.log);	
 };
 
 /**
@@ -610,7 +612,7 @@ exports.listBackups = function() {
 		filesMsg += `\`${time.toString()}\`\n`;
 	});
 	exports.sendEmbedMessage('Available Backups', filesMsg, c.K_ID)
-}
+};
 
 function waitForFileToExist(time, path, timeout, restart) {
 	const retriesLeft = 15;
@@ -632,33 +634,33 @@ function waitForFileToExist(time, path, timeout, restart) {
 
 exports.backupJson = function(restart) {
 	const time = moment().format('M[-]D[-]YY[@]h[-]mm[-]a');
-	public.lastBackup = time;		
-	var json = JSON.stringify(public);
-	fs.writeFile('./data/public.json', json, 'utf8', exports.log);	
-	backup.backup('./data', `../jsonBackups/${time}.backup`);
+	config.lastBackup = time;		
+	var json = JSON.stringify(config);
+	fs.writeFile('./resources/data/config.json', json, 'utf8', exports.log);	
+	backup.backup('./resources/data', `../jsonBackups/${time}.backup`);
 
 	const backupPath = `../jsonBackups/${time}.backup`
 	waitForFileToExist(time, backupPath, 2000, restart);
-}
+};
 
 exports.restoreJsonFromBackup = function(backupTarget) {
-	if (!backupTarget && public.lastBackup) {
-		backupTarget = public.lastBackup
+	if (!backupTarget && config.lastBackup) {
+		backupTarget = config.lastBackup
 	}
 
 	const backupPath = `../jsonBackups/${backupTarget}.backup`
 	if (fs.existsSync(backupPath)) {
-		backup.restore(backupPath, './data');
+		backup.restore(backupPath, './resources/data');
 		setTimeout(() => {
 			var spawn = require('child_process').execSync,
-				mv = spawn('mv ./data/data/* data/');
-			fs.rmdirSync('./data/data')
+				mv = spawn('mv ./resources/data/data/* ./resources/data/');
+			fs.rmdirSync('./resources/data/data')
 			exports.sendEmbedMessage('Json Restored From Backup', `All json files have been restored to the state they were in on ${backupTarget}.`);			
 		}, 2000);
 	} else {
 		exports.sendEmbedMessage('Invalid Backup Specified', `There is no backup for the provided time of ${backupTarget}.`);
 	}
-}
+};
 
 exports.restartBot = function(update) {
 	const updateParam = update || '';
@@ -670,4 +672,102 @@ exports.restartBot = function(update) {
 		console.log('exec error: ' + error);
 	  }
   });
+};
+
+exports.quoteTipMsg = {};
+exports.quoteUser = function(ogMessage, quotedUserID, quotingUserID, channelID) {
+	const numMessagesToCheck = quotedUserID ? 50 : 20;
+	const channel = bot.getClient().channels.find('id', channelID);
+	const quoteableMessages = channel.messages.last(numMessagesToCheck);
+	ogMessage.channel.send('**Add Reaction(s) to The Desired Messages**\n' + 
+	'Use :quoteReply: to include their quote at the top of your next message.\n' +
+	'Use :quoteSave: to save the quote to the quote list for that user.')
+	.then((msgSent) => {
+		exports.quoteTipMsg = msgSent;
+	});
+
+	if (quotedUserID) {
+		quotedUserID = quotedUserID.match(/\d/g).join('');		
+		quoteableMessages.filter((message) => {
+			return message.member.id === quotedUserID;
+		}).reverse().slice(0, 15);
+	}
+
+	const filter = (reaction, user) => (reaction.emoji.name === 'quoteReply' || reaction.emoji.name === 'quoteSave')
+		&& user.id === quotingUserID;
+	quoteableMessages.forEach((message) => {
+		message.awaitReactions(filter, { time: 10000, max: 2})
+		.then((collected) => {
+			c.LOG.info(`<INFO> ${exports.getTimestamp()}  Collected ${collected.size} reactions: ${inspect(collected)}`);
+			var replyQuotes = quotingUserIDToQuotes[quotingUserID] || [];
+			collected.forEach((reaction) => {
+				const quote = {
+					quotedUserID: message.member.id,
+					message: message.content,
+					time: message.createdTimestamp
+				};
+				if (reaction.emoji.name === 'quoteReply') {
+					replyQuotes.push(quote);
+					quotingUserIDToQuotes[quotingUserID] = replyQuotes;
+				} else {
+					quotes.push(quote);
+				}
+			});
+		})
+		.catch(console.error);
+	});
+};
+
+exports.getQuotes = function(quoteTarget, userID) {
+	const scrubIDToNick = bot.getScrubIDToNick();
+	var targetName = 'Everyone';
+	var targetQuotes = quotes;
+	var fields = [];
+	if (quoteTarget) {
+		const targetID = quoteTarget.match(/\d/g).join('');
+		targetName = scrubIDToNick[targetID];
+		targetQuotes = quotes.filter((quote) => { return quote.quotedUserID === targetID; });
+		targetQuotes.forEach((quote) => {
+			fields.push(exports.buildField(moment(quote.time).format('l'), quote.message));
+		});
+	} else {
+		targetQuotes.forEach((quote) => {
+			fields.push(exports.buildField(scrubIDToNick[quote.quotedUserID], `${quote.message}\n	— ${moment(quote.time).format('l')}`));
+		});
+	}
+	exports.sendEmbedFieldsMessage(`Quotes From ${targetName}`, fields, userID);
+};
+
+exports.maybeInsertQuotes = function(message) {
+	const block = '\`\`\`';
+	const replyQuotes = quotingUserIDToQuotes[message.author.id];
+	if (!replyQuotes) { return; }
+	var quoteBlocks = '';
+	const idToNick = bot.getScrubIDToNick();
+	replyQuotes.forEach((quote) => {
+		const author = idToNick[quote.quotedUserID];
+		const time = moment(quote.time).format('l');
+		const userMentions = quote.message.match(/<@![0-9]*>/g);
+		if (userMentions) {
+			userMentions.forEach((mention) => {
+				quote.message = quote.message.replace(mention, idToNick[mention.match(/\d/g).join('')]);
+			});
+		}
+		const roleMentions = quote.message.match(/<@&[0-9]*>/g);
+		if (roleMentions) {
+			roleMentions.forEach((mention) => {
+				const role = message.guild.roles.find('id', mention.match(/\d/g).join('')).name;
+				quote.message = quote.message.replace(mention, role);
+			});
+		}
+		quoteBlocks += `${block}${quote.message}\n	— ${author}, ${time}${block}\n`;
+	});
+	message.delete();
+	message.channel.send(`${quoteBlocks}**${message.member.displayName}** : ${message.content}`);
+	quotingUserIDToQuotes[message.author.id] = null;
+}
+
+exports.exportQuotes = function() {
+	var json = JSON.stringify(quotes);		
+	fs.writeFile('./resources/data/quotes.json', json, 'utf8', exports.log);	
 }

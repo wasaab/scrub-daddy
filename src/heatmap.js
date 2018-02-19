@@ -74,10 +74,11 @@ var timeLabels = svg.selectAll(".timeLabel")
     });
 
 function convertSvgToPng() {
-    svg_to_png.convert(path.join(__dirname.slice(0, -4), 'heatMap.svg'), path.join(__dirname.slice(0, -4), 'heatOutput.png'))
+    const imageDir = path.join(__dirname.slice(0, -4), 'resources', 'images');
+    svg_to_png.convert(path.join(imageDir, 'heatMap.svg'), imageDir)
     .then(() => {
-        c.LOG.info(`<INFO> ${util.getTimestamp()} png created: ${fs.existsSync( path.join( __dirname.slice(0, -4), "heatOutput.png"))}`);
-        imgur.uploadFile('./*.png/*.png')
+        c.LOG.info(`<INFO> ${util.getTimestamp()} png created: ${fs.existsSync(path.join(imageDir, 'heatMap.png'))}`);
+        imgur.uploadFile(path.join(imageDir, '*.png'))
         .then(function (json) {
             c.LOG.info(`<INFO> ${util.getTimestamp()} heat map url: ${json.data.link}`);
             imgUrl = json.data.link;
@@ -91,7 +92,7 @@ function convertSvgToPng() {
 function writeSvgToFile() {
     var svgString = getSVGString(svg.node());
     svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="960" height="430" style="background: rgba(54, 57, 62, 0.74);" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml" type="text/css"/>    <g transform="translate(30,50)"> ${svgString.split('type="text/css"></style>')[1]} </svg>`;
-    fs.writeFile('heatMap.svg', svgString, 'utf8', function(error, response) {
+    fs.writeFile('./resources/images/heatMap.svg', svgString, 'utf8', function(error, response) {
         if (error) {
             c.LOG.error(`<API ERROR> ${util.getTimestamp()}  ERROR: ${error}`);			
         } else if (response) {
@@ -101,8 +102,8 @@ function writeSvgToFile() {
     setTimeout(convertSvgToPng, 1000);
 }
 
-var heatmapChart = function (tsvFile) {
-    const filePath = path.join(__dirname.slice(3, -4), 'graphs', 'heatmapData.tsv');
+function heatmapChart (tsvFile) {
+    const filePath = path.join(__dirname.slice(3, -4), 'resources', 'data', tsvFile);
     d3.tsv(`file:///${filePath}`,
         function (d) {
             return {
@@ -204,7 +205,7 @@ function getSVGString(svgNode) {
 }
 
 exports.generateHeatMap = function() {
-    heatmapChart('heatmapData.tsv');    
+    heatmapChart('avgHeatMapData.tsv');    
 }
 
 exports.getUpdatedHeatMapUrl = function() {

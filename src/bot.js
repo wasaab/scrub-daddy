@@ -10,7 +10,7 @@ var gambling = require('./gambling.js');
 var games = require('./games.js');
 var vote = require('./vote.js');
 
-var public = require('../data/public.json');
+var config = require('../resources/data/config.json');
 var private = require('../../private.json'); 
 var client = new Discord.Client();
 client.login(private.token);
@@ -22,6 +22,7 @@ var logChannel = {};
 var purgatory = {};
 var feedbackCategory = {};
 var scrubIDtoNick = {};
+var quoteBlocked = false;
 
 /**
  * Returns true iff the message is an arrived for duty message.
@@ -64,6 +65,10 @@ function findClosestCommandMatch(command) {
 function handleCommand(message) {
 	var args = message.content.substring(1).match(/\S+/g);
 	if (!args) { return; }
+	if (args[0].startsWith('<@')) {
+		args[1] = args[0];
+		args[0] = 'quote';
+	}
 	var userID = message.member.id;	
 	var cmd;
 	const aliasCmd = util.maybeGetAlias(args[0], userID);
@@ -79,10 +84,7 @@ function handleCommand(message) {
 	const channelID = message.channel.id;
 	const user = message.member.displayName;
 	
-	//stops if the message is not from bot-spam text channel, with the exception of the message !p.
-	if (channelID !== c.BOT_SPAM_CHANNEL_ID && !(channelID === c.SCRUBS_CHANNEL_ID && cmd === 'p')) {
-		return;
-	}
+	if (channelID !== c.BOT_SPAM_CHANNEL_ID && cmd !== 'quote') { return; }
 	
 	function aliasCalled () {
 		if (args.length > 1) {			
@@ -204,10 +206,14 @@ function handleCommand(message) {
 		}
 	}
 	function sbCalled() {
-		util.playSoundByte(message.member.voiceChannel, args[1], userID);
+		if (config.soundBytesEnabled) {
+			util.playSoundByte(message.member.voiceChannel, args[1], userID);
+		}
 	}
 	function addSBCalled() {
-		util.maybeAddSoundByte(message, userID);
+		if (config.soundBytesEnabled) {
+			util.maybeAddSoundByte(message, userID);
+		}
 	}
 	function updateReadmeCalled() {
 		if (userID === c.K_ID) {
@@ -272,26 +278,34 @@ function handleCommand(message) {
 		}
 	}
 	function whoPlaysCalled() {
-		games.whoPlays(args, userID);
+		if (args[1]) {
+			games.whoPlays(args, userID);
+		} else {
+			util.outputHelpForCommand(cmd, userID);			
+		}
 	}
 	function letsPlayCalled() {
-		games.letsPlay(args, userID, user, message.guild.emojis);
+		if (args[1]) {
+			games.letsPlay(args, userID, user, message.guild.emojis);
+		} else {
+			util.outputHelpForCommand(cmd, userID);			
+		}
 	}
-	function timeCalled () {
+	function timeCalled() {
 		games.maybeOutputTimePlayed(args, userID);		
 	}
-	function optInCalled () {
+	function optInCalled() {
 		games.optIn(user, userID);
 		message.delete();
 	}
-	function voteCalled () {
+	function voteCalled() {
 		if (args[1]) {
 			vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.CUSTOM);	
 		} else {
 			util.outputHelpForCommand(cmd, userID);
 		}				
 	}
-	function votekickCalled () {
+	function votekickCalled() {
 		if (args[1]) {
 			c.LOG.info(`<VOTE Kick> ${util.getTimestamp()}  ${user}: ${message}`);
 			vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.KICK, message.member.voiceChannel, message.guild.roles);
@@ -299,7 +313,7 @@ function handleCommand(message) {
 			util.outputHelpForCommand(cmd, userID);
 		}			
 	}
-	function votebanCalled () {
+	function votebanCalled() {
 		if (args[1]) {
 			c.LOG.info(`<VOTE Ban> ${util.getTimestamp()}  ${user}: ${message}`);			
 			vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.BAN, message.member.voiceChannel, message.guild.roles);		
@@ -307,7 +321,7 @@ function handleCommand(message) {
 			util.outputHelpForCommand(cmd, userID);
 		}	
 	}
-	function voteinfoCalled () {
+	function voteinfoCalled() {
 		if (!args[1]) {
 			c.LOG.info(`<VOTE Info Custom> ${util.getTimestamp()}  ${user}: ${message}`);								
 			vote.getCustomVoteTotals(userID);
@@ -316,7 +330,20 @@ function handleCommand(message) {
 			vote.getTotalVotesForTarget(user, userID, message.member.voiceChannel, channelID, args);
 		}	
 	}
-	function helpCalled () {
+	function quoteCalled() {
+		if (quoteBlocked) { return; }
+		quoteBlocked = true;
+		setTimeout(() => {
+			util.quoteTipMsg.delete();
+			quoteBlocked = false;
+			util.exportQuotes();
+		}, 10000);
+		util.quoteUser(message, args[1], userID, channelID);
+	}
+	function quotesCalled() {
+		util.getQuotes(args[1], userID);
+	}
+	function helpCalled() {
 		if (args[1]) {
 			util.outputHelpForCommand(findClosestCommandMatch(args[1]), userID);				
 		} else {
@@ -374,6 +401,8 @@ function handleCommand(message) {
 		'votekick': votekickCalled,
 		'voteban': votebanCalled,
 		'voteinfo': voteinfoCalled,
+		'quote': quoteCalled,
+		'quotes': quotesCalled,
 		'help': helpCalled,
 		'info': helpCalled,
 		'helpinfo': helpCalled
@@ -398,10 +427,12 @@ client.on('message', (message) => {
     //Scrub Daddy will listen for messages that will start with `.`
     if (firstChar === '.') {
 		handleCommand(message);
-	 } else if (isArrivedForDutyMessage(message)) {
+	} else if (isArrivedForDutyMessage(message)) {
 		gambling.maybeDeletePreviousMessage(message);
 	} else if (firstChar === '!') {
 		util.sendEmbedMessage('The Command Prefix Has Changed', 'Use `*` for sb commands and `.` for all others.', message.author.id);
+	} else {
+		util.maybeInsertQuotes(message);
 	}
 });
 
@@ -447,7 +478,7 @@ client.on('error', (error) => {
  * Logs the bot into Discord, stores id to nick map, and retrieves 3 crucial channels.
  */
 client.on('ready', () => {
-	if (public.lottoTime) {
+	if (config.lottoTime) {
 		client.user.setPresence({game: {name: `lotto ${gambling.getTimeUntilLottoEnd().timeUntil}`}});
 	}
 	const members = client.guilds.find('id', c.SERVER_ID).members;
@@ -456,7 +487,7 @@ client.on('ready', () => {
 	});
 
 	botSpam = client.channels.find('id', c.BOT_SPAM_CHANNEL_ID);	
-	scrubsChannel = client.channels.find('id', c.SCRUBS_CHANNEL_ID);
+	scrubsChannel = client.channels.find('id', c.SCRUBS_CHANNEL_ID).messages;
 	purgatory = client.channels.find('id', c.PURGATORY_CHANNEL_ID);	
 	logChannel = client.channels.find('id', c.LOG_CHANNEL_ID);	
 
