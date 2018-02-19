@@ -128,7 +128,11 @@ define('HELP_MISC',[{ name: '.p', value: '`to ask @Scrubs to play PUBG in scrubs
 					{ name: '.set-stream <`url`>', value: '`to set the url for either your stream or the stream you are watching.`', inline: 'false'},					
 					{ name: '.toggle-streaming', value: '`to toggle your streaming state on/off, which will update your nickname.`', inline: 'false'},
 					{ name: '.start-lotto <`MM/DD`> <`HH`>', value: '`to start a Beyond lotto that will end at the specified time (`HH` can be 0-23).`', inline: 'false'},
-					{ name: '.lotto', value: '`to join the currently running Beyond lotto or get the time remaining.`', inline: 'false'},													
+					{ name: '.lotto', value: '`to join the currently running Beyond lotto or get the time remaining.`', inline: 'false'},
+					{ name: '.quote', value: '`to quote and reply or save the quote, depending on which reaction you use (:quoteReply: or :quoteSave:).`', inline: 'false'},
+					{ name: '.quote <`@user`>', value: '`to quote and reply or save the quote from @user, depending on which reaction you use (:quoteReply: or :quoteSave:).`', inline: 'false'},																		
+					{ name: '.quotes', value: '`to retrieve the list of quotes from everyone on the server.`', inline: 'false'},
+					{ name: '.quotes <`@user`>', value: '`to retrieve the list of quotes from the specified user.`', inline: 'false'},					
 					{ name: '*sb', value: '`to get the list of available soundbytes.`', inline: 'false'},					
 					{ name: '*sb <`name`>', value: '`to play the sound byte of the given name in your voice channel.`', inline: 'false'},
 					{ name: '*add-sb + `ATTACHMENT IN SAME MESSAGE`', value: '`to add a sound byte.`', inline: 'false'},
@@ -141,7 +145,7 @@ define('HELP_CATEGORIES_PROMPT',[{ name: 'To select a category:', value: '`Type 
 						  { name: '3) Time Played', value: '`time`	`opt-in`	`heatmap`', inline: 'false'},
 						  { name: '4) Gaming', value: '`playing`	`who-plays`	`lets-play`	`fortnite-stats`	`fortnite-leaderboard`	`set-fortnite-name`', inline: 'false'},
 						  { name: '5) Bot Issues, Feature Requests, and Help', value: '`issue`	`feature`	`implement`	`help`	`info`	`helpinfo`', inline: 'false'},
-						  { name: '6) Miscellaneous', value: '`p`	`alias`	`temp`	`join-review-team`	`leave-review-team`	`color`	`*sb`	`*add-sb`	`*fav-sb`	`*volume`	`shuffle-scrubs`	`set-stream`	`toggle-streaming`	`start-lotto`	`lotto`', inline: 'false'}]);
+						  { name: '6) Miscellaneous', value: '`p`	`alias`	`temp`	`join-review-team`	`leave-review-team`	`color`	`*sb`	`*add-sb`	`*fav-sb`	`*volume`	`shuffle-scrubs`	`set-stream`	`toggle-streaming`	`start-lotto`	`lotto`	`quote`	`quotes`', inline: 'false'}]);
 define('HELP_CATEGORIES', [{name: '`Voting`', fields: exports.HELP_VOTING},
 						   {name: '`Scrubbing Bubbles`', fields: exports.HELP_SCRUBBING_BUBBLES},
 						   {name: '`Time Played`', fields: exports.HELP_TIME_PLAYED},
