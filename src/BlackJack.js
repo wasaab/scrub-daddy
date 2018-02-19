@@ -6,8 +6,8 @@
 
 var fs = require('fs');
 const c = require("./const.js");
+const g = require("./gambling.js");
 const util = require("./utilities.js");
-const ledger = require('../resources/data/ledger.json');
 
 var suits = ["Spades", "Hearts", "Diamonds", "Clubs"];
 var values = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"];
@@ -16,14 +16,6 @@ var deck = new Array();
 var cardSuit = '';
 var cardNumber = 0;
 
-/**
- * exports the ledger to a json file.
- * 
- */
-exports.exportLedger = function () {
-    var json = JSON.stringify(ledger);
-    fs.writeFile('./resources/data/ledger.json', json, 'utf8', util.log);
-};
 /** Adds Scrubbing Bubbles winnings to user's army
  * 
  * @param {number} userID - user ID of player
@@ -31,7 +23,7 @@ exports.exportLedger = function () {
  * 
  */
 function addToArmy(userID, amount) {
-    ledger[userID].armySize += amount;
+    g.getLedger()[userID].armySize += amount;
 }
 /** resets game of Blackjack
  * 
@@ -39,9 +31,9 @@ function addToArmy(userID, amount) {
  * 
  */
 function resetGame(userID) {
-    ledger[userID].gameOver = true;
-    ledger[userID].gameStarted = false;
-    exports.exportLedger();
+    g.getLedger()[userID].gameOver = true;
+    g.getLedger()[userID].gameStarted = false;
+    g.exportLedger();
 }
 //creats deck of 52 standard playing cards
 function createDeck() {
@@ -74,22 +66,22 @@ function shuffle() {
  * 
  **/
 function createPlayers(userID) {
-    if (!ledger[userID]) {
-        ledger[userID] = Object.assign({}, c.NEW_LEDGER_ENTRY);
-    } else if (!ledger[userID].player) {
-        ledger[userID].player = {};
-        ledger[userID].dealer = {};
+    if (!g.getLedger()[userID]) {
+        g.getLedger()[userID] = Object.assign({}, c.NEW_LEDGER_ENTRY);
+    } else if (!g.getLedger()[userID].player) {
+        g.getLedger()[userID].player = {};
+        g.getLedger()[userID].dealer = {};
     }
-    ledger[userID].gameOver = false;
-    ledger[userID].player.hand = new Array();
-    ledger[userID].dealer.hand = new Array();
-    ledger[userID].player.points = 0;
-    ledger[userID].dealer.points = 0;
-    ledger[userID].player.aces = 0;
-    ledger[userID].dealer.aces = 0;
-    ledger[userID].player.acesCount = 0;
-    ledger[userID].dealer.acesCount = 0;
-    exports.exportLedger();
+    g.getLedger()[userID].gameOver = false;
+    g.getLedger()[userID].player.hand = new Array();
+    g.getLedger()[userID].dealer.hand = new Array();
+    g.getLedger()[userID].player.points = 0;
+    g.getLedger()[userID].dealer.points = 0;
+    g.getLedger()[userID].player.aces = 0;
+    g.getLedger()[userID].dealer.aces = 0;
+    g.getLedger()[userID].player.acesCount = 0;
+    g.getLedger()[userID].dealer.acesCount = 0;
+    g.exportLedger();
 }
 /**
  * Checks to see if Aces should be worth 11 points or 1 point
@@ -99,17 +91,17 @@ function createPlayers(userID) {
  * 
  */
 function checkAces(userID, player) {
-    if (ledger[userID][player].points > 21) {
-        for (var i = 0; i < ledger[userID][player].hand.length; i++) {
-            if (ledger[userID][player].hand[i].Value.indexOf('11') === 0) {
-                ledger[userID][player].aces += 1;
+    if (g.getLedger()[userID][player].points > 21) {
+        for (var i = 0; i < g.getLedger()[userID][player].hand.length; i++) {
+            if (g.getLedger()[userID][player].hand[i].Value.indexOf('11') === 0) {
+                g.getLedger()[userID][player].aces += 1;
             }
         }
-        while (ledger[userID][player].aces > 0 && ledger[userID][player].points > 21 
-            && ledger[userID][player].aces > ledger[userID][player].acesCount) {
-            ledger[userID][player].points -= 10;
-            ledger[userID][player].aces = 0;
-            ledger[userID][player].acesCount += 1;
+        while (g.getLedger()[userID][player].aces > 0 && g.getLedger()[userID][player].points > 21 
+            && g.getLedger()[userID][player].aces > g.getLedger()[userID][player].acesCount) {
+            g.getLedger()[userID][player].points -= 10;
+            g.getLedger()[userID][player].aces = 0;
+            g.getLedger()[userID][player].acesCount += 1;
         }
     }
 }
@@ -122,16 +114,16 @@ function checkAces(userID, player) {
 **/
 function dealCards(userID, player, userName) {
     var card = deck.pop();
-    ledger[userID][player].hand.push(card);
+    g.getLedger()[userID][player].hand.push(card);
     var points = card.Weight;
-    ledger[userID][player].points += points;
+    g.getLedger()[userID][player].points += points;
     cardSuit = card.Suit;
     cardNumber = card.Value;
     checkAces(userID, player);
     if (player === "player") {
-        util.sendEmbedMessage(userName + " 's score: ", ledger[userID][player].points, userID, c[cardSuit][cardNumber - 2], true);
+        util.sendEmbedMessage(userName + " 's score: ", g.getLedger()[userID][player].points, userID, c[cardSuit][cardNumber - 2], true);
     } else {
-        util.sendEmbedMessage(player + " 's score: ", ledger[userID][player].points, userID, c[cardSuit][cardNumber - 2], true);
+        util.sendEmbedMessage(player + " 's score: ", g.getLedger()[userID][player].points, userID, c[cardSuit][cardNumber - 2], true);
     }
 }
 /** 
@@ -142,25 +134,25 @@ function dealCards(userID, player, userName) {
  * 
 **/
 function checkOutcome(userID, userName) {
-    var bet = ledger[userID].bjBet;
+    var bet = g.getLedger()[userID].bjBet;
     var amount;
-    if (ledger[userID].player.points > 21) {
+    if (g.getLedger()[userID].player.points > 21) {
         util.sendEmbedMessage(userName + ' Busted! You lost ' + bet + ' Scrubbing Bubbles!', 'The Dealer Wins!', userID, null);
         resetGame(userID);
     }
-    if (ledger[userID].player.points === 21) {
+    if (g.getLedger()[userID].player.points === 21) {
         amount = bet * 3;
         addToArmy(userID, amount);
         util.sendEmbedMessage(userName + ' got BlackJack!', 'You win ' + amount + ' Scrubbing Bubbles!', userID, null);
         resetGame(userID);
     }
-    if (ledger[userID].dealer.points > 21) {
+    if (g.getLedger()[userID].dealer.points > 21) {
         amount = bet * 2;
         addToArmy(userID, amount);
         util.sendEmbedMessage(userName + ' you win ' + amount + ' Scrubbing Bubbles!', 'The Dealer busted!', userID, null);
         resetGame(userID);
     }
-    if (ledger[userID].dealer.points <= 21 && ledger[userID].dealer.points > ledger[userID].player.points) {
+    if (g.getLedger()[userID].dealer.points <= 21 && g.getLedger()[userID].dealer.points > g.getLedger()[userID].player.points) {
         util.sendEmbedMessage(userName + " you lose " + bet + ' Scrubbing Bubbles!', 'The Dealer Wins!', userID, null);
         resetGame(userID);
     }
@@ -173,15 +165,15 @@ function checkOutcome(userID, userName) {
  * 
 **/
 function dealHands(userID, userName, bet) {
-    if (bet > ledger[userID].armySize) {
+    if (bet > g.getLedger()[userID].armySize) {
         util.sendEmbedMessage(userName + ' your army is not big enough!', null, userID, null);
-        ledger[userID].gameStarted = false;
+        g.getLedger()[userID].gameStarted = false;
         return;
     }
-    ledger[userID].bjBet = bet;
-    ledger[userID].armySize -= bet;
-    if (!ledger[userID].gameStarted) {
-        ledger[userID].gameStarted = true;
+    g.getLedger()[userID].bjBet = bet;
+    g.getLedger()[userID].armySize -= bet;
+    if (!g.getLedger()[userID].gameStarted) {
+        g.getLedger()[userID].gameStarted = true;
         shuffle();
         createPlayers(userID);
         for (var i = 1; i <= 2; i++) {
@@ -202,7 +194,7 @@ function dealHands(userID, userName, bet) {
  * @param {String} userName - the name of the user
  */
 function maybePopulateBlackjackUserFields(userID, userName) {
-    if (!ledger[userID] || !ledger[userID].player) {
+    if (!g.getLedger()[userID] || !g.getLedger()[userID].player) {
         createPlayers(userID, userName);
     }
 }
@@ -215,7 +207,7 @@ function maybePopulateBlackjackUserFields(userID, userName) {
 function maybeRestoreOldDeck(userID) {
     if (deck.length !== 0) { return; }
     shuffle();
-    const combinedOldHands = ledger[userID].player.hand.concat(ledger[userID].dealer.hand);
+    const combinedOldHands = g.getLedger()[userID].player.hand.concat(g.getLedger()[userID].dealer.hand);
     deck = deck.filter(function(card) {
         return !combinedOldHands.includes(card);
     });
@@ -231,7 +223,7 @@ function maybeRestoreOldDeck(userID) {
 exports.hitMe = function (userID, userName) {
     maybeRestoreOldDeck(userID);
     maybePopulateBlackjackUserFields(userID, userName);
-    if (ledger[userID].player.points < 21 && !ledger[userID].gameOver) {
+    if (g.getLedger()[userID].player.points < 21 && !g.getLedger()[userID].gameOver) {
         dealCards(userID, "player", userName);
         checkOutcome(userID, userName);
     } else {
@@ -249,9 +241,9 @@ exports.hitMe = function (userID, userName) {
 exports.stay = function (userID, userName) {
     maybeRestoreOldDeck(userID);
     maybePopulateBlackjackUserFields(userID, userName);
-    if (ledger[userID].player.points > 0 && !ledger[userID].gameOver) {
+    if (g.getLedger()[userID].player.points > 0 && !g.getLedger()[userID].gameOver) {
         dealCards(userID, "dealer");
-        while (ledger[userID].dealer.points <= ledger[userID].player.points) {
+        while (g.getLedger()[userID].dealer.points <= g.getLedger()[userID].player.points) {
             dealCards(userID, "dealer");
             checkOutcome(userID, userName);
         }
@@ -274,9 +266,10 @@ exports.checkUserData = function (userID, userName, args) {
         util.sendEmbedMessage(userName + " that's an invalid bet.", null, userID, null);
         return;
     }
-    if (!ledger[userID].gameStarted) {
+    if (!g.getLedger()[userID].gameStarted) {
         dealHands(userID, userName, bet);
     } else {
         util.sendEmbedMessage(userName + " you already have a game in progress!", null, userID, null);
     }
+    g.exportLedger();
 };

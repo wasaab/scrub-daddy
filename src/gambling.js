@@ -436,3 +436,7 @@ function getFakeAndRealWinner() {
         winnerID: winnerID
     };
 }
+
+exports.getLedger = function() {
+    return ledger;
+};
