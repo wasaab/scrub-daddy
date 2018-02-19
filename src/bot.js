@@ -165,6 +165,17 @@ function handleCommand(message) {
 		gambling.armyRanks(userID);
 		message.delete();		
 	}
+	function blackjackCalled () {
+        blackjack.checkUserData(userID, user, args);
+        message.delete();
+    }
+    function hitCalled () {
+        blackjack.hitMe(userID, user);
+        message.delete();
+    }
+    function stayCalled () {
+        blackjack.stay(userID, user);
+    }
 	function cleanCalled () {
 		gambling.maybeBetClean(userID, args, message);		
 	}
@@ -316,22 +327,7 @@ function handleCommand(message) {
 		} else {
 			util.help(userID);
 		}
-
 		message.delete();
-    }
-    function blackjackCalled () {
-        blackjack.checkUserData(userID, user, args);
-        message.delete();
-
-    }
-    function hitCalled () {
-        blackjack.hitMe(userID, user);
-        message.delete();
-    }
-
-    function stayCalled () {
-        blackjack.stay(userID, user);
-
     }
 
 	var commandToHandler = {
@@ -353,6 +349,9 @@ function handleCommand(message) {
 		'stats': statsCalled,
 		'rank': ranksCalled,
 		'ranks': ranksCalled,
+		'21':blackjackCalled,
+        'hit':hitCalled,
+        'stay':stayCalled,
 		'clean': cleanCalled,
 		'revive': reviveCalled,
 		'discharge': dischargeCalled,
@@ -386,10 +385,7 @@ function handleCommand(message) {
 		'quotes': quotesCalled,
 		'help': helpCalled,
 		'info': helpCalled,
-        'helpinfo': helpCalled,
-        '21':blackjackCalled,
-        'hit':hitCalled,
-        'stay':stayCalled
+        'helpinfo': helpCalled
 	};
 
 	if (args[1] === 'help') {

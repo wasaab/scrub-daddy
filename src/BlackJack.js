@@ -39,8 +39,8 @@ function addToArmy(userID, amount) {
  * 
  */
 function resetGame(userID) {
-    ledger.blackJack[userID].gameOver = true;
-    ledger.blackJack[userID].gameStarted = false;
+    ledger[userID].gameOver = true;
+    ledger[userID].gameStarted = false;
     exports.exportLedger();
 }
 //creats deck of 52 standard playing cards
@@ -251,7 +251,7 @@ exports.stay = function (userID, userName) {
  */
 exports.checkUserData = function (userID, userName, args) {
     maybePopulateBlackjackUserFields(userID, userName);
-    const bet = Number(args[0]);
+    const bet = Number(args[1]);
     if (!bet || !Number.isInteger(bet) || bet < 0) {
         util.sendEmbedMessage(userName + " that's an invalid bet.", null, userID, null);
         return;
