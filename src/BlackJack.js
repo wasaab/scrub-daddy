@@ -206,6 +206,21 @@ function maybePopulateBlackjackUserFields(userID, userName) {
         createPlayers(userID, userName);
     }
 }
+
+/**
+ * Restores the old deck if a game was ongoing.
+ * 
+ * @param {number} userID - User's ID of player 
+ */
+function maybeRestoreOldDeck(userID) {
+    if (deck.length !== 0) { return; }
+    shuffle();
+    const combinedOldHands = ledger[userID].player.hand.concat(ledger[userID].dealer.hand);
+    deck = deck.filter(function(card) {
+        return !combinedOldHands.includes(card);
+    });
+}
+
 /** 
  * Adds card from top of deck to player's hand
  * 
@@ -214,6 +229,7 @@ function maybePopulateBlackjackUserFields(userID, userName) {
  * 
 **/
 exports.hitMe = function (userID, userName) {
+    maybeRestoreOldDeck(userID);
     maybePopulateBlackjackUserFields(userID, userName);
     if (ledger[userID].player.points < 21 && !ledger[userID].gameOver) {
         dealCards(userID, "player", userName);
@@ -222,6 +238,7 @@ exports.hitMe = function (userID, userName) {
         util.sendEmbedMessage(userName + " you need to start a new game!", null, userID, null);
     }
 };
+
 /** 
  * Finalizes Player's hand and intitiates dealer's turn
  * 
@@ -230,6 +247,7 @@ exports.hitMe = function (userID, userName) {
  * 
 **/
 exports.stay = function (userID, userName) {
+    maybeRestoreOldDeck(userID);
     maybePopulateBlackjackUserFields(userID, userName);
     if (ledger[userID].player.points > 0 && !ledger[userID].gameOver) {
         dealCards(userID, "dealer");
@@ -241,6 +259,7 @@ exports.stay = function (userID, userName) {
         util.sendEmbedMessage(userName + " you need to start a new game!", null, userID, null);
     }
 };
+
 /**Checks to see if the bet is a valid number
  * 
  * @param {number} userID -user ID of player
