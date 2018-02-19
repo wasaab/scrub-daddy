@@ -9,6 +9,7 @@ var util = require('./utilities.js');
 var gambling = require('./gambling.js');
 var games = require('./games.js');
 var vote = require('./vote.js');
+var blackjack = require("./BlackJack.js")
 
 var config = require('../resources/data/config.json');
 var private = require('../../private.json'); 
@@ -99,21 +100,13 @@ function handleCommand(message) {
 		util.createChannelInCategory(cmd, channelType, channelName, message, ` Channel Created By ${user}`, userID);
 	}
 	function issueOrFeatureCalled () {
-		if (args.length > 2) {
-			const chanName = args[1];
-			const feedback = args.slice(2).join(' ');
-			util.createChannelInCategory(cmd, 'text', chanName, message, ` Submitted By ${user}`, userID, feedback);
-		} else {
-			util.outputHelpForCommand(cmd, userID);
-		}
+		const chanName = args[1];
+		const feedback = args.slice(2).join(' ');
+		util.createChannelInCategory(cmd, 'text', chanName, message, ` Submitted By ${user}`, userID, feedback);		
 	}
 	function implementCalled () {
-		if (args[1]) {
-			args.splice(1, 0, cmd);
-			vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.CUSTOM);
-		} else {
-			util.outputHelpForCommand(cmd, userID);
-		}
+		args.splice(1, 0, cmd);
+		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.CUSTOM);		
 	}
 	function exportCalled () {
 		if (userID === c.K_ID) {
@@ -151,10 +144,8 @@ function handleCommand(message) {
 		message.delete();
 	}
 	function startLottoCalled() {
-		if (args.length > 2) {
+		if (args[1] && args[2]) {
 			gambling.startLotto(user, userID, args[1], args[2]);
-		} else {
-			util.outputHelpForCommand(cmd, userID);
 		}
 	}
 	function lottoCalled() {
@@ -175,11 +166,7 @@ function handleCommand(message) {
 		message.delete();		
 	}
 	function cleanCalled () {
-		if (args.length > 2) {
-			gambling.maybeBetClean(userID, args, message);
-		} else {
-			util.outputHelpForCommand(cmd, userID);
-		}
+		gambling.maybeBetClean(userID, args, message);		
 	}
 	function dischargeCalled () {
 		gambling.dischargeScrubBubble(userID); 
@@ -201,8 +188,6 @@ function handleCommand(message) {
 	function colorCalled() {
 		if (args[1]) {
 			util.setUserColor(args[1], userID, message.guild);					
-		} else {
-			util.outputHelpForCommand(cmd, userID);
 		}
 	}
 	function sbCalled() {
@@ -224,7 +209,7 @@ function handleCommand(message) {
 		util.shuffleScrubs(message.guild.members.array(), message.member, args);
 	}
 	function fortniteStatsCalled() {
-		if (args.length > 2) {
+		if (args[1] && args[2]) {
 			const targetStat = args[3] || 'all';
 			games.getFortniteStats(args[2], targetStat, userID, args[1]);
 		} else {
@@ -232,31 +217,25 @@ function handleCommand(message) {
 			c.STATS.forEach((stat) => {
 				possibleStats += `${stat}	`;
 			});
-			util.sendEmbedMessage('Fortnite Stats Help', 'Usage: fortnite-stats <`fortniteUserName|@user`> <`gameMode`> <`stat`>\n'
+			util.sendEmbedMessage('Fortnite Stats Help', 'Usage: fortnite-stats <userName> <gameMode> <stat>\n'
 				+ 'e.g. fortnite-stats wasaab squad kills\n\n'
 				+ 'gameMode options: solo, duo, squad, all\n\n'
 				+ `stat options: ${possibleStats}`);	
 		}
 	}
 	function fortniteLeaderboardCalled() {
-		if (args.length > 2) {
+		if (args[1] && args[2]) {
 			games.getFortniteStats(args[1], args[2], userID);
-		} else {
-			util.outputHelpForCommand(cmd, userID);
 		}
 	}
 	function setFortniteNameCalled() {
 		if (args[1]) {
 			games.setFortniteName(userID, args[1]);
-		} else {
-			util.outputHelpForCommand(cmd, userID);
 		}
 	}
 	function setStreamCalled() {
 		if (args[1]) {
 			games.setStreamingUrl(message.member, args[1]);
-		} else {
-			util.outputHelpForCommand(cmd, userID);
 		}
 	}
 	function toggleStreamingCalled() {
@@ -299,27 +278,15 @@ function handleCommand(message) {
 		message.delete();
 	}
 	function voteCalled() {
-		if (args[1]) {
-			vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.CUSTOM);	
-		} else {
-			util.outputHelpForCommand(cmd, userID);
-		}				
+		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.CUSTOM);					
 	}
 	function votekickCalled() {
-		if (args[1]) {
-			c.LOG.info(`<VOTE Kick> ${util.getTimestamp()}  ${user}: ${message}`);
-			vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.KICK, message.member.voiceChannel, message.guild.roles);
-		} else {
-			util.outputHelpForCommand(cmd, userID);
-		}			
+		c.LOG.info(`<VOTE Kick> ${util.getTimestamp()}  ${user}: ${message}`);
+		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.KICK, message.member.voiceChannel, message.guild.roles);		
 	}
 	function votebanCalled() {
-		if (args[1]) {
-			c.LOG.info(`<VOTE Ban> ${util.getTimestamp()}  ${user}: ${message}`);			
-			vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.BAN, message.member.voiceChannel, message.guild.roles);		
-		} else {
-			util.outputHelpForCommand(cmd, userID);
-		}	
+		c.LOG.info(`<VOTE Ban> ${util.getTimestamp()}  ${user}: ${message}`);			
+		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.BAN, message.member.voiceChannel, message.guild.roles);		
 	}
 	function voteinfoCalled() {
 		if (!args[1]) {
@@ -351,7 +318,21 @@ function handleCommand(message) {
 		}
 
 		message.delete();
-	}
+    }
+    function blackjackCalled () {
+        blackjack.checkUserData(userID, user, args);
+        message.delete();
+
+    }
+    function hitCalled () {
+        blackjack.hitMe(userID, user);
+        message.delete();
+    }
+
+    function stayCalled () {
+        blackjack.stay(userID, user);
+
+    }
 
 	var commandToHandler = {
 		'alias': aliasCalled,
@@ -405,7 +386,10 @@ function handleCommand(message) {
 		'quotes': quotesCalled,
 		'help': helpCalled,
 		'info': helpCalled,
-		'helpinfo': helpCalled
+        'helpinfo': helpCalled,
+        '21':blackjackCalled,
+        'hit':hitCalled,
+        'stay':stayCalled
 	};
 
 	if (args[1] === 'help') {
