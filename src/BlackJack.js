@@ -89,7 +89,6 @@ function createPlayers(userID) {
     ledger[userID].dealer.aces = 0;
     ledger[userID].player.acesCount = 0;
     ledger[userID].dealer.acesCount = 0;
-    ledger[userID].bjBet = 0;
     exports.exportLedger();
 }
 /**
@@ -217,7 +216,7 @@ function maybePopulateBlackjackUserFields(userID, userName) {
 exports.hitMe = function (userID, userName) {
     maybePopulateBlackjackUserFields(userID, userName);
     if (ledger[userID].player.points < 21 && !ledger[userID].gameOver) {
-        dealCards(userID, "player");
+        dealCards(userID, "player", userName);
         checkOutcome(userID, userName);
     } else {
         util.sendEmbedMessage(userName + " you need to start a new game!", null, userID, null);
