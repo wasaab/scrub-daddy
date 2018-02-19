@@ -734,7 +734,11 @@ exports.getQuotes = function(quoteTarget, userID) {
 			fields.push(exports.buildField(scrubIDToNick[quote.quotedUserID], `${quote.message}\n	— ${moment(quote.time).format('l')}`));
 		});
 	}
-	exports.sendEmbedFieldsMessage(`Quotes From ${targetName}`, fields, userID);
+	if (fields.length > 0) {
+		exports.sendEmbedFieldsMessage(`Quotes From ${targetName}`, fields, userID);
+	} else {
+		exports.sendEmbedMessage('404 Quotes Not Found', `I guess ${targetName} isn't very quoteworthy.`, userID);
+	}
 };
 
 exports.maybeInsertQuotes = function(message) {
