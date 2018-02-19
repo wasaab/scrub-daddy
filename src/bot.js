@@ -315,7 +315,7 @@ function handleCommand(message) {
 			util.quoteTipMsg.delete();
 			quoteBlocked = false;
 			util.exportQuotes();
-		}, 10000);
+		}, 10500);
 		util.quoteUser(message, args[1], userID, channelID);
 	}
 	function quotesCalled() {
