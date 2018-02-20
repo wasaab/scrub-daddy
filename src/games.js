@@ -601,7 +601,7 @@ exports.maybeChangeAudioQuality = function(channels) {
 			const memberCount = get(channel, 'members.size');
 			if (memberCount) {
 				const beyondCount = channel.members.array().filter((member) => { 
-					return member.hoistRole.id === c.BEYOND_ROLE_ID; 
+					return member.hoistRole.id === c.BEYOND_ROLE_ID || member.selfDeaf; 
 				}).length;
 				if (memberCount === beyondCount && channel.bitrate !== 96) {
 					channel.setBitrate(96)
