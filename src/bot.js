@@ -165,6 +165,9 @@ function handleCommand(message) {
 		gambling.armyRanks(userID);
 		message.delete();		
 	}
+	function sunkenSailorCalled() {
+		games.sunkenSailor(message.member);
+	}
 	function blackjackCalled () {
         blackjack.checkUserData(userID, user, args);
         message.delete();
@@ -349,6 +352,7 @@ function handleCommand(message) {
 		'stats': statsCalled,
 		'rank': ranksCalled,
 		'ranks': ranksCalled,
+		'sunken-sailor': sunkenSailorCalled,
 		'21':blackjackCalled,
         'hit':hitCalled,
         'stay':stayCalled,

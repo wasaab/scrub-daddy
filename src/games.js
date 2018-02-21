@@ -776,11 +776,33 @@ exports.setFortniteName = function(userID, userName) {
 	fs.writeFile('./resources/data/fortniteUserData.json', json, 'utf8', util.log);
 };
 
-exports.sunkenSailer = function(secretWord) {
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        let j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
+
+function sendSunkenSailorMessage(user, isSunken) {
+	user.createDM()
+	.then((dm) => {
+		dm.send(txtgen.sentence(isSunken));
+	});
+}
+
+exports.sunkenSailor = function(callingMember) {
+	if (!callingMember.voiceChannel) { return; }
+	var players = callingMember.voiceChannel.members.array();
+	if (players.length < 2) { return; }
+	shuffleArray(players);
+	
+	var nouns = fs.readFileSync('nouns.json'); //585 nouns
+	nouns = JSON.parse(nouns);
+	const secretWord = nouns[Math.floor((Math.random() * 584) + 1)];
 	txtgen.generateSunkenSailerSentenceTemplates(secretWord);
-	//do this for numPlayers - 1
-	var sailerSentence = txtgen.sentence(false);
-	//do this for 1 player
-	var sunkenSentence = txtgen.sentence(false);
-	//send sailer sentences and sunken sentence in private messages
+	
+	for (i = 0; i < players.length - 1; i++) {
+		sendSunkenSailorMessage(players[i], false);		
+	}
+	sendSunkenSailorMessage(players[players.length - 1], true);
 };

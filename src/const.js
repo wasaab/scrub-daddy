@@ -221,7 +221,7 @@ define('TIPS',
 					 'You really don\'t even have to be close anymore.'
 	}
 ]);
-define('COMMANDS', ['alias', 'temp','issue','feature','implement','export','list-backups','backup','restore','restart','log','catfacts','start-lotto','lotto','army','stats','rank','ranks','21','hit','stay','clean','revive','discharge',
+define('COMMANDS', ['alias', 'temp','issue','feature','implement','export','list-backups','backup','restore','restart','log','catfacts','start-lotto','lotto','army','stats','rank','ranks','sunken-sailor','21','hit','stay','clean','revive','discharge',
 	'enlist','join-review-team','leave-review-team','color','sb','add-sb','sb-add','shuffle-scrubs', 'update-readme','fortnite-stats','fortnite-leaderboard','set-fortnite-name','set-stream','toggle-streaming','p','playing','heatmap','gen-heatmap','who-plays',
 	'lets-play','time','opt-in','vote','votekick','voteban','voteinfo','quote','quotes','help','info','helpinfo']);
 define('WHO_PLAYS_FUZZY_OPTIONS', {
