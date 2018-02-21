@@ -795,8 +795,8 @@ exports.sunkenSailor = function(callingMember) {
 	var players = callingMember.voiceChannel.members.array();
 	if (players.length < 2) { return; }
 	shuffleArray(players);
-	
-	var nouns = fs.readFileSync('nouns.json'); //585 nouns
+
+	var nouns = fs.readFileSync('./resources/data/nouns.json'); //585 nouns
 	nouns = JSON.parse(nouns);
 	const secretWord = nouns[Math.floor((Math.random() * 584) + 1)];
 	txtgen.generateSunkenSailerSentenceTemplates(secretWord);
