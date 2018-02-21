@@ -480,6 +480,7 @@ client.on('ready', () => {
 	scheduleRecurringExportAndVCScan();	
 
 	c.LOG.info(`<INFO> ${util.getTimestamp()}  Connected`);
+	util.sendEmbedMessage('B A C K⠀O N L I N E !', null, null, c.ONLINE_IMG);
 });
 
 exports.getBotSpam = () => botSpam;
