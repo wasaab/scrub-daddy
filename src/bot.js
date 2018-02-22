@@ -471,7 +471,7 @@ client.on('ready', () => {
 	});
 
 	botSpam = client.channels.find('id', c.BOT_SPAM_CHANNEL_ID);	
-	scrubsChannel = client.channels.find('id', c.SCRUBS_CHANNEL_ID).messages;
+	scrubsChannel = client.channels.find('id', c.SCRUBS_CHANNEL_ID);
 	purgatory = client.channels.find('id', c.PURGATORY_CHANNEL_ID);	
 	logChannel = client.channels.find('id', c.LOG_CHANNEL_ID);	
 
