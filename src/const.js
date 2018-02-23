@@ -115,7 +115,7 @@ define('HELP_BOT',[{ name: 'Please Note', value: '`Your issue title or feature t
 				   { name: '.issue <`issue-title`> <`msg detailing issue`>', value: '`to submit bot issues.`', inline: 'false'},
 				   { name: '.feature <`feature-title`> <`msg detailing feature`>', value: '`to submit bot feature requests.`', inline: 'false'},
 				   { name: '.implement <`task-title`>', value: '`to vote for the next task to complete.\ntask-title is the channel title of the issue or feature.`', inline: 'false'},
-				   { name: '.help, .info, or .helpinfo', value: '`to show this message again.`', inline: 'false'}]);
+				   { name: '.help, .info, or .h', value: '`to show this message again.`', inline: 'false'}]);
 define('HELP_MISC',[{ name: '.p', value: '`to ask @Scrubs to play PUBG in scrubs text channel.`', inline: 'false'},
 					{ name: '.alias <`alias`> <`command to call`>', value: '`creates an alias for the provided command call. \ne.g. .alias ow who-plays Overwatch ... will allow you to call .ow`', inline: 'false'},
 					{ name: '.temp', value: '`Creates a temporary text channel`', inline: 'false'},
@@ -145,7 +145,7 @@ define('HELP_CATEGORIES_PROMPT',[{ name: 'To select a category:', value: '`Type 
 						  { name: '2) Scrubbing Bubbles', value: '`enlist`	`discharge`	`clean`	`army`	`ranks`	`stats`', inline: 'false'},
 						  { name: '3) Time Played', value: '`time`	`opt-in`	`heatmap`', inline: 'false'},
 						  { name: '4) Gaming', value: '`playing`	`who-plays`	`lets-play`	`fortnite-stats`	`fortnite-leaderboard`	`set-fortnite-name`', inline: 'false'},
-						  { name: '5) Bot Issues, Feature Requests, and Help', value: '`issue`	`feature`	`implement`	`help`	`info`	`helpinfo`', inline: 'false'},
+						  { name: '5) Bot Issues, Feature Requests, and Help', value: '`issue`	`feature`	`implement`	`help`', inline: 'false'},
 						  { name: '6) Miscellaneous', value: '`p`	`alias`	`temp`	`join-review-team`	`leave-review-team`	`color`	`*sb`	`*add-sb`	`*fav-sb`	`*volume`	`shuffle-scrubs`	`set-stream`	`toggle-streaming`	`start-lotto`	`lotto`	`quote`	`quotes`', inline: 'false'}]);
 define('HELP_CATEGORIES', [{name: '`Voting`', fields: exports.HELP_VOTING},
 						   {name: '`Scrubbing Bubbles`', fields: exports.HELP_SCRUBBING_BUBBLES},
@@ -233,7 +233,7 @@ define('TIPS',
 ]);
 define('COMMANDS', ['alias', 'temp','issue','feature','implement','export','list-backups','backup','restore','restart','log','catfacts','start-lotto','lotto','army','stats','rank','ranks','sunken-sailor','21','hit','stay','clean','revive','discharge',
 	'enlist','join-review-team','leave-review-team','color','sb','add-sb','sb-add','shuffle-scrubs', 'update-readme','fortnite-stats','fortnite-leaderboard','set-fortnite-name','set-stream','toggle-streaming','p','playing','heatmap','gen-heatmap','who-plays',
-	'lets-play','time','opt-in','vote','votekick','voteban','voteinfo','quote','quotes','help','info','helpinfo']);
+	'lets-play','time','opt-in','vote','votekick','voteban','voteinfo','quote','quotes','help','info','h']);
 define('WHO_PLAYS_FUZZY_OPTIONS', {
 	shouldSort: true,
 	threshold: 0.3,

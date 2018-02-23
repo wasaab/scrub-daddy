@@ -389,7 +389,7 @@ function handleCommand(message) {
 		'quotes': quotesCalled,
 		'help': helpCalled,
 		'info': helpCalled,
-        'helpinfo': helpCalled
+        'h': helpCalled
 	};
 
 	if (args[1] === 'help') {
