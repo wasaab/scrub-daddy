@@ -170,9 +170,18 @@ define('NEW_LEDGER_ENTRY', {
 	gameStarted: false,
 	gameOver: true,
    	bjBet: 0,
-    	player: {acesCount: 0, aces: 0, points: 0, hand:{}},
-	dealer:{acesCount: 0, aces: 0, points:0, hand:{}}
-
+    player: {
+		acesCount: 0, 
+		aces: 0, 
+		points: 0, 
+		hand: {}
+	},
+	dealer: {
+		acesCount: 0, 
+		aces: 0, 
+		points: 0, 
+		hand: {}
+	}
 });
 define('Clubs', ['https://i.imgur.com/o7m74ae.png', 'https://i.imgur.com/s15mB52.png', 'https://i.imgur.com/8zKQuRh.png?1', 'https://i.imgur.com/cCGAnwz.png', 'https://i.imgur.com/aw8SjKM.png', 'https://i.imgur.com/fDYMBkl.png', 'https://i.imgur.com/9GdN1xf.png', 'https://i.imgur.com/KT1weaO.png', 'https://i.imgur.com/qt9QC39.png', 'https://i.imgur.com/Z13JEy5.png', 'https://i.imgur.com/ihire3h.png', 'https://i.imgur.com/YghMO9j.png', 'https://i.imgur.com/LzMzKTB.png']);
 define('Spades', ['https://i.imgur.com/FHvk0sp.png', 'https://i.imgur.com/sLDI1Bo.png', 'https://i.imgur.com/WjJ2puv.png', 'https://i.imgur.com/kQC54bz.png', 'https://i.imgur.com/9LwWVZY.png', 'https://i.imgur.com/xl4iMRD.png', 'https://i.imgur.com/QZGxsEn.png', 'https://i.imgur.com/LTwacw5.png', 'https://i.imgur.com/ktDrrsF.png', 'https://i.imgur.com/1XSryPi.png', 'https://i.imgur.com/ve4ImOC.png', 'https://i.imgur.com/gedGmML.png', 'https://i.imgur.com/8AR2XPY.png']);

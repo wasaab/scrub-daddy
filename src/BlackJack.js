@@ -221,9 +221,9 @@ function maybeRestoreOldDeck(userID) {
  * 
 **/
 exports.hitMe = function (userID, userName) {
-    maybeRestoreOldDeck(userID);
     maybePopulateBlackjackUserFields(userID, userName);
     if (g.getLedger()[userID].player.points < 21 && !g.getLedger()[userID].gameOver) {
+        maybeRestoreOldDeck(userID);
         dealCards(userID, "player", userName);
         checkOutcome(userID, userName);
     } else {
@@ -239,9 +239,9 @@ exports.hitMe = function (userID, userName) {
  * 
 **/
 exports.stay = function (userID, userName) {
-    maybeRestoreOldDeck(userID);
     maybePopulateBlackjackUserFields(userID, userName);
     if (g.getLedger()[userID].player.points > 0 && !g.getLedger()[userID].gameOver) {
+        maybeRestoreOldDeck(userID);
         dealCards(userID, "dealer");
         while (g.getLedger()[userID].dealer.points <= g.getLedger()[userID].player.points) {
             dealCards(userID, "dealer");
