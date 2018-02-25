@@ -328,12 +328,14 @@ exports.scheduleRecurringJobs = function() {
 	reviewRule[job.key3] = job.val3;
 
 	schedule.scheduleJob(reviewRule, function(){
+		if (config.env === c.DEV) { return; }			
 		bot.getBotSpam().send(c.REVIEW_ROLE);
 		exports.sendEmbedMessage(null, null, null, job.img);
 	});
 
 	reviewRule[job.key3] = job.val3 - 3;
 	schedule.scheduleJob(reviewRule, function(){
+		if (config.env === c.DEV) { return; }			
 		bot.getBotSpam().send(`${c.REVIEW_ROLE} Upcoming Review. Reserve the room and fire up that projector.`);
 	});
 
@@ -356,7 +358,8 @@ exports.scheduleRecurringJobs = function() {
 	tipRule.hour = [10, 17, 23];
 	tipRule.minute = 0;
 	var firstRun = true;
-	var outputTip = schedule.scheduleJob(tipRule, function(){		
+	var outputTip = schedule.scheduleJob(tipRule, function(){	
+		if (config.env === c.DEV) { return; }	
 		if (!firstRun) { 
 			previousTip.delete();						
 		}
@@ -378,9 +381,7 @@ exports.scheduleRecurringJobs = function() {
 
 		var lottoCountdownRule = new schedule.RecurrenceRule();
 		lottoCountdownRule.mintue = 0;
-		var updateCountdown = schedule.scheduleJob(lottoCountdownRule, function() {	
-			bot.getClient().user.setPresence({game: {name: `lotto ${gambling.getTimeUntilLottoEnd().timeUntil}`}});
-		});	
+		var updateCountdown = schedule.scheduleJob(lottoCountdownRule, exports.updateLottoCountdown);	
 	}
 };
 
@@ -404,7 +405,7 @@ exports.shuffleScrubs = function(scrubs, caller, args) {
  */
 exports.addToReviewRole = function(target, roles) {
 	target.addRole(roles.find('id', c.REVIEW_ROLE_ID));	
-	exports.sendEmbedMessage(null, `Welcome to the team <@!${target.id}>!`, target.id);
+	exports.sendEmbedMessage(null, `Welcome to the team ${exports.mentionUser(target.id)}!`, target.id);
 };
 
 /**
@@ -412,7 +413,7 @@ exports.addToReviewRole = function(target, roles) {
  */
 exports.removeFromReviewRole = function(target, roles) {
 	target.removeRole(roles.find('id', c.REVIEW_ROLE_ID));
-	exports.sendEmbedMessage(null, `Good riddance. You were never there to review with us anyways, <@!${target.id}>!`, target.id);	
+	exports.sendEmbedMessage(null, `Good riddance. You were never there to review with us anyways, ${exports.mentionUser(target.id)}!`, target.id);	
 };
 
 /**
@@ -688,7 +689,7 @@ exports.quoteUser = function(ogMessage, quotedUserID, quotingUserID, channelID) 
 	});
 
 	if (quotedUserID) {
-		quotedUserID = quotedUserID.match(/\d/g).join('');		
+		quotedUserID = exports.getIdFromMention(quotedUserID);		
 		quoteableMessages.filter((message) => {
 			return message.member.id === quotedUserID;
 		}).reverse().slice(0, 15);
@@ -725,7 +726,7 @@ exports.getQuotes = function(quoteTarget, userID) {
 	var targetQuotes = quotes;
 	var fields = [];
 	if (quoteTarget) {
-		const targetID = quoteTarget.match(/\d/g).join('');
+		const targetID = exports.getIdFromMention(quoteTarget);
 		targetName = scrubIDToNick[targetID];
 		targetQuotes = quotes.filter((quote) => { return quote.quotedUserID === targetID; });
 		targetQuotes.forEach((quote) => {
@@ -755,13 +756,13 @@ exports.maybeInsertQuotes = function(message) {
 		const userMentions = quote.message.match(/<@![0-9]*>/g);
 		if (userMentions) {
 			userMentions.forEach((mention) => {
-				quote.message = quote.message.replace(mention, idToNick[mention.match(/\d/g).join('')]);
+				quote.message = quote.message.replace(mention, idToNick[exports.getIdFromMention(mention)]);
 			});
 		}
 		const roleMentions = quote.message.match(/<@&[0-9]*>/g);
 		if (roleMentions) {
 			roleMentions.forEach((mention) => {
-				const role = message.guild.roles.find('id', mention.match(/\d/g).join('')).name;
+				const role = message.guild.roles.find('id', exports.getIdFromMention(mention)).name;
 				quote.message = quote.message.replace(mention, role);
 			});
 		}
@@ -775,4 +776,21 @@ exports.maybeInsertQuotes = function(message) {
 exports.exportQuotes = function() {
 	var json = JSON.stringify(quotes);		
 	fs.writeFile('./resources/data/quotes.json', json, 'utf8', exports.log);	
+}
+
+exports.updateLottoCountdown = function() {
+	if (!config.lottoTime) { return; }
+	bot.getClient().user.setPresence({game: {name: `lotto ${gambling.getTimeUntilLottoEnd().timeUntil}`}});
+}
+
+exports.getIdFromMention = function(userMention) {
+	return userMention.match(/\d/g).join('');
+}
+
+exports.mentionUser = function(uID) {
+	return `<@!${uID}>`;
+}
+
+exports.mentionRole = function(uID) {
+	return `<@&${uID}>`;	
 }

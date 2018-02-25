@@ -1,3 +1,5 @@
 {
-    "soundBytesEnabled": false
+    "soundBytesEnabled": false,
+    "prefix": ".",
+    "env": "prod"
 }

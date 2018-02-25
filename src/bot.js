@@ -31,10 +31,9 @@ var quoteBlocked = false;
  * @param {Object} message - the full message object
  */
 function isArrivedForDutyMessage(message) {
-	return message.channel.id === c.BOT_SPAM_CHANNEL_ID
-			&& message.member.id === c.SCRUB_DADDY_ID 
-			&& get (message, 'embeds[0].title') 
-			&& message.embeds[0].title.indexOf('duty') !== -1;
+	if (message.member.id !== c.SCRUB_DADDY_ID) { return false; }
+	const embedMsg = get(message, 'embeds[0].description');
+	return embedMsg && embedMsg.endsWith('duty!**');
 }
 
 function scheduleRecurringExportAndVCScan() {
@@ -407,7 +406,7 @@ function handleCommand(message) {
 client.on('message', (message) => {
 	const firstChar = message.content.substring(0, 1);
     //Scrub Daddy will listen for messages that will start with `.`
-    if (firstChar === '.') {
+    if (firstChar === config.prefix) {
 		handleCommand(message);
 	} else if (isArrivedForDutyMessage(message)) {
 		gambling.maybeDeletePreviousMessage(message);
@@ -460,9 +459,6 @@ client.on('error', (error) => {
  * Logs the bot into Discord, stores id to nick map, and retrieves 3 crucial channels.
  */
 client.on('ready', () => {
-	if (config.lottoTime) {
-		client.user.setPresence({game: {name: `lotto ${gambling.getTimeUntilLottoEnd().timeUntil}`}});
-	}
 	const members = client.guilds.find('id', c.SERVER_ID).members;
 	members.forEach((member) => {
 		scrubIDtoNick[member.id] = member.displayName;
@@ -478,6 +474,8 @@ client.on('ready', () => {
 	scheduleRecurringExportAndVCScan();	
 
 	c.LOG.info(`<INFO> ${util.getTimestamp()}  Connected`);
+	if (config.env === c.DEV) { return; }		
+	util.updateLottoCountdown();
 	util.sendEmbedMessage('B A C K⠀O N L I N E !', null, null, c.ONLINE_IMG);
 });
 

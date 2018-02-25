@@ -240,7 +240,7 @@ function getCumulativeTimePlayed(gameName, target) {
  * @param {String} user - the user to check
  */
 function isOptedIn(user) {
-	user = user.match(/\d/g).join('');
+	user = util.getIdFromMention(user);
 	if (optedInUsers.indexOf(user) === -1) 
 		return false;
 	return true;
@@ -281,7 +281,7 @@ exports.maybeOutputTimePlayed = function(args, userID) {
 	}
 	
     if (target.match(/\d/g) !== null) {
-        target = target.match(/\d/g).join('');
+        target = util.getIdFromMention(target);
     } 
     var timePlayedData = getCumulativeTimePlayed(game,target);
     if (Object.keys(timePlayedData.gameToTime).length !== 0) {
@@ -385,7 +385,7 @@ exports.letsPlay = function(args, userID, userName, emojis) {
 		var msg = `↪️ ${userName}: ${game}?`;					
 		usersWhoPlay.forEach((user) => {
 			if (gameIdx === 1 || user.role !== '(ᵔᴥᵔ) ͡Super ͡Scrubs ™') {
-				msg += ` <@!${user.id}>`;
+				msg += ` ${util.mentionUser(user.id)}`;
 			}
 		});
 		bot.getScrubsChannel().send(msg);
@@ -755,7 +755,7 @@ exports.getFortniteStats = function(gameMode, stat, callingUserID, fortniteUserN
 
 	//get stats of @mentioned user
 	if (fortniteUserName && fortniteUserName.match(/\d/g) !== null) {
-		const matchedName = userIDToFortniteUserName[fortniteUserName.match(/\d/g).join('')];
+		const matchedName = userIDToFortniteUserName[util.getIdFromMention(fortniteUserName)];
 		if (matchedName) {
 			fortniteUserName = matchedName;
 			requestStats();

@@ -34,16 +34,16 @@ exports.dischargeScrubBubble = function (userID, numBubbles) {
     }
     dropped += numBubbles;
     var droppedImg = dropped;
-    var msg = 'Bubble has';
+    var msg = 'Bubble\nhas';
     if (dropped > 1) {
-        msg = 'Bubbles have';
+        msg = 'Bubbles\nhave';
         if (dropped > 21) {
             droppedImg = 21;
         }
     }
 
-    const title = `${dropped} Scrubbing ${msg} arrived for duty!`;
-    util.sendEmbedMessage(title, null, userID, c.BUBBLE_IMAGES[droppedImg-1]);
+    const title = `**${dropped} Scrubbing ${msg} arrived for duty!**`;
+    util.sendEmbedMessage(null, title, userID, c.BUBBLE_IMAGES[droppedImg-1], true);
 };
 
 /**
@@ -51,6 +51,7 @@ exports.dischargeScrubBubble = function (userID, numBubbles) {
  * CONSIDER CHANGING THIS TO BE BASED ON MESSAGES NOT PRESENCE
  */
 exports.maybeDischargeScrubBubble = function() {
+    if (config.env === c.DEV) { return; }
     var num = util.getRand(1,11);
     if (num > 8) {
         exports.dischargeScrubBubble(null);
@@ -80,7 +81,7 @@ exports.enlist = function(userID, message) {
     if (dropped > 0) {
         addToArmy(userID, dropped);
         ledger[userID].totalEnlisted += dropped;
-        const msg = `<@!${userID}>  Your Scrubbing Bubbles army has grown by ${dropped}! You now have an army of ${ledger[userID].armySize}.`;
+        const msg = `${util.mentionUser(userID)}  Your Scrubbing Bubbles army has grown by ${dropped}! You now have an army of ${ledger[userID].armySize}.`;
         util.sendEmbedMessage(null, msg, userID);
         exports.maybeDeletePreviousMessage(null);
         message.delete();
@@ -214,7 +215,7 @@ function betClean(userID, bet, type, side) {
         if (wallet && wallet.armySize > 0) {
             msg = `Your ${wallet.armySize} soldier${maybeGetPlural(wallet.armySize)} would surely perish.`;
         }
-        const description = `<@!${userID}>  You do not have enough Scrubbing Bubbles to clean the bathroom. ${msg}`;
+        const description = `${util.mentionUser(userID)}  You do not have enough Scrubbing Bubbles to clean the bathroom. ${msg}`;
         util.sendEmbedMessage(null, description, userID);
     } else {
         var img = '';
@@ -231,7 +232,7 @@ function betClean(userID, bet, type, side) {
             msg = `Sorry bud, you lost ${bet} Scrubbing Bubble${maybeGetPlural(bet)} in the battle.`;
             //addToGamblingStats('Losses', 'Lost', bet, userID);
         }
-        util.sendEmbedMessage(null, `<@!${userID}>  ${msg}`, userID, img);
+        util.sendEmbedMessage(null, `${util.mentionUser(userID)}  ${msg}`, userID, img);
         resetLedgerAfterBet(userID, bet, type);
     }
 }
@@ -258,7 +259,7 @@ function outputUserGamblingData(userID, args) {
     var msg = ' your';
     if (args[1]) {
         if (args[1].match(/\d/g) !== null) {
-            userID = args[1].match(/\d/g).join('');
+            userID = util.getIdFromMention(args[1]);
             msg = '\'s';
         }
     }
@@ -266,9 +267,9 @@ function outputUserGamblingData(userID, args) {
     if (wallet) {
         var description = '';
         if (args[0] === 'army') {
-            description = `<@!${userID}>${msg} army is ${wallet.armySize} Scrubbing Bubble${maybeGetPlural(wallet.armySize)} strong!`;
+            description = `${util.mentionUser(userID)}${msg} army is ${wallet.armySize} Scrubbing Bubble${maybeGetPlural(wallet.armySize)} strong!`;
         } else {
-            description = `<@!${userID}>${msg} Stats (starting from 10/31/17):\n` +
+            description = `${util.mentionUser(userID)}${msg} Stats (starting from 10/31/17):\n` +
                 `Current Army Size: ${wallet.armySize} Scrubs\n` +
                 `Record Army Size: ${wallet.recordArmy} Scrubs\n` +
                 `Lifetime Scrubs Won: ${wallet.scrubsWon} Scrubs\n` +

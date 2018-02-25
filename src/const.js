@@ -264,4 +264,4 @@ define('GAME_MODE_TO_KEY', {
 		'squad': 'stats.p9',
 		'all': 'lifeTimeStats'
 });
-
+define('DEV', 'dev');
