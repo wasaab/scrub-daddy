@@ -77,8 +77,9 @@ function convertSvgToPng() {
     const imageDir = path.join(__dirname.slice(0, -4), 'resources', 'images');
     svg_to_png.convert(path.join(imageDir, 'heatMap.svg'), imageDir)
     .then(() => {
-        c.LOG.info(`<INFO> ${util.getTimestamp()} png created: ${fs.existsSync(path.join(imageDir, 'heatMap.png'))}`);
-        imgur.uploadFile(path.join(imageDir, '*.png'))
+        const imgPath = path.join(imageDir, 'heatMap.png');
+        c.LOG.info(`<INFO> ${util.getTimestamp()} png created: ${fs.existsSync(imgPath)}`);
+        imgur.uploadFile(imgPath)
         .then(function (json) {
             c.LOG.info(`<INFO> ${util.getTimestamp()} heat map url: ${json.data.link}`);
             imgUrl = json.data.link;

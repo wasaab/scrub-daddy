@@ -665,14 +665,14 @@ exports.restoreJsonFromBackup = function(backupTarget) {
 
 exports.restartBot = function(update) {
 	const updateParam = update || '';
-	require('child_process').exec(`restart.sh ${updateParam}`,
-	function (error, stdout, stderr) {
-	  console.log('stdout: ' + stdout);
-	  console.log('stderr: ' + stderr);
-	  if (error !== null) {
-		console.log('exec error: ' + error);
-	  }
-  });
+	require('child_process')
+	.exec(`restart.sh ${updateParam}`, (error, stdout, stderr) => {
+		console.log('stdout: ' + stdout);
+		console.log('stderr: ' + stderr);
+		if (error !== null) {
+			console.log('exec error: ' + error);
+		}
+  	});
 };
 
 exports.quoteTipMsg = {};
