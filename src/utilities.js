@@ -649,11 +649,13 @@ exports.restoreJsonFromBackup = function(backupTarget) {
 
 	const backupPath = `../jsonBackups/${backupTarget}.backup`
 	if (fs.existsSync(backupPath)) {
+		const tempDir = './resources/resources';
 		backup.restore(backupPath, './resources/');
 		setTimeout(() => {
 			var spawn = require('child_process').execSync,
-				mv = spawn('mv ./resources/resources/data/* ./resources/data/');
-			fs.rmdirSync('./resources/resources/')
+				mv = spawn(`mv ${tempDir}/data/* ./resources/data/`);
+			fs.rmdirSync(`${tempDir}/data`);
+			fs.rmdirSync(tempDir);
 			exports.sendEmbedMessage('Data Restored From Backup', `All data files have been restored to the state they were in on ${backupTarget}.`);			
 		}, 2000);
 	} else {
