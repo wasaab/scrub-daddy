@@ -382,7 +382,7 @@ exports.letsPlay = function(args, userID, userName, emojis) {
 	var usersWhoPlay = gameUserData.users;
 	if (usersWhoPlay) {
 		game = emojis.find('name', game) || game;		
-		var msg = `↪️ ${userName}: ${game}?`;					
+		var msg = `↪️ **${userName}**: ${game}?`;					
 		usersWhoPlay.forEach((user) => {
 			if (gameIdx === 1 || user.role !== '(ᵔᴥᵔ) ͡Super ͡Scrubs ™') {
 				msg += ` ${util.mentionUser(user.id)}`;
@@ -393,6 +393,12 @@ exports.letsPlay = function(args, userID, userName, emojis) {
 		util.sendEmbedMessage('Literally Nobody Plays That', 'You\'re on your own bud.', userID);
 	}
 };
+
+exports.maybeCallLetsPlay = function(message) {
+	const game = get(message, 'member.presence.game.name');
+	if (message.member.user.bot || message.content !== "" || !game) { return; }
+	exports.letsPlay(["",game], message.member.id, message.member.displayName, message.guild.emojis);
+}
 
 /**
  * Updates the games played for the provided user.

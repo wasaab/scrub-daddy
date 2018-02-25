@@ -316,7 +316,7 @@ function handleCommand(message) {
 			util.quoteTipMsg.delete();
 			quoteBlocked = false;
 			util.exportQuotes();
-		}, 10500);
+		}, 15500);
 		util.quoteUser(message, args[1], userID, channelID);
 	}
 	function quotesCalled() {
@@ -413,6 +413,7 @@ client.on('message', (message) => {
 	} else if (firstChar === '!') {
 		util.sendEmbedMessage('The Command Prefix Has Changed', 'Use `*` for sb commands and `.` for all others.', message.author.id);
 	} else {
+		games.maybeCallLetsPlay(message);
 		util.maybeInsertQuotes(message);
 	}
 });

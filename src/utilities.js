@@ -689,7 +689,8 @@ exports.quoteUser = function(ogMessage, quotedUserID, quotingUserID, channelID) 
 	});
 
 	if (quotedUserID) {
-		quotedUserID = exports.getIdFromMention(quotedUserID);		
+		quotedUserID = exports.getIdFromMention(quotedUserID);
+		if (!bot.getScrubIDToNick()[quotedUserID]) { return; }	
 		quoteableMessages.filter((message) => {
 			return message.member.id === quotedUserID;
 		}).reverse().slice(0, 15);
@@ -698,7 +699,7 @@ exports.quoteUser = function(ogMessage, quotedUserID, quotingUserID, channelID) 
 	const filter = (reaction, user) => (reaction.emoji.name === 'quoteReply' || reaction.emoji.name === 'quoteSave')
 		&& user.id === quotingUserID;
 	quoteableMessages.forEach((message) => {
-		message.awaitReactions(filter, { time: 10000, max: 2})
+		message.awaitReactions(filter, { time: 15000, max: 2})
 		.then((collected) => {
 			c.LOG.info(`<INFO> ${exports.getTimestamp()}  Collected ${collected.size} reactions: ${inspect(collected)}`);
 			var replyQuotes = quotingUserIDToQuotes[quotingUserID] || [];
