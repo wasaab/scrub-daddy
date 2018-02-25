@@ -26,16 +26,17 @@ exports.exportLedger = function() {
  * @param {String} userID - the id of the user discharging a bubble
  * @param {String} botSpam - bot-spam channel
  */
-exports.dischargeScrubBubble = function (userID, botSpam) {
+exports.dischargeScrubBubble = function (userID, botSpam, dischargeCount) {
+    dischargeCount = dischargeCount || 1;
     if (userID && userID !== 'dev') {
         if (ledger[userID] && ledger[userID].armySize > 0) {
-            ledger[userID].armySize--;
-            ledger[userID].totalDischarged++;
+            ledger[userID].armySize -= dischargeCount;
+            ledger[userID].totalDischarged += dischargeCount;
         } else {
             return;
         }
     }
-    dropped++;
+    dropped += dischargeCount;
     var droppedImg = dropped;
     var msg = 'Bubble has';
     if (dropped > 1) {

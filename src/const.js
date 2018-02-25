@@ -92,6 +92,7 @@ define('HELP_VOTING',[{ name: 'Please Note', value: '`You must be in a voice cha
 					  { name: '.voteinfo <`@user`>', value: '`for total votes to kick/ban that user.`', inline: 'false'}]);
 define('HELP_SCRUBBING_BUBBLES',[{ name: '.enlist', value: '`enlists the discharged Scrubbing Bubbles to your army.`', inline: 'false'},
 								 { name: '.discharge', value: '`honorably discharges a Scrubbing Bubble from your army.`', inline: 'false'},
+								 { name: '.discharge <`numBubbles`>', value: '`honorably discharges numBubbles Scrubbing Bubble from your army.`', inline: 'false'},								 
 								 { name: '.clean <`numBubbles`> <`t|b`>', value: '`send numBubbles to clean toilet/bath.`', inline: 'false'},
 								 { name: '.army', value: '`retrieves the size of your army.`', inline: 'false'},
 								 { name: '.army <`@user`>', value: '`retrieves the size of the user\'s army.`', inline: 'false'},

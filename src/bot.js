@@ -183,7 +183,7 @@ function handleCommand(message) {
 		gambling.maybeBetClean(userID, args, message);		
 	}
 	function dischargeCalled () {
-		gambling.dischargeScrubBubble(userID); 
+		gambling.dischargeScrubBubble(userID, args[1]); 
 	}
 	function reviveCalled () {
 		if (userID !== c.K_ID) { return; }
