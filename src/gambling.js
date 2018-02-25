@@ -9,7 +9,7 @@ var ledger = require('../resources/data/ledger.json');   //keeps track of how bi
 var config = require('../resources/data/config.json');
 
 var dropped = 0;
-var previousMessage = {};
+var previousMessage;
 
 /**
  * exports the ledger to a json file.
@@ -25,17 +25,14 @@ exports.exportLedger = function() {
  * 
  * @param {String} userID - the id of the user discharging a bubble
  */
-exports.dischargeScrubBubble = function (userID, dischargeCount) {
-    dischargeCount = dischargeCount || 1;
-    if (userID && userID !== 'dev') {
-        if (ledger[userID] && ledger[userID].armySize > 0) {
-            ledger[userID].armySize -= dischargeCount;
-            ledger[userID].totalDischarged += dischargeCount;
-        } else {
-            return;
-        }
+exports.dischargeScrubBubble = function (userID, numBubbles) {
+    numBubbles = numBubbles && !isNaN(numBubbles) ? Number(numBubbles) : 1;
+    if (userID) {
+        if (numBubbles < 1 || !(ledger[userID] && ledger[userID].armySize > 0)) { return; }
+        ledger[userID].armySize -= numBubbles;
+        ledger[userID].totalDischarged += numBubbles;
     }
-    dropped += dischargeCount;
+    dropped += numBubbles;
     var droppedImg = dropped;
     var msg = 'Bubble has';
     if (dropped > 1) {
@@ -53,10 +50,10 @@ exports.dischargeScrubBubble = function (userID, dischargeCount) {
  * drops a scrub bubble in bot-spam with a 20% chance.
  * CONSIDER CHANGING THIS TO BE BASED ON MESSAGES NOT PRESENCE
  */
-exports.maybeDischargeScrubBubble = function(botSpamChannel) {
+exports.maybeDischargeScrubBubble = function() {
     var num = util.getRand(1,11);
     if (num > 8) {
-        exports.dischargeScrubBubble(null, botSpamChannel);
+        exports.dischargeScrubBubble(null);
     }
 };
 
@@ -85,7 +82,7 @@ exports.enlist = function(userID, message) {
         ledger[userID].totalEnlisted += dropped;
         const msg = `<@!${userID}>  Your Scrubbing Bubbles army has grown by ${dropped}! You now have an army of ${ledger[userID].armySize}.`;
         util.sendEmbedMessage(null, msg, userID);
-        previousMessage.delete();
+        exports.maybeDeletePreviousMessage(null);
         message.delete();
         dropped = 0;
     }
@@ -97,9 +94,7 @@ exports.enlist = function(userID, message) {
  * @param {String} side - the side to battle
  */
 function isValidSide(side) {
-    if (side === 'b' || side === 't')
-        return true;
-    return false;
+    return (side === 'b' || side === 't')
 }
 
 /**
@@ -322,7 +317,7 @@ exports.armyRanks = function(userID) {
  */
 exports.maybeDeletePreviousMessage = function (msg) {
     //delete previous message if >1 bubbles dropped
-    if (dropped > 1) {
+    if (dropped > 1 && previousMessage) {
         previousMessage.delete();
     }
     previousMessage = msg;

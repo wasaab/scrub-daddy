@@ -187,8 +187,7 @@ function handleCommand(message) {
 	}
 	function reviveCalled () {
 		if (userID !== c.K_ID) { return; }
-		userID = 'dev';
-		dischargeCalled();
+		gambling.dischargeScrubBubble('dev', args[1]);
 	}
 	function enlistCalled () {
 		gambling.enlist(userID, message);		
@@ -403,8 +402,7 @@ function handleCommand(message) {
 }
 
 /**
- * Listen's for messages in Discord
- * TODO: Refactor
+ * Listen's for messages in Discord.
  */
 client.on('message', (message) => {
 	const firstChar = message.content.substring(0, 1);
@@ -431,7 +429,7 @@ client.on('presenceUpdate', (oldMember, newMember) => {
 	if (!newMember.user.bot && newMember.highestRole.name !== 'Pleb' && oldGame !== newGame) {
 		games.maybeUpdateNickname(newMember, newGame);			
 		games.updateTimesheet(newMember.displayName, newMember.id, newMember.highestRole, oldGame, newGame);
-		gambling.maybeDischargeScrubBubble(botSpam);
+		gambling.maybeDischargeScrubBubble();
 	}
 });
 
@@ -490,8 +488,8 @@ exports.getPurgatory = () => purgatory;
 exports.getScrubIDToNick = () => scrubIDtoNick;
 exports.getClient = () => client;
 
-		//return the elements of the array that match your conditional
-		// var userEntry = usersWhoPlay.filter((player) => {return player.id === userID;});
-		//get index of a an object with a specific property value in an array.
-		//const userEntryIdx = usersWhoPlay.map((player) => player.id).indexOf(userID);
+//return the elements of the array that match your conditional
+// var userEntry = usersWhoPlay.filter((player) => {return player.id === userID;});
+//get index of a an object with a specific property value in an array.
+//const userEntryIdx = usersWhoPlay.map((player) => player.id).indexOf(userID);
 		
