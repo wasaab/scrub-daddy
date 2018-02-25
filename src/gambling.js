@@ -28,7 +28,7 @@ exports.exportLedger = function() {
 exports.dischargeScrubBubble = function (userID, numBubbles) {
     numBubbles = numBubbles && !isNaN(numBubbles) ? Number(numBubbles) : 1;
     if (userID) {
-        if (numBubbles < 1 || !(ledger[userID] && ledger[userID].armySize > 0)) { return; }
+        if (numBubbles < 1 || !(ledger[userID] && ledger[userID].armySize >= numBubbles)) { return; }
         ledger[userID].armySize -= numBubbles;
         ledger[userID].totalDischarged += numBubbles;
     }
