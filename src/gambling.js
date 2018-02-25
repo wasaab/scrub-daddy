@@ -241,7 +241,7 @@ function betClean(userID, bet, type, side) {
  */
 exports.maybeBetClean = function(userID, args, message) {
     const bet = Number(args[1]);
-    const side = args[2];
+    const side = 't';
 
     if (!bet || !side || !isValidSide(side) || bet < 1) {
         return;
