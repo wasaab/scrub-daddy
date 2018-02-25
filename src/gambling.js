@@ -24,9 +24,8 @@ exports.exportLedger = function() {
  * member may enlist the bubble to their army.
  * 
  * @param {String} userID - the id of the user discharging a bubble
- * @param {String} botSpam - bot-spam channel
  */
-exports.dischargeScrubBubble = function (userID, botSpam, dischargeCount) {
+exports.dischargeScrubBubble = function (userID, dischargeCount) {
     dischargeCount = dischargeCount || 1;
     if (userID && userID !== 'dev') {
         if (ledger[userID] && ledger[userID].armySize > 0) {
