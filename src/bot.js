@@ -187,7 +187,7 @@ function handleCommand(message) {
 	}
 	function reviveCalled () {
 		if (userID !== c.K_ID) { return; }
-		gambling.dischargeScrubBubble('dev', args[1]);
+		gambling.dischargeScrubBubble(null, args[1]);
 	}
 	function enlistCalled () {
 		gambling.enlist(userID, message);		
