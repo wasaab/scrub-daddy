@@ -801,7 +801,7 @@ exports.sunkenSailor = function(callingMember) {
 	var players = callingMember.voiceChannel.members.array();
 	if (players.length < 2) { return; }
 	shuffleArray(players);
-	util.sendEmbedMessage('Sunken Sailer Round Started', 'Feel free to join in https://aggie.io/c_ut33ka. You must be the the voice channel to participate.');
+	util.sendEmbedMessage('Sunken Sailor Round Started', 'Feel free to join in https://aggie.io/c_ut33ka. You must be the the voice channel to participate.');
 	var nouns = fs.readFileSync('./resources/data/nouns.json'); //585 nouns
 	nouns = JSON.parse(nouns);
 	const secretWord = nouns[Math.floor((Math.random() * 584) + 1)];
