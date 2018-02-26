@@ -44,7 +44,7 @@ define('CLEAN_WIN_IMG', 'https://i.imgur.com/LDSm2sg.png');
 define('CLEAN_LOSE_IMG', 'https://i.imgur.com/gynZE1j.png');
 define('SCRUB_DADDY_FACT', 'https://i.imgur.com/FbAwRTj.jpg');
 define('BEYOND_LOTTO_IMG', 'https://i.imgur.com/viDJZi3.png');
-define('ONLINE_IMG', 'https://i.imgur.com/w4ey7v0.gif?1');
+define('ONLINE_IMG', 'https://i.imgur.com/w4ey7v0.gif?2');
 //Todo: pull from config.json
 define('PURGATORY_CHANNEL_ID', '370626266786824192');	    //sends kicked user's to this channel    
 define('VOTE_TYPE', {
