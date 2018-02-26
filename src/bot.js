@@ -31,7 +31,10 @@ var quoteBlocked = false;
  * @param {Object} message - the full message object
  */
 function isArrivedForDutyMessage(message) {
-	if (!message.member || message.member.id !== c.SCRUB_DADDY_ID) { return false; }
+	if (message.channel.id !== c.BOT_SPAM_CHANNEL_ID
+		|| message.member.id !== c.SCRUB_DADDY_ID) {
+		return false;
+	}
 	const embedMsg = get(message, 'embeds[0].description');
 	return embedMsg && embedMsg.endsWith('duty!**');
 }
