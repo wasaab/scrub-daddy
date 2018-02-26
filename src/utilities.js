@@ -328,14 +328,14 @@ exports.scheduleRecurringJobs = function() {
 	reviewRule[job.key3] = job.val3;
 
 	schedule.scheduleJob(reviewRule, function(){
-		if (config.env === c.DEV) { return; }			
+		if (exports.isDevEnv()) { return; }			
 		bot.getBotSpam().send(c.REVIEW_ROLE);
 		exports.sendEmbedMessage(null, null, null, job.img);
 	});
 
 	reviewRule[job.key3] = job.val3 - 3;
 	schedule.scheduleJob(reviewRule, function(){
-		if (config.env === c.DEV) { return; }			
+		if (exports.isDevEnv()) { return; }			
 		bot.getBotSpam().send(`${c.REVIEW_ROLE} Upcoming Review. Reserve the room and fire up that projector.`);
 	});
 
@@ -359,7 +359,7 @@ exports.scheduleRecurringJobs = function() {
 	tipRule.minute = 0;
 	var firstRun = true;
 	var outputTip = schedule.scheduleJob(tipRule, function(){	
-		if (config.env === c.DEV) { return; }	
+		if (exports.isDevEnv()) { return; }	
 		if (!firstRun) { 
 			previousTip.delete();						
 		}
@@ -780,7 +780,7 @@ exports.exportQuotes = function() {
 }
 
 exports.updateLottoCountdown = function() {
-	if (!config.lottoTime) { return; }
+	if (!config.lottoTime || exports.isDevEnv()) { return; }
 	bot.getClient().user.setPresence({game: {name: `lotto ${gambling.getTimeUntilLottoEnd().timeUntil}`}});
 }
 
@@ -794,4 +794,8 @@ exports.mentionUser = function(uID) {
 
 exports.mentionRole = function(uID) {
 	return `<@&${uID}>`;	
+}
+
+exports.isDevEnv = function() {
+	return config.env === c.DEV;
 }

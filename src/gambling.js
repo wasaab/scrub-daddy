@@ -51,7 +51,7 @@ exports.dischargeScrubBubble = function (userID, numBubbles) {
  * CONSIDER CHANGING THIS TO BE BASED ON MESSAGES NOT PRESENCE
  */
 exports.maybeDischargeScrubBubble = function() {
-    if (config.env === c.DEV) { return; }
+    if (util.isDevEnv()) { return; }
     var num = util.getRand(1,11);
     if (num > 8) {
         exports.dischargeScrubBubble(null);
@@ -317,6 +317,7 @@ exports.armyRanks = function(userID) {
  * Deletes previous Scrub Daddy message if it is an arrived for duty message.
  */
 exports.maybeDeletePreviousMessage = function (msg) {
+    if (util.isDevEnv()) { return; }
     //delete previous message if >1 bubbles dropped
     if (dropped > 1 && previousMessage) {
         previousMessage.delete();

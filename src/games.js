@@ -397,7 +397,7 @@ exports.letsPlay = function(args, userID, userName, emojis) {
 exports.maybeCallLetsPlay = function(message) {
 	const game = get(message, 'member.presence.game.name');
 	if (message.author.bot || message.content !== "" || !game) { return; }
-	exports.letsPlay(["",game], message.member.id, message.member.displayName, message.guild.emojis);
+	exports.letsPlay(['', '-ss', game], message.member.id, message.member.displayName, message.guild.emojis);
 }
 
 /**
