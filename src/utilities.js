@@ -230,7 +230,8 @@ exports.sendEmbedMessage = function(title, description, userID, image, thumbnail
 		description: description
 	};
 	message[picType] = { url: image };
-	bot.getBotSpam().send(new Discord.RichEmbed(message));	
+	return bot.getBotSpam().send(new Discord.RichEmbed(message))
+	.then((msgSent) => msgSent);	
 };
 
 /**

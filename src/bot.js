@@ -25,19 +25,6 @@ var feedbackCategory = {};
 var scrubIDtoNick = {};
 var quoteBlocked = false;
 
-/**
- * Returns true iff the message is an arrived for duty message.
- * 
- * @param {Object} message - the full message object
- */
-function isArrivedForDutyMessage(message) {
-	if (!message.author.bot || message.author.id !== c.SCRUB_DADDY_ID) {
-		return false;
-	}
-	const embedMsg = get(message, 'embeds[0].description');
-	return embedMsg && embedMsg.endsWith('duty!**');
-}
-
 function scheduleRecurringExportAndVCScan() {
 	(function(){
 		games.exportTimeSheetAndGameHistory();
@@ -410,10 +397,6 @@ client.on('message', (message) => {
     //Scrub Daddy will listen for messages that will start with `.`
     if (firstChar === config.prefix) {
 		handleCommand(message);
-	} else if (isArrivedForDutyMessage(message)) {
-		gambling.maybeDeletePreviousMessage(message);
-	} else if (firstChar === '!') {
-		util.sendEmbedMessage('The Command Prefix Has Changed', 'Use `*` for sb commands and `.` for all others.', message.author.id);
 	} else {
 		games.maybeCallLetsPlay(message);
 		util.maybeInsertQuotes(message);

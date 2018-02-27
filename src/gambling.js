@@ -41,9 +41,9 @@ exports.dischargeScrubBubble = function (userID, numBubbles) {
             droppedImg = 21;
         }
     }
-
     const title = `**${dropped} Scrubbing ${msg} arrived for duty!**`;
-    util.sendEmbedMessage(null, title, userID, c.BUBBLE_IMAGES[droppedImg-1], true);
+    const thisMessage = util.sendEmbedMessage(null, title, userID, c.BUBBLE_IMAGES[droppedImg-1], true);
+    exports.maybeDeletePreviousMessage(thisMessage);
 };
 
 /**
@@ -83,7 +83,7 @@ exports.enlist = function(userID, message) {
         ledger[userID].totalEnlisted += dropped;
         const msg = `${util.mentionUser(userID)}  Your Scrubbing Bubbles army has grown by ${dropped}! You now have an army of ${ledger[userID].armySize}.`;
         util.sendEmbedMessage(null, msg, userID);
-        exports.maybeDeletePreviousMessage(null);
+        exports.maybeDeletePreviousMessage();
         message.delete();
         dropped = 0;
     }
@@ -314,15 +314,18 @@ exports.armyRanks = function(userID) {
 };
 
 /**
- * Deletes previous Scrub Daddy message if it is an arrived for duty message.
+ * Deletes previous arrived for duty message if it exists.
  */
 exports.maybeDeletePreviousMessage = function (msg) {
-    if (util.isDevEnv()) { return; }
-    //delete previous message if >1 bubbles dropped
-    if (dropped > 1 && previousMessage) {
-        previousMessage.delete();
+    if (!previousMessage) { 
+        previousMessage = msg;
+        return; 
     }
-    previousMessage = msg;
+
+    previousMessage.then((prevMsg) => {
+        prevMsg.delete();
+        previousMessage = msg;
+    });
 };
 
 function isValidTime(monthDayTokens, hour) {
