@@ -93,7 +93,10 @@ define('HELP_VOTING',[{ name: 'Please Note', value: '`You must be in a voice cha
 define('HELP_SCRUBBING_BUBBLES',[{ name: '.enlist', value: '`enlists the discharged Scrubbing Bubbles to your army.`', inline: 'false'},
 								 { name: '.discharge', value: '`honorably discharges a Scrubbing Bubble from your army.`', inline: 'false'},
 								 { name: '.discharge <`numBubbles`>', value: '`honorably discharges numBubbles Scrubbing Bubble from your army.`', inline: 'false'},								 
-								 { name: '.clean <`numBubbles`> <`t|b`>', value: '`send numBubbles to clean toilet/bath.`', inline: 'false'},
+								 { name: '.clean <`numBubbles`>', value: '`send numBubbles to clean the toilet.`', inline: 'false'},
+								 { name: '.21 <`numBubbles`>', value: '`to start a game of blackjack with a bet of numBubbles.`', inline: 'false'},
+								 { name: '.hit', value: '`to hit in blackjack.`', inline: 'false'},
+								 { name: '.stay', value: '`to stay in blackjack.`', inline: 'false'},
 								 { name: '.army', value: '`retrieves the size of your army.`', inline: 'false'},
 								 { name: '.army <`@user`>', value: '`retrieves the size of the user\'s army.`', inline: 'false'},
 								 { name: '.ranks', value: '`outputs the army size of every user.`', inline: 'false'},
@@ -113,6 +116,8 @@ define('HELP_GAMING',[{ name: '.playing', value: '`player count of games current
 							{ name: '.fortnite-leaderboard <`gameMode`> <`stat`>', value: '`to show the leaderboard for the provided game mode + stat.`', inline: 'false'},
 							{ name: '.set-fortnite-name <`fortniteUserName`>', value: '`to link your Fortnite account to Scrub Daddy for stat lookup.`', inline: 'false'}]);							
 define('HELP_BOT',[{ name: 'Please Note', value: '`Your issue title or feature title must be ONE WORD! msg is optional`', inline: 'false'},
+				   { name: '.tips', value: '`to show all tips.`', inline: 'false'},
+				   { name: '.tips <`keyword`>', value: '`to show all tips with a title that includes the provided keyword.`', inline: 'false'},
 				   { name: '.issue <`issue-title`> <`msg detailing issue`>', value: '`to submit bot issues.`', inline: 'false'},
 				   { name: '.feature <`feature-title`> <`msg detailing feature`>', value: '`to submit bot feature requests.`', inline: 'false'},
 				   { name: '.implement <`task-title`>', value: '`to vote for the next task to complete.\ntask-title is the channel title of the issue or feature.`', inline: 'false'},
@@ -143,10 +148,10 @@ define('HELP_MISC',[{ name: '.p', value: '`to ask @Scrubs to play PUBG in scrubs
 define('HELP_CATEGORIES_PROMPT',[{ name: 'To select a category:', value: '`Type one of the numbers below.`', inline: 'false'},
 						  { name: '.help <`command`>', value: '`to get help for a specific command`', inline: 'false'},
 						  { name: '1) Voting', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
-						  { name: '2) Scrubbing Bubbles', value: '`enlist`	`discharge`	`clean`	`army`	`ranks`	`stats`', inline: 'false'},
+						  { name: '2) Scrubbing Bubbles', value: '`enlist`	`discharge`	`clean`	`army`	`ranks`	`stats`	`21`	`hit`	`stay`', inline: 'false'},
 						  { name: '3) Time Played', value: '`time`	`opt-in`	`heatmap`', inline: 'false'},
 						  { name: '4) Gaming', value: '`playing`	`who-plays`	`lets-play`	`fortnite-stats`	`fortnite-leaderboard`	`set-fortnite-name`', inline: 'false'},
-						  { name: '5) Bot Issues, Feature Requests, and Help', value: '`issue`	`feature`	`implement`	`help`', inline: 'false'},
+						  { name: '5) Bot Issues, Feature Requests, and Help', value: '`tips`	`issue`	`feature`	`implement`	`help`', inline: 'false'},
 						  { name: '6) Miscellaneous', value: '`p`	`alias`	`temp`	`join-review-team`	`leave-review-team`	`color`	`*sb`	`*add-sb`	`*fav-sb`	`*volume`	`shuffle-scrubs`	`set-stream`	`toggle-streaming`	`start-lotto`	`lotto`	`quote`	`quotes`', inline: 'false'}]);
 define('HELP_CATEGORIES', [{name: '`Voting`', fields: exports.HELP_VOTING},
 						   {name: '`Scrubbing Bubbles`', fields: exports.HELP_SCRUBBING_BUBBLES},
@@ -218,7 +223,7 @@ define('TIPS',
 	{
 		color: 0xffff00,							
 		title: '💡 New Commands', 
-		description: '`.lets-play`	`.alias`	`.heatmap`	`.who-plays`	`*fav-sb`	`*sb`	`*add-sb`',
+		description: '`tips`	`quote`	`quotes`	`.21`	`.fortnite-stats`	`.fortnite-leaderboard`	`set-fortnite-name`	`lotto`',
 		image: {
 			url: 'https://media3.giphy.com/media/UGxfEt5POsukg/giphy.gif'
 		}
@@ -230,11 +235,20 @@ define('TIPS',
 					 'You can now activate the command which is the closest match to your input.\n' +
 					 'For example, `.akry` --> `.army`, `.lcan` --> `.clean`, etc.\n' +
 					 'You really don\'t even have to be close anymore.'
+	},
+	{
+		color: 0xffff00,							
+		title: '💡 Lets Play & Discord\'s Join Game Integration', 
+		description: 'By using Discord\'s game integration to invite users to join you, lets-play will be called for that game.'
+			+ 'This will mention every user that plays the game except for Super Scrubs, because nobody wants to play with those guys.' ,
+		image: {
+			url: 'https://i.imgur.com/QCM9Y3n.png'
+		}
 	}
 ]);
 define('COMMANDS', ['alias', 'temp','issue','feature','implement','export','list-backups','backup','restore','restart','log','catfacts','start-lotto','lotto','army','stats','rank','ranks','sunken-sailor','21','hit','stay','clean','revive','discharge',
 	'enlist','join-review-team','leave-review-team','color','sb','add-sb','sb-add','shuffle-scrubs', 'update-readme','fortnite-stats','fortnite-leaderboard','set-fortnite-name','set-stream','toggle-streaming','p','playing','heatmap','gen-heatmap','who-plays',
-	'lets-play','time','opt-in','vote','votekick','voteban','voteinfo','quote','quotes','help','info','h']);
+	'lets-play','time','opt-in','vote','votekick','voteban','voteinfo','quote','quotes','tips','help','info','h']);
 define('WHO_PLAYS_FUZZY_OPTIONS', {
 	shouldSort: true,
 	threshold: 0.3,

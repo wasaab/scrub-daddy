@@ -173,11 +173,12 @@ exports.log = function(error, response) {
  * @param {String} name - the name
  * @param {Number} value - the value
  */
-exports.buildField = function(name, value) {
+exports.buildField = function(name, value, inline) {
+	inline = inline || 'true'
 	return {
 		name: name,
 		value: value,
-		inline: 'true'
+		inline: inline
 	};
 };
 
@@ -732,11 +733,11 @@ exports.getQuotes = function(quoteTarget, userID) {
 		targetName = scrubIDToNick[targetID];
 		targetQuotes = quotes.filter((quote) => { return quote.quotedUserID === targetID; });
 		targetQuotes.forEach((quote) => {
-			fields.push(exports.buildField(moment(quote.time).format('l'), quote.message));
+			fields.push(exports.buildField(moment(quote.time).format('l'), quote.message, 'false'));
 		});
 	} else {
 		targetQuotes.forEach((quote) => {
-			fields.push(exports.buildField(scrubIDToNick[quote.quotedUserID], `${quote.message}\n	— ${moment(quote.time).format('l')}`));
+			fields.push(exports.buildField(scrubIDToNick[quote.quotedUserID], `${quote.message}\n	— ${moment(quote.time).format('l')}`, 'false'));
 		});
 	}
 	if (fields.length > 0) {
@@ -799,4 +800,12 @@ exports.mentionRole = function(uID) {
 
 exports.isDevEnv = function() {
 	return config.env === c.DEV;
+}
+
+exports.showTips = function(keyword) {
+	const matchingTips = c.TIPS.filter((tip) => {return tip.title.toLowerCase().includes(keyword);});
+	const outputTips = matchingTips.length === 0 ? c.TIPS : matchingTips;
+	outputTips.forEach((tip) => {
+		bot.getBotSpam().send(new Discord.RichEmbed(tip));
+	});		
 }

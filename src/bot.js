@@ -311,6 +311,9 @@ function handleCommand(message) {
 	function quotesCalled() {
 		util.getQuotes(args[1], userID);
 	}
+	function tipsCalled() {
+		util.showTips(args[1]);
+	}
 	function helpCalled() {
 		if (args[1]) {
 			util.outputHelpForCommand(findClosestCommandMatch(args[1]), userID);				
@@ -374,6 +377,7 @@ function handleCommand(message) {
 		'voteinfo': voteinfoCalled,
 		'quote': quoteCalled,
 		'quotes': quotesCalled,
+		'tips': tipsCalled,
 		'help': helpCalled,
 		'info': helpCalled,
         'h': helpCalled
