@@ -316,7 +316,7 @@ function maybeUpdateHelpMessage(selectedReactions, msg, userID) {
 		title: helpCategory.name,
 		fields: helpCategory.fields
 	});	
-	msg.edit(null, newMsg)
+	msg.edit('', newMsg)
 	.then((updatedMsg) => {
 		awaitAndHandleHelpReaction(updatedMsg, userID);
 	});
