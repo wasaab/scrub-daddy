@@ -293,7 +293,7 @@ function awaitAndHandleHelpReaction(msgSent, userID) {
 	.catch((collected) => {
 		c.LOG.info((`<INFO> ${exports.getTimestamp()}  After 40 seconds, there were no reactions for help.`));
 		exports.sendEmbedMessage('Reponse Timed Out', 
-			'You have not selected a category, via reaction, so I\'m not listening to you anymore 😛', userID);
+			`You have not selected a category, via reaction, so I'm not listening to you anymore ${bot.getScrubIDToNick()[userID]} 😛`, userID);
 	});
 }
 
