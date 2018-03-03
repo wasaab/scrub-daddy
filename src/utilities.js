@@ -208,7 +208,7 @@ exports.sendEmbedFieldsMessage = function(title, fields, userID) {
 	}
 
 	const color = userIDToColor[userID] || 0xffff00;	
-	bot.getBotSpam().send(new Discord.RichEmbed({
+	return bot.getBotSpam().send(new Discord.RichEmbed({
 		color: color,
 		title: title,
 		fields: fields
@@ -284,27 +284,62 @@ function outputHelpCategory(selection, userID) {
 	exports.sendEmbedFieldsMessage(helpCategory.name, helpCategory.fields, userID);
 }
 
+function awaitAndHandleHelpReaction(msgSent, userID) {
+    const reactionFilter = (reaction, user) => (c.REACTION_NUMBERS.includes(reaction.emoji.name) || reaction.emoji.name === '🏠') && user.id === userID;
+    msgSent.awaitReactions(reactionFilter, { time: 40000, max: 1 })
+    .then((collected) => {
+    	maybeUpdateHelpMessage(collected, msgSent, userID);
+	})
+	.catch((collected) => {
+		c.LOG.info((`<INFO> ${exports.getTimestamp()}  After 40 seconds, there were no reactions for help.`));
+		exports.sendEmbedMessage('Reponse Timed Out', 
+			'You have not selected a category, via reaction, so I\'m not listening to you anymore 😛', userID);
+	});
+}
+
+function maybeUpdateHelpMessage(selectedReactions, msg, userID) {
+	if (selectedReactions.length === 0) { return; }
+
+	const selection = c.REACTION_NUMBERS.indexOf(selectedReactions.first().emoji.name);
+	var helpCategory;
+	if (selection === -1) {
+		helpCategory = {
+			name: '`📖 Help Categories`',
+			fields: c.HELP_CATEGORIES_PROMPT
+		}
+	} else {
+		helpCategory = c.HELP_CATEGORIES[selection];
+	}
+	const color = userIDToColor[userID] || 0xffff00;	
+	const newMsg = new Discord.RichEmbed({
+		color: color,
+		title: helpCategory.name,
+		fields: helpCategory.fields
+	});	
+	msg.edit(null, newMsg)
+	.then((updatedMsg) => {
+		awaitAndHandleHelpReaction(updatedMsg, userID);
+	});
+}
+
+function addInitialHelpReactions(msg, reactionIdx) {
+	setTimeout(() => {
+		msg.react(c.REACTION_NUMBERS[reactionIdx])
+		if (reactionIdx < 7) {
+			addInitialHelpReactions(msg, reactionIdx + 1)
+		}
+	}, 300);
+}
+
 /**
  * Outputs help dialog to explain command usage.
  */
 exports.help = function(userID) {
-	exports.sendEmbedFieldsMessage('`📖 Help Categories`', c.HELP_CATEGORIES_PROMPT, userID);
-	const filter = (m) => {
-		var num = parseInt(m.content);
-		if (!isNaN(num) && num > 0 && num < 7) {
-			return m;
-		}
-	};
-	bot.getBotSpam().awaitMessages(filter, { max: 1, time: 30000, errors: ['time'] })
-	.then((collected) => {
-		const response = collected.array()[0];
-		outputHelpCategory(parseInt(response.content)-1, userID);
-		response.delete();		
-	})
-	.catch((collected) => {
-		c.LOG.info((`After 30 seconds, only ${collected.size} responses.`));
-		exports.sendEmbedMessage('Reponse Timed Out', 
-			'You have not selected a category, so I\'m not listening to you anymore 😛', userID);
+	exports.sendEmbedFieldsMessage('`📖 Help Categories`', c.HELP_CATEGORIES_PROMPT, userID)
+	.then((msgSent) => {
+		msgSent.react('🏠');
+		addInitialHelpReactions(msgSent, 0);
+        awaitAndHandleHelpReaction(msgSent, userID);
 	});
 };
 
