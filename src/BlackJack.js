@@ -121,7 +121,6 @@ function dealCards(userID, player, userName) {
     cardNumber = card.Value;
     checkAces(userID, player);
     if (player === "player") {
-        g.getLedger()[userID][player].points = 17;
         util.sendEmbedMessage(userName + " 's score: ", g.getLedger()[userID][player].points, userID, c[cardSuit][cardNumber - 2], true);
     } else {
         util.sendEmbedMessage(player + " 's score: ", g.getLedger()[userID][player].points, userID, c[cardSuit][cardNumber - 2], true);
