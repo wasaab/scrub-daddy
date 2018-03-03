@@ -121,11 +121,18 @@ function dealCards(userID, player, userName) {
     cardNumber = card.Value;
     checkAces(userID, player);
     if (player === "player") {
+        g.getLedger()[userID][player].points = 17;
         util.sendEmbedMessage(userName + " 's score: ", g.getLedger()[userID][player].points, userID, c[cardSuit][cardNumber - 2], true);
     } else {
         util.sendEmbedMessage(player + " 's score: ", g.getLedger()[userID][player].points, userID, c[cardSuit][cardNumber - 2], true);
     }
 }
+
+function endGame(userID, payout) {
+    addToArmy(userID, payout);
+    resetGame(userID);
+}
+
 /** 
  * Checks for outcome of blackjack game
  * 
@@ -135,26 +142,29 @@ function dealCards(userID, player, userName) {
 **/
 function checkOutcome(userID, userName) {
     var bet = g.getLedger()[userID].bjBet;
-    var amount;
-    if (g.getLedger()[userID].player.points > 21) {
+    const dealerPoints = g.getLedger()[userID].dealer.points;
+    const playerPoints = g.getLedger()[userID].player.points;
+
+    if (playerPoints > 21) {
         util.sendEmbedMessage(userName + ' Busted! You lost ' + bet + ' Scrubbing Bubbles!', 'The Dealer Wins!', userID, null);
-        resetGame(userID);
-    }
-    if (g.getLedger()[userID].player.points === 21) {
-        amount = bet * 3;
-        addToArmy(userID, amount);
-        util.sendEmbedMessage(userName + ' got BlackJack!', 'You win ' + amount + ' Scrubbing Bubbles!', userID, null);
-        resetGame(userID);
-    }
-    if (g.getLedger()[userID].dealer.points > 21) {
-        amount = bet * 2;
-        addToArmy(userID, amount);
-        util.sendEmbedMessage(userName + ' you win ' + amount + ' Scrubbing Bubbles!', 'The Dealer busted!', userID, null);
-        resetGame(userID);
-    }
-    if (g.getLedger()[userID].dealer.points <= 21 && g.getLedger()[userID].dealer.points > g.getLedger()[userID].player.points) {
+        endGame(userID, 0);
+    } else if (playerPoints === 21) {
+        util.sendEmbedMessage(userName + ' got BlackJack!', 'You win ' + bet*3 + ' Scrubbing Bubbles!', userID, null);
+        endGame(userID, bet*3);
+    } else if (dealerPoints > 21) {
+        util.sendEmbedMessage(userName + ' you win ' + bet*2 + ' Scrubbing Bubbles!', 'The Dealer busted!', userID, null);
+        endGame(userID, bet*2);
+    } else if (dealerPoints <= 21 && dealerPoints > playerPoints) {
         util.sendEmbedMessage(userName + " you lose " + bet + ' Scrubbing Bubbles!', 'The Dealer Wins!', userID, null);
-        resetGame(userID);
+        endGame(userID, 0);
+    } else if (dealerPoints >= 17) {
+        if (dealerPoints < playerPoints) {
+            util.sendEmbedMessage(userName + ' you win ' + bet*2 + ' Scrubbing Bubbles!', 'Congrats, my dude!', userID, null);
+            endGame(userID, bet*2);
+        } else if (dealerPoints === playerPoints) {
+            util.sendEmbedMessage('It\'s a tie!', 'There are no winners this time.', userID, null);
+            endGame(userID, bet);
+        }
     }
 }
 /** 
@@ -243,7 +253,7 @@ exports.stay = function (userID, userName) {
     if (g.getLedger()[userID].player.points > 0 && !g.getLedger()[userID].gameOver) {
         maybeRestoreOldDeck(userID);
         dealCards(userID, "dealer");
-        while (g.getLedger()[userID].dealer.points <= g.getLedger()[userID].player.points) {
+        while (dealerShouldHit(userID)) {
             dealCards(userID, "dealer");
             checkOutcome(userID, userName);
         }
@@ -273,3 +283,9 @@ exports.checkUserData = function (userID, userName, args) {
     }
     g.exportLedger();
 };
+
+function dealerShouldHit(userID) {
+    const dealerPoints = g.getLedger()[userID].dealer.points;
+    const userPoints = g.getLedger()[userID].player.points;
+    return  dealerPoints <= userPoints && dealerPoints < 17;
+}
