@@ -103,7 +103,9 @@ define('HELP_SCRUBBING_BUBBLES',[{ name: '.enlist', value: '`enlists the dischar
 								 { name: '.ranks', value: '`outputs the army size of every user.`', inline: 'false'},
 								 { name: '.stats', value: '`outputs your clean stats.`', inline: 'false'},
 								 { name: '.stats <`@user`>', value: '`outputs the user\'s clean stats.`', inline: 'false'},
-								 { name: '.who-said <`channel-name`> <`minMsgLength`> <`minMsgReactions`> <`sampleSize`>', value: '`Starts a quote guessing game using 5 random quotes pulled from sampleSize messages, matching the provided criteria.`', inline: 'false'}]);
+								 { name: '.who-said <`channel-name`> <`minMsgLength`> <`minMsgReactions`> <`sampleSize`>', 
+									 value: '`Starts a quote guessing game using 5 random quotes pulled from sampleSize messages, matching the provided criteria.`', inline: 'false'},
+								 { name: '.sunken-sailor', value: '`to start a game of Sunken Sailor with the users in your current voice channel.`', inline: 'false'}]);
 define('HELP_TIME_PLAYED',[{ name: '.time <`Game Name`> <`@user`>', value: '`user\'s playtime for the specified Game Name.`', inline: 'false'},
 						   { name: '.time <`Game Name`>', value: '`cumulative playtime for the specified Game Name.`', inline: 'false'},
 						   { name: '.time <`@user`>', value: '`user\'s playtime for all games.`', inline: 'false'},
@@ -151,7 +153,7 @@ define('HELP_UTILITIES',[
 define('HELP_CATEGORIES_PROMPT',[{ name: 'To select a category:', value: '`Click one of the provided reactions.`', inline: 'false'},
 						  { name: '.help <`command`>', value: '`to get help for a specific command`', inline: 'false'},
 						  { name: '1) Voting', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
-						  { name: '2) Scrubbing Bubbles', value: '`enlist`	`discharge`	`clean`	`army`	`ranks`	`stats`	`21`	`hit`	`stay`', inline: 'false'},
+						  { name: '2) Scrubbing Bubbles', value: '`enlist`	`discharge`	`clean`	`army`	`ranks`	`stats`	`21`	`hit`	`stay`	`who-said`	`sunken-sailor`', inline: 'false'},
 						  { name: '3) Time Played', value: '`time`	`opt-in`	`heatmap`', inline: 'false'},
 						  { name: '4) Gaming', value: '`playing`	`who-plays`	`lets-play`	`p`	`fortnite-stats`	`fortnite-leaderboard`	`set-fortnite-name`', inline: 'false'},
 						  { name: '5) Bot Issues, Feature Requests, and Help', value: '`tips`	`issue`	`feature`	`implement`	`help`', inline: 'false'},
