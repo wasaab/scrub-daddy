@@ -396,7 +396,7 @@ exports.letsPlay = function(args, userID, userName, emojis) {
 
 exports.maybeCallLetsPlay = function(message) {
 	const game = get(message, 'member.presence.game.name');
-	if (message.author.bot || message.content !== "" || !game) { return; }
+	if (message.author.bot || message.content !== "" || message.attachments.size !== 0 ||!game) { return; }
 	exports.letsPlay(['', '-ss', game], message.member.id, message.member.displayName, message.guild.emojis);
 }
 
@@ -804,11 +804,84 @@ exports.sunkenSailor = function(callingMember) {
 	util.sendEmbedMessage('Sunken Sailor Round Started', 'Feel free to join in https://aggie.io/c_ut33ka. You must be in the voice channel to participate.');
 	var nouns = fs.readFileSync('./resources/data/nouns.json'); //585 nouns
 	nouns = JSON.parse(nouns);
-	const secretWord = nouns[Math.floor((Math.random() * 584) + 1)];
+	const secretWord = nouns[util.getRand(0, 585)];
 	txtgen.generateSunkenSailerSentenceTemplates(secretWord);
 	
 	for (i = 0; i < players.length - 1; i++) {
 		sendSunkenSailorMessage(players[i], false);		
 	}
 	sendSunkenSailorMessage(players[players.length - 1], true);
+	shuffleArray(players);
+	var turnOrderMsg = '';
+	players.forEach((player, index) => {
+		turnOrderMsg += `\`${index + 1}.\`  **${player.displayName}**\n`;
+	});
+	util.sendEmbedMessage('Sunken Sailor Turn Order', turnOrderMsg);
 };
+
+/**
+ * Gets up to 5 random quotes that match the provided criteria.
+ * 
+ * @param {Object} channel - channel to get quotes from
+ * @param {Number} minLength - minimum length required to include msg
+ * @param {Number} minReactions - minimum reactions required to include msg
+ * @param {Number} sampleSize - number of messages to scan
+ */
+function getRandomQuotes(channel, minLength, minReactions, sampleSize) {
+	if (channel) {
+		channel = bot.getClient().channels.find('name', channel);
+	}
+	channel = channel || bot.getScrubsChannel();
+	minLength = minLength || 15;
+	minReactions = minReactions || 0;
+	sampleSize = sampleSize || 100;
+	return channel.fetchMessages({limit: sampleSize})
+	.then((foundMessages) => {
+		var matchingQuotes = foundMessages.array().filter((message) => {
+			return message.content && message.content.length >= minLength
+				&& message.reactions.size >= minReactions;
+		});
+		shuffleArray(matchingQuotes);
+		return matchingQuotes.slice(0,5);
+	});
+}
+
+function maybeGetImageFromContent(content) {
+	const images = content.match(/\bhttps?:\/\/\S+\.(png|jpeg|jpg|gif)(\s|$)/gi);
+	if (!images) { return null; }
+	return images[util.getRand(0, images.length)];
+}
+
+function startWhoSaidRound(quote, round) {
+	if (!quote.content) { return; }
+	util.sendEmbedMessage(`Who Said - Round ${round}`, `Who said "\`${quote.content}\`"?`, null, maybeGetImageFromContent(quote.content))
+
+	const filter = (m) => {
+		if (m.content === util.mentionUser(quote.author.id)) { return m; }
+	};
+	bot.getBotSpam().awaitMessages(filter, { max: 1, time: 30000, errors: ['time'] })
+	.then((collected) => {
+		util.sendEmbedMessage(`Congrats ${collected.array()[0].member.displayName}`, 
+			`You're correct! **${bot.getScrubIDToNick()[quote.author.id]}**\nsaid that on \`${moment(quote.createdTimestamp).format('LLLL')}\``)	
+	})
+	.catch((collected) => {
+		c.LOG.info((`<INFO> ${util.getTimestamp()}  After 30 seconds, there were no responses for Who Said.`));
+		util.sendEmbedMessage('Reponse Timed Out', 'Nobody wins this round! 😛');
+	});
+}
+
+/**
+ * Starts a game of Who Said, which is a quote guessing game.
+ * 
+ * @param {Object} channel - channel to get quotes from
+ * @param {Number} minLength - minimum length required to include msg
+ * @param {Number} minReactions - minimum reactions required to include msg
+ * @param {Number} sampleSize - number of messages to scan
+ */
+exports.startWhoSaidGame = function(channel, minLength, minReactions, sampleSize) {
+	getRandomQuotes(channel, minLength, minReactions, sampleSize)
+	.then((randomQuotes) => {
+		if (!randomQuotes || randomQuotes.length < 1) { return; }
+		startWhoSaidRound(randomQuotes[0], 1);
+	});
+}

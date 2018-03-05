@@ -75,110 +75,102 @@ function handleCommand(message) {
 	
 	if (channelID !== c.BOT_SPAM_CHANNEL_ID && cmd !== 'quote') { return; }
 	
-	function aliasCalled () {
-		if (args.length > 1) {			
-			util.createAlias(userID, user, args);
-		} else {
-			util.outputAliases(userID, user);
-		}
-	}
-	function tempCalled () {
-		const channelType = args[1] || 'text';
-		const channelName = util.getTargetFromArgs(args, 2) || 'temp-channel';
-		util.createChannelInCategory(cmd, channelType, channelName, message, ` Channel Created By ${user}`, userID);
-	}
-	function issueOrFeatureCalled () {
-		const chanName = args[1];
-		const feedback = args.slice(2).join(' ');
-		util.createChannelInCategory(cmd, 'text', chanName, message, ` Submitted By ${user}`, userID, feedback);		
-	}
-	function implementCalled () {
-		args.splice(1, 0, cmd);
-		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.CUSTOM);		
-	}
-	function exportCalled () {
-		if (userID === c.K_ID) {
-			gambling.exportLedger();
-			games.exportTimeSheetAndGameHistory();
-		}
-	}
-	function listBackupsCalled() {
-		if (userID === c.K_ID) {			
-			util.listBackups();
-		}
-	}
-	function backupCalled() {
-		if (userID === c.K_ID) {
-			util.backupJson(args[1]);
-		}
-	}
-	function restoreCalled() {
-		if (userID === c.K_ID) {
-			util.restoreJsonFromBackup(args[1]);
-		}
-	}
-	function restartCalled() {
-		if (userID === c.K_ID) {
-			util.restartBot(args[1]);
-		}
-	}
-	function logCalled() {
-		if (userID === c.K_ID) {
-			util.toggleServerLogRedirect(userID);
-		}
-	}
-	function catfactsCalled () {
-		util.catfacts(userID);
-		message.delete();
-	}
-	function startLottoCalled() {
-		if (args[1] && args[2]) {
-			gambling.startLotto(user, userID, args[1], args[2]);
-		}
-	}
-	function lottoCalled() {
-		if (args[1] && args[1] === 'check') {
-			gambling.checkLotto(userID);
-		} else {
-			gambling.joinLotto(user, userID);
-		}
-	}
-	function armyCalled () {
-		gambling.army(userID, args);		
-	}
-	function statsCalled () {
-		gambling.stats(userID, args);		
-	}
-	function ranksCalled () {
-		gambling.armyRanks(userID);
-		message.delete();		
-	}
-	function sunkenSailorCalled() {
-		games.sunkenSailor(message.member);
-	}
-	function blackjackCalled () {
+	function blackjackCalled() {
         blackjack.checkUserData(userID, user, args);
         message.delete();
     }
-    function hitCalled () {
+	function addSBCalled() {
+		if (config.soundBytesEnabled) {
+			util.maybeAddSoundByte(message, userID);
+		}
+    }
+	function aliasCalled() {
+		if (args.length > 1) {
+				util.createAlias(userID, user, args);
+		} else {
+				util.outputAliases(userID, user);
+		}
+	}
+	function armyCalled() {
+        gambling.army(userID, args);
+    }
+	function backupCalled() {
+		if (userID === c.K_ID) {
+				util.backupJson(args[1]);
+		}
+    }
+	function catfactsCalled() {
+		util.catfacts(userID);
+		message.delete();
+	}
+	function cleanCalled() {
+		gambling.maybeBetClean(userID, args, message);
+	}
+	function colorCalled() {
+		if (args[1]) {
+				util.setUserColor(args[1], userID, message.guild);
+		}
+	}
+	function dischargeCalled() {
+		gambling.dischargeScrubBubble(userID, args[1]);
+	}
+	function enlistCalled() {
+		gambling.enlist(userID, message);
+	}
+	function exportCalled() {
+		if (userID === c.K_ID) {
+				gambling.exportLedger();
+				games.exportTimeSheetAndGameHistory();
+		}
+	}
+	function fortniteLeaderboardCalled() {
+		if (args[1] && args[2]) {
+				games.getFortniteStats(args[1], args[2], userID);
+		}
+	}
+	function fortniteStatsCalled() {
+		if (args[1] && args[2]) {
+				const targetStat = args[3] || 'all';
+				games.getFortniteStats(args[2], targetStat, userID, args[1]);
+		} else {
+				var possibleStats = '';
+				c.STATS.forEach((stat) => {
+						possibleStats += `${stat}       `;
+				});
+				util.sendEmbedMessage('Fortnite Stats Help', 'Usage: fortnite-stats <userName> <gameMode> <stat>\n'
+						+ 'e.g. fortnite-stats wasaab squad kills\n\n'
+						+ 'gameMode options: solo, duo, squad, all\n\n'
+						+ `stat options: ${possibleStats}`);
+		}
+	}
+	function genHeatMapCalled() {
+		if (userID === c.K_ID) {
+				games.generateHeatMap();
+		}
+	}
+	function heatmapCalled() {
+		games.maybeOutputHeatMap(userID);
+	}
+	function helpCalled() {
+		if (args[1]) {
+				util.outputHelpForCommand(findClosestCommandMatch(args[1]), userID);
+		} else {
+				util.help(userID);
+		}
+		message.delete();
+    }
+	function hitCalled() {
         blackjack.hitMe(userID, user);
         message.delete();
     }
-    function stayCalled () {
-        blackjack.stay(userID, user);
-    }
-	function cleanCalled () {
-		gambling.maybeBetClean(userID, args, message);		
+	function implementCalled() {
+		args.splice(1, 0, cmd);
+		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.CUSTOM);
 	}
-	function dischargeCalled () {
-		gambling.dischargeScrubBubble(userID, args[1]); 
-	}
-	function reviveCalled () {
-		if (userID !== c.K_ID) { return; }
-		gambling.dischargeScrubBubble(null, args[1]);
-	}
-	function enlistCalled () {
-		gambling.enlist(userID, message);		
+	function issueOrFeatureCalled() {
+		const chanName = args[1];
+		const feedback = args.slice(2).join(' ');
+		util.createChannelInCategory(cmd, 'text', chanName, message, ` Submitted By ${user}`, userID, feedback);
 	}
 	function joinReviewTeamCalled() {
 		util.addToReviewRole(message.member, message.guild.roles);
@@ -186,201 +178,213 @@ function handleCommand(message) {
 	function leaveReviewTeamCalled() {
 		util.removeFromReviewRole(message.member, message.guild.roles);
 	}
-	function colorCalled() {
-		if (args[1]) {
-			util.setUserColor(args[1], userID, message.guild);					
-		}
-	}
-	function sbCalled() {
-		if (config.soundBytesEnabled) {
-			util.playSoundByte(message.member.voiceChannel, args[1], userID);
-		}
-	}
-	function addSBCalled() {
-		if (config.soundBytesEnabled) {
-			util.maybeAddSoundByte(message, userID);
-		}
-	}
-	function updateReadmeCalled() {
-		if (userID === c.K_ID) {
-			util.updateReadme();
-		}
-	}
-	function shuffleScrubsCalled() {
-		util.shuffleScrubs(message.guild.members.array(), message.member, args);
-	}
-	function fortniteStatsCalled() {
-		if (args[1] && args[2]) {
-			const targetStat = args[3] || 'all';
-			games.getFortniteStats(args[2], targetStat, userID, args[1]);
-		} else {
-			var possibleStats = '';
-			c.STATS.forEach((stat) => {
-				possibleStats += `${stat}	`;
-			});
-			util.sendEmbedMessage('Fortnite Stats Help', 'Usage: fortnite-stats <userName> <gameMode> <stat>\n'
-				+ 'e.g. fortnite-stats wasaab squad kills\n\n'
-				+ 'gameMode options: solo, duo, squad, all\n\n'
-				+ `stat options: ${possibleStats}`);	
-		}
-	}
-	function fortniteLeaderboardCalled() {
-		if (args[1] && args[2]) {
-			games.getFortniteStats(args[1], args[2], userID);
-		}
-	}
-	function setFortniteNameCalled() {
-		if (args[1]) {
-			games.setFortniteName(userID, args[1]);
-		}
-	}
-	function setStreamCalled() {
-		if (args[1]) {
-			games.setStreamingUrl(message.member, args[1]);
-		}
-	}
-	function toggleStreamingCalled() {
-		games.toggleStreaming(message.member)
-	}
-	function pCalled () {
-		games.askToPlayPUBG();		
-	}
-	function playingCalled () {
-		games.maybeOutputCountOfGamesBeingPlayed(message.guild.members.array(), userID);
-		message.delete();
-	}
-	function heatmapCalled () {
-		games.maybeOutputHeatMap(userID);		
-	}
-	function genHeatMapCalled() {
-		if (userID === c.K_ID) {
-			games.generateHeatMap();
-		}
-	}
-	function whoPlaysCalled() {
-		if (args[1]) {
-			games.whoPlays(args, userID);
-		} else {
-			util.outputHelpForCommand(cmd, userID);			
-		}
-	}
 	function letsPlayCalled() {
 		if (args[1]) {
-			games.letsPlay(args, userID, user, message.guild.emojis);
+				games.letsPlay(args, userID, user, message.guild.emojis);
 		} else {
-			util.outputHelpForCommand(cmd, userID);			
+				util.outputHelpForCommand(cmd, userID);
 		}
 	}
-	function timeCalled() {
-		games.maybeOutputTimePlayed(args, userID);		
+	function listBackupsCalled() {
+		if (userID === c.K_ID) {
+				util.listBackups();
+		}
+	}
+	function logCalled() {
+		if (userID === c.K_ID) {
+				util.toggleServerLogRedirect(userID);
+		}
+	}
+	function lottoCalled() {
+		if (args[1] && args[1] === 'check') {
+				gambling.checkLotto(userID);
+		} else {
+				gambling.joinLotto(user, userID);
+		}
 	}
 	function optInCalled() {
 		games.optIn(user, userID);
 		message.delete();
 	}
-	function voteCalled() {
-		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.CUSTOM);					
+	function pCalled() {
+		games.askToPlayPUBG();
 	}
-	function votekickCalled() {
-		c.LOG.info(`<VOTE Kick> ${util.getTimestamp()}  ${user}: ${message}`);
-		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.KICK, message.member.voiceChannel, message.guild.roles);		
-	}
-	function votebanCalled() {
-		c.LOG.info(`<VOTE Ban> ${util.getTimestamp()}  ${user}: ${message}`);			
-		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.BAN, message.member.voiceChannel, message.guild.roles);		
-	}
-	function voteinfoCalled() {
-		if (!args[1]) {
-			c.LOG.info(`<VOTE Info Custom> ${util.getTimestamp()}  ${user}: ${message}`);								
-			vote.getCustomVoteTotals(userID);
-		} else {
-			c.LOG.info(`<VOTE Info User> ${util.getTimestamp()}  ${user}: ${message}`);													
-			vote.getTotalVotesForTarget(user, userID, message.member.voiceChannel, channelID, args);
-		}	
+	function playingCalled() {
+		games.maybeOutputCountOfGamesBeingPlayed(message.guild.members.array(), userID);
+		message.delete();
 	}
 	function quoteCalled() {
 		if (quoteBlocked) { return; }
 		quoteBlocked = true;
 		setTimeout(() => {
-			util.quoteTipMsg.delete();
-			quoteBlocked = false;
-			util.exportQuotes();
+				util.quoteTipMsg.delete();
+				quoteBlocked = false;
+				util.exportQuotes();
 		}, 15500);
 		util.quoteUser(message, args[1], userID, channelID);
 	}
 	function quotesCalled() {
 		util.getQuotes(args[1], userID);
 	}
+	function ranksCalled() {
+		gambling.armyRanks(userID);
+		message.delete();
+	}
+	function restartCalled() {
+		if (userID === c.K_ID) {
+				util.restartBot(args[1]);
+		}
+	}
+	function restoreCalled() {
+		if (userID === c.K_ID) {
+				util.restoreJsonFromBackup(args[1]);
+		}
+	}
+	function reviveCalled() {
+		if (userID !== c.K_ID) { return; }
+		gambling.dischargeScrubBubble(null, args[1]);
+	}
+	function sbCalled() {
+		if (config.soundBytesEnabled) {
+				util.playSoundByte(message.member.voiceChannel, args[1], userID);
+		}
+	}
+	function setFortniteNameCalled() {
+		if (args[1]) {
+				games.setFortniteName(userID, args[1]);
+		}
+	}
+	function setStreamCalled() {
+		if (args[1]) {
+				games.setStreamingUrl(message.member, args[1]);
+		}
+	}
+	function shuffleScrubsCalled() {
+		util.shuffleScrubs(message.guild.members.array(), message.member, args);
+	}
+	function startLottoCalled() {
+		if (args[1] && args[2]) {
+				gambling.startLotto(user, userID, args[1], args[2]);
+		}
+	}
+	function statsCalled() {
+		gambling.stats(userID, args);
+	}
+	function stayCalled() {
+        blackjack.stay(userID, user);
+    }	
+	function sunkenSailorCalled() {
+		games.sunkenSailor(message.member);
+	}
+	function tempCalled() {
+		const channelType = args[1] || 'text';
+		const channelName = util.getTargetFromArgs(args, 2) || 'temp-channel';
+		util.createChannelInCategory(cmd, channelType, channelName, message, ` Channel Created By ${user}`, userID);
+	}
+	function timeCalled() {
+		games.maybeOutputTimePlayed(args, userID);
+	}
 	function tipsCalled() {
 		util.showTips(args[1]);
 	}
-	function helpCalled() {
-		if (args[1]) {
-			util.outputHelpForCommand(findClosestCommandMatch(args[1]), userID);				
-		} else {
-			util.help(userID);
+	function toggleStreamingCalled() {
+		games.toggleStreaming(message.member)
+	}
+	function updateReadmeCalled() {
+		if (userID === c.K_ID) {
+				util.updateReadme();
 		}
-		message.delete();
-    }
-
+	}
+	function voteCalled() {
+		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.CUSTOM);
+	}
+	function votebanCalled() {
+		c.LOG.info(`<VOTE Ban> ${util.getTimestamp()}  ${user}: ${message}`);
+		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.BAN, message.member.voiceChannel, message.guild.roles);
+	}
+	function voteinfoCalled() {
+		if (!args[1]) {
+				c.LOG.info(`<VOTE Info Custom> ${util.getTimestamp()}  ${user}: ${message}`);
+				vote.getCustomVoteTotals(userID);
+		} else {
+				c.LOG.info(`<VOTE Info User> ${util.getTimestamp()}  ${user}: ${message}`);
+				vote.getTotalVotesForTarget(user, userID, message.member.voiceChannel, channelID, args);
+		}
+	}
+	function votekickCalled() {
+		c.LOG.info(`<VOTE Kick> ${util.getTimestamp()}  ${user}: ${message}`);
+		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.KICK, message.member.voiceChannel, message.guild.roles);
+	}
+	function whoPlaysCalled() {
+		if (args[1]) {
+				games.whoPlays(args, userID);
+		} else {
+				util.outputHelpForCommand(cmd, userID);
+		}
+	}
+	function whoSaidCalled() {
+		games.startWhoSaidGame(args[1], args[2], args[3], args[4]);
+	}
+	
 	var commandToHandler = {
-		'alias': aliasCalled,
-		'temp': tempCalled,
-		'issue': issueOrFeatureCalled,
-		'feature': issueOrFeatureCalled,
-		'implement': implementCalled,
-		'export': exportCalled,
-		'list-backups': listBackupsCalled,
-		'backup': backupCalled,
-		'restore': restoreCalled,
-		'restart': restartCalled,
-		'log': logCalled,
-		'catfacts': catfactsCalled,
-		'start-lotto': startLottoCalled,
-		'lotto': lottoCalled,
-		'army': armyCalled,
-		'stats': statsCalled,
-		'rank': ranksCalled,
-		'ranks': ranksCalled,
-		'sunken-sailor': sunkenSailorCalled,
 		'21':blackjackCalled,
-        'hit':hitCalled,
-        'stay':stayCalled,
+		'add-sb': addSBCalled,
+		'alias': aliasCalled,
+		'army': armyCalled,
+		'backup': backupCalled,
+		'catfacts': catfactsCalled,
 		'clean': cleanCalled,
-		'revive': reviveCalled,
+		'color': colorCalled,
 		'discharge': dischargeCalled,
 		'enlist': enlistCalled,
+		'export': exportCalled,
+		'feature': issueOrFeatureCalled,
+		'fortnite-leaderboard': fortniteLeaderboardCalled,
+		'fortnite-stats': fortniteStatsCalled,
+		'gen-heatmap': genHeatMapCalled,
+        'h': helpCalled,
+		'heatmap': heatmapCalled,
+		'help': helpCalled,
+        'hit':hitCalled,
+		'implement': implementCalled,
+		'info': helpCalled,
+		'issue': issueOrFeatureCalled,
 		'join-review-team': joinReviewTeamCalled,
 		'leave-review-team': leaveReviewTeamCalled,
-		'color': colorCalled,
-		'sb': sbCalled,
-		'add-sb': addSBCalled,
-		'sb-add': addSBCalled,
-		'update-readme': updateReadmeCalled,
-		'shuffle-scrubs': shuffleScrubsCalled,
-		'fortnite-stats': fortniteStatsCalled,
-		'fortnite-leaderboard': fortniteLeaderboardCalled,
-		'set-fortnite-name': setFortniteNameCalled,
-		'toggle-streaming': toggleStreamingCalled,
-		'set-stream': setStreamCalled,
+		'lets-play': letsPlayCalled,
+		'list-backups': listBackupsCalled,
+		'log': logCalled,
+		'lotto': lottoCalled,
+		'opt-in': optInCalled,
 		'p': pCalled,
 		'playing': playingCalled,
-		'heatmap': heatmapCalled,
-		'gen-heatmap': genHeatMapCalled,
-		'who-plays': whoPlaysCalled,
-		'lets-play': letsPlayCalled,
-		'time': timeCalled,
-		'opt-in': optInCalled,
-		'vote': voteCalled,
-		'votekick': votekickCalled,
-		'voteban': votebanCalled,
-		'voteinfo': voteinfoCalled,
 		'quote': quoteCalled,
 		'quotes': quotesCalled,
+		'rank': ranksCalled,
+		'ranks': ranksCalled,
+		'restore': restoreCalled,
+		'restart': restartCalled,
+		'revive': reviveCalled,
+		'sb': sbCalled,
+		'sb-add': addSBCalled,
+		'set-fortnite-name': setFortniteNameCalled,
+		'set-stream': setStreamCalled,
+		'shuffle-scrubs': shuffleScrubsCalled,
+		'start-lotto': startLottoCalled,
+		'stats': statsCalled,
+        'stay':stayCalled,
+		'sunken-sailor': sunkenSailorCalled,
+		'temp': tempCalled,
+		'time': timeCalled,
 		'tips': tipsCalled,
-		'help': helpCalled,
-		'info': helpCalled,
-        'h': helpCalled
+		'toggle-streaming': toggleStreamingCalled,
+		'update-readme': updateReadmeCalled,
+		'vote': voteCalled,
+		'voteban': votebanCalled,
+		'voteinfo': voteinfoCalled,
+		'votekick': votekickCalled,
+		'who-plays': whoPlaysCalled,
+		'who-said': whoSaidCalled,
 	};
 
 	if (args[1] === 'help') {

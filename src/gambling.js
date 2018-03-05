@@ -414,7 +414,8 @@ exports.endLotto = function() {
         `May your name once again be your own. Welcome to Beyond, ${winner}!`,
         `...and ${fakeWinner} is the winner in our hearts. However, the real winner is ${winner}!`,
         `Today the Gods of RNG have shined their light upon ${winner}!`];
-    const winningMsg = winningMsgs[Math.floor(Math.random()*winningMsgs.length)];
+        
+    const winningMsg = winningMsgs[util.getRand(0, winningMsgs.length)];
     util.sendEmbedMessage('The Beyond Lotto Has Concluded', winningMsg, null, c.BEYOND_LOTTO_IMG);
     c.LOG.info(`<INFO> ${util.getTimestamp()}  Beyond lotto winner = ${winner}`);    
 
@@ -427,8 +428,8 @@ function getFakeAndRealWinner() {
 	var winnerID;
 	var fakeWinnerID;
 	while (winnerID === fakeWinnerID) {
-		winnerID = config.lottoEntries[Math.floor(Math.random()*config.lottoEntries.length)];
-		fakeWinnerID = config.lottoEntries[Math.floor(Math.random()*config.lottoEntries.length)];
+		winnerID = config.lottoEntries[util.getRand(0, config.lottoEntries.length)];
+		fakeWinnerID = config.lottoEntries[util.getRand(0, config.lottoEntries.length)];
     }
     return { 
         fakeWinner: bot.getScrubIDToNick()[fakeWinnerID],

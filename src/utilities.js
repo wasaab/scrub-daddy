@@ -1,4 +1,4 @@
-var tinycolor = require("tinycolor2");
+var tinycolor = require('tinycolor2');
 var schedule = require('node-schedule');
 var Discord = require('discord.js');
 var inspect = require('util-inspect');
@@ -10,8 +10,6 @@ var fs = require('fs');
 const winston = require('winston');
 const Transport = require('winston-transport');
 const request = require('request')
-const mkdirp = require('mkdirp')
-const pify = require('pify')
 const co = require('co')
 
 var gambling = require('./gambling.js');
@@ -401,7 +399,7 @@ exports.scheduleRecurringJobs = function() {
 			previousTip.delete();						
 		}
 		firstRun = false;
-		var tip = c.TIPS[Math.floor(Math.random()*c.TIPS.length)];		
+		var tip = c.TIPS[exports.getRand(0, c.TIPS.length)];		
 		bot.getBotSpam().send(new Discord.RichEmbed(tip))
 		.then((message) => {
 			previousTip = message;
@@ -427,7 +425,7 @@ exports.scheduleRecurringJobs = function() {
  */
 exports.shuffleScrubs = function(scrubs, caller, args) {
 	if (!caller.roles.find('id', c.BEYOND_ROLE_ID) || (args[1] && args[1].length > 1)) { return; }
-	var randLetter = args[1] || c.ALPHABET.substr( Math.floor(Math.random() * 26), 1);
+	var randLetter = args[1] || c.ALPHABET.substr(exports.getRand(0, 26), 1);
 	randLetter = randLetter.toUpperCase();
 
 	scrubs.forEach((scrub) => {

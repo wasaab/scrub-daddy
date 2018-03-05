@@ -228,7 +228,7 @@ define('TIPS',
 	{
 		color: 0xffff00,							
 		title: '💡 New Commands', 
-		description: '`tips`	`quote`	`quotes`	`.21`	`.fortnite-stats`	`.fortnite-leaderboard`	`set-fortnite-name`	`lotto`',
+		description: '`tips`	`quote`	`quotes`	`21`	`fortnite-stats`	`fortnite-leaderboard`	`set-fortnite-name`	`lotto`',
 		image: {
 			url: 'https://media3.giphy.com/media/UGxfEt5POsukg/giphy.gif'
 		}
@@ -251,9 +251,28 @@ define('TIPS',
 		}
 	}
 ]);
-define('COMMANDS', ['alias', 'temp','issue','feature','implement','export','list-backups','backup','restore','restart','log','catfacts','start-lotto','lotto','army','stats','rank','ranks','sunken-sailor','21','hit','stay','clean','revive','discharge',
-	'enlist','join-review-team','leave-review-team','color','sb','add-sb','sb-add','shuffle-scrubs', 'update-readme','fortnite-stats','fortnite-leaderboard','set-fortnite-name','set-stream','toggle-streaming','p','playing','heatmap','gen-heatmap','who-plays',
-	'lets-play','time','opt-in','vote','votekick','voteban','voteinfo','quote','quotes','tips','help','info','h']);
+define('COMMANDS', ['21', 
+	'add-sb', 'alias', 'army', 
+	'backup', 
+	'catfacts', 'clean', 'color', 
+	'discharge', 
+	'enlist', 'export', 
+	'feature',
+	'fortnite-leaderboard', 'fortnite-stats', 
+	'gen-heatmap', 
+	'h', 'heatmap', 'help', 'hit', 
+	'implement', 'info', 'issue', 
+	'join-review-team', 
+	'leave-review-team', 'lets-play', 'list-backups', 'log', 'lotto', 
+	'opt-in', 
+	'p', 'playing', 
+	'quote', 'quotes', 
+	'rank', 'ranks', 'restart', 'restore', 'revive', 
+	'sb', 'sb-add', 'set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'start-lotto', 'stats', 'stay', 'sunken-sailor', 
+	'temp', 'time', 'tips', 'toggle-streaming', 
+	'update-readme', 
+	'vote', 'voteban', 'voteinfo', 'votekick', 
+	'who-plays', 'who-said']);
 define('WHO_PLAYS_FUZZY_OPTIONS', {
 	shouldSort: true,
 	threshold: 0.3,
@@ -261,7 +280,7 @@ define('WHO_PLAYS_FUZZY_OPTIONS', {
 	distance: 100,
 	maxPatternLength: 32,
 	minMatchCharLength: 1,
-	keys: ["title"]
+	keys: ['title']
 });
 define('CHANNEL_NAME_FUZZY_OPTIONS', {
 	threshold: 0.1,
@@ -270,7 +289,7 @@ define('CHANNEL_NAME_FUZZY_OPTIONS', {
 	maxPatternLength: 32,
 	minMatchCharLength: 1
 });
-define('ALPHABET',  "ABCDEFGHIJKLMNOPQURSTUVWXYZ");
+define('ALPHABET',  'ABCDEFGHIJKLMNOPQURSTUVWXYZ');
 define('ENCLOSED_CHARS', {'A': '🄰', 'B': '🄱', 'C': '🄲', 'D': '🄳', 'E': '🄴', 'F': '🄵', 'G': '🄶', 'H': '🄷', 
 	'I': '🄸', 'J': '🄹', 'K': '🄺', 'L': '🄻', 'M': '🄼', 'N': '🄽', 'O': '🄾', 'P': '🄿', 'Q': '🅀', 
 	'R': '🅁', 'S': '🅂', 'T': '🅃', 'U': '🅄', 'V': '🅅', 'W': '🅆', 'X': '🅇', 'Y': '🅈', 'Z': '🅉', 
