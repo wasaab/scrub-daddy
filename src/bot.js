@@ -275,7 +275,7 @@ function handleCommand(message) {
 	}	
 	function stealCalled() {
 		if (userID === '162434234357645312' || userID === c.K_ID && args.length === 3) {
-			gambling.fakeSteal(args[1], args[2])
+			gambling.fakeSteal(args[1], args[2], userID)
 		}
 	}
 	function sunkenSailorCalled() {

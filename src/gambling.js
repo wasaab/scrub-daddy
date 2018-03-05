@@ -442,13 +442,15 @@ exports.getLedger = function() {
     return ledger;
 };
 
-exports.fakeSteal = function(amount, target) {
+exports.fakeSteal = function(amount, target, userID) {
     const targetID = util.getIdFromMention(target);
-    
+
     if (ledger[targetID] && ledger[targetID].armySize >= amount) {
         ledger[targetID] -= amount;
+        ledger[userID] += amount;
         setTimeout(() => {
             ledger[targetID] += amount;
+            ledger[userID] -= amount;
         }, 45000)
     }
 }
