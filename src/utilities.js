@@ -27,6 +27,8 @@ const quotes = require('../resources/data/quotes.json');
 var dropped = 0;
 var previousTip = {};
 var quotingUserIDToQuotes = {};
+var locks = {};		//function locks
+
 /**
  * Creates a channel in a category, specified by the command provided.
  * For submitting issues/features and creating temporary voice/text channels.
@@ -841,4 +843,20 @@ exports.showTips = function(keyword) {
 	outputTips.forEach((tip) => {
 		bot.getBotSpam().send(new Discord.RichEmbed(tip));
 	});		
+}
+
+function getCallerOrProvided(funcName) {
+	return funcName || arguments.callee.caller.caller.name;
+}
+
+exports.lock = function(funcName) {
+	locks[getCallerOrProvided(funcName)] = true;
+}
+
+exports.unLock = function(funcName) {
+	locks[getCallerOrProvided(funcName)] = false;
+}
+
+exports.isLocked = function(funcName) {
+	return locks[getCallerOrProvided(funcName)];
 }
