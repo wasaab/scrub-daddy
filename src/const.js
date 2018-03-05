@@ -102,7 +102,8 @@ define('HELP_SCRUBBING_BUBBLES',[{ name: '.enlist', value: '`enlists the dischar
 								 { name: '.army <`@user`>', value: '`retrieves the size of the user\'s army.`', inline: 'false'},
 								 { name: '.ranks', value: '`outputs the army size of every user.`', inline: 'false'},
 								 { name: '.stats', value: '`outputs your clean stats.`', inline: 'false'},
-								 { name: '.stats <`@user`>', value: '`outputs the user\'s clean stats.`', inline: 'false'}]);
+								 { name: '.stats <`@user`>', value: '`outputs the user\'s clean stats.`', inline: 'false'},
+								 { name: '.who-said <`channel-name`> <`minMsgLength`> <`minMsgReactions`> <`sampleSize`>', value: '`Starts a quote guessing game using 5 random quotes pulled from sampleSize messages, matching the provided criteria.`', inline: 'false'}]);
 define('HELP_TIME_PLAYED',[{ name: '.time <`Game Name`> <`@user`>', value: '`user\'s playtime for the specified Game Name.`', inline: 'false'},
 						   { name: '.time <`Game Name`>', value: '`cumulative playtime for the specified Game Name.`', inline: 'false'},
 						   { name: '.time <`@user`>', value: '`user\'s playtime for all games.`', inline: 'false'},

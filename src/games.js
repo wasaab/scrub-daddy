@@ -854,6 +854,17 @@ function maybeGetImageFromContent(content) {
 	return images[util.getRand(0, images.length)];
 }
 
+function endWhoSaidGame() {
+	var fields =[];
+	for(userID in whoSaidScore) {
+		fields.push(util.buildField(bot.getScrubIDToNick()[userID], whoSaidScore[userID]));
+	}
+	
+	fields.sort(util.compareFieldValues);
+	util.sendEmbedFieldsMessage('Who Said - Game Over', fields);
+	util.unLock('startWhoSaidGame');
+}
+
 function startWhoSaidRound(quote, round) {
 	if (!quote.content) { return; }
 	util.sendEmbedMessage(`Who Said - Round ${round}`, `Who said "\`${quote.content}\`"?`, null, maybeGetImageFromContent(quote.content))
@@ -862,6 +873,28 @@ function startWhoSaidRound(quote, round) {
 		if (m.content === util.mentionUser(quote.author.id)) { return m; }
 	};
 	return bot.getBotSpam().awaitMessages(filter, { max: 1, time: 30000, errors: ['time'] });
+}
+
+function whoSaidGameLoop(randomQuotes, round) {
+	if (round === 6) {
+		endWhoSaidGame();
+		return;
+	}
+	
+	const selectedQuote = randomQuotes[round - 1];
+    startWhoSaidRound(selectedQuote, round)
+    .then((answers) => {
+		const roundWinner = answers.array()[0].member;
+		util.sendEmbedMessage(`Congrats ${roundWinner.displayName}`, 
+		`You're correct! **${bot.getScrubIDToNick()[selectedQuote.author.id]}**\nsaid that on \`${moment(selectedQuote.createdTimestamp).format('LLLL')}\``);
+		whoSaidScore[roundWinner.id] = whoSaidScore[roundWinner.id] ? whoSaidScore[roundWinner.id]++ : 1;
+		whoSaidGameLoop(randomQuotes, round + 1);
+	})
+    .catch((answers) => {
+		c.LOG.info((`<INFO> ${util.getTimestamp() }  After 30 seconds, there were no responses for Who Said.`));
+		util.sendEmbedMessage('Reponse Timed Out', 'Nobody wins this round! 😛');
+		whoSaidGameLoop(randomQuotes, round + 1);
+    });
 }
 
 /**
@@ -880,40 +913,6 @@ exports.startWhoSaidGame = function(channel, minLength, minReactions, sampleSize
 	getRandomQuotes(channel, minLength, minReactions, sampleSize)
 	.then((randomQuotes) => {
 		if (!randomQuotes || randomQuotes.length === 0) { return; }
-        whoSaidGameLoop(randomQuotes, 1);
+		whoSaidGameLoop(randomQuotes, 1);
 	});
 }
-
-function endWhoSaidGame() {
-	var fields =[];
-	for(userID in whoSaidScore) {
-		fields.push(util.buildField(bot.getScrubIDToNick()[userID], whoSaidScore[userID]));
-	}
-	
-	fields.sort(util.compareFieldValues);
-	util.sendEmbedFieldsMessage('Who Said - Game Over', fields);
-	util.unLock('startWhoSaidGame');
-}
-
-function whoSaidGameLoop(randomQuotes, round) {
-	if (round === 6) {
-        endWhoSaidGame();
-		return;
-	}
-
-	const selectedQuote = randomQuotes[round - 1];
-    startWhoSaidRound(selectedQuote, round)
-    .then((answers) => {
-		const roundWinner = answers.array()[0].member;
-		util.sendEmbedMessage(`Congrats ${roundWinner.displayName}`, 
-			`You're correct! **${bot.getScrubIDToNick()[selectedQuote.author.id]}**\nsaid that on \`${moment(selectedQuote.createdTimestamp).format('LLLL')}\``);
-		whoSaidScore[roundWinner.id] = whoSaidScore[roundWinner.id] ? whoSaidScore[roundWinner.id]++ : 1;
-		whoSaidGameLoop(randomQuotes, round + 1);
-	})
-    .catch((answers) => {
-    	c.LOG.info((`<INFO> ${util.getTimestamp() }  After 30 seconds, there were no responses for Who Said.`));
-		util.sendEmbedMessage('Reponse Timed Out', 'Nobody wins this round! 😛');
-		whoSaidGameLoop(randomQuotes, round + 1);
-    });
-}
-
