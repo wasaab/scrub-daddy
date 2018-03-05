@@ -274,8 +274,8 @@ function handleCommand(message) {
         blackjack.stay(userID, user);
 	}	
 	function stealCalled() {
-		if (userID === '162434234357645312' || userID === c.K_ID && args.length === 3) {
-			gambling.fakeSteal(args[1], args[2], userID)
+		if (args.length === 3 && (userID === c.AF_ID || userID === c.K_ID)) {
+			gambling.fakeSteal(Number(args[1]), args[2], userID)
 		}
 	}
 	function sunkenSailorCalled() {

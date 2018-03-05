@@ -84,6 +84,7 @@ define('BUBBLE_IMAGES', ['https://i.imgur.com/rddtZR6.png','https://i.imgur.com/
 define('SCRUB_DADDY_ID', '370688149971795982');
 //Todo: pull from config.json
 define('K_ID', '132944096347160576');
+define('AF_ID', '162434234357645312');
 define('HELP_VOTING',[{ name: 'Please Note', value: '`You must be in a voice channel with at least 3 members to participate in a kick/ban vote.`', inline: 'false'},
 					  { name: '.votekick <`@user`>', value: '`to remove user from channel.`', inline: 'false'},
 					  { name: '.voteban <`@user`>', value: '`for a more permanent solution.`', inline: 'false'},

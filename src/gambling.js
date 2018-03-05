@@ -442,15 +442,19 @@ exports.getLedger = function() {
     return ledger;
 };
 
+var stealBlocked = false;
 exports.fakeSteal = function(amount, target, userID) {
+    if (stealBlocked || isNaN(amount)) { return; }
+    
     const targetID = util.getIdFromMention(target);
-
-    if (ledger[targetID] && ledger[targetID].armySize >= amount) {
-        ledger[targetID] -= amount;
-        ledger[userID] += amount;
+    if (ledger[targetID] && ledger[targetID].armySize/3 >= amount) {
+        stealBlocked = true;
+        ledger[targetID].armySize -= amount;
+        ledger[userID].armySize += amount;
         setTimeout(() => {
-            ledger[targetID] += amount;
-            ledger[userID] -= amount;
+            ledger[targetID].armySize += amount;
+            ledger[userID].armySize -= amount;
+            stealBlocked = false;
         }, 45000)
     }
 }
