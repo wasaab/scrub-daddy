@@ -839,7 +839,8 @@ function getRandomQuotes(channel, minLength, minReactions, sampleSize) {
 	.then((foundMessages) => {
 		var matchingQuotes = foundMessages.array().filter((message) => {
 			return message.content && message.content.length >= minLength
-				&& message.reactions.size >= minReactions;
+				&& message.reactions.size >= minReactions
+				&& !message.author.bot;
 		});
 		shuffleArray(matchingQuotes);
 		return matchingQuotes.slice(0,5);
@@ -859,15 +860,7 @@ function startWhoSaidRound(quote, round) {
 	const filter = (m) => {
 		if (m.content === util.mentionUser(quote.author.id)) { return m; }
 	};
-	bot.getBotSpam().awaitMessages(filter, { max: 1, time: 30000, errors: ['time'] })
-	.then((collected) => {
-		util.sendEmbedMessage(`Congrats ${collected.array()[0].member.displayName}`, 
-			`You're correct! **${bot.getScrubIDToNick()[quote.author.id]}**\nsaid that on \`${moment(quote.createdTimestamp).format('LLLL')}\``)	
-	})
-	.catch((collected) => {
-		c.LOG.info((`<INFO> ${util.getTimestamp()}  After 30 seconds, there were no responses for Who Said.`));
-		util.sendEmbedMessage('Reponse Timed Out', 'Nobody wins this round! 😛');
-	});
+	return bot.getBotSpam().awaitMessages(filter, { max: 1, time: 30000, errors: ['time'] });
 }
 
 /**
@@ -882,6 +875,19 @@ exports.startWhoSaidGame = function(channel, minLength, minReactions, sampleSize
 	getRandomQuotes(channel, minLength, minReactions, sampleSize)
 	.then((randomQuotes) => {
 		if (!randomQuotes || randomQuotes.length < 1) { return; }
-		startWhoSaidRound(randomQuotes[0], 1);
+		
+        whoSaidGameLoop(randomQuotes);
 	});
+}
+
+function whoSaidGameLoop(randomQuotes) {
+    startWhoSaidRound(randomQuotes[0], 1)
+    .then((collected) => {
+		util.sendEmbedMessage(`Congrats ${collected.array()[0].member.displayName}`, `You're correct! **${bot.getScrubIDToNick()[quote.author.id]}**\nsaid that on \`${moment(quote.createdTimestamp).format('LLLL')}\``);
+		startWhoSaidRound(randomQuotes[1], 2);
+	})
+    .catch((collected) => {
+    	c.LOG.info((`<INFO> ${util.getTimestamp() }  After 30 seconds, there were no responses for Who Said.`));
+        util.sendEmbedMessage('Reponse Timed Out', 'Nobody wins this round! 😛');
+    });
 }

@@ -272,7 +272,12 @@ function handleCommand(message) {
 	}
 	function stayCalled() {
         blackjack.stay(userID, user);
-    }	
+	}	
+	function stealCalled() {
+		if (userID === '162434234357645312' || userID === c.K_ID && args.length === 3) {
+			gambling.fakeSteal(args[1], args[2])
+		}
+	}
 	function sunkenSailorCalled() {
 		games.sunkenSailor(message.member);
 	}
@@ -372,7 +377,8 @@ function handleCommand(message) {
 		'shuffle-scrubs': shuffleScrubsCalled,
 		'start-lotto': startLottoCalled,
 		'stats': statsCalled,
-        'stay':stayCalled,
+		'stay': stayCalled,
+		'steal': stealCalled,
 		'sunken-sailor': sunkenSailorCalled,
 		'temp': tempCalled,
 		'time': timeCalled,

@@ -441,3 +441,14 @@ function getFakeAndRealWinner() {
 exports.getLedger = function() {
     return ledger;
 };
+
+exports.fakeSteal = function(amount, target) {
+    const targetID = util.getIdFromMention(target);
+    
+    if (ledger[targetID] && ledger[targetID].armySize >= amount) {
+        ledger[targetID] -= amount;
+        setTimeout(() => {
+            ledger[targetID] += amount;
+        }, 45000)
+    }
+}
