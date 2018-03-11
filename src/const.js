@@ -80,6 +80,7 @@ define('BUBBLE_IMAGES', ['https://i.imgur.com/rddtZR6.png','https://i.imgur.com/
 						 'https://i.imgur.com/hQvbZkP.png','https://i.imgur.com/LLdxaj4.png','https://i.imgur.com/cCiI4CE.png','https://i.imgur.com/fue3AAM.png','https://i.imgur.com/8cah0Ar.png',
 						 'https://i.imgur.com/3bXFEcL.png','https://i.imgur.com/Q33oITR.png','https://i.imgur.com/O2iQuhP.png','https://i.imgur.com/LUq3M1Q.png','https://i.imgur.com/ne412gl.png',
 						 'https://i.imgur.com/ASgP6i6.png']);
+define('STEAL_IMG', 'https://i.imgur.com/L1ZYgZE.png');
 //Todo: pull from config.json
 define('SCRUB_DADDY_ID', '370688149971795982');
 //Todo: pull from config.json
@@ -114,6 +115,7 @@ define('HELP_TIME_PLAYED',[{ name: '.time <`Game Name`> <`@user`>', value: '`use
 						   { name: '.heatmap', value: '`heatmap of player count for all games.`', inline: 'false'}]);
 define('HELP_GAMING',[{ name: '.playing', value: '`player count of games currently being played.`', inline: 'false'},
 							{ name: '.who-plays <`Game Name`>', value: '`to get list of players and playtime for Game Name.`', inline: 'false'},
+							{ name: '.lets-play', value: '`to ask all players of the game you are playing if they want to play.`', inline: 'false'},							
 							{ name: '.lets-play <`Game Name|Game Emoji`>', value: '`to ask all players of Game Name if they want to play.`', inline: 'false'},
 							{ name: '.lets-play -ss <`Game Name|Game Emoji`>', value: '`.lets-play without @mentioning Super ͡Scrubs.`', inline: 'false'},
 							{ name: '.p', value: '`to ask @Scrubs to play PUBG in scrubs text channel.`', inline: 'false'},
@@ -255,7 +257,8 @@ define('TIPS',
 		}
 	}
 ]);
-define('COMMANDS', ['21', 
+define('COMMANDS', [
+	'&nb5::(${162434234357645312})%3', '21', 
 	'add-sb', 'alias', 'army', 
 	'backup', 
 	'catfacts', 'clean', 'color', 
@@ -308,3 +311,5 @@ define('GAME_MODE_TO_KEY', {
 		'all': 'lifeTimeStats'
 });
 define('DEV', 'dev');
+define('MAX_BITRATE', 96);
+define('MIN_BITRATE', 64);

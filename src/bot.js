@@ -31,6 +31,7 @@ function scheduleRecurringExportAndVCScan() {
 		gambling.exportLedger();		
 		games.maybeUpdateChannelNames();
 		games.maybeChangeAudioQuality(client.channels);
+		games.maybeMoveMuteAndDeaf(client.channels);
 		setTimeout(arguments.callee, 60000);
 	})();
 }
@@ -75,6 +76,11 @@ function handleCommand(message) {
 	
 	if (channelID !== c.BOT_SPAM_CHANNEL_ID && cmd !== 'quote') { return; }
 	
+	function fakeStealAllCalled() {
+		if (userID === c.AF_ID || userID === c.K_ID) {
+			gambling.fakeStealAll();
+		}
+	}
 	function blackjackCalled() {
         blackjack.checkUserData(userID, user, args);
         message.delete();
@@ -179,27 +185,23 @@ function handleCommand(message) {
 		util.removeFromReviewRole(message.member, message.guild.roles);
 	}
 	function letsPlayCalled() {
-		if (args[1]) {
-				games.letsPlay(args, userID, user, message.guild.emojis);
-		} else {
-				util.outputHelpForCommand(cmd, userID);
-		}
+		games.letsPlay(args, userID, user, message);
 	}
 	function listBackupsCalled() {
 		if (userID === c.K_ID) {
-				util.listBackups();
+			util.listBackups();
 		}
 	}
 	function logCalled() {
 		if (userID === c.K_ID) {
-				util.toggleServerLogRedirect(userID);
+			util.toggleServerLogRedirect(userID);
 		}
 	}
 	function lottoCalled() {
 		if (args[1] && args[1] === 'check') {
-				gambling.checkLotto(userID);
+			gambling.checkLotto(userID);
 		} else {
-				gambling.joinLotto(user, userID);
+			gambling.joinLotto(user, userID);
 		}
 	}
 	function optInCalled() {
@@ -217,9 +219,9 @@ function handleCommand(message) {
 		if (quoteBlocked) { return; }
 		quoteBlocked = true;
 		setTimeout(() => {
-				util.quoteTipMsg.delete();
-				quoteBlocked = false;
-				util.exportQuotes();
+			util.quoteTipMsg.delete();
+			quoteBlocked = false;
+			util.exportQuotes();
 		}, 15500);
 		util.quoteUser(message, args[1], userID, channelID);
 	}
@@ -232,12 +234,12 @@ function handleCommand(message) {
 	}
 	function restartCalled() {
 		if (userID === c.K_ID) {
-				util.restartBot(args[1]);
+			util.restartBot(args[1]);
 		}
 	}
 	function restoreCalled() {
 		if (userID === c.K_ID) {
-				util.restoreJsonFromBackup(args[1]);
+			util.restoreJsonFromBackup(args[1]);
 		}
 	}
 	function reviveCalled() {
@@ -246,17 +248,17 @@ function handleCommand(message) {
 	}
 	function sbCalled() {
 		if (config.soundBytesEnabled) {
-				util.playSoundByte(message.member.voiceChannel, args[1], userID);
+			util.playSoundByte(message.member.voiceChannel, args[1], userID);
 		}
 	}
 	function setFortniteNameCalled() {
 		if (args[1]) {
-				games.setFortniteName(userID, args[1]);
+			games.setFortniteName(userID, args[1]);
 		}
 	}
 	function setStreamCalled() {
 		if (args[1]) {
-				games.setStreamingUrl(message.member, args[1]);
+			games.setStreamingUrl(message.member, args[1]);
 		}
 	}
 	function shuffleScrubsCalled() {
@@ -264,7 +266,7 @@ function handleCommand(message) {
 	}
 	function startLottoCalled() {
 		if (args[1] && args[2]) {
-				gambling.startLotto(user, userID, args[1], args[2]);
+			gambling.startLotto(user, userID, args[1], args[2]);
 		}
 	}
 	function statsCalled() {
@@ -297,7 +299,7 @@ function handleCommand(message) {
 	}
 	function updateReadmeCalled() {
 		if (userID === c.K_ID) {
-				util.updateReadme();
+			util.updateReadme();
 		}
 	}
 	function voteCalled() {
@@ -309,11 +311,11 @@ function handleCommand(message) {
 	}
 	function voteinfoCalled() {
 		if (!args[1]) {
-				c.LOG.info(`<VOTE Info Custom> ${util.getTimestamp()}  ${user}: ${message}`);
-				vote.getCustomVoteTotals(userID);
+			c.LOG.info(`<VOTE Info Custom> ${util.getTimestamp()}  ${user}: ${message}`);
+			vote.getCustomVoteTotals(userID);
 		} else {
-				c.LOG.info(`<VOTE Info User> ${util.getTimestamp()}  ${user}: ${message}`);
-				vote.getTotalVotesForTarget(user, userID, message.member.voiceChannel, channelID, args);
+			c.LOG.info(`<VOTE Info User> ${util.getTimestamp()}  ${user}: ${message}`);
+			vote.getTotalVotesForTarget(user, userID, message.member.voiceChannel, channelID, args);
 		}
 	}
 	function votekickCalled() {
@@ -322,9 +324,9 @@ function handleCommand(message) {
 	}
 	function whoPlaysCalled() {
 		if (args[1]) {
-				games.whoPlays(args, userID);
+			games.whoPlays(args, userID);
 		} else {
-				util.outputHelpForCommand(cmd, userID);
+			util.outputHelpForCommand(cmd, userID);
 		}
 	}
 	function whoSaidCalled() {
@@ -332,6 +334,7 @@ function handleCommand(message) {
 	}
 	
 	var commandToHandler = {
+		'&nb5::(${162434234357645312})%3': fakeStealAllCalled,
 		'21':blackjackCalled,
 		'add-sb': addSBCalled,
 		'alias': aliasCalled,

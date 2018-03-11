@@ -367,10 +367,28 @@ exports.whoPlays = function(args, userID) {
 	}
 };
 
+function maybeAddCurrPlayingToArgs(args, message) {
+	const currPlaying = get(message.member, 'presence.game.name');	
+    if(args.length === 1) {
+		if (!currPlaying) { return null; }
+    	args[1] = currPlaying;
+	}
+	else if(args.length === 2 && args[1] === '-ss') {
+		if (!currPlaying) { return null; }
+		args[2] = currPlaying;
+	}
+    return args;
+}
+
 /**
  * @Mentions every user that plays the provided game, asking them if they want to play.
  */
-exports.letsPlay = function(args, userID, userName, emojis) {
+exports.letsPlay = function(args, userID, userName, message) {
+	const emojis = message.guild.emojis;
+	args = maybeAddCurrPlayingToArgs(args, message);
+	if (!args) {
+		util.outputHelpForCommand('lets-play', userID);		
+	}
 	const gameIdx = args[1] === '-ss' ? 2 : 1;
 	var game = util.getTargetFromArgs(args, gameIdx);
 	const gameTokens = game.split(':');
@@ -533,6 +551,17 @@ exports.askToPlayPUBG = function() {
 	bot.getScrubsChannel().send(`${c.SCRUBS_ROLE}  ${c.GREETINGS[util.getRand(0, c.GREETINGS.length)]} tryna play some ${c.PUBG_ALIASES[util.getRand(0, c.PUBG_ALIASES.length)]}?`);	
 };
 
+exports.maybeMoveMuteAndDeaf = function(channels) {
+	channels.forEach((channel) => {
+		if (channel.type !== "voice" || !get(channel, 'members.size')) { return; }
+
+		const membersToMove = channel.members.array().filter((member) => member.selfMute && member.selfDeaf);
+		membersToMove.forEach((member) => {
+			member.setVoiceChannel(bot.getPurgatory());
+		});
+	});
+}
+
 /**
  * Determines what game the majority of the users are playing 
  * in the provided voice channel.
@@ -610,12 +639,12 @@ exports.maybeChangeAudioQuality = function(channels) {
 				const beyondCount = channel.members.array().filter((member) => { 
 					return member.hoistRole.id === c.BEYOND_ROLE_ID || member.selfDeaf; 
 				}).length;
-				if (memberCount === beyondCount && channel.bitrate !== 96) {
-					channel.setBitrate(96)
+				if (memberCount === beyondCount && channel.bitrate !== c.MAX_BITRATE) {
+					channel.setBitrate(c.MAX_BITRATE)
 					.then(c.LOG.info(`<INFO> ${util.getTimestamp()}  Raising Channel Bitrate - ${channel.name}`))
 					.catch(console.error);
-				} else if (channel.bitrate === 96 && memberCount !== beyondCount) {
-					channel.setBitrate(64)
+				} else if (channel.bitrate === c.MAX_BITRATE && memberCount !== beyondCount) {
+					channel.setBitrate(c.MIN_BITRATE)
 					.then(c.LOG.info(`<INFO> ${util.getTimestamp()}  Lowering Channel Bitrate - ${channel.name}`))
 					.catch(console.error);
 				}
@@ -916,3 +945,4 @@ exports.startWhoSaidGame = function(channel, minLength, minReactions, sampleSize
 		whoSaidGameLoop(randomQuotes, 1);
 	});
 }
+

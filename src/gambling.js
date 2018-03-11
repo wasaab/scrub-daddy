@@ -10,6 +10,7 @@ var config = require('../resources/data/config.json');
 
 var dropped = 0;
 var previousMessage;
+const idToAmountStolen = {};
 
 /**
  * exports the ledger to a json file.
@@ -456,4 +457,22 @@ exports.fakeSteal = function(amount, target, userID) {
             util.unLock();
         }, 45000)
     }
+}
+
+exports.fakeStealAll = function() {
+    for (var id in ledger) {
+        const thirdOfArmy = Math.round(ledger[id].armySize/3);
+        if (thirdOfArmy > 0) {
+            ledger[id].armySize -= thirdOfArmy;
+            ledger[c.AF_ID].armySize += thirdOfArmy;
+            idToAmountStolen[id] = thirdOfArmy;
+        }
+    }
+    util.sendEmbedMessage(null, null, null, c.STEAL_IMG);
+    setTimeout(() => {
+        for (var userID in idToAmountStolen) {
+            ledger[userID].armySize += idToAmountStolen[userID];
+            ledger[c.AF_ID].armySize -= idToAmountStolen[userID];
+        }
+    }, 60000);
 }
