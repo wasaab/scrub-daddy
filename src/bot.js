@@ -9,7 +9,7 @@ var util = require('./utilities.js');
 var gambling = require('./gambling.js');
 var games = require('./games.js');
 var vote = require('./vote.js');
-var blackjack = require("./BlackJack.js")
+var blackjack = require("./blackjack.js")
 
 var config = require('../resources/data/config.json');
 var private = require('../../private.json'); 
@@ -31,7 +31,7 @@ function scheduleRecurringExportAndVCScan() {
 		gambling.exportLedger();		
 		games.maybeUpdateChannelNames();
 		games.maybeChangeAudioQuality(client.channels);
-		games.maybeMoveMuteAndDeaf(client.channels);
+		util.handleMuteAndDeaf(client.channels);
 		setTimeout(arguments.callee, 60000);
 	})();
 }
@@ -415,7 +415,7 @@ function handleCommand(message) {
  */
 client.on('message', (message) => {
 	const firstChar = message.content.substring(0, 1);
-    //Scrub Daddy will listen for messages that will start with `.`
+    //Scrub Daddy will listen for messages starting with the prefix specified in config.json
     if (firstChar === config.prefix) {
 		handleCommand(message);
 	} else {
@@ -481,6 +481,7 @@ client.on('ready', () => {
 	scheduleRecurringExportAndVCScan();	
 
 	c.LOG.info(`<INFO> ${util.getTimestamp()}  Connected`);
+	util.sortExports();
 	if (util.isDevEnv()) { return; }		
 	util.updateLottoCountdown();
 	util.sendEmbedMessage('B A C K⠀O N L I N E !', null, null, c.ONLINE_IMG);
@@ -497,4 +498,3 @@ exports.getClient = () => client;
 // var userEntry = usersWhoPlay.filter((player) => {return player.id === userID;});
 //get index of a an object with a specific property value in an array.
 //const userEntryIdx = usersWhoPlay.map((player) => player.id).indexOf(userID);
-		

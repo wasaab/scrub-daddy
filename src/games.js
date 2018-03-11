@@ -553,17 +553,6 @@ exports.askToPlayPUBG = function() {
 	bot.getScrubsChannel().send(`${c.SCRUBS_ROLE}  ${c.GREETINGS[util.getRand(0, c.GREETINGS.length)]} tryna play some ${c.PUBG_ALIASES[util.getRand(0, c.PUBG_ALIASES.length)]}?`);	
 };
 
-exports.maybeMoveMuteAndDeaf = function(channels) {
-	channels.forEach((channel) => {
-		if (channel.type !== "voice" || !get(channel, 'members.size')) { return; }
-
-		const membersToMove = channel.members.array().filter((member) => member.selfMute && member.selfDeaf);
-		membersToMove.forEach((member) => {
-			member.setVoiceChannel(bot.getPurgatory());
-		});
-	});
-}
-
 /**
  * Determines what game the majority of the users are playing 
  * in the provided voice channel.
@@ -764,7 +753,7 @@ exports.getFortniteStats = function(gameMode, stat, callingUserID, fortniteUserN
 			} 
 		})
 		.catch(function (err) {
-			c.LOG.error(`<ERROR> ${exports.getTimestamp()}  ERROR: ${err}`);			
+			c.LOG.error(`<ERROR> ${util.getTimestamp()}  ERROR: ${err}`);			
 		})
 		.finally(() => {
 			if (userIDs.length > 0 && !fortniteUserName) {
