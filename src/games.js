@@ -346,7 +346,7 @@ function getGameUserData(gameName, fuzzyThreshold) {
 }
 
 /**
- * Outputs the users who play the provided game, as well as their recent playtime.
+ * Outputs the users who play the provided game, as well as when they last played.
  */
 exports.whoPlays = function(args, userID) {
 	const game = util.getTargetFromArgs(args, 1);
@@ -357,8 +357,8 @@ exports.whoPlays = function(args, userID) {
 	if (usersWhoPlay) {
 		var fields = [];					
 		usersWhoPlay.forEach((user) => {
-			user.playtime = user.playtime || 0;
-			fields.push(util.buildField(user.name, `${user.playtime.toFixed(2)} Hours Played`));
+			user.time = user.time || 'is N/A';
+			fields.push(util.buildField(user.name, `Last played on ${user.time}`));
 		});
 		fields.sort(util.compareFieldValues);
 		util.sendEmbedFieldsMessage(`Users Who Play ${gameUserData.title}`, fields, userID);
@@ -430,10 +430,10 @@ function updateWhoPlays(userID, user, role, game) {
 	var usersWhoPlay = gameUserData.users;
 	
 	if (!usersWhoPlay) {
-		usersWhoPlay = [{ id: userID, name: user, playtime: timeSheet[userID][game], role: role.name }];
+		usersWhoPlay = [{ id: userID, name: user, time: moment().format('LLL'), role: role.name }];
 	} else {
 		const userEntryIdx = usersWhoPlay.map((player) => player.id).indexOf(userID);
-		const newEntry = { id: userID, name: user, playtime: timeSheet[userID][game], role: role.name };
+		const newEntry = { id: userID, name: user, time: moment().format('LLL'), role: role.name };
 		if (userEntryIdx === -1) {
 			usersWhoPlay.push(newEntry);			
 		} else {

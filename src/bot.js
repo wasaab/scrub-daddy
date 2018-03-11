@@ -481,7 +481,6 @@ client.on('ready', () => {
 	scheduleRecurringExportAndVCScan();	
 
 	c.LOG.info(`<INFO> ${util.getTimestamp()}  Connected`);
-	util.sortExports();
 	if (util.isDevEnv()) { return; }		
 	util.updateLottoCountdown();
 	util.sendEmbedMessage('B A C K⠀O N L I N E !', null, null, c.ONLINE_IMG);
