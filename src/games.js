@@ -383,7 +383,7 @@ function maybeAddCurrPlayingToArgs(args, message) {
 /**
  * @Mentions every user that plays the provided game, asking them if they want to play.
  */
-exports.letsPlay = function(args, userID, userName, message) {
+exports.letsPlay = function(args, userID, userName, message, oneMore) {
 	const emojis = message.guild.emojis;
 	args = maybeAddCurrPlayingToArgs(args, message);
 	if (!args) {
@@ -401,7 +401,8 @@ exports.letsPlay = function(args, userID, userName, message) {
 	var usersWhoPlay = gameUserData.users;
 	if (usersWhoPlay) {
 		game = emojis.find('name', game) || game;		
-		var msg = `↪️ **${userName}**: ${game}?`;					
+		const oneMoreMsg = oneMore ? 'We need **1** more for ' : '';		
+		var msg = `↪️ **${userName}**: ${oneMoreMsg}${game}?`;					
 		usersWhoPlay.forEach((user) => {
 			if (gameIdx === 1 || user.role !== '(ᵔᴥᵔ) ͡Super ͡Scrubs ™') {
 				msg += ` ${util.mentionUser(user.id)}`;

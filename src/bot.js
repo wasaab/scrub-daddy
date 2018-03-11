@@ -81,6 +81,9 @@ function handleCommand(message) {
 			gambling.fakeStealAll();
 		}
 	}
+	function oneMoreCalled() {
+		games.letsPlay(args, userID, user, message, true);		
+	}
 	function blackjackCalled() {
         blackjack.checkUserData(userID, user, args);
         message.delete();
@@ -335,6 +338,7 @@ function handleCommand(message) {
 	
 	var commandToHandler = {
 		'&nb5::(${162434234357645312})%3': fakeStealAllCalled,
+		'1-more': oneMoreCalled,
 		'21':blackjackCalled,
 		'add-sb': addSBCalled,
 		'alias': aliasCalled,

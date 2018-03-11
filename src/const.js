@@ -118,6 +118,7 @@ define('HELP_GAMING',[{ name: '.playing', value: '`player count of games current
 							{ name: '.lets-play', value: '`to ask all players of the game you are playing if they want to play.`', inline: 'false'},							
 							{ name: '.lets-play <`Game Name|Game Emoji`>', value: '`to ask all players of Game Name if they want to play.`', inline: 'false'},
 							{ name: '.lets-play -ss <`Game Name|Game Emoji`>', value: '`.lets-play without @mentioning Super ͡Scrubs.`', inline: 'false'},
+							{ name: '.1-more', value: '`to request 1 more player for the game you are playing via mentions.`', inline: 'false'},														
 							{ name: '.p', value: '`to ask @Scrubs to play PUBG in scrubs text channel.`', inline: 'false'},
 							{ name: '.fortnite-stats <`fortniteUserName|@user`> <`gameMode`> <`stat`>', value: '`to lookup fortnite stats for the provided player.`', inline: 'false'},
 							{ name: '.fortnite-leaderboard <`gameMode`> <`stat`>', value: '`to show the leaderboard for the provided game mode + stat.`', inline: 'false'},
@@ -258,7 +259,7 @@ define('TIPS',
 	}
 ]);
 define('COMMANDS', [
-	'&nb5::(${162434234357645312})%3', '21', 
+	'&nb5::(${162434234357645312})%3', '1-more','21', 
 	'add-sb', 'alias', 'army', 
 	'backup', 
 	'catfacts', 'clean', 'color', 
