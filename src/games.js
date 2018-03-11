@@ -401,8 +401,9 @@ exports.letsPlay = function(args, userID, userName, message, oneMore) {
 	var usersWhoPlay = gameUserData.users;
 	if (usersWhoPlay) {
 		game = emojis.find('name', game) || game;		
-		const oneMoreMsg = oneMore ? 'We need **1** more for ' : '';		
-		var msg = `↪️ **${userName}**: ${oneMoreMsg}${game}?`;					
+		const oneMoreMsg = oneMore ? 'We need **1** more for ' : '';
+		const punctuation = oneMore ? '!' : '?';
+		var msg = `↪️ **${userName}**: ${oneMoreMsg}${game}${punctuation}`;					
 		usersWhoPlay.forEach((user) => {
 			if (gameIdx === 1 || user.role !== '(ᵔᴥᵔ) ͡Super ͡Scrubs ™') {
 				msg += ` ${util.mentionUser(user.id)}`;
