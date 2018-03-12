@@ -497,16 +497,16 @@ function exportColors(title, description, userID, guild, hex, color) {
 		
 		if (target.roles.find('id', c.BEYOND_ROLE_ID)) {
 			guild.createRole({
-				data: {
-					name: color,
-					color: hex,
-					position: guild.roles.array().length - 3
-				}
+				name: color,
+				color: hex,
+				position: guild.roles.array().length - 3
 			})
 			.then((role) => {
 				target.addRole(role);				
 			})
-			.catch(console.error);
+			.catch((err) => {
+				c.LOG.error(`<ERROR> ${getTimestamp()}  Add Role Error: ${err}`);			
+			});
 		}
 	}
 };
@@ -555,7 +555,9 @@ function playSoundByte(channel, target, userID) {
 				channel.leave();
 			});
 		})
-		.catch(console.error);
+		.catch((err) => {
+			c.LOG.error(`<ERROR> ${getTimestamp()}  Add Role Error: ${err}`);			
+		});
 	}
 }
 
@@ -818,7 +820,9 @@ function quoteUser(ogMessage, quotedUserID, quotingUserID, channelID) {
 				}
 			});
 		})
-		.catch(console.error);
+		.catch((err) => {
+			c.LOG.error(`<ERROR> ${getTimestamp()}  Add Role Error: ${err}`);			
+		});
 	});
 };
 
@@ -1045,51 +1049,51 @@ function handleMuteAndDeaf(channels) {
 	maybeAddMuteAndDeaf(channels);
 };
 
-module.exports = {
-	addToReviewRole: addToReviewRole,
-	backupJson: backupJson,
-	buildField: buildField,
-	catfacts: catfacts,
-	compareFieldValues: compareFieldValues,
-	createAlias: createAlias,
-	createChannelInCategory: createChannelInCategory,
-	exportQuotes: exportQuotes,
-	getIdFromMention: getIdFromMention,
-	getQuotes: getQuotes,
-	getRand: getRand,
-	getScrubIDToNick: getScrubIDToNick,
-	getTargetFromArgs: getTargetFromArgs,
-	getTimestamp: getTimestamp,
-	handleMuteAndDeaf: handleMuteAndDeaf,
-	help: help,
-	isDevEnv: isDevEnv,
-	isLocked: isLocked,
-	listBackups: listBackups,
-	lock: lock,
-	log: log,
-	logger: logger,
-	maybeAddSoundByte: maybeAddSoundByte,
-	maybeGetAlias: maybeGetAlias,
-	maybeInsertQuotes: maybeInsertQuotes,
-	maybeRemoveFromArray: maybeRemoveFromArray,
-	mentionRole: mentionRole,
-	mentionUser: mentionUser,
-	outputAliases: outputAliases,
-	outputHelpForCommand: outputHelpForCommand,
-	playSoundByte: playSoundByte,
-	quoteTipMsg: quoteTipMsg,
-	quoteUser: quoteUser,
-	removeFromReviewRole: removeFromReviewRole,
-	restartBot: restartBot,
-	restoreJsonFromBackup: restoreJsonFromBackup,
-	scheduleRecurringJobs: scheduleRecurringJobs,
-	sendEmbedFieldsMessage: sendEmbedFieldsMessage,
-	sendEmbedMessage: sendEmbedMessage,
-	setUserColor: setUserColor,
-	showTips: showTips,
-	shuffleScrubs: shuffleScrubs,
-	toggleServerLogRedirect: toggleServerLogRedirect,
-	unLock: unLock,
-	updateLottoCountdown: updateLottoCountdown,
-	updateReadme: updateReadme
-};
+//-------------------- Public Functions --------------------
+exports.addToReviewRole = addToReviewRole;
+exports.backupJson = backupJson;
+exports.buildField = buildField;
+exports.catfacts = catfacts;
+exports.compareFieldValues = compareFieldValues;
+exports.createAlias = createAlias;
+exports.createChannelInCategory = createChannelInCategory;
+exports.exportQuotes = exportQuotes;
+exports.getIdFromMention = getIdFromMention;
+exports.getQuotes = getQuotes;
+exports.getRand = getRand;
+exports.getScrubIDToNick = getScrubIDToNick;
+exports.getTargetFromArgs = getTargetFromArgs;
+exports.getTimestamp = getTimestamp;
+exports.handleMuteAndDeaf = handleMuteAndDeaf;
+exports.help = help;
+exports.isDevEnv = isDevEnv;
+exports.isLocked = isLocked;
+exports.listBackups = listBackups;
+exports.lock = lock;
+exports.log = log;
+exports.logger = logger;
+exports.maybeAddSoundByte = maybeAddSoundByte;
+exports.maybeGetAlias = maybeGetAlias;
+exports.maybeInsertQuotes = maybeInsertQuotes;
+exports.maybeRemoveFromArray = maybeRemoveFromArray;
+exports.mentionRole = mentionRole;
+exports.mentionUser = mentionUser;
+exports.outputAliases = outputAliases;
+exports.outputHelpForCommand = outputHelpForCommand;
+exports.playSoundByte = playSoundByte;
+exports.quoteTipMsg = quoteTipMsg;
+exports.quoteUser = quoteUser;
+exports.removeFromReviewRole = removeFromReviewRole;
+exports.restartBot = restartBot;
+exports.restoreJsonFromBackup = restoreJsonFromBackup;
+exports.scheduleRecurringJobs = scheduleRecurringJobs;
+exports.sendEmbedFieldsMessage = sendEmbedFieldsMessage;
+exports.sendEmbedMessage = sendEmbedMessage;
+exports.setUserColor = setUserColor;
+exports.showTips = showTips;
+exports.shuffleScrubs = shuffleScrubs;
+exports.toggleServerLogRedirect = toggleServerLogRedirect;
+exports.unLock = unLock;
+exports.updateLottoCountdown = updateLottoCountdown;
+exports.updateReadme = updateReadme;
+//----------------------------------------------------------

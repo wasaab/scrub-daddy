@@ -633,11 +633,15 @@ exports.maybeChangeAudioQuality = function(channels) {
 				if (memberCount === beyondCount && channel.bitrate !== c.MAX_BITRATE) {
 					channel.setBitrate(c.MAX_BITRATE)
 					.then(c.LOG.info(`<INFO> ${util.getTimestamp()}  Raising Channel Bitrate - ${channel.name}`))
-					.catch(console.error);
+					.catch((err) => {
+						c.LOG.error(`<ERROR> ${getTimestamp()}  Add Role Error: ${err}`);			
+					});
 				} else if (channel.bitrate === c.MAX_BITRATE && memberCount !== beyondCount) {
 					channel.setBitrate(c.MIN_BITRATE)
 					.then(c.LOG.info(`<INFO> ${util.getTimestamp()}  Lowering Channel Bitrate - ${channel.name}`))
-					.catch(console.error);
+					.catch((err) => {
+						c.LOG.error(`<ERROR> ${getTimestamp()}  Add Role Error: ${err}`);			
+					});
 				}
 			}
 		}
