@@ -356,11 +356,11 @@ exports.whoPlays = function(args, userID) {
 	var usersWhoPlay = gameUserData.users;
 	if (usersWhoPlay) {
 		var fields = [];					
+		usersWhoPlay.sort((a,b) => isNaN(a.time) || a.time < b.time);
 		usersWhoPlay.forEach((user) => {
-			user.time = user.time || 'N/A';
-			fields.push(util.buildField(user.name, `Last played \`${user.time}\``));
+			const lastPlayed = isNaN(user.time) ? 'N/A' : moment(user.time).format('M/DD/YY hh:mm A');
+			fields.push(util.buildField(user.name, `Last played \`${lastPlayed}\``));
 		});
-		fields.sort(util.compareFieldValues);
 		util.sendEmbedFieldsMessage(`Users Who Play ${gameUserData.title}`, fields, userID);
 	} else {
 		util.sendEmbedMessage('Literally Nobody Plays That', 'We are all judging you now.', userID);
@@ -430,10 +430,10 @@ function updateWhoPlays(userID, user, role, game) {
 	var usersWhoPlay = gameUserData.users;
 	
 	if (!usersWhoPlay) {
-		usersWhoPlay = [{ id: userID, name: user, time: moment().format('LLL'), role: role.name }];
+		usersWhoPlay = [{ id: userID, name: user, time: moment().valueOf(), role: role.name }];
 	} else {
 		const userEntryIdx = usersWhoPlay.map((player) => player.id).indexOf(userID);
-		const newEntry = { id: userID, name: user, time: moment().format('LLL'), role: role.name };
+		const newEntry = { id: userID, name: user, time: moment().valueOf(), role: role.name };
 		if (userEntryIdx === -1) {
 			usersWhoPlay.push(newEntry);			
 		} else {
@@ -940,4 +940,3 @@ exports.startWhoSaidGame = function(channel, minLength, minReactions, sampleSize
 		whoSaidGameLoop(randomQuotes, 1);
 	});
 }
-
