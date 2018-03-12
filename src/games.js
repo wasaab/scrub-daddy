@@ -357,8 +357,8 @@ exports.whoPlays = function(args, userID) {
 	if (usersWhoPlay) {
 		var fields = [];					
 		usersWhoPlay.forEach((user) => {
-			user.time = user.time || 'is N/A';
-			fields.push(util.buildField(user.name, `Last played on ${user.time}`));
+			user.time = user.time || 'N/A';
+			fields.push(util.buildField(user.name, `Last played \`${user.time}\``));
 		});
 		fields.sort(util.compareFieldValues);
 		util.sendEmbedFieldsMessage(`Users Who Play ${gameUserData.title}`, fields, userID);
