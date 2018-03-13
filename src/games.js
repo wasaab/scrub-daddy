@@ -348,10 +348,10 @@ function getGameUserData(gameName, fuzzyThreshold) {
 function buildWhoPlaysFields(usersWhoPlay) {
 	fields = [];
     usersWhoPlay.sort((a, b) => {
-    	if(isNaN(a.time - b.time)) {
-    		return isNaN(a.time)?1: -1;
+    	if(isNaN(b.time - a.time)) {
+    		return isNaN(a.time) ? 1 : -1;
 		}
-    	return a.time - b.time;
+    	return b.time - a.time;
 	});
 	
 	usersWhoPlay.forEach((user) => {
