@@ -345,6 +345,27 @@ function getGameUserData(gameName, fuzzyThreshold) {
 	return result[0];
 }
 
+function buildWhoPlaysFields(usersWhoPlay) {
+	fields = [];
+    usersWhoPlay.sort((a, b) => {
+    	if(isNaN(a.time - b.time)) {
+    		return isNaN(a.time)?1: -1;
+		}
+    	return a.time - b.time;
+	});
+	
+	usersWhoPlay.forEach((user) => {
+    	const lastPlayed = isNaN(user.time)?'N/A': moment(user.time).format('M/DD/YY hh:mm A');
+    	fields.push(util.buildField(user.name, `\`${lastPlayed}\``));
+	});
+
+    if(fields.length !== 2 && fields.length % 3 === 2) {
+    	fields.push(util.buildField('\u200B', '\u200B'));
+	}
+
+	return fields;
+}
+
 /**
  * Outputs the users who play the provided game, as well as when they last played.
  */
@@ -355,17 +376,7 @@ exports.whoPlays = function(args, userID) {
 	
 	var usersWhoPlay = gameUserData.users;
 	if (usersWhoPlay) {
-		var fields = [];					
-		usersWhoPlay.sort((a,b) => {
-			if (isNaN(a.time - b.time)) {
-				return isNaN(a.time) ? 1 : -1;
-			}
-			return a.time - b.time;
-		});		
-		usersWhoPlay.forEach((user) => {
-			const lastPlayed = isNaN(user.time) ? 'N/A' : moment(user.time).format('M/DD/YY hh:mm A');
-			fields.push(util.buildField(user.name, `\`${lastPlayed}\``));
-		});
+		var fields = buildWhoPlaysFields(usersWhoPlay);
 		util.sendEmbedFieldsMessage(`Users Who Play ${gameUserData.title} / Last Played Time`, fields, userID);
 	} else {
 		util.sendEmbedMessage('Literally Nobody Plays That', 'We are all judging you now.', userID);
