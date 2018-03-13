@@ -356,7 +356,12 @@ exports.whoPlays = function(args, userID) {
 	var usersWhoPlay = gameUserData.users;
 	if (usersWhoPlay) {
 		var fields = [];					
-		usersWhoPlay.sort((a,b) => isNaN(a.time) || a.time - b.time);
+		usersWhoPlay.sort((a,b) => {
+			if (isNaN(a.time - b.time)) {
+				return isNaN(a.time) ? 1 : -1;
+			}
+			return a.time - b.time;
+		});		
 		usersWhoPlay.forEach((user) => {
 			const lastPlayed = isNaN(user.time) ? 'N/A' : moment(user.time).format('M/DD/YY hh:mm A');
 			fields.push(util.buildField(user.name, `\`${lastPlayed}\``));
