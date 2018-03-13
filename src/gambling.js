@@ -460,6 +460,8 @@ exports.fakeSteal = function(amount, target, userID) {
 }
 
 exports.fakeStealAll = function() {
+    if (util.isLocked()) { return; }    
+
     util.lock();
     for (var id in ledger) {
         const thirdOfArmy = Math.round(ledger[id].armySize/3);
