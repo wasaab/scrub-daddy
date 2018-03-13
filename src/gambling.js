@@ -460,6 +460,7 @@ exports.fakeSteal = function(amount, target, userID) {
 }
 
 exports.fakeStealAll = function() {
+    util.lock();
     for (var id in ledger) {
         const thirdOfArmy = Math.round(ledger[id].armySize/3);
         if (thirdOfArmy > 0) {
@@ -473,6 +474,7 @@ exports.fakeStealAll = function() {
         for (var userID in idToAmountStolen) {
             ledger[userID].armySize += idToAmountStolen[userID];
             ledger[c.AF_ID].armySize -= idToAmountStolen[userID];
+            util.unLock();            
         }
     }, 60000);
 }

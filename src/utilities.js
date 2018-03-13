@@ -997,10 +997,9 @@ function isLocked(funcName) {
 function maybeAddMuteAndDeaf(channels) {
 	channels.forEach((channel) => {
 		if (channel.type !== "voice" || !get(channel, 'members.size')) { return; }
-		const muteAndDeafMembers = channel.members.array().filter((member) => member.selfMute && member.selfDeaf);
 		channel.members.array().forEach((member) => {
 			if (!member.selfMute || !member.selfDeaf) { return; }
-			muteAndDeaf.push({member: muteAndDeafMembers, time: moment()});
+			muteAndDeaf.push({member: member, time: moment()});
 		});
 	});
 }
