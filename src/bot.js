@@ -17,6 +17,7 @@ var client = new Discord.Client();
 client.login(private.token);
 
 var fuse = new Fuse(c.COMMANDS, {verbose: false});
+var members = [];
 var botSpam = {};
 var scrubsChannel = {};
 var logChannel = {};
@@ -466,7 +467,7 @@ client.on('error', (error) => {
  * Logs the bot into Discord, stores id to nick map, and retrieves 3 crucial channels.
  */
 client.on('ready', () => {
-	const members = client.guilds.find('id', c.SERVER_ID).members;
+	members = client.guilds.find('id', c.SERVER_ID).members;
 	members.forEach((member) => {
 		scrubIDtoNick[member.id] = member.displayName;
 	});
@@ -492,6 +493,7 @@ exports.getLogChannel = () => logChannel;
 exports.getPurgatory = () => purgatory;
 exports.getScrubIDToNick = () => scrubIDtoNick;
 exports.getClient = () => client;
+exports.getMembers = () => members;
 
 //return the elements of the array that match your conditional
 // var userEntry = usersWhoPlay.filter((player) => {return player.id === userID;});

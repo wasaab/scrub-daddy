@@ -28,7 +28,7 @@ var dropped = 0;
 var previousTip = {};
 var quotingUserIDToQuotes = {};
 var locks = {};		//function locks
-var muteAndDeaf = [];
+var muteAndDeafUserIDToTime = {};
 var quoteTipMsg = {};
 
 /**
@@ -990,16 +990,22 @@ function isLocked(funcName) {
 };
 
 /**
- * Adds mute and deaf members to the array if found.
+ * Updates the mute and deaf members array.
  * 
  * @param {Object[]} channels - the server's channels
  */
-function maybeAddMuteAndDeaf(channels) {
+function maybeUpdateMuteAndDeaf(channels) {
 	channels.forEach((channel) => {
 		if (channel.type !== "voice" || !get(channel, 'members.size')) { return; }
+
 		channel.members.array().forEach((member) => {
-			if (!member.selfMute || !member.selfDeaf) { return; }
-			muteAndDeaf.push({member: member, time: moment()});
+			if (!member.selfMute || !member.selfDeaf) {
+				if (muteAndDeafUserIDToTime[member.id]) {
+					muteAndDeafUserIDToTime[member.id] = null;
+				} 
+			} else if (!muteAndDeafUserIDToTime[member.id]) {
+				muteAndDeafUserIDToTime[member.id] = moment();
+			}
 		});
 	});
 }
@@ -1022,17 +1028,16 @@ function maybeRemoveFromArray(array, element) {
  * Moves mute and deaf members to solitary iff they have been muted and deaf for at least 5 minutes.
  */
 function maybeMoveMuteAndDeaf() {
+	const members = bot.getMembers();
+	const purgatoryVC = bot.getPurgatory();
 	const now = moment();
-	for (memberData in muteAndDeaf) {
-		//stop checking if the current member has been mute & deaf for < 5 minutes
-		if (now.diff(memberData.time, 'minutes') < 5) { break; }
-
-		const member = memberData.member;
-		maybeRemoveFromArray(muteAndDeaf, memberData);
-		if (!member.selfMute || !member.selfDeaf) {	continue; }
-		member.setVoiceChannel(bot.getPurgatory());
-		
-		c.LOG.info(`<INFO> ${getTimestamp()}  Sending ${member.displayName} to solitary for being mute & deaf.`);
+	for (userID in muteAndDeafUserIDToTime) {
+		if (now.diff(muteAndDeafUserIDToTime[userID], 'minutes') < 5) { continue; }	
+		muteAndDeafUserIDToTime[userID] = null;
+		const deafMember = members.find('id', userID);
+		if (!deafMember) { continue; }
+		deafMember.setVoiceChannel(purgatoryVC);
+		c.LOG.info(`<INFO> ${getTimestamp()}  Sending ${deafMember.displayName} to solitary for being mute & deaf.`);
 	}
 }
 
@@ -1044,8 +1049,8 @@ function maybeMoveMuteAndDeaf() {
  * @param {Object[]} channels - the server's channels
  */
 function handleMuteAndDeaf(channels) {
+	maybeUpdateMuteAndDeaf(channels);
 	maybeMoveMuteAndDeaf();
-	maybeAddMuteAndDeaf(channels);
 };
 
 //-------------------- Public Functions --------------------
