@@ -346,7 +346,7 @@ function exportConfig() {
 }
 
 exports.startLotto = function(user, userID, monthDay, hour) {
-    if (config.lottoTime && userID !== c.K_ID) { return; }
+    if (config.lottoTime && util.isAdmin(userID)) { return; }
 
     const monthDayTokens = monthDay.split("/");
     if (isValidTime(monthDayTokens, hour)) {

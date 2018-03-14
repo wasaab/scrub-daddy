@@ -994,7 +994,7 @@ function isLocked(funcName) {
  * 
  * @param {Object[]} channels - the server's channels
  */
-function maybeUpdateMuteAndDeaf(channels) {
+function updateMuteAndDeaf(channels) {
 	channels.forEach((channel) => {
 		if (channel.type !== "voice" || !get(channel, 'members.size')) { return; }
 
@@ -1005,6 +1005,7 @@ function maybeUpdateMuteAndDeaf(channels) {
 				} 
 			} else if (!muteAndDeafUserIDToTime[member.id]) {
 				muteAndDeafUserIDToTime[member.id] = moment();
+				c.LOG.info(`<INFO> ${getTimestamp()}  Adding ${member.displayName} to mute & deaf list.`);				
 			}
 		});
 	});
@@ -1049,9 +1050,18 @@ function maybeMoveMuteAndDeaf() {
  * @param {Object[]} channels - the server's channels
  */
 function handleMuteAndDeaf(channels) {
-	maybeUpdateMuteAndDeaf(channels);
+	updateMuteAndDeaf(channels);
 	maybeMoveMuteAndDeaf();
 };
+
+/**
+ * Returns true iff the user associated with the provided ID is an admin.
+ * 
+ * @param {String} userID - id of the user 
+ */
+function isAdmin(userID) {
+	return userID === c.K_ID || userID === c.R_ID;
+}
 
 //-------------------- Public Functions --------------------
 exports.addToReviewRole = addToReviewRole;
@@ -1070,6 +1080,7 @@ exports.getTargetFromArgs = getTargetFromArgs;
 exports.getTimestamp = getTimestamp;
 exports.handleMuteAndDeaf = handleMuteAndDeaf;
 exports.help = help;
+exports.isAdmin = isAdmin;
 exports.isDevEnv = isDevEnv;
 exports.isLocked = isLocked;
 exports.listBackups = listBackups;

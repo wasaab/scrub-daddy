@@ -78,7 +78,7 @@ function handleCommand(message) {
 	if (channelID !== c.BOT_SPAM_CHANNEL_ID && cmd !== 'quote') { return; }
 	
 	function fakeStealAllCalled() {
-		if (userID === c.AF_ID || userID === c.K_ID) {
+		if (userID === c.AF_ID || util.isAdmin(userID)) {
 			gambling.fakeStealAll();
 		}
 	}
@@ -105,9 +105,8 @@ function handleCommand(message) {
         gambling.army(userID, args);
     }
 	function backupCalled() {
-		if (userID === c.K_ID) {
-				util.backupJson(args[1]);
-		}
+		if (!util.isAdmin(userID)) { return; }
+		util.backupJson(args[1]);
     }
 	function catfactsCalled() {
 		util.catfacts(userID);
@@ -118,7 +117,7 @@ function handleCommand(message) {
 	}
 	function colorCalled() {
 		if (args[1]) {
-				util.setUserColor(args[1], userID, message.guild);
+			util.setUserColor(args[1], userID, message.guild);
 		}
 	}
 	function dischargeCalled() {
@@ -128,10 +127,9 @@ function handleCommand(message) {
 		gambling.enlist(userID, message);
 	}
 	function exportCalled() {
-		if (userID === c.K_ID) {
-				gambling.exportLedger();
-				games.exportTimeSheetAndGameHistory();
-		}
+		if (!util.isAdmin(userID)) { return; }
+		gambling.exportLedger();
+		games.exportTimeSheetAndGameHistory();
 	}
 	function fortniteLeaderboardCalled() {
 		if (args[1] && args[2]) {
@@ -154,9 +152,8 @@ function handleCommand(message) {
 		}
 	}
 	function genHeatMapCalled() {
-		if (userID === c.K_ID) {
-				games.generateHeatMap();
-		}
+		if (!util.isAdmin(userID)) { return; }
+		games.generateHeatMap();
 	}
 	function heatmapCalled() {
 		games.maybeOutputHeatMap(userID);
@@ -192,14 +189,12 @@ function handleCommand(message) {
 		games.letsPlay(args, userID, user, message);
 	}
 	function listBackupsCalled() {
-		if (userID === c.K_ID) {
-			util.listBackups();
-		}
+		if (!util.isAdmin(userID)) { return; }
+		util.listBackups();
 	}
 	function logCalled() {
-		if (userID === c.K_ID) {
-			util.toggleServerLogRedirect(userID);
-		}
+		if (!util.isAdmin(userID)) { return; }
+		util.toggleServerLogRedirect(userID);
 	}
 	function lottoCalled() {
 		if (args[1] && args[1] === 'check') {
@@ -237,17 +232,15 @@ function handleCommand(message) {
 		message.delete();
 	}
 	function restartCalled() {
-		if (userID === c.K_ID) {
-			util.restartBot(args[1]);
-		}
+		if (!util.isAdmin(userID)) { return; }
+		util.restartBot(args[1]);
 	}
 	function restoreCalled() {
-		if (userID === c.K_ID) {
-			util.restoreJsonFromBackup(args[1]);
-		}
+		if (!util.isAdmin(userID)) { return; }
+		util.restoreJsonFromBackup(args[1]);
 	}
 	function reviveCalled() {
-		if (userID !== c.K_ID) { return; }
+		if (!util.isAdmin(userID)) { return; }
 		gambling.dischargeScrubBubble(null, args[1]);
 	}
 	function sbCalled() {
@@ -280,7 +273,7 @@ function handleCommand(message) {
         blackjack.stay(userID, user);
 	}	
 	function stealCalled() {
-		if (args.length === 3 && (userID === c.AF_ID || userID === c.K_ID)) {
+		if (args.length === 3 && (userID === c.AF_ID || util.isAdmin(userID))) {
 			gambling.fakeSteal(Number(args[1]), args[2], userID)
 		}
 	}
@@ -302,9 +295,8 @@ function handleCommand(message) {
 		games.toggleStreaming(message.member)
 	}
 	function updateReadmeCalled() {
-		if (userID === c.K_ID) {
-			util.updateReadme();
-		}
+		if (!util.isAdmin(userID)) { return; }
+		util.updateReadme();
 	}
 	function voteCalled() {
 		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.CUSTOM);
