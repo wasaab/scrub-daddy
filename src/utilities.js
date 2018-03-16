@@ -414,6 +414,12 @@ function scheduleRecurringJobs() {
 	  games.clearTimeSheet();
 	});
 
+	var updateMembersRule = new schedule.RecurrenceRule();
+	updateMembersRule.hour = [8, 20]; // 8am and 8pm
+	schedule.scheduleJob(updateMembersRule, function(){
+		bot.updateMembers();
+	});
+
 	var heatMapRule = new schedule.RecurrenceRule();
 	heatMapRule.minute = 0;
 
@@ -1072,6 +1078,15 @@ function isAdmin(userID) {
 	return userID === c.K_ID || userID === c.R_ID;
 }
 
+/**
+ * Gets the member's actual display name, without playing status box-letters.
+ * 
+ * @param {Object} nickname - the nickname to strip playing status from
+ */
+function getTrueDisplayName(nickname) {
+	return nickname.split(' ▫ ')[0];
+}
+
 //-------------------- Public Functions --------------------
 exports.addToReviewRole = addToReviewRole;
 exports.backupJson = backupJson;
@@ -1087,6 +1102,7 @@ exports.getRand = getRand;
 exports.getScrubIDToNick = getScrubIDToNick;
 exports.getTargetFromArgs = getTargetFromArgs;
 exports.getTimestamp = getTimestamp;
+exports.getTrueDisplayName = getTrueDisplayName;
 exports.handleMuteAndDeaf = handleMuteAndDeaf;
 exports.help = help;
 exports.isAdmin = isAdmin;

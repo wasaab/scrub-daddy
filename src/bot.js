@@ -38,6 +38,16 @@ function scheduleRecurringExportAndVCScan() {
 }
 
 /**
+ * Updates the member list and scrubIDtoNick.
+ */
+function updateMembers() {
+	members = client.guilds.find('id', c.SERVER_ID).members;
+	members.forEach((member) => {
+		scrubIDtoNick[member.id] = member.displayName.split(' ▫ ')[0];
+	});
+}
+
+/**
  * Returns the closest matching command to what was provided.
  */
 function findClosestCommandMatch(command) {
@@ -459,11 +469,7 @@ client.on('error', (error) => {
  * Logs the bot into Discord, stores id to nick map, and retrieves 3 crucial channels.
  */
 client.on('ready', () => {
-	members = client.guilds.find('id', c.SERVER_ID).members;
-	members.forEach((member) => {
-		scrubIDtoNick[member.id] = member.displayName;
-	});
-
+	updateMembers();
 	botSpam = client.channels.find('id', c.BOT_SPAM_CHANNEL_ID);	
 	scrubsChannel = client.channels.find('id', c.SCRUBS_CHANNEL_ID);
 	purgatory = client.channels.find('id', c.PURGATORY_CHANNEL_ID);	
@@ -486,6 +492,7 @@ exports.getPurgatory = () => purgatory;
 exports.getScrubIDToNick = () => scrubIDtoNick;
 exports.getClient = () => client;
 exports.getMembers = () => members;
+exports.updateMembers = updateMembers;
 
 //return the elements of the array that match your conditional
 // var userEntry = usersWhoPlay.filter((player) => {return player.id === userID;});

@@ -446,10 +446,10 @@ function updateWhoPlays(userID, user, role, game) {
 	var usersWhoPlay = gameUserData.users;
 	
 	if (!usersWhoPlay) {
-		usersWhoPlay = [{ id: userID, name: user, time: moment().valueOf(), role: role.name }];
+		usersWhoPlay = [{ id: userID, name: util.getTrueDisplayName(user), time: moment().valueOf(), role: role.name }];
 	} else {
 		const userEntryIdx = usersWhoPlay.map((player) => player.id).indexOf(userID);
-		const newEntry = { id: userID, name: user, time: moment().valueOf(), role: role.name };
+		const newEntry = { id: userID, name: util.getTrueDisplayName(user), time: moment().valueOf(), role: role.name };
 		if (userEntryIdx === -1) {
 			usersWhoPlay.push(newEntry);			
 		} else {

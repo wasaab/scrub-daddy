@@ -396,8 +396,9 @@ exports.checkLotto = function(userID) {
     }
     
     var entries = '';
+    const scrubIDToNick = bot.getScrubIDToNick();
     config.lottoEntries.forEach((entry) => {
-        entries += `${bot.getScrubIDToNick()[entry]}\n`
+        entries += `${scrubIDToNick[entry]}\n`
     })
 
     const { timeUntil, endDate } = exports.getTimeUntilLottoEnd();
