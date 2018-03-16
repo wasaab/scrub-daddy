@@ -990,28 +990,6 @@ function isLocked(funcName) {
 };
 
 /**
- * Updates the mute and deaf members array.
- * 
- * @param {Object[]} channels - the server's channels
- */
-function updateMuteAndDeaf(channels) {
-	channels.forEach((channel) => {
-		if (channel.type !== "voice" || !get(channel, 'members.size')) { return; }
-
-		channel.members.array().forEach((member) => {
-			if (!member.selfMute || !member.selfDeaf) {
-				if (muteAndDeafUserIDToTime[member.id]) {
-					muteAndDeafUserIDToTime[member.id] = null;
-				} 
-			} else if (!muteAndDeafUserIDToTime[member.id]) {
-				muteAndDeafUserIDToTime[member.id] = moment();
-				c.LOG.info(`<INFO> ${getTimestamp()}  Adding ${member.displayName} to mute & deaf list.`);				
-			}
-		});
-	});
-}
-
-/**
  * Removes the provided element from the array if found.
  * 
  * @param {*[]} array - the array to remove an element from
@@ -1026,6 +1004,37 @@ function maybeRemoveFromArray(array, element) {
 }
 
 /**
+ * Checks if the provided channel is Purgatory or the AFK channel.
+ * 
+ * @param {String} channelID - id of the channel to check 
+ */
+function isInPurgatoryOrAFK(channelID) {
+	return channelID === c.PURGATORY_CHANNEL_ID || channelID === c.AFK_CHANNEL_ID;
+}
+
+/**
+ * Updates the mute and deaf members array.
+ * 
+ * @param {Object[]} channels - the server's channels
+ */
+function updateMuteAndDeaf(channels) {
+	channels.forEach((channel) => {
+		if (channel.type !== "voice" || !get(channel, 'members.size')) { return; }
+
+		channel.members.array().forEach((member) => {
+			if (!member.selfMute || !member.selfDeaf) {
+				if (muteAndDeafUserIDToTime[member.id]) {
+					delete muteAndDeafUserIDToTime[member.id];
+				}
+			} else if (!muteAndDeafUserIDToTime[member.id] && !isInPurgatoryOrAFK(channel.id)) {
+				muteAndDeafUserIDToTime[member.id] = moment();
+				c.LOG.info(`<INFO> ${getTimestamp()}  Adding ${member.displayName} to mute & deaf list.`);				
+			}
+		});
+	});
+}
+
+/**
  * Moves mute and deaf members to solitary iff they have been muted and deaf for at least 5 minutes.
  */
 function maybeMoveMuteAndDeaf() {
@@ -1034,7 +1043,7 @@ function maybeMoveMuteAndDeaf() {
 	const now = moment();
 	for (userID in muteAndDeafUserIDToTime) {
 		if (now.diff(muteAndDeafUserIDToTime[userID], 'minutes') < 5) { continue; }	
-		muteAndDeafUserIDToTime[userID] = null;
+		delete muteAndDeafUserIDToTime[userID];
 		const deafMember = members.find('id', userID);
 		if (!deafMember) { continue; }
 		deafMember.setVoiceChannel(purgatoryVC);

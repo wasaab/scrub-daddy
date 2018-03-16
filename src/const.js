@@ -46,6 +46,7 @@ define('SCRUB_DADDY_FACT', 'https://i.imgur.com/FbAwRTj.jpg');
 define('BEYOND_LOTTO_IMG', 'https://i.imgur.com/viDJZi3.png');
 define('ONLINE_IMG', 'https://i.imgur.com/w4ey7v0.gif?2');
 //Todo: pull from config.json
+define('AFK_CHANNEL_ID', '370628203523473408');
 define('PURGATORY_CHANNEL_ID', '370626266786824192');	    //sends kicked user's to this channel    
 define('VOTE_TYPE', {
 	KICK : 'kick',
