@@ -228,7 +228,7 @@ function handleCommand(message) {
 		if (quoteBlocked) { return; }
 		quoteBlocked = true;
 		setTimeout(() => {
-			util.quoteTipMsg.delete();
+			util.deleteQuoteTipMsg();
 			quoteBlocked = false;
 			util.exportQuotes();
 		}, 15500);

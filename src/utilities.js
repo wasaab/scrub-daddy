@@ -24,7 +24,6 @@ const catFacts = require('../resources/data/catfacts.json');
 const private = require('../../private.json'); 
 const quotes = require('../resources/data/quotes.json');
 
-var dropped = 0;
 var previousTip = {};
 var quotingUserIDToQuotes = {};
 var locks = {};		//function locks
@@ -779,6 +778,13 @@ function restartBot(update) {
 };
 
 /**
+ * Deletes the quote tip message.
+ */
+function deleteQuoteTipMsg() {
+	quoteTipMsg.delete();
+}
+
+/**
  * Quotes a user.
  * 
  * @param {Object} ogMessage - original message being quoted 
@@ -889,7 +895,7 @@ function maybeInsertQuotes(message) {
 				quote.message = quote.message.replace(mention, role);
 			});
 		}
-		quoteBlocks += `${block}${quote.message}\n	— ${author}, ${time}${block}\n`;
+		quoteBlocks += `${block} ${quote.message}\n	— ${author}, ${time}${block}\n`;
 	});
 	message.delete();
 	message.channel.send(`${quoteBlocks}**${message.member.displayName}** : ${message.content}`);
@@ -1121,7 +1127,7 @@ exports.mentionUser = mentionUser;
 exports.outputAliases = outputAliases;
 exports.outputHelpForCommand = outputHelpForCommand;
 exports.playSoundByte = playSoundByte;
-exports.quoteTipMsg = quoteTipMsg;
+exports.deleteQuoteTipMsg = deleteQuoteTipMsg;
 exports.quoteUser = quoteUser;
 exports.removeFromReviewRole = removeFromReviewRole;
 exports.restartBot = restartBot;
