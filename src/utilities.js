@@ -17,6 +17,7 @@ var games = require('./games.js');
 var bot = require('./bot.js');
 var c = require('./const.js');
 var config = require('../resources/data/config.json');
+var bannedUserIDToBans = require('../resources/data/banned.json');
 var userIDToColor = require('../resources/data/colors.json');
 var userIDToAliases = require('../resources/data/aliases.json');
 var soundBytes = require('../resources/data/soundbytes.json');
@@ -413,10 +414,11 @@ function scheduleRecurringJobs() {
 	  games.clearTimeSheet();
 	});
 
-	var updateMembersRule = new schedule.RecurrenceRule();
-	updateMembersRule.hour = [8, 20]; // 8am and 8pm
-	schedule.scheduleJob(updateMembersRule, function(){
+	var updateMembersAndBansRule = new schedule.RecurrenceRule();
+	updateMembersAndBansRule.hour = [8, 20]; // 8am and 8pm
+	schedule.scheduleJob(updateMembersAndBansRule, function(){
 		bot.updateMembers();
+		maybeUnbanSpammers();
 	});
 
 	var heatMapRule = new schedule.RecurrenceRule();
@@ -488,6 +490,14 @@ function removeFromReviewRole(target, roles) {
 	target.removeRole(roles.find('id', c.REVIEW_ROLE_ID));
 	sendEmbedMessage(null, `Good riddance. You were never there to review with us anyways, ${mentionUser(target.id)}!`, target.id);	
 };
+
+/**
+ * exports bans.
+ */
+function exportBanned() {
+	const json = JSON.stringify(bannedUserIDToBans);
+	fs.writeFile('./resources/data/banned.json', json, 'utf8', log);
+}
 
 /**
  * exports the user color preferences to a json file.
@@ -946,6 +956,15 @@ function mentionRole(roleID) {
 }
 
 /**
+ * Creates a channel mention with the provided ID.
+ * 
+ * @param {String} channelID - the id of the channel to mention
+ */
+function mentionChannel(channelID) {
+	return `<#${channelID}>`;
+}
+
+/**
  * Determines if the current environment is Development.
  */
 function isDevEnv() {
@@ -1093,6 +1112,85 @@ function getTrueDisplayName(nickname) {
 	return nickname.split(' ▫ ')[0];
 }
 
+/**
+ * Bans the user from posting in the provided channel for 2 days.
+ * 
+ * @param {Object} user - the user to ban 
+ * @param {Object} channel - the channel to ban the user from posting in
+ */
+function banSpammer(user, channel) {
+	var usersBans = bannedUserIDToBans[user.id] || [];
+	channel.overwritePermissions(user, {
+		SEND_MESSAGES: false
+	})
+	.then(c.LOG.info(`<INFO> ${getTimestamp()}  Banning ${user.displayName} from ${channel.name} for spamming.`))
+	.catch((err) => {
+		c.LOG.error(`<ERROR> ${getTimestamp()}  Ban - Overwrite Permissions Error: ${err}`);			
+	});
+	usersBans.push({
+		channelID: channel.id, 
+		time: moment()
+	})
+	bannedUserIDToBans[user.id] = usersBans;
+	exportBanned();
+	channel.send(`🔨 ${mentionUser(user.id)} Enjoy the 2 day ban from ${mentionChannel(channel.id)}, you filthy spammer!`);
+}
+
+/**
+ * Bans the author of the message from posting in that channel
+ * if it was posted 3 times in a row.
+ * 
+ * @param {Object} message - the message sent in a channel
+ */
+function maybeBanSpammer(message) {
+	if (message.channel.id === c.BOT_SPAM_CHANNEL_ID || message.author.bot) { return; }
+
+	message.channel.fetchMessages({limit: 3})
+	.then((oldMessages) => {
+		var duplicateMessages = oldMessages.array().filter((oldMsg) => {
+			return oldMsg.author.id === message.author.id && oldMsg.content === message.content;
+		});
+		if (duplicateMessages.length === 3) {
+			banSpammer(message.member, message.channel);
+		}
+	});	
+}
+
+/**
+ * Lifts the posting ban from the user in the provided channel.
+ * 
+ * @param {Object} userID - the id of the user to un-ban 
+ * @param {Object} channelID - the id of the channel to allow the user to post in
+ */
+function unBanSpammer(userID, channelID) {
+	const channel = bot.getClient().channels.find('id', channelID);
+	channel.overwritePermissions(userID, {
+		SEND_MESSAGES: true
+	})
+	.then(c.LOG.info(`<INFO> ${getTimestamp()}  Un-banning ${bot.getScrubIDToNick()[userID]} from ${channel.name} for spamming.`))
+	.catch((err) => {
+		c.LOG.error(`<ERROR> ${getTimestamp()}  Un-ban - Overwrite Permissions Error: ${err}`);			
+	});
+	delete bannedUserIDToBans[userID];
+	exportBanned();	
+	channel.send(`${mentionUser(userID)} Your ban has been lifted, and may now post in ${mentionChannel(channel.id)} again.`)
+}
+
+/**
+ * Lifts any spamming ban that has been active for at least 2 days.
+ */
+function maybeUnbanSpammers() {
+	for (var userID in bannedUserIDToBans) {
+		const bans = bannedUserIDToBans[userID];
+		const now = moment();
+		bans.forEach((ban) => {
+			if (now.diff(ban.time, 'days') >= 2) {
+				unBanSpammer(userID, ban.channelID);
+			}
+		});
+	}
+}
+
 //-------------------- Public Functions --------------------
 exports.addToReviewRole = addToReviewRole;
 exports.backupJson = backupJson;
@@ -1119,9 +1217,11 @@ exports.lock = lock;
 exports.log = log;
 exports.logger = logger;
 exports.maybeAddSoundByte = maybeAddSoundByte;
+exports.maybeBanSpammer = maybeBanSpammer;
 exports.maybeGetAlias = maybeGetAlias;
 exports.maybeInsertQuotes = maybeInsertQuotes;
 exports.maybeRemoveFromArray = maybeRemoveFromArray;
+exports.mentionChannel = mentionChannel;
 exports.mentionRole = mentionRole;
 exports.mentionUser = mentionUser;
 exports.outputAliases = outputAliases;

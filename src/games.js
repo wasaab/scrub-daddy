@@ -433,7 +433,8 @@ exports.letsPlay = function(args, userID, userName, message, oneMore) {
 
 exports.maybeCallLetsPlay = function(message) {
 	const game = get(message, 'member.presence.game.name');
-	if (message.author.bot || message.content !== "" || message.attachments.size !== 0 ||!game) { return; }
+	if (message.author.bot || message.content !== "" || message.attachments.size !== 0
+		|| message.type !== 'DEFAULT' || !game) { return; }
 	exports.letsPlay(['', '-ss', game], message.member.id, message.member.displayName, message.guild.emojis);
 }
 
@@ -650,13 +651,13 @@ exports.maybeChangeAudioQuality = function(channels) {
 					channel.setBitrate(c.MAX_BITRATE)
 					.then(c.LOG.info(`<INFO> ${util.getTimestamp()}  Raising Channel Bitrate - ${channel.name}`))
 					.catch((err) => {
-						c.LOG.error(`<ERROR> ${getTimestamp()}  Add Role Error: ${err}`);			
+						c.LOG.error(`<ERROR> ${util.getTimestamp()}  Add Role Error: ${err}`);			
 					});
 				} else if (channel.bitrate === c.MAX_BITRATE && memberCount !== beyondCount) {
 					channel.setBitrate(c.MIN_BITRATE)
 					.then(c.LOG.info(`<INFO> ${util.getTimestamp()}  Lowering Channel Bitrate - ${channel.name}`))
 					.catch((err) => {
-						c.LOG.error(`<ERROR> ${getTimestamp()}  Add Role Error: ${err}`);			
+						c.LOG.error(`<ERROR> ${util.getTimestamp()}  Add Role Error: ${err}`);			
 					});
 				}
 			}

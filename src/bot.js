@@ -424,6 +424,7 @@ client.on('message', (message) => {
 	} else {
 		games.maybeCallLetsPlay(message);
 		util.maybeInsertQuotes(message);
+		util.maybeBanSpammer(message);
 	}
 });
 
