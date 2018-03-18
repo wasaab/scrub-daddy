@@ -354,9 +354,10 @@ function buildWhoPlaysFields(usersWhoPlay) {
     	return b.time - a.time;
 	});
 	
+	const scrubIDToNick = bot.getScrubIDToNick();
 	usersWhoPlay.forEach((user) => {
     	const lastPlayed = isNaN(user.time)?'N/A': moment(user.time).format('M/DD/YY hh:mm A');
-    	fields.push(util.buildField(user.name, `\`${lastPlayed}\``));
+    	fields.push(util.buildField(scrubIDToNick[user.id], `\`${lastPlayed}\``));
 	});
 
     if(fields.length !== 2 && fields.length % 3 === 2) {
@@ -447,10 +448,10 @@ function updateWhoPlays(userID, user, role, game) {
 	var usersWhoPlay = gameUserData.users;
 	
 	if (!usersWhoPlay) {
-		usersWhoPlay = [{ id: userID, name: util.getTrueDisplayName(user), time: moment().valueOf(), role: role.name }];
+		usersWhoPlay = [{ id: userID, time: moment().valueOf(), role: role.name }];
 	} else {
 		const userEntryIdx = usersWhoPlay.map((player) => player.id).indexOf(userID);
-		const newEntry = { id: userID, name: util.getTrueDisplayName(user), time: moment().valueOf(), role: role.name };
+		const newEntry = { id: userID, time: moment().valueOf(), role: role.name };
 		if (userEntryIdx === -1) {
 			usersWhoPlay.push(newEntry);			
 		} else {
