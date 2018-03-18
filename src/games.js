@@ -356,8 +356,11 @@ function buildWhoPlaysFields(usersWhoPlay) {
 	
 	const scrubIDToNick = bot.getScrubIDToNick();
 	usersWhoPlay.forEach((user) => {
-    	const lastPlayed = isNaN(user.time)?'N/A': moment(user.time).format('M/DD/YY hh:mm A');
-    	fields.push(util.buildField(scrubIDToNick[user.id], `\`${lastPlayed}\``));
+		const lastPlayed = isNaN(user.time)?'N/A': moment(user.time).format('M/DD/YY hh:mm A');
+		const name = scrubIDToNick[user.id];
+		if (name) {
+			fields.push(util.buildField(name, `\`${lastPlayed}\``));
+		}
 	});
 
     if(fields.length !== 2 && fields.length % 3 === 2) {
