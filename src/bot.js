@@ -165,6 +165,11 @@ function handleCommand(message) {
 		if (!util.isAdmin(userID)) { return; }
 		games.generateHeatMap();
 	}
+	function giveCalled() {
+		if (args.length === 3) {
+			gambling.giveScrubBubbles(userID, user, args[2], args[1]);
+		}
+	}
 	function heatmapCalled() {
 		games.maybeOutputHeatMap(userID);
 	}
@@ -357,6 +362,7 @@ function handleCommand(message) {
 		'fortnite-leaderboard': fortniteLeaderboardCalled,
 		'fortnite-stats': fortniteStatsCalled,
 		'gen-heatmap': genHeatMapCalled,
+		'give': giveCalled,
         'h': helpCalled,
 		'heatmap': heatmapCalled,
 		'help': helpCalled,
@@ -449,6 +455,15 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
 		games.maybeUpdateNickname(newMember, get(newMember, 'presence.game.name'));	
 	}		
 	
+});
+
+/**
+ * Listens for a new member joining the server.
+ */
+client.on('guildMemberAdd', (member) => {
+	member.addRole(c.PLEB_ROLE_ID);
+	scrubIDtoNick[member.id] = member.displayName;
+	members.push(member);
 });
 
 /**

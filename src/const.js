@@ -24,6 +24,7 @@ define('CATEGORY_ID', {
 });
 define('SCRUBS_ROLE', '<@&370671041644724226>');
 define('SCRUBS_ROLE_ID', '370671041644724226');
+define('PLEB_ROLE_ID', '370671263473074177');
 define('REVIEW_ROLE', '<@&376391242105225216>');
 define('REVIEW_ROLE_ID', '376391242105225216');
 define('DAYS', ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']);
@@ -96,7 +97,9 @@ define('HELP_VOTING',[{ name: 'Please Note', value: '`You must be in a voice cha
 					  { name: '.voteinfo <`@user`>', value: '`for total votes to kick/ban that user.`', inline: 'false'}]);
 define('HELP_SCRUBBING_BUBBLES',[{ name: '.enlist', value: '`enlists the discharged Scrubbing Bubbles to your army.`', inline: 'false'},
 								 { name: '.discharge', value: '`honorably discharges a Scrubbing Bubble from your army.`', inline: 'false'},
-								 { name: '.discharge <`numBubbles`>', value: '`honorably discharges numBubbles Scrubbing Bubble from your army.`', inline: 'false'},								 
+								 { name: '.discharge <`numBubbles`>', value: '`honorably discharges numBubbles Scrubbing Bubble from your army.`', inline: 'false'},
+								 { name: '.give <`@user`>', value: '`transfers a Scrubbing Bubble from your army to user\'s army.`', inline: 'false'},
+								 { name: '.give <`numBubbles`> <`@user`>', value: '`transfers numBubbles from your army to user\'s army.`', inline: 'false'},								 
 								 { name: '.clean <`numBubbles`>', value: '`send numBubbles to clean the toilet.`', inline: 'false'},
 								 { name: '.21 <`numBubbles`>', value: '`to start a game of blackjack with a bet of numBubbles.`', inline: 'false'},
 								 { name: '.hit', value: '`to hit in blackjack.`', inline: 'false'},
@@ -158,7 +161,7 @@ define('HELP_UTILITIES',[
 define('HELP_CATEGORIES_PROMPT',[{ name: 'To select a category:', value: '`Click one of the provided reactions.`', inline: 'false'},
 						  { name: '.help <`command`>', value: '`to get help for a specific command`', inline: 'false'},
 						  { name: '1) Voting', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
-						  { name: '2) Scrubbing Bubbles', value: '`enlist`	`discharge`	`clean`	`army`	`ranks`	`stats`	`21`	`hit`	`stay`	`who-said`	`sunken-sailor`', inline: 'false'},
+						  { name: '2) Scrubbing Bubbles', value: '`enlist`	`discharge`		`give`	`clean`	`army`	`ranks`	`stats`	`21`	`hit`	`stay`	`who-said`	`sunken-sailor`', inline: 'false'},
 						  { name: '3) Time Played', value: '`time`	`opt-in`	`heatmap`', inline: 'false'},
 						  { name: '4) Gaming', value: '`playing`	`who-plays`	`lets-play`	`p`	`fortnite-stats`	`fortnite-leaderboard`	`set-fortnite-name`', inline: 'false'},
 						  { name: '5) Bot Issues, Feature Requests, and Help', value: '`tips`	`issue`	`feature`	`implement`	`help`', inline: 'false'},
@@ -237,7 +240,7 @@ define('TIPS',
 	{
 		color: 0xffff00,							
 		title: '💡 New Commands', 
-		description: '`tips`	`quote`	`quotes`	`21`	`fortnite-stats`	`fortnite-leaderboard`	`set-fortnite-name`	`lotto`',
+		description: '`give`	`tips`	`quote`	`quotes`	`21`	`fortnite-stats`	`fortnite-leaderboard`	`set-fortnite-name`	`lotto`',
 		image: {
 			url: 'https://media3.giphy.com/media/UGxfEt5POsukg/giphy.gif'
 		}
@@ -269,7 +272,7 @@ define('COMMANDS', [
 	'enlist', 'export', 
 	'feature',
 	'fortnite-leaderboard', 'fortnite-stats', 
-	'gen-heatmap', 
+	'gen-heatmap', 'give',
 	'h', 'heatmap', 'help', 'hit', 
 	'implement', 'info', 'issue', 
 	'join-review-team', 

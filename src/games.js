@@ -908,10 +908,10 @@ function endWhoSaidGame() {
 
 function startWhoSaidRound(quote, round) {
 	if (!quote.content) { return; }
-	util.sendEmbedMessage(`Who Said - Round ${round}`, `Who said "\`${quote.content}\`"?`, null, maybeGetImageFromContent(quote.content))
+	util.sendEmbedMessage(`Who Said - Round ${round}`, `Who said "${quote.content}"?`, null, maybeGetImageFromContent(quote.content))
 
 	const filter = (m) => {
-		if (m.content === util.mentionUser(quote.author.id)) { return m; }
+		if (m.content === util.mentionUser(quote.author.id) || m.content === quote.member.displayName) { return m; }
 	};
 	return bot.getBotSpam().awaitMessages(filter, { max: 1, time: 30000, errors: ['time'] });
 }
@@ -928,7 +928,7 @@ function whoSaidGameLoop(randomQuotes, round) {
 		const roundWinner = answers.array()[0].member;
 		util.sendEmbedMessage(`Congrats ${roundWinner.displayName}`, 
 		`You're correct! **${bot.getScrubIDToNick()[selectedQuote.author.id]}**\nsaid that on \`${moment(selectedQuote.createdTimestamp).format('LLLL')}\``);
-		whoSaidScore[roundWinner.id] = whoSaidScore[roundWinner.id] ? whoSaidScore[roundWinner.id]++ : 1;
+		whoSaidScore[roundWinner.id] = whoSaidScore[roundWinner.id] ? whoSaidScore[roundWinner.id] + 1 : 1;
 		whoSaidGameLoop(randomQuotes, round + 1);
 	})
     .catch((answers) => {

@@ -21,17 +21,40 @@ exports.exportLedger = function() {
 };
 
 /**
+ * Gives a scrubbing bubble to the provided user, taking that amount from
+ * the calling user's army.
+ * 
+ * @param {String} userID - the id of the user giving bubbles
+ * @param {String} userName - the name of the user giving bubbles
+ * @param {String} targetMention - a mention of the user to give bubbles to
+ * @param {Number} numBubbles - the number of bubbles to give
+ */
+exports.giveScrubBubbles = function (userID, userName, targetMention, numBubbles) {
+    if (isNaN(numBubbles)) { return; }
+    numBubbles = Number(numBubbles);
+    if (numBubbles < 1 || !(ledger[userID] && ledger[userID].armySize >= numBubbles)) { return; }
+
+    const targetID = util.getIdFromMention(targetMention);
+    if (bot.getScrubIDToNick()[targetID]) {
+        removeFromArmy(userID, numBubbles);
+        addToArmy(targetID, numBubbles);
+        const msg = `${targetMention}  Your Scrubbing Bubbles army has grown by ${numBubbles}! You now have an army of ${ledger[targetID].armySize}.`;
+        util.sendEmbedMessage(`Scrubbing Bubbles Gifted By ${userName}`, msg, targetID);
+    }
+};
+
+/**
  * Discharges a scrub bubble from the provided user's army, so that another
  * member may enlist the bubble to their army.
  * 
  * @param {String} userID - the id of the user discharging a bubble
+ * @param {Number} numBubbles - the number of bubbles to discharge
  */
 exports.dischargeScrubBubble = function (userID, numBubbles) {
     numBubbles = numBubbles && !isNaN(numBubbles) ? Number(numBubbles) : 1;
     if (userID) {
         if (numBubbles < 1 || !(ledger[userID] && ledger[userID].armySize >= numBubbles)) { return; }
-        ledger[userID].armySize -= numBubbles;
-        ledger[userID].totalDischarged += numBubbles;
+        removeFromArmy(userID, numBubbles);
     }
     dropped += numBubbles;
     var droppedImg = dropped;
@@ -60,6 +83,17 @@ exports.maybeDischargeScrubBubble = function() {
 };
 
 /**
+ * Removes the given number of Scrubbing Bubbles from the provided user's army.
+ * 
+ * @param {String} userID - id of the user to remove from
+ * @param {Number} amount - amount to remove
+ */
+function removeFromArmy(userID, amount) {
+    ledger[userID].armySize -= amount;
+    ledger[userID].totalDischarged += amount;
+}
+
+/**
  * Adds the given number of Scrubbing Bubbles to the provided user's army.
  * 
  * @param {String} userID - id of the user to add to
@@ -70,6 +104,7 @@ function addToArmy(userID, amount) {
         ledger[userID] = Object.assign({}, c.NEW_LEDGER_ENTRY);
     }
     ledger[userID].armySize += amount;
+    ledger[userID].totalEnlisted += amount;    
     if (ledger[userID].armySize > ledger[userID].recordArmy) {
         ledger[userID].recordArmy = ledger[userID].armySize;
     }
@@ -81,7 +116,6 @@ function addToArmy(userID, amount) {
 exports.enlist = function(userID, message) {
     if (dropped > 0) {
         addToArmy(userID, dropped);
-        ledger[userID].totalEnlisted += dropped;
         const msg = `${util.mentionUser(userID)}  Your Scrubbing Bubbles army has grown by ${dropped}! You now have an army of ${ledger[userID].armySize}.`;
         util.sendEmbedMessage(null, msg, userID);
         exports.maybeDeletePreviousMessage();
