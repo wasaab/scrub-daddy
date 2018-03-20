@@ -462,8 +462,7 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
  */
 client.on('guildMemberAdd', (member) => {
 	member.addRole(c.PLEB_ROLE_ID);
-	scrubIDtoNick[member.id] = member.displayName;
-	members.push(member);
+	updateMembers();
 });
 
 /**
