@@ -385,9 +385,10 @@ function catfacts(userID) {
 
 function scheduleRecurringVoiceChannelScan() {
 	(function(){
+		var client = bot.getClient();
 		games.maybeUpdateChannelNames();
-		games.maybeChangeAudioQuality(bot.getClient().channels);
-		handleMuteAndDeaf(bot.getClient().channels);
+		games.maybeChangeAudioQuality(client.channels);
+		handleMuteAndDeaf(client.channels);
 		setTimeout(arguments.callee, 60000);
 	})();
 }
