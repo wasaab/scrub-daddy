@@ -383,6 +383,23 @@ function catfacts(userID) {
 	sendEmbedMessage('Did you know?', msg, userID);
 };
 
+function scheduleRecurringVoiceChannelScan() {
+	(function(){
+		games.maybeUpdateChannelNames();
+		games.maybeChangeAudioQuality(bot.getClient().channels);
+		handleMuteAndDeaf(bot.getClient().channels);
+		setTimeout(arguments.callee, 60000);
+	})();
+}
+
+function scheduleRecurringExport() {
+	(function(){
+		games.exportTimeSheetAndGameHistory();
+		gambling.exportLedger();	
+		setTimeout(arguments.callee, 70000);
+	})();
+}
+
 /**
  * Schedules a recurring job.
  */
@@ -458,6 +475,9 @@ function scheduleRecurringJobs() {
 		lottoCountdownRule.mintue = 0;
 		var updateCountdown = schedule.scheduleJob(lottoCountdownRule, updateLottoCountdown);	
 	}
+
+	scheduleRecurringExport();
+	scheduleRecurringVoiceChannelScan();
 };
 
 /**

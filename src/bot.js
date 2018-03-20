@@ -26,17 +26,6 @@ var feedbackCategory = {};
 var scrubIDtoNick = {};
 var quoteBlocked = false;
 
-function scheduleRecurringExportAndVCScan() {
-	(function(){
-		games.exportTimeSheetAndGameHistory();
-		gambling.exportLedger();		
-		games.maybeUpdateChannelNames();
-		games.maybeChangeAudioQuality(client.channels);
-		util.handleMuteAndDeaf(client.channels);
-		setTimeout(arguments.callee, 60000);
-	})();
-}
-
 /**
  * Updates the member list and scrubIDtoNick.
  */
@@ -492,7 +481,6 @@ client.on('ready', () => {
 
 	util.scheduleRecurringJobs();
 	games.setDynamicGameChannels(client.channels);
-	scheduleRecurringExportAndVCScan();	
 
 	c.LOG.info(`<INFO> ${util.getTimestamp()}  Connected`);
 	if (util.isDevEnv()) { return; }		
