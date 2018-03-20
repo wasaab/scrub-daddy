@@ -117,7 +117,7 @@ function toggleServerLogRedirect(userID) {
 		sendEmbedMessage('Server Log Redirection Disabled', 'Server logs will stay where they belong!', userID)		
 	} else {
 		c.LOG.add(new discordServerTransport());	
-		sendEmbedMessage('Server Log Redirection Enabled', 'The server log will now be redirected to `#server-log`', userID)
+		sendEmbedMessage('Server Log Redirection Enabled', `The server log will now be redirected to ${mentionChannel(c.LOG_CHANNEL_ID)}`, userID)
 	}
 };
 
