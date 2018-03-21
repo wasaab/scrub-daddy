@@ -295,6 +295,12 @@ function outputHelpCategory(selection, userID) {
 	sendEmbedFieldsMessage(helpCategory.name, helpCategory.fields, userID);
 }
 
+function reactionTimedOut(userID) {
+	c.LOG.info((`<INFO> ${getTimestamp()}  After 40 seconds, there were no reactions.`));
+	sendEmbedMessage('Reponse Timed Out', 
+		`${bot.getScrubIDToNick()[userID]}, you have not made a selection, via reaction, so I\'m not listening to you anymore 😛`, userID);
+}
+
 /**
  * Waits for a reaction on the provided message and changes the message
  * when a reaction is found.
@@ -309,12 +315,14 @@ function awaitAndHandleReaction(msgSent, userID, results, homeResult) {
     const reactionFilter = (reaction, user) => (c.REACTION_NUMBERS.includes(reaction.emoji.name) || reaction.emoji.name === homeReaction) && user.id === userID;
     msgSent.awaitReactions(reactionFilter, { time: 40000, max: 1 })
     .then((collected) => {
-    	maybeUpdateDynamicMessage(collected, msgSent, userID, results, homeResult);
+		if (collected.size === 0) { 
+			reactionTimedOut(userID);
+		} else {
+			maybeUpdateDynamicMessage(collected, msgSent, userID, results, homeResult);
+		}
 	})
 	.catch((collected) => {
-		c.LOG.info((`<INFO> ${getTimestamp()}  After 40 seconds, there were no reactions.`));
-		sendEmbedMessage('Reponse Timed Out', 
-			`${bot.getScrubIDToNick()[userID]}, you have not made a selection, via reaction, so I\'m not listening to you anymore 😛`, userID);
+		reactionTimedOut(userID);
 	});
 }
 
