@@ -323,11 +323,7 @@ function handleCommand(message) {
 		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.KICK, message.member.voiceChannel, message.guild.roles);
 	}
 	function whoPlaysCalled() {
-		if (args[1]) {
-			games.whoPlays(args, userID);
-		} else {
-			util.outputHelpForCommand(cmd, userID);
-		}
+		games.whoPlays(args, userID);
 	}
 	function whoSaidCalled() {
 		games.startWhoSaidGame(args[1], args[2], args[3], args[4]);

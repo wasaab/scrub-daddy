@@ -370,10 +370,44 @@ function buildWhoPlaysFields(usersWhoPlay) {
 	return fields;
 }
 
+function whoPlaysUsersGames(userID) {
+	//get the games played by userID that at least 1 other person plays
+	var sharedGames = gamesPlayed.filter((game) => {
+		if (game.users.length < 2) { return false; }
+		const userEntryIdx = game.users.map((user) => user.id).indexOf(userID);
+		return userEntryIdx !== -1;
+	});
+	if (sharedGames.length === 0) { return; }
+
+	//sort sharedGames by length of users array within each game.
+	sharedGames.sort((a, b) => b.users.length - a.users.length);
+	var legendMsg = '';
+	gamesOutput = [];
+	sharedGames.slice(0, 10).forEach((game, index) => {
+		var fields = buildWhoPlaysFields(game.users);
+		gamesOutput.push({
+			name: `Users Who Play ${game.title} / Last Played Time`,
+			fields: fields
+		});
+		legendMsg += `**${index}**.	${game.title}\n`;
+	});
+	
+	util.sendEmbedFieldsMessage(gamesOutput[0].name, gamesOutput[0].fields, userID)
+	.then((msgSent) => {
+		util.addInitialNumberReactions(msgSent, 0, 9);
+		util.awaitAndHandleReaction(msgSent, userID, gamesOutput);
+	});
+	util.sendEmbedMessage('Legend for Who Plays', legendMsg, userID);
+}
+
 /**
  * Outputs the users who play the provided game, as well as when they last played.
  */
 exports.whoPlays = function(args, userID) {
+	if (!args[1]) {
+		whoPlaysUsersGames(userID);
+		return;
+	}
 	const game = util.getTargetFromArgs(args, 1);
 	const gameUserData = getGameUserData(game, 0.3);
 	c.LOG.info(`<INFO> ${util.getTimestamp()}  Who Plays ${game} - ${inspect(gameUserData)}`);						

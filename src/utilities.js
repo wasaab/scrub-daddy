@@ -296,81 +296,93 @@ function outputHelpCategory(selection, userID) {
 }
 
 /**
- * Waits for a reaction on the help message and changes the message
+ * Waits for a reaction on the provided message and changes the message
  * when a reaction is found.
  * 
  * @param {Object} msgSent - the help message
  * @param {String} userID - id of the user requesting help
+ * @param {*[]} results - results that can be displayed
+ * @param {Object=} homeResult - the result for home selection
  */
-function awaitAndHandleHelpReaction(msgSent, userID) {
-    const reactionFilter = (reaction, user) => (c.REACTION_NUMBERS.includes(reaction.emoji.name) || reaction.emoji.name === '🏠') && user.id === userID;
+function awaitAndHandleReaction(msgSent, userID, results, homeResult) {
+	const homeReaction = homeResult ? '🏠' : 'no home';
+    const reactionFilter = (reaction, user) => (c.REACTION_NUMBERS.includes(reaction.emoji.name) || reaction.emoji.name === homeReaction) && user.id === userID;
     msgSent.awaitReactions(reactionFilter, { time: 40000, max: 1 })
     .then((collected) => {
-    	maybeUpdateHelpMessage(collected, msgSent, userID);
+    	maybeUpdateDynamicMessage(collected, msgSent, userID, results, homeResult);
 	})
 	.catch((collected) => {
-		c.LOG.info((`<INFO> ${getTimestamp()}  After 40 seconds, there were no reactions for help.`));
+		c.LOG.info((`<INFO> ${getTimestamp()}  After 40 seconds, there were no reactions.`));
 		sendEmbedMessage('Reponse Timed Out', 
-			`${bot.getScrubIDToNick()[userID]}, you have not selected a category, via reaction, so I\'m not listening to you anymore 😛`, userID);
+			`${bot.getScrubIDToNick()[userID]}, you have not made a selection, via reaction, so I\'m not listening to you anymore 😛`, userID);
 	});
 }
 
 /**
- * Updates the help message to the content associated with the selected reaction.
+ * Updates the message to have the content associated with the selected reaction.
  * 
  * @param {Object[]} selectedReactions - reaction selected in an array
  * @param {Object} msg - the help message
  * @param {String} userID - id of the user requesting help
+ * @param {*[]} results - results that can be displayed
+ * @param {Object=} homeResult - the result for home selection
  */
-function maybeUpdateHelpMessage(selectedReactions, msg, userID) {
-	if (selectedReactions.length === 0) { return; }
+function maybeUpdateDynamicMessage(selectedReactions, msg, userID, results, homeResult) {
+	if (selectedReactions.size === 0) { return; }
 
-	const selection = c.REACTION_NUMBERS.indexOf(selectedReactions.first().emoji.name);
-	var helpCategory;
-	if (selection === -1) {
-		helpCategory = {
-			name: '`📖 Help Categories`',
-			fields: c.HELP_CATEGORIES_PROMPT
-		}
+	const numberSelected = c.REACTION_NUMBERS.indexOf(selectedReactions.first().emoji.name);
+	var selection;
+	//home selected
+	if (numberSelected === -1) {
+		selection = homeResult;
 	} else {
-		helpCategory = c.HELP_CATEGORIES[selection];
+		selection = results[numberSelected];
 	}
 	const color = userIDToColor[userID] || 0xffff00;	
 	const newMsg = new Discord.RichEmbed({
 		color: color,
-		title: helpCategory.name,
-		fields: helpCategory.fields
-	});	
+		title: selection.name,
+		fields: selection.fields
+	});
+	
 	msg.edit('', newMsg)
 	.then((updatedMsg) => {
-		awaitAndHandleHelpReaction(updatedMsg, userID);
+		awaitAndHandleReaction(updatedMsg, userID, results, homeResult);
 	});
 }
 
 /**
- * Adds the initial category selection reactions to the message.
+ * Adds the initial number selection reactions to the message.
  * 
  * @param {Object} msg - the help message 
- * @param {Number} reactionIdx - index of the reaction being added
+ * @param {Number} number - the number reaction being added
+ * @param {Number} max - the last number reaction to add
  */
-function addInitialHelpReactions(msg, reactionIdx) {
+function addInitialNumberReactions(msg, number, max) {
 	setTimeout(() => {
-		msg.react(c.REACTION_NUMBERS[reactionIdx])
-		if (reactionIdx < 7) {
-			addInitialHelpReactions(msg, reactionIdx + 1)
+		msg.react(c.REACTION_NUMBERS[number])
+		if (number < max) {
+			addInitialNumberReactions(msg, number + 1, max)
 		}
-	}, 300);
+	}, 350);
 }
 
 /**
  * Outputs help dialog to explain command usage.
  */
 function help(userID) {
+	const homePage = {
+		name: '`📖 Help Categories`',
+		fields: c.HELP_CATEGORIES_PROMPT
+	};
+	const helpCategories = c.HELP_CATEGORIES.slice(0);
+	helpCategories.unshift({});
+
 	sendEmbedFieldsMessage('`📖 Help Categories`', c.HELP_CATEGORIES_PROMPT, userID)
 	.then((msgSent) => {
 		msgSent.react('🏠');
-		addInitialHelpReactions(msgSent, 0);
-        awaitAndHandleHelpReaction(msgSent, userID);
+		addInitialNumberReactions(msgSent, 1, 8);
+        awaitAndHandleReaction(msgSent, userID, helpCategories, homePage);
 	});
 };
 
@@ -1213,7 +1225,9 @@ function maybeUnbanSpammers() {
 }
 
 //-------------------- Public Functions --------------------
+exports.addInitialNumberReactions = addInitialNumberReactions;
 exports.addToReviewRole = addToReviewRole;
+exports.awaitAndHandleReaction = awaitAndHandleReaction;
 exports.backupJson = backupJson;
 exports.buildField = buildField;
 exports.catfacts = catfacts;
@@ -1242,6 +1256,7 @@ exports.maybeBanSpammer = maybeBanSpammer;
 exports.maybeGetAlias = maybeGetAlias;
 exports.maybeInsertQuotes = maybeInsertQuotes;
 exports.maybeRemoveFromArray = maybeRemoveFromArray;
+exports.maybeUpdateDynamicMessage = maybeUpdateDynamicMessage;
 exports.mentionChannel = mentionChannel;
 exports.mentionRole = mentionRole;
 exports.mentionUser = mentionUser;
