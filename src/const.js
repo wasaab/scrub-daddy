@@ -119,7 +119,8 @@ define('HELP_TIME_PLAYED',[{ name: '.time <`Game Name`> <`@user`>', value: '`use
 						   { name: '.opt-in', value: '`to opt into playtime tracking.`', inline: 'false'},
 						   { name: '.heatmap', value: '`heatmap of player count for all games.`', inline: 'false'}]);
 define('HELP_GAMING',[{ name: '.playing', value: '`player count of games currently being played.`', inline: 'false'},
-							{ name: '.who-plays <`Game Name`>', value: '`to get list of players and playtime for Game Name.`', inline: 'false'},
+							{ name: '.who-plays', value: '`to get list of players and last time played for games you play.`', inline: 'false'},
+							{ name: '.who-plays <`Game Name`>', value: '`to get list of players and last time played for Game Name.`', inline: 'false'},
 							{ name: '.lets-play', value: '`to ask all players of the game you are playing if they want to play.`', inline: 'false'},							
 							{ name: '.lets-play <`Game Name|Game Emoji`>', value: '`to ask all players of Game Name if they want to play.`', inline: 'false'},
 							{ name: '.lets-play -ss <`Game Name|Game Emoji`>', value: '`.lets-play without @mentioning Super ͡Scrubs.`', inline: 'false'},
