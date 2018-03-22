@@ -458,6 +458,9 @@ exports.endLotto = function() {
     const server = bot.getClient().guilds.find('id', c.SERVER_ID);
     const winningUser = server.members.find('id', winnerID);
     winningUser.addRole(server.roles.find('id', c.BEYOND_ROLE_ID));
+
+    delete config.lottoTime;
+    delete config.lottoEntries;
 };
 
 function getFakeAndRealWinner() {

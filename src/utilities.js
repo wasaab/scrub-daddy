@@ -452,19 +452,25 @@ function scheduleRecurringJobs() {
 	  games.clearTimeSheet();
 	});
 
-	var updateMembersAndBansRule = new schedule.RecurrenceRule();
-	updateMembersAndBansRule.hour = [8, 20]; // 8am and 8pm
-	schedule.scheduleJob(updateMembersAndBansRule, function(){
-		bot.updateMembers();
+	var updateBansRule = new schedule.RecurrenceRule();
+	updateBansRule.hour = [8, 20]; // 8am and 8pm
+	schedule.scheduleJob(updateBansRule, function(){
 		maybeUnbanSpammers();
 	});
 
-	var heatMapRule = new schedule.RecurrenceRule();
-	heatMapRule.minute = 0;
+	var updateMembersAndHeatMapRule = new schedule.RecurrenceRule();
+	updateMembersAndHeatMapRule.minute = 0;
 
-	schedule.scheduleJob(heatMapRule, function(){
-		var members = bot.getClient().guilds.find('id', c.SERVER_ID).members;
-		games.maybeOutputCountOfGamesBeingPlayed(members, c.SCRUB_DADDY_ID);
+	schedule.scheduleJob(updateMembersAndHeatMapRule, function(){
+		bot.updateMembers();
+		games.maybeOutputCountOfGamesBeingPlayed(bot.getMembers(), c.SCRUB_DADDY_ID);
+	});
+
+	var updatePlayingStatusRule = new schedule.RecurrenceRule();
+	updatePlayingStatusRule.minute = config.lottoTime ? [30, 50] : [5, 25, 45];
+
+	schedule.scheduleJob(updatePlayingStatusRule, function(){
+		games.updatePlayingStatus();
 	});
 
 	var tipRule = new schedule.RecurrenceRule();

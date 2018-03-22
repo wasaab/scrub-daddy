@@ -87,33 +87,35 @@ exports.generateHeatMap = function() {
 	fs.writeFile('./resources/data/rawHeatMapData.json', json, 'utf8', util.log);
 }
 
-/**
- * Gets and outputs the player count of every game currently being played, 
- * unless called from recurring job, in which case it stores the result without outputting it.
- */
-exports.maybeOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
+function getGamesBeingPlayedData(players) {
 	var games = [];
 	var max = 0;
 	var winner = '';
 	var total = 0;
 
-	scrubs.forEach((scrub) => {
-		const game = get(scrub, 'presence.game.name');
-		const status = get(scrub, 'presence.status');
-		
-		if (game && !scrub.user.bot && scrub.highestRole.name !== 'Pleb' && status !== 'idle') {
-			if (!games[game]){
-				games[game] = 1;
-			} else {
-				games[game]++;
-			}
-			if (games[game] > max) {
+	players.forEach((player) => {
+		const game = get (player, 'presence.game.name');
+		const status = get (player, 'presence.status');
+
+		if(game && !player.user.bot && player.highestRole.name !== 'Pleb' && status !== 'idle') {
+			games[game] = games[game] ? games[game] + 1 : 1;
+			if(games[game] > max) {
 				max = games[game];
 				winner = game;
 			}
-			total++;			
-		}	
+			total++;
+		}
 	});
+
+    return { games: games, winner: winner, total: total };
+}
+
+/**
+ * Gets and outputs the player count of every game currently being played, 
+ * unless called from recurring job, in which case it stores the result without outputting it.
+ */
+exports.maybeOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
+    const { games, winner, total } = getGamesBeingPlayedData(scrubs);
 
 	var fields = [];
 	var time = moment();
@@ -147,6 +149,14 @@ exports.maybeOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
 		updateHeatMap(time, total);		
 	}
 };
+
+exports.updatePlayingStatus = function() {
+	const { winner } = getGamesBeingPlayedData(bot.getMembers());
+	if (winner === '') {
+		winner = 'nothing :(';
+	}
+	bot.getClient().user.setPresence({ game: { name: winner } });
+}
 
 /**
  * Gets the play time of the game provided.
@@ -386,7 +396,7 @@ function whoPlaysUsersGames(userID) {
 	sharedGames.slice(0, 10).forEach((game, index) => {
 		var fields = buildWhoPlaysFields(game.users);
 		gamesOutput.push({
-			name: `Users Who Play ${game.title} / Last Played Time`,
+			name: `Users Who Play ${game.title} / Last Time Played`,
 			fields: fields
 		});
 		legendMsg += `**${index}**.	${game.title}\n`;
@@ -415,7 +425,7 @@ exports.whoPlays = function(args, userID) {
 	var usersWhoPlay = gameUserData.users;
 	if (usersWhoPlay) {
 		var fields = buildWhoPlaysFields(usersWhoPlay);
-		util.sendEmbedFieldsMessage(`Users Who Play ${gameUserData.title} / Last Played Time`, fields, userID);
+		util.sendEmbedFieldsMessage(`Users Who Play ${gameUserData.title} / Last Time Played`, fields, userID);
 	} else {
 		util.sendEmbedMessage('Literally Nobody Plays That', 'We are all judging you now.', userID);
 	}
