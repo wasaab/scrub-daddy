@@ -151,7 +151,7 @@ exports.maybeOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
 };
 
 exports.updatePlayingStatus = function() {
-	const { winner } = getGamesBeingPlayedData(bot.getMembers());
+	var { winner } = getGamesBeingPlayedData(bot.getMembers());
 	if (winner === '') {
 		winner = 'nothing :(';
 	}
