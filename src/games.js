@@ -769,7 +769,7 @@ exports.maybeUpdateNickname = function(member, game) {
 
 	if (game && member.voiceChannel && status !== 'idle') {
 		if (game === `Sid Meier's Civilization VI`) {
-			game = 'C I V 6'
+			game = 'C I V 6';
 		}
 		const gameTokens = game.split(' ');
 		var nick = `${nameTokens[0]} ▫ `;

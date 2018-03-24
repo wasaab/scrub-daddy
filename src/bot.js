@@ -95,9 +95,9 @@ function handleCommand(message) {
     }
 	function aliasCalled() {
 		if (args.length > 1) {
-				util.createAlias(userID, user, args);
+			util.createAlias(userID, user, args);
 		} else {
-				util.outputAliases(userID, user);
+			util.outputAliases(userID, user);
 		}
 	}
 	function armyCalled() {
@@ -132,22 +132,22 @@ function handleCommand(message) {
 	}
 	function fortniteLeaderboardCalled() {
 		if (args[1] && args[2]) {
-				games.getFortniteStats(args[1], args[2], userID);
+			games.getFortniteStats(args[1], args[2], userID);
 		}
 	}
 	function fortniteStatsCalled() {
 		if (args[1] && args[2]) {
-				const targetStat = args[3] || 'all';
-				games.getFortniteStats(args[2], targetStat, userID, args[1]);
+			const targetStat = args[3] || 'all';
+			games.getFortniteStats(args[2], targetStat, userID, args[1]);
 		} else {
-				var possibleStats = '';
-				c.STATS.forEach((stat) => {
-						possibleStats += `${stat}       `;
-				});
-				util.sendEmbedMessage('Fortnite Stats Help', 'Usage: fortnite-stats <userName> <gameMode> <stat>\n'
-						+ 'e.g. fortnite-stats wasaab squad kills\n\n'
-						+ 'gameMode options: solo, duo, squad, all\n\n'
-						+ `stat options: ${possibleStats}`);
+			var possibleStats = '';
+			c.STATS.forEach((stat) => {
+				possibleStats += `${stat}       `;
+			});
+			util.sendEmbedMessage('Fortnite Stats Help', 'Usage: fortnite-stats <userName> <gameMode> <stat>\n'
+				+ 'e.g. fortnite-stats wasaab squad kills\n\n'
+				+ 'gameMode options: solo, duo, squad, all\n\n'
+				+ `stat options: ${possibleStats}`);
 		}
 	}
 	function genHeatMapCalled() {
@@ -164,9 +164,9 @@ function handleCommand(message) {
 	}
 	function helpCalled() {
 		if (args[1]) {
-				util.outputHelpForCommand(findClosestCommandMatch(args[1]), userID);
+			util.outputHelpForCommand(findClosestCommandMatch(args[1]), userID);
 		} else {
-				util.help(userID);
+			util.help(userID);
 		}
 		message.delete();
     }
@@ -192,6 +192,13 @@ function handleCommand(message) {
 	function letsPlayCalled() {
 		games.letsPlay(args, userID, user, message);
 	}
+	function listCalled() {
+		if (args.length > 2) {
+			util.addToList(args, userID);
+		} else {
+			util.showLists(userID);
+		}
+	}
 	function listBackupsCalled() {
 		if (!util.isAdmin(userID)) { return; }
 		util.listBackups();
@@ -205,6 +212,11 @@ function handleCommand(message) {
 			gambling.checkLotto(userID);
 		} else {
 			gambling.joinLotto(user, userID);
+		}
+	}
+	function newListCalled() {
+		if (args[1]) {
+			util.createList(args, userID);
 		}
 	}
 	function optInCalled() {
@@ -358,9 +370,11 @@ function handleCommand(message) {
 		'join-review-team': joinReviewTeamCalled,
 		'leave-review-team': leaveReviewTeamCalled,
 		'lets-play': letsPlayCalled,
+		'list': listCalled,
 		'list-backups': listBackupsCalled,
 		'log': logCalled,
 		'lotto': lottoCalled,
+		'new-list': newListCalled,
 		'opt-in': optInCalled,
 		'p': pCalled,
 		'playing': playingCalled,

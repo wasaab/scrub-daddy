@@ -21,6 +21,7 @@ var bannedUserIDToBans = require('../resources/data/banned.json');
 var userIDToColor = require('../resources/data/colors.json');
 var userIDToAliases = require('../resources/data/aliases.json');
 var soundBytes = require('../resources/data/soundbytes.json');
+var lists = require('../resources/data/lists.json');
 const catFacts = require('../resources/data/catfacts.json');
 const private = require('../../private.json'); 
 const quotes = require('../resources/data/quotes.json');
@@ -339,19 +340,15 @@ function maybeUpdateDynamicMessage(selectedReactions, msg, userID, results, home
 	if (selectedReactions.size === 0) { return; }
 
 	const numberSelected = c.REACTION_NUMBERS.indexOf(selectedReactions.first().emoji.name);
-	var selection;
-	//home selected
-	if (numberSelected === -1) {
-		selection = homeResult;
-	} else {
-		selection = results[numberSelected];
-	}
+	const selection = numberSelected === -1 ? homeResult : results[numberSelected];
+
 	const color = userIDToColor[userID] || 0xffff00;	
 	const newMsg = new Discord.RichEmbed({
 		color: color,
-		title: selection.name,
-		fields: selection.fields
+		title: selection.name
 	});
+	const contentType = selection.fields ? 'fields' : 'description';
+	newMsg[contentType] = selection[contentType];
 	
 	msg.edit('', newMsg)
 	.then((updatedMsg) => {
@@ -1238,8 +1235,57 @@ function maybeUnbanSpammers() {
 	}
 }
 
+function addToList(args, userID) {
+	const listName = args[1];
+	const entry = getTargetFromArgs(args, 2);
+	const listIdx = lists.map((list) => list.name).indexOf(listName);
+	if (listIdx === -1) {
+		sendEmbedMessage('404 List Not Found',
+			`There is no list under the name "${listName}". Create it yourself by calling \`.new-list ${listName}\``, userID);
+		return;
+	}
+	
+	lists[listIdx].entries.push(entry);
+	fs.writeFile('./resources/data/lists.json', JSON.stringify(lists), 'utf8', log);	
+}
+
+function createList(args, userID) {
+	var listName = getTargetFromArgs(args, 1).split(' ').join('-');
+	lists.push({name: listName, entries: []});
+	sendEmbedMessage('List Successfully Created', `You can now add entries by calling \`.list ${listName} <your new entry>\``, userID);
+}
+
+function showLists(userID) {
+	var results = [];
+	var legendMsg = '`Click the numbered reaction associated with the list you wish to view.`\n';
+	lists.forEach((list, listIdx) => {
+		legendMsg += `**${listIdx}.**  ${list.name}\n`;
+
+		var description = '';
+		list.entries.forEach((entry, entryIdx) => {
+			description += `**${entryIdx + 1}.**  ${entry}\n`;
+		});
+		results.push({
+			name: list.name,
+			description: description
+		});
+	});
+	results = results.slice(-10);
+	const homeResult = {
+		name: 'Lists Index',
+		description: legendMsg
+	};
+	sendEmbedMessage(homeResult.name, homeResult.description, userID)
+	.then((msgSent) => {
+		msgSent.react('🏠');
+		addInitialNumberReactions(msgSent, 0, results.length - 1);
+		awaitAndHandleReaction(msgSent, userID, results, homeResult);
+	});
+}
+
 //-------------------- Public Functions --------------------
 exports.addInitialNumberReactions = addInitialNumberReactions;
+exports.addToList = addToList;
 exports.addToReviewRole = addToReviewRole;
 exports.awaitAndHandleReaction = awaitAndHandleReaction;
 exports.backupJson = backupJson;
@@ -1248,6 +1294,7 @@ exports.catfacts = catfacts;
 exports.compareFieldValues = compareFieldValues;
 exports.createAlias = createAlias;
 exports.createChannelInCategory = createChannelInCategory;
+exports.createList = createList;
 exports.exportQuotes = exportQuotes;
 exports.getIdFromMention = getIdFromMention;
 exports.getQuotes = getQuotes;
@@ -1286,6 +1333,7 @@ exports.scheduleRecurringJobs = scheduleRecurringJobs;
 exports.sendEmbedFieldsMessage = sendEmbedFieldsMessage;
 exports.sendEmbedMessage = sendEmbedMessage;
 exports.setUserColor = setUserColor;
+exports.showLists = showLists;
 exports.showTips = showTips;
 exports.shuffleScrubs = shuffleScrubs;
 exports.toggleServerLogRedirect = toggleServerLogRedirect;

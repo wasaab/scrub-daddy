@@ -158,7 +158,10 @@ define('HELP_UTILITIES',[
 					{ name: '.quote', value: '`to quote and reply or save the quote, depending on which reaction you use (:quoteReply: or :quoteSave:).`', inline: 'false'},
 					{ name: '.quote <`@user`>', value: '`to quote and reply or save the quote from @user, depending on which reaction you use (:quoteReply: or :quoteSave:).`', inline: 'false'},																		
 					{ name: '.quotes', value: '`to retrieve the list of quotes from everyone on the server.`', inline: 'false'},
-					{ name: '.quotes <`@user`>', value: '`to retrieve the list of quotes from the specified user.`', inline: 'false'}]);					
+					{ name: '.quotes <`@user`>', value: '`to retrieve the list of quotes from the specified user.`', inline: 'false'},
+					{ name: '.new-list <name of list>', value: '`to create a named list that users can add entries to.`', inline: 'false'},					
+					{ name: '.list', value: '`to view all of the user created lists.`', inline: 'false'},					
+					{ name: '.list <list-name> <your new entry>', value: '`to add a new entry to a user created list.`', inline: 'false'}]);
 define('HELP_CATEGORIES_PROMPT',[{ name: 'To select a category:', value: '`Click one of the provided reactions.`', inline: 'false'},
 						  { name: '.help <`command`>', value: '`to get help for a specific command`', inline: 'false'},
 						  { name: '1) Voting', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
@@ -168,7 +171,7 @@ define('HELP_CATEGORIES_PROMPT',[{ name: 'To select a category:', value: '`Click
 						  { name: '5) Bot Issues, Feature Requests, and Help', value: '`tips`	`issue`	`feature`	`implement`	`help`', inline: 'false'},
 						  { name: '6) Roles & User Settings', value: '`join-review-team`	`leave-review-team`	`color`	`shuffle-scrubs`	`set-stream`	`toggle-streaming`	`alias`', inline: 'false'},
 						  { name: '7) Soundbytes', value: '`*sb`	`*add-sb`	`*fav-sb`	`*volume`', inline: 'false'},					  
-						  { name: '8) Utilities', value: '`temp`	`start-lotto`	`lotto`	`quote`	`quotes`', inline: 'false'}]);
+						  { name: '8) Utilities', value: '`temp`	`start-lotto`	`lotto`	`quote`	`quotes`	`list`	`new-list`', inline: 'false'}]);
 define('HELP_CATEGORIES', [{name: '`Voting`', fields: exports.HELP_VOTING},
 						   {name: '`Scrubbing Bubbles`', fields: exports.HELP_SCRUBBING_BUBBLES},
 						   {name: '`Time Played`', fields: exports.HELP_TIME_PLAYED},
@@ -241,7 +244,7 @@ define('TIPS',
 	{
 		color: 0xffff00,							
 		title: '💡 New Commands', 
-		description: '`give`	`tips`	`quote`	`quotes`	`21`	`fortnite-stats`	`fortnite-leaderboard`	`set-fortnite-name`	`lotto`',
+		description: '`list`	`new-list`	`give`	`tips`	`quote`	`quotes`	`21`	`fortnite-stats`	`fortnite-leaderboard`',
 		image: {
 			url: 'https://media3.giphy.com/media/UGxfEt5POsukg/giphy.gif'
 		}
@@ -277,7 +280,8 @@ define('COMMANDS', [
 	'h', 'heatmap', 'help', 'hit', 
 	'implement', 'info', 'issue', 
 	'join-review-team', 
-	'leave-review-team', 'lets-play', 'list-backups', 'log', 'lotto', 
+	'list', 'leave-review-team', 'lets-play', 'list-backups', 'log', 'lotto',
+	'new-list',
 	'opt-in', 
 	'p', 'playing', 
 	'quote', 'quotes', 
