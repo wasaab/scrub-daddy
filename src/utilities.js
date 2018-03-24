@@ -1244,7 +1244,7 @@ function addToList(args, userID) {
 			`There is no list under the name "${listName}". Create it yourself by calling \`.new-list ${listName}\``, userID);
 		return;
 	}
-	
+	sendEmbedMessage(`Entry Added to ${listName}`, 'You can view all of the entries by calling `.list`'. userID);
 	lists[listIdx].entries.push(entry);
 	fs.writeFile('./resources/data/lists.json', JSON.stringify(lists), 'utf8', log);	
 }
@@ -1256,6 +1256,8 @@ function createList(args, userID) {
 }
 
 function showLists(userID) {
+	if (lists.length === 0) { return; }
+
 	var results = [];
 	var legendMsg = '`Click the numbered reaction associated with the list you wish to view.`\n';
 	lists.forEach((list, listIdx) => {
