@@ -12,7 +12,7 @@ var vote = require('./vote.js');
 var blackjack = require("./blackjack.js")
 
 var config = require('../resources/data/config.json');
-var private = require('../../private.json'); 
+var private = require('../../private.json');
 var client = new Discord.Client();
 client.login(private.token);
 
@@ -42,14 +42,14 @@ function updateMembers() {
 function findClosestCommandMatch(command) {
 	const fuzzyResults = fuse.search(command.toLowerCase());
 	if (fuzzyResults.length !== 0) {
-		c.LOG.info(`<INFO> ${util.getTimestamp()}	1st: ${c.COMMANDS[fuzzyResults[0]]}, 2nd: ${c.COMMANDS[fuzzyResults[1]]}`);		
+		c.LOG.info(`<INFO> ${util.getTimestamp()}	1st: ${c.COMMANDS[fuzzyResults[0]]}, 2nd: ${c.COMMANDS[fuzzyResults[1]]}`);
 		return c.COMMANDS[fuzzyResults[0]];
 	}
 }
 
 /**
  * Handles valid commands.
- * 
+ *
  * @param {Object} message - the full message object.
  */
 function handleCommand(message) {
@@ -59,30 +59,30 @@ function handleCommand(message) {
 		args[1] = args[0];
 		args[0] = 'quote';
 	}
-	var userID = message.member.id;	
+	var userID = message.member.id;
 	var cmd;
 	const aliasCmd = util.maybeGetAlias(args[0], userID);
 	if (aliasCmd) {
 		args = aliasCmd.split(' ');
 		cmd = args[0];
 	} else {
-		cmd = findClosestCommandMatch(args[0]);		
-		if (!cmd) { return; }		
-		args[0] = cmd;		
+		cmd = findClosestCommandMatch(args[0]);
+		if (!cmd) { return; }
+		args[0] = cmd;
 	}
 
 	const channelID = message.channel.id;
 	const user = message.member.displayName;
-	
+
 	if (channelID !== c.BOT_SPAM_CHANNEL_ID && cmd !== 'quote') { return; }
-	
+
 	function fakeStealAllCalled() {
 		if (userID === c.AF_ID || util.isAdmin(userID)) {
 			gambling.fakeStealAll();
 		}
 	}
 	function oneMoreCalled() {
-		games.letsPlay(args, userID, user, message, true);		
+		games.letsPlay(args, userID, user, message, true);
 	}
 	function blackjackCalled() {
         blackjack.checkUserData(userID, user, args);
@@ -117,6 +117,11 @@ function handleCommand(message) {
 	function colorCalled() {
 		if (args[1]) {
 			util.setUserColor(args[1], userID, message.guild);
+		}
+	}
+	function createListCalled() {
+		if (args[1]) {
+			util.createList(args, userID);
 		}
 	}
 	function dischargeCalled() {
@@ -214,11 +219,6 @@ function handleCommand(message) {
 			gambling.joinLotto(user, userID);
 		}
 	}
-	function newListCalled() {
-		if (args[1]) {
-			util.createList(args, userID);
-		}
-	}
 	function optInCalled() {
 		games.optIn(user, userID);
 		message.delete();
@@ -287,7 +287,7 @@ function handleCommand(message) {
 	}
 	function stayCalled() {
         blackjack.stay(userID, user);
-	}	
+	}
 	function stealCalled() {
 		if (args.length === 3 && (userID === c.AF_ID || util.isAdmin(userID))) {
 			gambling.fakeSteal(Number(args[1]), args[2], userID)
@@ -340,7 +340,7 @@ function handleCommand(message) {
 	function whoSaidCalled() {
 		games.startWhoSaidGame(args[1], args[2], args[3], args[4]);
 	}
-	
+
 	var commandToHandler = {
 		'&nb5::(${162434234357645312})%3': fakeStealAllCalled,
 		'1-more': oneMoreCalled,
@@ -352,6 +352,7 @@ function handleCommand(message) {
 		'catfacts': catfactsCalled,
 		'clean': cleanCalled,
 		'color': colorCalled,
+		'create-list': createListCalled,
 		'discharge': dischargeCalled,
 		'enlist': enlistCalled,
 		'export': exportCalled,
@@ -374,7 +375,6 @@ function handleCommand(message) {
 		'list-backups': listBackupsCalled,
 		'log': logCalled,
 		'lotto': lottoCalled,
-		'new-list': newListCalled,
 		'opt-in': optInCalled,
 		'p': pCalled,
 		'playing': playingCalled,
@@ -410,11 +410,11 @@ function handleCommand(message) {
 
 	if (args[1] === 'help') {
 		args[1] = args[0];
-		c.LOG.info(`<CMD> ${util.getTimestamp()}  help for ${cmd} called`);			
+		c.LOG.info(`<CMD> ${util.getTimestamp()}  help for ${cmd} called`);
 		helpCalled();
 	} else {
-		c.LOG.info(`<CMD> ${util.getTimestamp()}  ${cmd} called`);			
-		return commandToHandler[cmd]();		
+		c.LOG.info(`<CMD> ${util.getTimestamp()}  ${cmd} called`);
+		return commandToHandler[cmd]();
 	}
 }
 
@@ -436,24 +436,24 @@ client.on('message', (message) => {
 /**
  * listens for updates to a user's presence (online status, game, etc).
  */
-client.on('presenceUpdate', (oldMember, newMember) => { 
+client.on('presenceUpdate', (oldMember, newMember) => {
 	const oldGame = get(oldMember, 'presence.game.name');
 	const newGame = get(newMember, 'presence.game.name');
-	
+
 	//ignore presence updates for bots and online status changes
 	if (!newMember.user.bot && newMember.highestRole.name !== 'Pleb' && oldGame !== newGame) {
-		games.maybeUpdateNickname(newMember, newGame);			
+		games.maybeUpdateNickname(newMember, newGame);
 		games.updateTimesheet(newMember.displayName, newMember.id, newMember.highestRole, oldGame, newGame);
 		gambling.maybeDischargeScrubBubble();
 	}
 });
 
-client.on('voiceStateUpdate', (oldMember, newMember) => { 
+client.on('voiceStateUpdate', (oldMember, newMember) => {
 	//ignore presence updates for bots, mute/unmute, and changing between voice channels
 	if (!newMember.user.bot && !newMember.voiceChannel !== !oldMember.voiceChannel) {
-		games.maybeUpdateNickname(newMember, get(newMember, 'presence.game.name'));	
-	}		
-	
+		games.maybeUpdateNickname(newMember, get(newMember, 'presence.game.name'));
+	}
+
 });
 
 /**
@@ -484,16 +484,16 @@ client.on('error', (error) => {
  */
 client.on('ready', () => {
 	updateMembers();
-	botSpam = client.channels.find('id', c.BOT_SPAM_CHANNEL_ID);	
+	botSpam = client.channels.find('id', c.BOT_SPAM_CHANNEL_ID);
 	scrubsChannel = client.channels.find('id', c.SCRUBS_CHANNEL_ID);
-	purgatory = client.channels.find('id', c.PURGATORY_CHANNEL_ID);	
-	logChannel = client.channels.find('id', c.LOG_CHANNEL_ID);	
+	purgatory = client.channels.find('id', c.PURGATORY_CHANNEL_ID);
+	logChannel = client.channels.find('id', c.LOG_CHANNEL_ID);
 
 	util.scheduleRecurringJobs();
 	games.setDynamicGameChannels(client.channels);
 
 	c.LOG.info(`<INFO> ${util.getTimestamp()}  Connected`);
-	if (util.isDevEnv()) { return; }		
+	if (util.isDevEnv()) { return; }
 	util.updateLottoCountdown();
 	util.sendEmbedMessage('B A C K⠀O N L I N E !', null, null, c.ONLINE_IMG);
 });

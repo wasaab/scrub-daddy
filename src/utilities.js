@@ -23,7 +23,7 @@ var userIDToAliases = require('../resources/data/aliases.json');
 var soundBytes = require('../resources/data/soundbytes.json');
 var lists = require('../resources/data/lists.json');
 const catFacts = require('../resources/data/catfacts.json');
-const private = require('../../private.json'); 
+const private = require('../../private.json');
 const quotes = require('../resources/data/quotes.json');
 
 var previousTip = {};
@@ -35,7 +35,7 @@ var quoteTipMsg = {};
 /**
  * Creates a channel in a category, specified by the command provided.
  * For submitting issues/features and creating temporary voice/text channels.
- * 
+ *
  * @param {String} command - command called
  * @param {String} channelType - type of channel to create 'voice' or 'text'
  * @param {String} channelName - name of channel to create
@@ -49,7 +49,7 @@ function createChannelInCategory(command, channelType, channelName, message, cre
 			//remove the leading/trailing whitespace and replace other spaces with '-'
 			channelName = channelName.trim().split(' ').join('-');
 		}
-		const description = feedback || ' ';		
+		const description = feedback || ' ';
 		const channelCategoryName = command.charAt(0).toUpperCase() + command.slice(1);
 		const color = userIDToColor[userID] || 0xffff00;
 
@@ -60,37 +60,37 @@ function createChannelInCategory(command, channelType, channelName, message, cre
 		}];
 		message.guild.createChannel(channelName, channelType, overwrites)
 		.then((channel) => {
-			channel.setParent(c.CATEGORY_ID[channelCategoryName]);			
+			channel.setParent(c.CATEGORY_ID[channelCategoryName]);
 			channel.send(new Discord.RichEmbed({
 				color: color,
 				title: channelCategoryName + createdByMsg,
 				description: description,
 				image: {
 					url: c.SETTINGS_IMG
-				} 
-			}));	
+				}
+			}));
 		})
-		sendEmbedMessage(`➕ ${channelCategoryName} Channel Created`, 
+		sendEmbedMessage(`➕ ${channelCategoryName} Channel Created`,
 			`You can find your channel, \`${channelName}\`, under the \`${channelCategoryName}\` category.`, userID);
-		c.LOG.info(`<INFO> ${getTimestamp()}  ${channelCategoryName}${createdByMsg}  ${description}`);		
+		c.LOG.info(`<INFO> ${getTimestamp()}  ${channelCategoryName}${createdByMsg}  ${description}`);
 	}
 };
 
 /**
  * Discord server logger.
- * 
- * @param {Object[]} opts 
+ *
+ * @param {Object[]} opts
  */
 const discordServerTransport = class DiscordServerTransport extends Transport {
 	constructor(opts) {
 		super(opts);
 	}
-	
+
 	log(info, callback) {
 		// setImmediate(function () {
 		// 	self.emit('logged', info);
 		// });
-		
+
 		bot.getLogChannel().send(info.message);
 		callback();
 	}
@@ -115,9 +115,9 @@ function toggleServerLogRedirect(userID) {
 			return transport.constructor.name === 'DiscordServerTransport';
 		});
 		c.LOG.remove(discordTransport);
-		sendEmbedMessage('Server Log Redirection Disabled', 'Server logs will stay where they belong!', userID)		
+		sendEmbedMessage('Server Log Redirection Disabled', 'Server logs will stay where they belong!', userID)
 	} else {
-		c.LOG.add(new discordServerTransport());	
+		c.LOG.add(new discordServerTransport());
 		sendEmbedMessage('Server Log Redirection Enabled', `The server log will now be redirected to ${mentionChannel(c.LOG_CHANNEL_ID)}`, userID)
 	}
 };
@@ -125,19 +125,19 @@ function toggleServerLogRedirect(userID) {
 /**
  * Gets a random number between min and max.
  * The maximum is exclusive and the minimum is inclusive
- * 
+ *
  * @param {Number} min - the minimum
- * @param {Number} max - the maximum 
+ * @param {Number} max - the maximum
  */
 function getRand(min, max) {
 	min = Math.ceil(min);
 	max = Math.floor(max);
-	return Math.floor(Math.random() * (max - min)) + min; 
+	return Math.floor(Math.random() * (max - min)) + min;
 };
 
 /**
  * Gets a timestamp representing the current time.
- * 
+ *
  * @return {String} properly formatted timestamp
  */
 function getTimestamp() {
@@ -163,13 +163,13 @@ function getTimestamp() {
 
 /**
  * Logs the response of an API request for Add Role or Move User.
- * 
+ *
  * @param {String} error - error returned from API request
  * @param {Object} response - response returned from API request
  */
 function log(error, response) {
 	if (error) {
-		c.LOG.error(`<API ERROR> ${getTimestamp()}  ERROR: ${error}`);			
+		c.LOG.error(`<API ERROR> ${getTimestamp()}  ERROR: ${error}`);
 	} else if (response) {
 		c.LOG.info(`<API RESPONSE> ${getTimestamp()}  ${inspect(response)}`);
 	}
@@ -177,7 +177,7 @@ function log(error, response) {
 
 /**
  * Builds an embed field object with name and value.
- * 
+ *
  * @param {String} name - the name
  * @param {Number} value - the value
  */
@@ -192,7 +192,7 @@ function buildField(name, value, inline) {
 
 /**
  * Comparator for two field objects. Compares values.
- * 
+ *
  * @param {Object} a - first field
  * @param {Object} b - second field
  */
@@ -209,28 +209,30 @@ function compareFieldValues(a,b) {
 
 /**
  * Send a message with fields to bot-spam.
- * 
+ *
  * @param {String} title - the message title
  * @param {String[]} fields - fields of the message
  * @param {String} userID - id of sending user
+ * @param {Object} footer - the footer for the message
  */
-function sendEmbedFieldsMessage(title, fields, userID) {
+function sendEmbedFieldsMessage(title, fields, userID, footer) {
 	if (fields.length === 1 && fields[0].name === '') {
 		return;
 	}
 
-	const color = userIDToColor[userID] || 0xffff00;	
+	const color = userIDToColor[userID] || 0xffff00;
 	return bot.getBotSpam().send(new Discord.RichEmbed({
 		color: color,
 		title: title,
-		fields: fields
-	}));	
+		fields: fields,
+		footer: footer
+	}));
 };
 
 /**
- * Sends an embed message to bot-spam with an optional title, description, image and thumbnail(true/false)
+ * Sends an embed message to bot-spam with an optional title, description, image, thumbnail(true/false), and footer.
  */
-function sendEmbedMessage(title, description, userID, image, thumbnail) {
+function sendEmbedMessage(title, description, userID, image, thumbnail, footer) {
 	//these are all optional parameters
 	title = title || '';
 	description = description || '';
@@ -240,11 +242,12 @@ function sendEmbedMessage(title, description, userID, image, thumbnail) {
 	var message = {
 		color: color,
 		title: title,
-		description: description
+		description: description,
+		footer: footer
 	};
 	message[picType] = { url: image };
 	return bot.getBotSpam().send(new Discord.RichEmbed(message))
-	.then((msgSent) => msgSent);	
+	.then((msgSent) => msgSent);
 };
 
 /**
@@ -258,19 +261,22 @@ function getScrubIDToNick() {
  * Updates README.md to have the up to date list of commands.
  */
 function updateReadme() {
-	var result = '# scrub-daddy\n\nDiscord bot with the following commands:\n';
+	var result = '';
+	var cmdCount = 0;
 	c.HELP_CATEGORIES.forEach((category) => {
 		result += `\n1. ${category.name.split('\`').join('')}\n`;
 		category.fields.forEach((field) => {
 			result += `      + ${field.name} - ${field.value}\n`
+			cmdCount++;
 		});
 	});
-	fs.writeFile('README.md', result, 'utf8', log);	
+	result = `# scrub-daddy\n${c.CODACY_BADGE}\n\nDiscord bot with the following ${cmdCount} commands:\n` + result;
+	fs.writeFile('README.md', result, 'utf8', log);
 };
 
 /**
  * Outputs the help message for the provided command.
- * 
+ *
  * @param {String} cmd - the command to get help for
  * @param {String} userID - the userID requesting help
  */
@@ -287,7 +293,7 @@ function outputHelpForCommand(cmd, userID) {
 
 /**
  * Outputs the help category for the given selection.
- * 
+ *
  * @param {number} selection - the category selection
  * @param {String} userID - the ID of the user requesting help
  */
@@ -296,70 +302,78 @@ function outputHelpCategory(selection, userID) {
 	sendEmbedFieldsMessage(helpCategory.name, helpCategory.fields, userID);
 }
 
-function reactionTimedOut(userID) {
+function reactionTimedOut(userID, selectionType) {
 	c.LOG.info((`<INFO> ${getTimestamp()}  After 40 seconds, there were no reactions.`));
-	sendEmbedMessage('Reponse Timed Out', 
-		`${bot.getScrubIDToNick()[userID]}, you have not made a selection, via reaction, so I\'m not listening to you anymore 😛`, userID);
+	sendEmbedMessage('Reponse Timed Out',
+		`${bot.getScrubIDToNick()[userID]}, you have not made a ${selectionType} selection, via reaction, so I\'m not listening to you anymore 😛`, userID);
 }
 
 /**
  * Waits for a reaction on the provided message and changes the message
  * when a reaction is found.
- * 
+ *
  * @param {Object} msgSent - the help message
  * @param {String} userID - id of the user requesting help
  * @param {*[]} results - results that can be displayed
  * @param {Object=} homeResult - the result for home selection
  */
-function awaitAndHandleReaction(msgSent, userID, results, homeResult) {
+function awaitAndHandleReaction(msgSent, userID, results, selectionType, homeResult) {
 	const homeReaction = homeResult ? '🏠' : 'no home';
     const reactionFilter = (reaction, user) => (c.REACTION_NUMBERS.includes(reaction.emoji.name) || reaction.emoji.name === homeReaction) && user.id === userID;
     msgSent.awaitReactions(reactionFilter, { time: 40000, max: 1 })
     .then((collected) => {
-		if (collected.size === 0) { 
-			reactionTimedOut(userID);
+		if (collected.size === 0) {
+			reactionTimedOut(userID, selectionType);
 		} else {
-			maybeUpdateDynamicMessage(collected, msgSent, userID, results, homeResult);
+			maybeUpdateDynamicMessage(collected, msgSent, userID, results, selectionType, homeResult);
 		}
 	})
 	.catch((collected) => {
-		reactionTimedOut(userID);
+		reactionTimedOut(userID, selectionType);
 	});
 }
 
 /**
  * Updates the message to have the content associated with the selected reaction.
- * 
+ *
  * @param {Object[]} selectedReactions - reaction selected in an array
  * @param {Object} msg - the help message
  * @param {String} userID - id of the user requesting help
  * @param {*[]} results - results that can be displayed
  * @param {Object=} homeResult - the result for home selection
  */
-function maybeUpdateDynamicMessage(selectedReactions, msg, userID, results, homeResult) {
+function maybeUpdateDynamicMessage(selectedReactions, msg, userID, results, selectionType, homeResult) {
 	if (selectedReactions.size === 0) { return; }
 
 	const numberSelected = c.REACTION_NUMBERS.indexOf(selectedReactions.first().emoji.name);
-	const selection = numberSelected === -1 ? homeResult : results[numberSelected];
+	const correction = results.length > 9 ? 0 : 1;
+	const selection = numberSelected === -1 ? homeResult : results[numberSelected - correction];
 
-	const color = userIDToColor[userID] || 0xffff00;	
+	const color = userIDToColor[userID] || 0xffff00;
 	const newMsg = new Discord.RichEmbed({
 		color: color,
 		title: selection.name
 	});
 	const contentType = selection.fields ? 'fields' : 'description';
 	newMsg[contentType] = selection[contentType];
-	
+	const footer = msg.embeds[0].footer;
+	if (footer) {
+		newMsg.footer = {
+			icon_url: footer.iconURL,
+			text: footer.text
+		}
+	}
+
 	msg.edit('', newMsg)
 	.then((updatedMsg) => {
-		awaitAndHandleReaction(updatedMsg, userID, results, homeResult);
+		awaitAndHandleReaction(updatedMsg, userID, results, selectionType, homeResult);
 	});
 }
 
 /**
  * Adds the initial number selection reactions to the message.
- * 
- * @param {Object} msg - the help message 
+ *
+ * @param {Object} msg - the help message
  * @param {Number} number - the number reaction being added
  * @param {Number} max - the last number reaction to add
  */
@@ -373,6 +387,42 @@ function addInitialNumberReactions(msg, number, max) {
 }
 
 /**
+ * Sends a dynamic message, which changes content to the result matching the
+ * reaction clicked.
+ *
+ * @param {String} userID - id of the user that can react to the msg
+ * @param {String} selectionType - what is being selected
+ * @param {Object[]} results - results to select from
+ * @param {Object=} homePage - first page to show
+ */
+function sendDynamicMessage(userID, selectionType, results, homePage) {
+    const footer = {
+		icon_url: c.INFO_IMG,
+		text: `Click a reaction below to select a ${selectionType}.`
+	};
+	var msg;
+	const isFieldsEmbed = results[0].fields;
+	const contentType = isFieldsEmbed ? 'fields' : 'description';
+	const title = homePage ? homePage.name : results[0].name;
+	const content = homePage ? homePage[contentType] : results[0][contentType];
+	if (isFieldsEmbed) {
+		msg = sendEmbedFieldsMessage(title, content, userID, footer);
+	} else {
+		msg = sendEmbedMessage(title, content, userID, null, null, footer);
+	}
+
+    msg.then((msgSent) => {
+		if (homePage) {
+			msgSent.react('🏠');
+		}
+		const firstReactionNum = results.length > 9 ? 0 : 1;
+		const lastReactionNum = results.length > 9 ? results.length - 1 : results.length;
+		addInitialNumberReactions(msgSent, firstReactionNum, lastReactionNum);
+		awaitAndHandleReaction(msgSent, userID, results, selectionType, homePage);
+	});
+}
+
+/**
  * Outputs help dialog to explain command usage.
  */
 function help(userID) {
@@ -380,15 +430,8 @@ function help(userID) {
 		name: '`📖 Help Categories`',
 		fields: c.HELP_CATEGORIES_PROMPT
 	};
-	const helpCategories = c.HELP_CATEGORIES.slice(0);
-	helpCategories.unshift({});
 
-	sendEmbedFieldsMessage('`📖 Help Categories`', c.HELP_CATEGORIES_PROMPT, userID)
-	.then((msgSent) => {
-		msgSent.react('🏠');
-		addInitialNumberReactions(msgSent, 1, 8);
-        awaitAndHandleReaction(msgSent, userID, helpCategories, homePage);
-	});
+	sendDynamicMessage(userID, 'category', c.HELP_CATEGORIES, homePage);
 };
 
 /**
@@ -413,7 +456,7 @@ function scheduleRecurringVoiceChannelScan() {
 function scheduleRecurringExport() {
 	(function(){
 		games.exportTimeSheetAndGameHistory();
-		gambling.exportLedger();	
+		gambling.exportLedger();
 		setTimeout(arguments.callee, 70000);
 	})();
 }
@@ -425,26 +468,26 @@ function scheduleRecurringJobs() {
 	const job = private.job;
 	if (!job) { return; }
 	var reviewRule = new schedule.RecurrenceRule();
-	
+
 	reviewRule[job.key1] = job.val1;
 	reviewRule[job.key2] = job.val2;
 	reviewRule[job.key3] = job.val3;
 
 	schedule.scheduleJob(reviewRule, function(){
-		if (isDevEnv()) { return; }			
+		if (isDevEnv()) { return; }
 		bot.getBotSpam().send(c.REVIEW_ROLE);
 		sendEmbedMessage(null, null, null, job.img);
 	});
 
 	reviewRule[job.key3] = job.val3 - 3;
 	schedule.scheduleJob(reviewRule, function(){
-		if (isDevEnv()) { return; }			
+		if (isDevEnv()) { return; }
 		bot.getBotSpam().send(`${c.REVIEW_ROLE} Upcoming Review. Reserve the room and fire up that projector.`);
 	});
 
 	var clearTimeSheetRule = new schedule.RecurrenceRule();
 	clearTimeSheetRule.hour = 5;
-	
+
 	schedule.scheduleJob(clearTimeSheetRule, function(){
 	  games.clearTimeSheet();
 	});
@@ -474,13 +517,13 @@ function scheduleRecurringJobs() {
 	tipRule.hour = [10, 17, 23];
 	tipRule.minute = 0;
 	var firstRun = true;
-	var outputTip = schedule.scheduleJob(tipRule, function(){	
-		if (isDevEnv()) { return; }	
-		if (!firstRun) { 
-			previousTip.delete();						
+	var outputTip = schedule.scheduleJob(tipRule, function(){
+		if (isDevEnv()) { return; }
+		if (!firstRun) {
+			previousTip.delete();
 		}
 		firstRun = false;
-		var tip = c.TIPS[getRand(0, c.TIPS.length)];		
+		var tip = c.TIPS[getRand(0, c.TIPS.length)];
 		bot.getBotSpam().send(new Discord.RichEmbed(tip))
 		.then((message) => {
 			previousTip = message;
@@ -491,13 +534,13 @@ function scheduleRecurringJobs() {
 		const lottoTime = config.lottoTime;
 		const lottoRule = `0 ${lottoTime.hour} ${lottoTime.day} ${lottoTime.month} *`;
 		var endLotto = schedule.scheduleJob(lottoRule, function() {
-			c.LOG.info(`<INFO> ${getTimestamp()}  Beyond lotto ending`);		
+			c.LOG.info(`<INFO> ${getTimestamp()}  Beyond lotto ending`);
 			gambling.endLotto();
-		});	
+		});
 
 		var lottoCountdownRule = new schedule.RecurrenceRule();
 		lottoCountdownRule.mintue = 0;
-		var updateCountdown = schedule.scheduleJob(lottoCountdownRule, updateLottoCountdown);	
+		var updateCountdown = schedule.scheduleJob(lottoCountdownRule, updateLottoCountdown);
 	}
 
 	scheduleRecurringExport();
@@ -517,13 +560,13 @@ function shuffleScrubs(scrubs, caller, args) {
 			scrub.setNickname(`:${randLetter}${scrub.displayName.slice(2)}`);
 		}
 	});
-} 
+}
 
 /**
  * Adds the provided target to the review role.
  */
 function addToReviewRole(target, roles) {
-	target.addRole(roles.find('id', c.REVIEW_ROLE_ID));	
+	target.addRole(roles.find('id', c.REVIEW_ROLE_ID));
 	sendEmbedMessage(null, `Welcome to the team ${mentionUser(target.id)}!`, target.id);
 };
 
@@ -532,7 +575,7 @@ function addToReviewRole(target, roles) {
  */
 function removeFromReviewRole(target, roles) {
 	target.removeRole(roles.find('id', c.REVIEW_ROLE_ID));
-	sendEmbedMessage(null, `Good riddance. You were never there to review with us anyways, ${mentionUser(target.id)}!`, target.id);	
+	sendEmbedMessage(null, `Good riddance. You were never there to review with us anyways, ${mentionUser(target.id)}!`, target.id);
 };
 
 /**
@@ -547,13 +590,13 @@ function exportBanned() {
  * exports the user color preferences to a json file.
  */
 function exportColors(title, description, userID, guild, hex, color) {
-	sendEmbedMessage(title, description, userID);	
+	sendEmbedMessage(title, description, userID);
 	//If color not taken, write to colors.json
 	if (title.substring(0, 1) !== 'C') {
-		var json = JSON.stringify(userIDToColor);		
-		fs.writeFile('./resources/data/colors.json', json, 'utf8', log);	
+		var json = JSON.stringify(userIDToColor);
+		fs.writeFile('./resources/data/colors.json', json, 'utf8', log);
 		const target = guild.members.find('id', userID);
-		
+
 		if (target.roles.find('id', c.BEYOND_ROLE_ID)) {
 			guild.createRole({
 				name: color,
@@ -561,10 +604,10 @@ function exportColors(title, description, userID, guild, hex, color) {
 				position: guild.roles.array().length - 3
 			})
 			.then((role) => {
-				target.addRole(role);				
+				target.addRole(role);
 			})
 			.catch((err) => {
-				c.LOG.error(`<ERROR> ${getTimestamp()}  Add Role Error: ${err}`);			
+				c.LOG.error(`<ERROR> ${getTimestamp()}  Add Role Error: ${err}`);
 			});
 		}
 	}
@@ -578,7 +621,7 @@ function setUserColor(targetColor, userID, guild) {
 	var title = '🏳️‍🌈 User Color Preference Set!';
 	var description = 'If the color on the left is not what you chose, then you typed something wrong or did not choose from the provided colors.\n' +
 	'You may use any of the colors on this list: http://www.w3.org/TR/css3-color/#svg-color';
-	
+
 	if (color) {
 		var hex = parseInt(color.toHexString().replace(/^#/, ''), 16);
 		if (Object.values(userIDToColor).includes(hex)) {
@@ -586,10 +629,10 @@ function setUserColor(targetColor, userID, guild) {
 			description = description.split('\n')[1];
 		}
 		else {
-			userIDToColor[userID] = hex;			
+			userIDToColor[userID] = hex;
 		}
 	}
-	exportColors(title, description, userID, guild, hex, targetColor);	
+	exportColors(title, description, userID, guild, hex, targetColor);
 };
 
 /**
@@ -607,15 +650,15 @@ function playSoundByte(channel, target, userID) {
 	if (soundBytes.includes(target.toLowerCase())) {
 		channel.join()
 		.then((connection) => {
-			c.LOG.error(`<INFO> ${getTimestamp()}  Connected to channel!`);			
+			c.LOG.error(`<INFO> ${getTimestamp()}  Connected to channel!`);
 			const dispatcher = connection.playFile(`./resources/audio/${target}.mp3`);
-			
+
 			dispatcher.on('end', () => {
 				channel.leave();
 			});
 		})
 		.catch((err) => {
-			c.LOG.error(`<ERROR> ${getTimestamp()}  Add Role Error: ${err}`);			
+			c.LOG.error(`<ERROR> ${getTimestamp()}  Add Role Error: ${err}`);
 		});
 	}
 }
@@ -631,7 +674,7 @@ var downloadAttachment = co.wrap(function *(msg, userID) {
 		if (msg.attachments.length == 0) return;
 		const nameData = msg.attachments.array()[0].name.split('.');
 		if (nameData[1] !== 'mp3') {
-			sendEmbedMessage('🎶 Invalid File', 'You must attach a .mp3 file with the description set to `*add-sb`', userID);						
+			sendEmbedMessage('🎶 Invalid File', 'You must attach a .mp3 file with the description set to `*add-sb`', userID);
 			return;
 		}
 
@@ -646,12 +689,12 @@ var downloadAttachment = co.wrap(function *(msg, userID) {
 		}.bind(this))))
 	}
 	catch (err) {
-		sendEmbedMessage('🎶 Invalid File', 'You must attach a .mp3 file with the description set to `*add-sb`', userID);			
+		sendEmbedMessage('🎶 Invalid File', 'You must attach a .mp3 file with the description set to `*add-sb`', userID);
 		return;
 	}
 
 	sendEmbedMessage('🎶 Sound Byte Successfully Added', `You may now hear the sound byte by calling \`*sb ${fileName}\` from within a voice channel.`, userID);
-	soundBytes.push(fileName);				
+	soundBytes.push(fileName);
 	var json = JSON.stringify(soundBytes);
 	fs.writeFile('./resources/data/soundbytes.json', json, 'utf8', log);
 }.bind(this));
@@ -665,7 +708,7 @@ function maybeAddSoundByte(message, userID) {
 
 /**
  * Builds a target which could be one word or multiple.
- * 
+ *
  * @param {String[]} args - command args passed in by user
  * @param {number} startIdx - the start index of your target within args
  */
@@ -679,7 +722,7 @@ function getTargetFromArgs(args, startIdx) {
 
 /**
  * Creates an alias for a command, that only works for the provided user.
- * 
+ *
  * @param {String} userID - ID of the user to create the cmd alias for
  * @param {String} user - name of the user to create the cmd alias for
  * @param {String[]} args - command args passed in by user
@@ -689,16 +732,16 @@ function createAlias(userID, user, args) {
 	var aliases = userIDToAliases[userID] || {};
 	aliases[command] = getTargetFromArgs(args, 2);
 	userIDToAliases[userID] = aliases;
-	const msg = `Calling \`.${command}\` will now trigger a call to \`.${aliases[command]}\``; 
+	const msg = `Calling \`.${command}\` will now trigger a call to \`.${aliases[command]}\``;
 	sendEmbedMessage(`Alias Created for ${user}`, msg, userID)
 
-	var json = JSON.stringify(userIDToAliases);		
-	fs.writeFile('./resources/data/aliases.json', json, 'utf8', log);	
+	var json = JSON.stringify(userIDToAliases);
+	fs.writeFile('./resources/data/aliases.json', json, 'utf8', log);
 };
 
 /**
  * Gets the alias if it exists for the provided command and user
- * 
+ *
  * @param {String} command - the command to check for an alias value
  * @param {String} userID - the ID of the user calling the command
  */
@@ -706,13 +749,13 @@ function maybeGetAlias(command, userID) {
 	const aliases = userIDToAliases[userID];
 	if (aliases) {
 		return aliases[command];
-	} 
+	}
 	return null;
 };
 
 /**
  * Outputs all of the provided user's command aliases
- * 
+ *
  * @param {String} userID - the ID of the user to output aliases for
  * @param {String} user - the name of the user to output aliases for
  */
@@ -725,7 +768,7 @@ function outputAliases(userID, user) {
 			msg += `\`.${alias}\` = \`.${aliases[alias]}\``
 		}
 	}
-	sendEmbedMessage(`Aliases Created by ${user}`, msg, userID)	
+	sendEmbedMessage(`Aliases Created by ${user}`, msg, userID)
 };
 
 /**
@@ -748,10 +791,10 @@ function listBackups() {
 
 /**
  * Waits for the specified backup file to exist.
- * 
- * @param {String} time - backup timestamp 
+ *
+ * @param {String} time - backup timestamp
  * @param {String} path - backup file path
- * @param {Number} timeout - number of seconds before timing out 
+ * @param {Number} timeout - number of seconds before timing out
  * @param {Boolean} restart - whether or not the bot should restart on success
  */
 function waitForFileToExist(time, path, timeout, restart) {
@@ -774,14 +817,14 @@ function waitForFileToExist(time, path, timeout, restart) {
 
 /**
  * Backs the server up.
- * 
+ *
  * @param {Boolean} restart - whether or not the bot should restart on success
  */
 function backupJson(restart) {
 	const time = moment().format('M[-]D[-]YY[@]h[-]mm[-]a');
-	config.lastBackup = time;		
+	config.lastBackup = time;
 	var json = JSON.stringify(config);
-	fs.writeFile('./resources/data/config.json', json, 'utf8', log);	
+	fs.writeFile('./resources/data/config.json', json, 'utf8', log);
 	backup.backup('./resources/data', `../jsonBackups/${time}.backup`);
 
 	const backupPath = `../jsonBackups/${time}.backup`
@@ -790,7 +833,7 @@ function backupJson(restart) {
 
 /**
  * Restores all json files from the specified backup.
- * 
+ *
  * @param {String} backupTarget - the timestamp of the backup to restore from
  */
 function restoreJsonFromBackup(backupTarget) {
@@ -807,7 +850,7 @@ function restoreJsonFromBackup(backupTarget) {
 				mv = spawn(`mv ${tempDir}/data/* ./resources/data/`);
 			fs.rmdirSync(`${tempDir}/data`);
 			fs.rmdirSync(tempDir);
-			sendEmbedMessage('Data Restored From Backup', `All data files have been restored to the state they were in on ${backupTarget}.`);			
+			sendEmbedMessage('Data Restored From Backup', `All data files have been restored to the state they were in on ${backupTarget}.`);
 		}, 2000);
 	} else {
 		sendEmbedMessage('Invalid Backup Specified', `There is no backup for the provided time of ${backupTarget}.`);
@@ -816,7 +859,7 @@ function restoreJsonFromBackup(backupTarget) {
 
 /**
  * Restarts the bot.
- * 
+ *
  * @param {Boolean} update - whether or not the bot should pull from github
  */
 function restartBot(update) {
@@ -840,8 +883,8 @@ function deleteQuoteTipMsg() {
 
 /**
  * Quotes a user.
- * 
- * @param {Object} ogMessage - original message being quoted 
+ *
+ * @param {Object} ogMessage - original message being quoted
  * @param {*} quotedUserID - id of user being quoted
  * @param {*} quotingUserID - id of user creating quote
  * @param {*} channelID - id of the channel quote was found in
@@ -850,7 +893,7 @@ function quoteUser(ogMessage, quotedUserID, quotingUserID, channelID) {
 	const numMessagesToCheck = quotedUserID ? 50 : 20;
 	const channel = bot.getClient().channels.find('id', channelID);
 	const quoteableMessages = channel.messages.last(numMessagesToCheck);
-	ogMessage.channel.send('**Add Reaction(s) to The Desired Messages**\n' + 
+	ogMessage.channel.send('**Add Reaction(s) to The Desired Messages**\n' +
 	'Use :quoteReply: to include their quote at the top of your next message.\n' +
 	'Use :quoteSave: to save the quote to the quote list for that user.')
 	.then((msgSent) => {
@@ -859,7 +902,7 @@ function quoteUser(ogMessage, quotedUserID, quotingUserID, channelID) {
 
 	if (quotedUserID) {
 		quotedUserID = getIdFromMention(quotedUserID);
-		if (!bot.getScrubIDToNick()[quotedUserID]) { return; }	
+		if (!bot.getScrubIDToNick()[quotedUserID]) { return; }
 		quoteableMessages.filter((message) => {
 			return message.member.id === quotedUserID;
 		}).reverse().slice(0, 15);
@@ -887,14 +930,14 @@ function quoteUser(ogMessage, quotedUserID, quotingUserID, channelID) {
 			});
 		})
 		.catch((err) => {
-			c.LOG.error(`<ERROR> ${getTimestamp()}  Add Role Error: ${err}`);			
+			c.LOG.error(`<ERROR> ${getTimestamp()}  Add Role Error: ${err}`);
 		});
 	});
 };
 
 /**
  * Outputs quotes.
- * 
+ *
  * @param {String} quoteTarget - person to get quotes by
  * @param {String} userID - id of user requesting quotes
  */
@@ -924,7 +967,7 @@ function getQuotes(quoteTarget, userID) {
 
 /**
  * Inserts quotes into the provided message if the user has recently called quoteReply.
- * 
+ *
  * @param {Object} message - the message to add the quote to
  */
 function maybeInsertQuotes(message) {
@@ -960,8 +1003,8 @@ function maybeInsertQuotes(message) {
  * Exports the quotes to json.
  */
 function exportQuotes() {
-	var json = JSON.stringify(quotes);		
-	fs.writeFile('./resources/data/quotes.json', json, 'utf8', log);	
+	var json = JSON.stringify(quotes);
+	fs.writeFile('./resources/data/quotes.json', json, 'utf8', log);
 }
 
 /**
@@ -974,7 +1017,7 @@ function updateLottoCountdown() {
 
 /**
  * Gets a user's id from the provided mention.
- * 
+ *
  * @param {String} userMention - a mention of a user
  */
 function getIdFromMention(userMention) {
@@ -983,7 +1026,7 @@ function getIdFromMention(userMention) {
 
 /**
  * Creates a user mention with the provided ID.
- * 
+ *
  * @param {String} userID - the id of the user to mention
  */
 function mentionUser(userID) {
@@ -992,16 +1035,16 @@ function mentionUser(userID) {
 
 /**
  * Creates a role mention with the provided ID.
- * 
+ *
  * @param {String} roleID - the id of the role to mention
  */
 function mentionRole(roleID) {
-	return `<@&${roleID}>`;	
+	return `<@&${roleID}>`;
 }
 
 /**
  * Creates a channel mention with the provided ID.
- * 
+ *
  * @param {String} channelID - the id of the channel to mention
  */
 function mentionChannel(channelID) {
@@ -1017,21 +1060,21 @@ function isDevEnv() {
 
 /**
  * Shows any tip that includes the provided keyword in its title.
- * 
- * @param {String} keyword - tip keyword 
+ *
+ * @param {String} keyword - tip keyword
  */
 function showTips(keyword) {
 	const matchingTips = c.TIPS.filter((tip) => {return tip.title.toLowerCase().includes(keyword);});
 	const outputTips = matchingTips.length === 0 ? c.TIPS : matchingTips;
 	outputTips.forEach((tip) => {
 		bot.getBotSpam().send(new Discord.RichEmbed(tip));
-	});		
+	});
 }
 
 /**
  * Gets the name of the calling function or the provided function.
- * 
- * @param {String} funcName - the name of the function 
+ *
+ * @param {String} funcName - the name of the function
  */
 function getCallerOrProvided(funcName) {
 	return funcName || arguments.callee.caller.caller.name;
@@ -1039,8 +1082,8 @@ function getCallerOrProvided(funcName) {
 
 /**
  * Locks the provided function, stopping it from being callable..
- * 
- * @param {String} funcName - the name of the function 
+ *
+ * @param {String} funcName - the name of the function
  */
 function lock(funcName) {
 	locks[getCallerOrProvided(funcName)] = true;
@@ -1048,8 +1091,8 @@ function lock(funcName) {
 
 /**
  * Unlocks the provided function, allowing it to be called.
- * 
- * @param {String} funcName - the name of the function 
+ *
+ * @param {String} funcName - the name of the function
  */
 function unLock(funcName) {
 	locks[getCallerOrProvided(funcName)] = false;
@@ -1057,8 +1100,8 @@ function unLock(funcName) {
 
 /**
  * Checks if the provided function is currently locked from calls.
- * 
- * @param {String} funcName - the name of the function 
+ *
+ * @param {String} funcName - the name of the function
  */
 function isLocked(funcName) {
 	return locks[getCallerOrProvided(funcName)];
@@ -1066,13 +1109,13 @@ function isLocked(funcName) {
 
 /**
  * Removes the provided element from the array if found.
- * 
+ *
  * @param {*[]} array - the array to remove an element from
  * @param {*} element - the element to remove
  */
 function maybeRemoveFromArray(array, element) {
 	var index = array.indexOf(element);
-	
+
 	if (index > -1) {
 		array.splice(index, 1);
 	}
@@ -1080,8 +1123,8 @@ function maybeRemoveFromArray(array, element) {
 
 /**
  * Checks if the provided channel is Purgatory or the AFK channel.
- * 
- * @param {String} channelID - id of the channel to check 
+ *
+ * @param {String} channelID - id of the channel to check
  */
 function isInPurgatoryOrAFK(channelID) {
 	return channelID === c.PURGATORY_CHANNEL_ID || channelID === c.AFK_CHANNEL_ID;
@@ -1089,7 +1132,7 @@ function isInPurgatoryOrAFK(channelID) {
 
 /**
  * Updates the mute and deaf members array.
- * 
+ *
  * @param {Object[]} channels - the server's channels
  */
 function updateMuteAndDeaf(channels) {
@@ -1103,7 +1146,7 @@ function updateMuteAndDeaf(channels) {
 				}
 			} else if (!muteAndDeafUserIDToTime[member.id] && !isInPurgatoryOrAFK(channel.id)) {
 				muteAndDeafUserIDToTime[member.id] = moment();
-				c.LOG.info(`<INFO> ${getTimestamp()}  Adding ${member.displayName} to mute & deaf list.`);				
+				c.LOG.info(`<INFO> ${getTimestamp()}  Adding ${member.displayName} to mute & deaf list.`);
 			}
 		});
 	});
@@ -1117,7 +1160,7 @@ function maybeMoveMuteAndDeaf() {
 	const purgatoryVC = bot.getPurgatory();
 	const now = moment();
 	for (userID in muteAndDeafUserIDToTime) {
-		if (now.diff(muteAndDeafUserIDToTime[userID], 'minutes') < 5) { continue; }	
+		if (now.diff(muteAndDeafUserIDToTime[userID], 'minutes') < 5) { continue; }
 		delete muteAndDeafUserIDToTime[userID];
 		const deafMember = members.find('id', userID);
 		if (!deafMember) { continue; }
@@ -1130,7 +1173,7 @@ function maybeMoveMuteAndDeaf() {
  * Checks for users who are both mute and deaf and moves them
  * to the solitary confinement channel if they have been that way
  * for at least 5 minutes.
- * 
+ *
  * @param {Object[]} channels - the server's channels
  */
 function handleMuteAndDeaf(channels) {
@@ -1140,8 +1183,8 @@ function handleMuteAndDeaf(channels) {
 
 /**
  * Returns true iff the user associated with the provided ID is an admin.
- * 
- * @param {String} userID - id of the user 
+ *
+ * @param {String} userID - id of the user
  */
 function isAdmin(userID) {
 	return userID === c.K_ID || userID === c.R_ID;
@@ -1149,7 +1192,7 @@ function isAdmin(userID) {
 
 /**
  * Gets the member's actual display name, without playing status box-letters.
- * 
+ *
  * @param {Object} nickname - the nickname to strip playing status from
  */
 function getTrueDisplayName(nickname) {
@@ -1158,8 +1201,8 @@ function getTrueDisplayName(nickname) {
 
 /**
  * Bans the user from posting in the provided channel for 2 days.
- * 
- * @param {Object} user - the user to ban 
+ *
+ * @param {Object} user - the user to ban
  * @param {Object} channel - the channel to ban the user from posting in
  */
 function banSpammer(user, channel) {
@@ -1169,10 +1212,10 @@ function banSpammer(user, channel) {
 	})
 	.then(c.LOG.info(`<INFO> ${getTimestamp()}  Banning ${user.displayName} from ${channel.name} for spamming.`))
 	.catch((err) => {
-		c.LOG.error(`<ERROR> ${getTimestamp()}  Ban - Overwrite Permissions Error: ${err}`);			
+		c.LOG.error(`<ERROR> ${getTimestamp()}  Ban - Overwrite Permissions Error: ${err}`);
 	});
 	usersBans.push({
-		channelID: channel.id, 
+		channelID: channel.id,
 		time: moment()
 	})
 	bannedUserIDToBans[user.id] = usersBans;
@@ -1183,7 +1226,7 @@ function banSpammer(user, channel) {
 /**
  * Bans the author of the message from posting in that channel
  * if it was posted 3 times in a row.
- * 
+ *
  * @param {Object} message - the message sent in a channel
  */
 function maybeBanSpammer(message) {
@@ -1197,13 +1240,13 @@ function maybeBanSpammer(message) {
 		if (duplicateMessages.length === 3) {
 			banSpammer(message.member, message.channel);
 		}
-	});	
+	});
 }
 
 /**
  * Lifts the posting ban from the user in the provided channel.
- * 
- * @param {Object} userID - the id of the user to un-ban 
+ *
+ * @param {Object} userID - the id of the user to un-ban
  * @param {Object} channelID - the id of the channel to allow the user to post in
  */
 function unBanSpammer(userID, channelID) {
@@ -1213,10 +1256,10 @@ function unBanSpammer(userID, channelID) {
 	})
 	.then(c.LOG.info(`<INFO> ${getTimestamp()}  Un-banning ${bot.getScrubIDToNick()[userID]} from ${channel.name} for spamming.`))
 	.catch((err) => {
-		c.LOG.error(`<ERROR> ${getTimestamp()}  Un-ban - Overwrite Permissions Error: ${err}`);			
+		c.LOG.error(`<ERROR> ${getTimestamp()}  Un-ban - Overwrite Permissions Error: ${err}`);
 	});
 	delete bannedUserIDToBans[userID];
-	exportBanned();	
+	exportBanned();
 	channel.send(`${mentionUser(userID)} Your ban has been lifted, and may now post in ${mentionChannel(channel.id)} again.`)
 }
 
@@ -1241,12 +1284,12 @@ function addToList(args, userID) {
 	const listIdx = lists.map((list) => list.name).indexOf(listName);
 	if (listIdx === -1) {
 		sendEmbedMessage('404 List Not Found',
-			`There is no list under the name "${listName}". Create it yourself by calling \`.new-list ${listName}\``, userID);
+			`There is no list under the name "${listName}". Create it yourself by calling \`.create-list ${listName}\``, userID);
 		return;
 	}
-	sendEmbedMessage(`Entry Added to ${listName}`, 'You can view all of the entries by calling `.list`'. userID);
+	sendEmbedMessage(`Entry Added to ${listName}`, 'You can view all of the entries by calling `.list`', userID);
 	lists[listIdx].entries.push(entry);
-	fs.writeFile('./resources/data/lists.json', JSON.stringify(lists), 'utf8', log);	
+	fs.writeFile('./resources/data/lists.json', JSON.stringify(lists), 'utf8', log);
 }
 
 function createList(args, userID) {
@@ -1260,8 +1303,9 @@ function showLists(userID) {
 
 	var results = [];
 	var legendMsg = '`Click the numbered reaction associated with the list you wish to view.`\n';
+	const correction = lists.length > 9 ? 0 : 1;
 	lists.forEach((list, listIdx) => {
-		legendMsg += `**${listIdx}.**  ${list.name}\n`;
+		legendMsg += `**${listIdx + correction}.**  ${list.name}\n`;
 
 		var description = '';
 		list.entries.forEach((entry, entryIdx) => {
@@ -1273,16 +1317,12 @@ function showLists(userID) {
 		});
 	});
 	results = results.slice(-10);
-	const homeResult = {
+	const homePage = {
 		name: 'Lists Index',
 		description: legendMsg
 	};
-	sendEmbedMessage(homeResult.name, homeResult.description, userID)
-	.then((msgSent) => {
-		msgSent.react('🏠');
-		addInitialNumberReactions(msgSent, 0, results.length - 1);
-		awaitAndHandleReaction(msgSent, userID, results, homeResult);
-	});
+
+	sendDynamicMessage(userID, 'list', results, homePage);
 }
 
 //-------------------- Public Functions --------------------
@@ -1332,6 +1372,7 @@ exports.removeFromReviewRole = removeFromReviewRole;
 exports.restartBot = restartBot;
 exports.restoreJsonFromBackup = restoreJsonFromBackup;
 exports.scheduleRecurringJobs = scheduleRecurringJobs;
+exports.sendDynamicMessage = sendDynamicMessage;
 exports.sendEmbedFieldsMessage = sendEmbedFieldsMessage;
 exports.sendEmbedMessage = sendEmbedMessage;
 exports.setUserColor = setUserColor;

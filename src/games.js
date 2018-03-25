@@ -11,7 +11,7 @@ var c = require('./const.js');
 var bot = require('./bot.js');
 var util = require('./utilities.js');
 var heatmap = require('./heatmap.js');
-var private = require('../../private.json'); 
+var private = require('../../private.json');
 var optedInUsers = require('../resources/data/optedIn.json');		//users that have opted in to playtime tracking
 var userIDToFortniteUserName = require('../resources/data/fortniteUserData.json'); //map of Discord userID to Fortnite username
 var userIDToStreamingUrl = require('../resources/data/streaming.json') //map of user id to the url of their stream
@@ -27,7 +27,7 @@ var whoSaidScore = {};
  * Exports the timesheet to a json file.
  */
 exports.exportTimeSheetAndGameHistory = function() {
-	var json = JSON.stringify(timeSheet);	
+	var json = JSON.stringify(timeSheet);
 	fs.writeFile('./resources/data/timeSheet.json', json, 'utf8', util.log);
 
 	json = JSON.stringify(gameHistory);
@@ -47,7 +47,7 @@ exports.clearTimeSheet = function() {
 
 /**
  * Gets the name of the game provided as well as the target if one exists
- * 
+ *
  * @param {String[]} args - input arguments from the user
  */
 function getGameNameAndTarget(args) {
@@ -72,7 +72,7 @@ function updateHeatMap(logTime, playerCount) {
 	const count = dayHourData.playerCount || 0;
 	const size = dayHourData.sampleSize || 0;
 	heatMapData[logTime.day()][logTime.hour()] = {
-		playerCount: count + playerCount, 
+		playerCount: count + playerCount,
 		sampleSize: size + 1
 	};
 	exports.generateHeatMap();
@@ -83,7 +83,7 @@ function updateHeatMap(logTime, playerCount) {
  */
 exports.generateHeatMap = function() {
 	writeHeatMapDataToTsvFile();
-	var json = JSON.stringify(heatMapData);	
+	var json = JSON.stringify(heatMapData);
 	fs.writeFile('./resources/data/rawHeatMapData.json', json, 'utf8', util.log);
 }
 
@@ -111,7 +111,7 @@ function getGamesBeingPlayedData(players) {
 }
 
 /**
- * Gets and outputs the player count of every game currently being played, 
+ * Gets and outputs the player count of every game currently being played,
  * unless called from recurring job, in which case it stores the result without outputting it.
  */
 exports.maybeOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
@@ -120,8 +120,8 @@ exports.maybeOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
 	var fields = [];
 	var time = moment();
 	var gamesLog = {
-		time: time, 
-		playerCount: total, 
+		time: time,
+		playerCount: total,
 		gameData: []
 	};
 	for (var gameID in games) {
@@ -146,7 +146,7 @@ exports.maybeOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
 		fields.sort(util.compareFieldValues);
 		util.sendEmbedFieldsMessage(`🎮 Player Count - ${total}`, fields, userID);
 	} else {
-		updateHeatMap(time, total);		
+		updateHeatMap(time, total);
 	}
 };
 
@@ -160,7 +160,7 @@ exports.updatePlayingStatus = function() {
 
 /**
  * Gets the play time of the game provided.
- * 
+ *
  * @param {Object} currentlyPlaying - the game finished or currently being played
  */
 function getTimePlayed(currentlyPlaying) {
@@ -179,7 +179,7 @@ function getTimePlayed(currentlyPlaying) {
 
 /**
  * Gets the provided users playtime for a specific game.
- * 
+ *
  * @param {String} userID - id of the user to get playtime of
  * @param {String} gameName - name of the game to get playtime of
  */
@@ -189,11 +189,11 @@ function getUsersPlaytimeForGame(userID, gameName) {
 	}
 
 	var playtime = timeSheet[userID][gameName];
-	var currentlyPlaying = timeSheet[userID]['playing'];						
-	
+	var currentlyPlaying = timeSheet[userID]['playing'];
+
 	//TODO: THIS LOGIC IS WRONG! If they are currently playing a game and have already played it today, it won't include their current play time~~~~~~~~~~~~~~~~~~~~~~~~~
-	//if the target user is currently playing the game 
-	if (playtime === 0 && currentlyPlaying && currentlyPlaying.name === gameName) {						
+	//if the target user is currently playing the game
+	if (playtime === 0 && currentlyPlaying && currentlyPlaying.name === gameName) {
 		playtime = getTimePlayed(currentlyPlaying);
 	}
 
@@ -203,7 +203,7 @@ function getUsersPlaytimeForGame(userID, gameName) {
 /**
  * Gets the cumulative play time of everyone on the server for the provided game.
  * Can also get cumulative time for all games.
- * 
+ *
  * @param {String} gameName - the game to get play time for
  */
 function getCumulativeTimePlayed(gameName, target) {
@@ -224,7 +224,7 @@ function getCumulativeTimePlayed(gameName, target) {
 			for (var game in gameToTime) {
 				if (game === 'playing') {
 					continue;
-				} 
+				}
 				var playtime = getUsersPlaytimeForGame(userID, game);
 				if (playtime) {
 					if (!cumulativeTimePlayed.gameToTime[game]) {
@@ -237,34 +237,34 @@ function getCumulativeTimePlayed(gameName, target) {
 		} else {
 			var timePlayed = getUsersPlaytimeForGame(userID, gameName);
 			if (timePlayed) {
-				cumulativeTimePlayed.total += timePlayed;							
+				cumulativeTimePlayed.total += timePlayed;
 			}
 		}
 	}
-	
+
 	return cumulativeTimePlayed;
 }
 
 /**
  * Checks if the provided user has opted into playtime tracking.
- * 
+ *
  * @param {String} user - the user to check
  */
 function isOptedIn(user) {
 	user = util.getIdFromMention(user);
-	if (optedInUsers.indexOf(user) === -1) 
+	if (optedInUsers.indexOf(user) === -1)
 		return false;
 	return true;
 }
 
 /**
  * Outputs the cumulative playtime.
- * 
- * @param {Object} timePlayedData 
+ *
+ * @param {Object} timePlayedData
  */
 function outputCumulativeTimePlayed(timePlayedData, userID) {
 	var fields = [];
-	fields.push(util.buildField('All Games', timePlayedData.total.toFixed(1)));	
+	fields.push(util.buildField('All Games', timePlayedData.total.toFixed(1)));
 	for (var gameName in timePlayedData.gameToTime) {
 		var playtime = timePlayedData.gameToTime[gameName];
 		fields.push(util.buildField(gameName, playtime.toFixed(1)));
@@ -276,7 +276,7 @@ function outputCumulativeTimePlayed(timePlayedData, userID) {
 
 /**
  * Gets and outputs the time played for the game by the user(s) provided in args.
- * 
+ *
  * @param {String[]} args - input arguments from the user
  */
 exports.maybeOutputTimePlayed = function(args, userID) {
@@ -284,19 +284,19 @@ exports.maybeOutputTimePlayed = function(args, userID) {
 	var target = nameAndTargetData.target;
 	var game = nameAndTargetData.game;
 
-	c.LOG.info(`<INFO> ${util.getTimestamp()}  Time Called - game: ${game} target: ${target}`);		
-	if (target !== '' && !isOptedIn(target)) { 
+	c.LOG.info(`<INFO> ${util.getTimestamp()}  Time Called - game: ${game} target: ${target}`);
+	if (target !== '' && !isOptedIn(target)) {
 		util.sendEmbedMessage(null,'I do not track that scrub\'s playtime.', userID);
-		c.LOG.info(`<INFO> ${util.getTimestamp()}  ${target} is not opted in.`);				
-		return; 
+		c.LOG.info(`<INFO> ${util.getTimestamp()}  ${target} is not opted in.`);
+		return;
 	}
-	
+
     if (target.match(/\d/g) !== null) {
         target = util.getIdFromMention(target);
-    } 
+    }
     var timePlayedData = getCumulativeTimePlayed(game,target);
     if (Object.keys(timePlayedData.gameToTime).length !== 0) {
-        outputCumulativeTimePlayed(timePlayedData, userID);	
+        outputCumulativeTimePlayed(timePlayedData, userID);
     } else {
 		var fields = [];
 		fields.push(util.buildField(game,timePlayedData.total.toFixed(1)));
@@ -319,7 +319,7 @@ function writeHeatMapDataToTsvFile() {
 			hourIdx--;
 			if (dayIdx === 0) {
 				dayIdx = 7;
-			} 
+			}
 			if (hourIdx === -1) {
 				hourIdx = 23;
 			}
@@ -327,10 +327,10 @@ function writeHeatMapDataToTsvFile() {
 		});
 	});
 
-	if (formattedHistory !== firstLine) {		
+	if (formattedHistory !== firstLine) {
 		fs.writeFile('./resources/data/avgHeatMapData.tsv', formattedHistory, 'utf8', util.log);
 		heatmap.generateHeatMap();
-	}		
+	}
 }
 
 /**
@@ -342,7 +342,7 @@ exports.maybeOutputHeatMap = function(userID) {
 
 /**
  * Gets the user data for the provided game.
- * 
+ *
  * @param {String} gameName - the game to find players of
  */
 function getGameUserData(gameName, fuzzyThreshold) {
@@ -350,7 +350,7 @@ function getGameUserData(gameName, fuzzyThreshold) {
 	options.threshold = fuzzyThreshold;
 	var fuse = new Fuse(gamesPlayed, options);
 	var result = fuse.search(gameName);
-	if (result.length === 0) {return {};} 
+	if (result.length === 0) {return {};}
 
 	return result[0];
 }
@@ -363,7 +363,7 @@ function buildWhoPlaysFields(usersWhoPlay) {
 		}
     	return b.time - a.time;
 	});
-	
+
 	const scrubIDToNick = bot.getScrubIDToNick();
 	usersWhoPlay.forEach((user) => {
 		const lastPlayed = isNaN(user.time)?'N/A': moment(user.time).format('M/DD/YY hh:mm A');
@@ -401,12 +401,8 @@ function whoPlaysUsersGames(userID) {
 		});
 		legendMsg += `**${index}**.	${game.title}\n`;
 	});
-	
-	util.sendEmbedFieldsMessage(gamesOutput[0].name, gamesOutput[0].fields, userID)
-	.then((msgSent) => {
-		util.addInitialNumberReactions(msgSent, 0, 9);
-		util.awaitAndHandleReaction(msgSent, userID, gamesOutput);
-	});
+
+    util.sendDynamicMessage(userID, 'game', gamesOutput);
 	util.sendEmbedMessage('Legend for Who Plays', legendMsg, userID);
 }
 
@@ -420,8 +416,8 @@ exports.whoPlays = function(args, userID) {
 	}
 	const game = util.getTargetFromArgs(args, 1);
 	const gameUserData = getGameUserData(game, 0.3);
-	c.LOG.info(`<INFO> ${util.getTimestamp()}  Who Plays ${game} - ${inspect(gameUserData)}`);						
-	
+	c.LOG.info(`<INFO> ${util.getTimestamp()}  Who Plays ${game} - ${inspect(gameUserData)}`);
+
 	var usersWhoPlay = gameUserData.users;
 	if (usersWhoPlay) {
 		var fields = buildWhoPlaysFields(usersWhoPlay);
@@ -432,7 +428,7 @@ exports.whoPlays = function(args, userID) {
 };
 
 function maybeAddCurrPlayingToArgs(args, message) {
-	const currPlaying = get(message.member, 'presence.game.name');	
+	const currPlaying = get(message.member, 'presence.game.name');
     if(args.length === 1) {
 		if (!currPlaying) { return null; }
     	args[1] = currPlaying;
@@ -451,7 +447,7 @@ exports.letsPlay = function(args, userID, userName, message, oneMore) {
 	const emojis = message.guild.emojis;
 	args = maybeAddCurrPlayingToArgs(args, message);
 	if (!args) {
-		util.outputHelpForCommand('lets-play', userID);		
+		util.outputHelpForCommand('lets-play', userID);
 	}
 	const gameIdx = args[1] === '-ss' ? 2 : 1;
 	var game = util.getTargetFromArgs(args, gameIdx);
@@ -460,14 +456,14 @@ exports.letsPlay = function(args, userID, userName, message, oneMore) {
 		game = gameTokens[1];
 	}
 	const gameUserData = getGameUserData(game, 0.3);
-	c.LOG.info(`<INFO> ${util.getTimestamp()}  Lets Play ${game} - ${inspect(gameUserData)}`);						
-	
+	c.LOG.info(`<INFO> ${util.getTimestamp()}  Lets Play ${game} - ${inspect(gameUserData)}`);
+
 	var usersWhoPlay = gameUserData.users;
 	if (usersWhoPlay) {
-		game = emojis.find('name', game) || game;		
+		game = emojis.find('name', game) || game;
 		const oneMoreMsg = oneMore ? 'We need **1** more for ' : '';
 		const punctuation = oneMore ? '!' : '?';
-		var msg = `↪️ **${userName}**: ${oneMoreMsg}${game}${punctuation}`;					
+		var msg = `↪️ **${userName}**: ${oneMoreMsg}${game}${punctuation}`;
 		usersWhoPlay.forEach((user) => {
 			if (gameIdx === 1 || user.role !== '(ᵔᴥᵔ) ͡Super ͡Scrubs ™') {
 				msg += ` ${util.mentionUser(user.id)}`;
@@ -493,16 +489,16 @@ function updateWhoPlays(userID, user, role, game) {
 	if (!game) {return;}
 	const gameUserData = getGameUserData(game, 0);
 	var usersWhoPlay = gameUserData.users;
-	
+
 	if (!usersWhoPlay) {
 		usersWhoPlay = [{ id: userID, time: moment().valueOf(), role: role.name }];
 	} else {
 		const userEntryIdx = usersWhoPlay.map((player) => player.id).indexOf(userID);
 		const newEntry = { id: userID, time: moment().valueOf(), role: role.name };
 		if (userEntryIdx === -1) {
-			usersWhoPlay.push(newEntry);			
+			usersWhoPlay.push(newEntry);
 		} else {
-			usersWhoPlay.splice(userEntryIdx, 1, newEntry);			
+			usersWhoPlay.splice(userEntryIdx, 1, newEntry);
 		}
 	}
 
@@ -520,16 +516,16 @@ function updateWhoPlays(userID, user, role, game) {
 
 /**
  * Updates the time played for a game when the user finishes playing it.
- * 
+ *
  * @param {Object} gameToTime - map of game to time played
  * @param {userName} userName - name of the user whos playtime is being updated
  */
 function getUpdatedGameToTime(gameToTime, userName) {
 	var currentlyPlaying = gameToTime['playing'];
-	
+
 	if (currentlyPlaying) {
 		var hoursPlayed = getTimePlayed(currentlyPlaying);
-		c.LOG.info(`<INFO> ${util.getTimestamp()}  Presence Update - ${userName} finished a ${hoursPlayed.toFixed(4)}hr session of ${currentlyPlaying.name}`);										
+		c.LOG.info(`<INFO> ${util.getTimestamp()}  Presence Update - ${userName} finished a ${hoursPlayed.toFixed(4)}hr session of ${currentlyPlaying.name}`);
 		gameToTime[currentlyPlaying.name] += hoursPlayed;
 		gameToTime['playing'] = null;
 	}
@@ -538,17 +534,17 @@ function getUpdatedGameToTime(gameToTime, userName) {
 
 /**
  * Updates the provided users timesheet.
- * 
- * TODO: Update this function to use the oldGame name to validate that is 
+ *
+ * TODO: Update this function to use the oldGame name to validate that is
  * what they just finished playing.
- * 
- * @param {String} user 
- * @param {String} userID 
- * @param {Object} game 
+ *
+ * @param {String} user
+ * @param {String} userID
+ * @param {Object} game
  */
 exports.updateTimesheet = function(user, userID, highestRole, oldGame, newGame) {
 	c.LOG.info(`<INFO> Presence Update - ${user} id: ${userID} old game: ${oldGame} new game: ${newGame}`);
-	
+
 	//get user's timesheet
 	var gameToTime = timeSheet[userID];
 	if (!gameToTime) {
@@ -564,16 +560,16 @@ exports.updateTimesheet = function(user, userID, highestRole, oldGame, newGame) 
 		gameToTime['playing'] = {name : newGame, start : (new Date).getTime()};
 		if (!gameToTime[newGame]) {
 			gameToTime[newGame] = 0;
-		}	
+		}
 	}
-	
+
 	timeSheet[userID] = gameToTime;
-	updateWhoPlays(userID, user, highestRole, oldGame);		
+	updateWhoPlays(userID, user, highestRole, oldGame);
 };
 
 /**
- * Waits for the provided number of seconds and then sends a scrub daddy fact. 
- * 
+ * Waits for the provided number of seconds and then sends a scrub daddy fact.
+ *
  * @param {Number} attempts - loop iterator
  * @param {Number} seconds - duration of each loop
  */
@@ -592,7 +588,7 @@ function waitAndSendScrubDaddyFact(attempts, seconds, userID) {
 
 /**
  * opts a user into playtime tracking
- * 
+ *
  * @param {String} user - the name of the user to opt in
  * @param {String} userID - the ID of the user to opt in
  */
@@ -602,12 +598,12 @@ exports.optIn = function(user, userID) {
 		return;
 	}
 	optedInUsers.push(userID);
-	var fields = [];					
+	var fields = [];
 	fields.push(util.buildField(user, '👀 I\'m watching you.'));
-	util.sendEmbedFieldsMessage('👀 YOU ARE BEING WATCHED', fields, userID);	
+	util.sendEmbedFieldsMessage('👀 YOU ARE BEING WATCHED', fields, userID);
 	waitAndSendScrubDaddyFact(0, 5, userID);
-	c.LOG.info(`<INFO> ${util.getTimestamp()}  ${user} (${userID}) has opted into time`);	
-	var json = JSON.stringify(optedInUsers);	
+	c.LOG.info(`<INFO> ${util.getTimestamp()}  ${user} (${userID}) has opted into time`);
+	var json = JSON.stringify(optedInUsers);
 	fs.writeFile('./resources/data/optedIn.json', json, 'utf8', util.log);
 };
 
@@ -615,19 +611,19 @@ exports.optIn = function(user, userID) {
  * Asks Scrubs if they want to play pubg.
  */
 exports.askToPlayPUBG = function() {
-	bot.getScrubsChannel().send(`${c.SCRUBS_ROLE}  ${c.GREETINGS[util.getRand(0, c.GREETINGS.length)]} tryna play some ${c.PUBG_ALIASES[util.getRand(0, c.PUBG_ALIASES.length)]}?`);	
+	bot.getScrubsChannel().send(`${c.SCRUBS_ROLE}  ${c.GREETINGS[util.getRand(0, c.GREETINGS.length)]} tryna play some ${c.PUBG_ALIASES[util.getRand(0, c.PUBG_ALIASES.length)]}?`);
 };
 
 /**
- * Determines what game the majority of the users are playing 
+ * Determines what game the majority of the users are playing
  * in the provided voice channel.
- * 
+ *
  * @param {Obejct} voiceChannel - the voice channel to find the majority game for.
  */
 function determineMajorityGame(voiceChannel) {
-	const majority = voiceChannel.members.size / 2;	
-	var gameToCount = {};	
-	var result = null;			
+	const majority = voiceChannel.members.size / 2;
+	var gameToCount = {};
+	var result = null;
 	voiceChannel.members.some((member) => {
 		const game = get(member, 'presence.game.name');
 		if (game) {
@@ -637,7 +633,7 @@ function determineMajorityGame(voiceChannel) {
 				gameToCount[game]++;
 			}
 			if (gameToCount[game] > majority) {
-				game.indexOf( 'B' ) == 0 ? result = game.replace( 'B', '🅱️' ) : result = game; 
+				game.indexOf( 'B' ) == 0 ? result = game.replace( 'B', '🅱️' ) : result = game;
 				return true;
 			}
 		}
@@ -647,20 +643,20 @@ function determineMajorityGame(voiceChannel) {
 
 /**
  * Sets the provided channel's name back to its default.
- * 
+ *
  * @param {Object} voiceChannel - the voice channel to reset the name of
  */
 function resetChannelName(voiceChannel) {
 	const defaultName = c.GAME_CHANNEL_NAMES[voiceChannel.id];
 	if (voiceChannel.name !== defaultName) {
-		c.LOG.info(`<INFO> ${util.getTimestamp()}  Resetting Channel Name - ${voiceChannel.name} -> ${defaultName}`);							
+		c.LOG.info(`<INFO> ${util.getTimestamp()}  Resetting Channel Name - ${voiceChannel.name} -> ${defaultName}`);
 		voiceChannel.setName(defaultName);
 	}
 }
 
 /**
  * Updates the dynamic voice channel names if the majority is playing a game.
- * 
+ *
  */
 exports.maybeUpdateChannelNames = function() {
 	gameChannels.forEach((channel) => {
@@ -670,7 +666,7 @@ exports.maybeUpdateChannelNames = function() {
 			//only rename if the name is not already up to date
 			if (fuse.search(`▶ ${majorityGame}`).length === 0) {
 				if (majorityGame) {
-					c.LOG.info(`<INFO> ${util.getTimestamp()}  Updating Channel Name - ${channel.name} -> ▶ ${majorityGame}`);					
+					c.LOG.info(`<INFO> ${util.getTimestamp()}  Updating Channel Name - ${channel.name} -> ▶ ${majorityGame}`);
 					channel.setName(`▶ ${majorityGame}`);
 				} else {
 					resetChannelName(channel);
@@ -684,7 +680,7 @@ exports.maybeUpdateChannelNames = function() {
 
 /**
 * Raises audio quality for channels with only beyond members. Vice versa for all others.
-* 
+*
 * @param {Object[]} channels - the server's channels
 */
 exports.maybeChangeAudioQuality = function(channels) {
@@ -692,20 +688,20 @@ exports.maybeChangeAudioQuality = function(channels) {
 		if (channel.type === "voice") {
 			const memberCount = get(channel, 'members.size');
 			if (memberCount) {
-				const beyondCount = channel.members.array().filter((member) => { 
-					return member.hoistRole.id === c.BEYOND_ROLE_ID || member.selfDeaf; 
+				const beyondCount = channel.members.array().filter((member) => {
+					return member.hoistRole.id === c.BEYOND_ROLE_ID || member.selfDeaf;
 				}).length;
 				if (memberCount === beyondCount && channel.bitrate !== c.MAX_BITRATE) {
 					channel.setBitrate(c.MAX_BITRATE)
 					.then(c.LOG.info(`<INFO> ${util.getTimestamp()}  Raising Channel Bitrate - ${channel.name}`))
 					.catch((err) => {
-						c.LOG.error(`<ERROR> ${util.getTimestamp()}  Add Role Error: ${err}`);			
+						c.LOG.error(`<ERROR> ${util.getTimestamp()}  Add Role Error: ${err}`);
 					});
 				} else if (channel.bitrate === c.MAX_BITRATE && memberCount !== beyondCount) {
 					channel.setBitrate(c.MIN_BITRATE)
 					.then(c.LOG.info(`<INFO> ${util.getTimestamp()}  Lowering Channel Bitrate - ${channel.name}`))
 					.catch((err) => {
-						c.LOG.error(`<ERROR> ${util.getTimestamp()}  Add Role Error: ${err}`);			
+						c.LOG.error(`<ERROR> ${util.getTimestamp()}  Add Role Error: ${err}`);
 					});
 				}
 			}
@@ -715,13 +711,13 @@ exports.maybeChangeAudioQuality = function(channels) {
 
 /**
  * Populates the array of dynamic voice channels.
- * 
+ *
  * @param {Object[]} channels - the server's channels
  */
 exports.setDynamicGameChannels = function(channels) {
 	Object.keys(c.GAME_CHANNEL_NAMES).forEach((channelID) => {
-		gameChannels.push(channels.find('id', channelID));	
-	});	
+		gameChannels.push(channels.find('id', channelID));
+	});
 };
 
 /**
@@ -759,12 +755,12 @@ exports.toggleStreaming = function(member) {
 /**
  * Updates the provided users nickname to contain the game they
  * just started playing.
- * 
+ *
  * @param {Object} member - the member to update name of
  * @param {String} game - the game they are playing
  */
 exports.maybeUpdateNickname = function(member, game) {
-	const nameTokens = member.displayName.split(' ▫ ');	
+	const nameTokens = member.displayName.split(' ▫ ');
 	const status = get(member, 'presence.status');
 
 	if (game && member.voiceChannel && status !== 'idle') {
@@ -777,11 +773,11 @@ exports.maybeUpdateNickname = function(member, game) {
 			const firstChar = token[0].toUpperCase();
 			nick += c.ENCLOSED_CHARS[firstChar] || firstChar;
 		});
-		c.LOG.info(`<INFO> ${util.getTimestamp()}  Updating Nickname - ${member.displayName} -> ${nick}`);	
+		c.LOG.info(`<INFO> ${util.getTimestamp()}  Updating Nickname - ${member.displayName} -> ${nick}`);
 		member.setNickname(nick);
 	} else {
 		if (nameTokens[1]) {
-			c.LOG.info(`<INFO> ${util.getTimestamp()}  Updating Nickname - ${member.displayName} -> ${nameTokens[0]}`);				
+			c.LOG.info(`<INFO> ${util.getTimestamp()}  Updating Nickname - ${member.displayName} -> ${nameTokens[0]}`);
 			member.setNickname(nameTokens[0]);
 		}
 	}
@@ -799,46 +795,46 @@ exports.getFortniteStats = function(gameMode, stat, callingUserID, fortniteUserN
 			if (gameMode && c.GAME_MODE_TO_KEY[gameMode.toLowerCase()]) {
 				if (gameMode !== 'all') {
 					const statKeyBase = `${c.GAME_MODE_TO_KEY[gameMode.toLowerCase()]}.${stat}`;
-					const label = get(player, `${statKeyBase}.label`);					
+					const label = get(player, `${statKeyBase}.label`);
 					const value = get(player, `${statKeyBase}.displayValue`);
 					const percentile = get(player, `${statKeyBase}.percentile`);
 					const gameModeTitle = `${gameMode.charAt(0).toUpperCase()}${gameMode.slice(1)}`;
 					if (fortniteUserName) {
-						const title = `Fortnite ${gameModeTitle} ${label} for ${fortniteUserName}`;	
-						util.sendEmbedMessage(title, `${value}\nTop ${percentile}% in the world`, callingUserID);	
+						const title = `Fortnite ${gameModeTitle} ${label} for ${fortniteUserName}`;
+						util.sendEmbedMessage(title, `${value}\nTop ${percentile}% in the world`, callingUserID);
 					} else if (label) {
 						fields.push(util.buildField(bot.getScrubIDToNick()[userID], value));
 						if (!statTitleLabel) {
 							statTitleLabel = label;
 						}
-					}		
+					}
 				} else {
-					var allFields = [];					
+					var allFields = [];
 					get(player, c.GAME_MODE_TO_KEY[gameMode.toLowerCase()]).forEach((category) => {
-						allFields.push(util.buildField(category.key, category.value));						
+						allFields.push(util.buildField(category.key, category.value));
 					});
-					util.sendEmbedFieldsMessage(`Fortnite Lifetime Stats for ${fortniteUserName}`, allFields, callingUserID);					
+					util.sendEmbedFieldsMessage(`Fortnite Lifetime Stats for ${fortniteUserName}`, allFields, callingUserID);
 				}
-			} 
+			}
 		})
 		.catch(function (err) {
-			c.LOG.error(`<ERROR> ${util.getTimestamp()}  ERROR: ${err}`);			
+			c.LOG.error(`<ERROR> ${util.getTimestamp()}  ERROR: ${err}`);
 		})
 		.finally(() => {
 			if (userIDs.length > 0 && !fortniteUserName) {
 				options.uri = baseUri;
 				requestStats(userIDs.pop());
 			} else if (fields.length > 0) {
-				fields.sort(util.compareFieldValues);				
+				fields.sort(util.compareFieldValues);
 				util.sendEmbedFieldsMessage(`Fortnite ${gameModeTitle} ${statTitleLabel} Leaderboard`, fields, callingUserID)
 			}
 		});
 	}
 
-	const gameModeTitle = `${gameMode.charAt(0).toUpperCase()}${gameMode.slice(1)}`;	
+	const gameModeTitle = `${gameMode.charAt(0).toUpperCase()}${gameMode.slice(1)}`;
 	var userIDs = Object.keys(userIDToFortniteUserName);
 	var fields = [];
-	var statTitleLabel;						
+	var statTitleLabel;
 	const baseUri = 'http://api.fortnitetracker.com/v1/profile/pc/';
 
 	var options= {
@@ -896,9 +892,9 @@ exports.sunkenSailor = function(callingMember) {
 	nouns = JSON.parse(nouns);
 	const secretWord = nouns[util.getRand(0, 585)];
 	txtgen.generateSunkenSailerSentenceTemplates(secretWord);
-	
+
 	for (i = 0; i < players.length - 1; i++) {
-		sendSunkenSailorMessage(players[i], false);		
+		sendSunkenSailorMessage(players[i], false);
 	}
 	sendSunkenSailorMessage(players[players.length - 1], true);
 	shuffleArray(players);
@@ -911,7 +907,7 @@ exports.sunkenSailor = function(callingMember) {
 
 /**
  * Gets up to 5 random quotes that match the provided criteria.
- * 
+ *
  * @param {Object} channel - channel to get quotes from
  * @param {Number} minLength - minimum length required to include msg
  * @param {Number} minReactions - minimum reactions required to include msg
@@ -948,7 +944,7 @@ function endWhoSaidGame() {
 	for(userID in whoSaidScore) {
 		fields.push(util.buildField(bot.getScrubIDToNick()[userID], whoSaidScore[userID]));
 	}
-	
+
 	fields.sort(util.compareFieldValues);
 	util.sendEmbedFieldsMessage('Who Said - Game Over', fields);
 	util.unLock('startWhoSaidGame');
@@ -969,12 +965,12 @@ function whoSaidGameLoop(randomQuotes, round) {
 		endWhoSaidGame();
 		return;
 	}
-	
+
 	const selectedQuote = randomQuotes[round - 1];
     startWhoSaidRound(selectedQuote, round)
     .then((answers) => {
 		const roundWinner = answers.array()[0].member;
-		util.sendEmbedMessage(`Congrats ${roundWinner.displayName}`, 
+		util.sendEmbedMessage(`Congrats ${roundWinner.displayName}`,
 		`You're correct! **${bot.getScrubIDToNick()[selectedQuote.author.id]}**\nsaid that on \`${moment(selectedQuote.createdTimestamp).format('LLLL')}\``);
 		whoSaidScore[roundWinner.id] = whoSaidScore[roundWinner.id] ? whoSaidScore[roundWinner.id] + 1 : 1;
 		whoSaidGameLoop(randomQuotes, round + 1);
@@ -988,7 +984,7 @@ function whoSaidGameLoop(randomQuotes, round) {
 
 /**
  * Starts a game of Who Said, which is a quote guessing game.
- * 
+ *
  * @param {Object} channel - channel to get quotes from
  * @param {Number} minLength - minimum length required to include msg
  * @param {Number} minReactions - minimum reactions required to include msg
@@ -998,7 +994,7 @@ exports.startWhoSaidGame = function(channel, minLength, minReactions, sampleSize
 	if (util.isLocked()) { return; }
 	util.lock();
 	whoSaidScore = {};
-	
+
 	getRandomQuotes(channel, minLength, minReactions, sampleSize)
 	.then((randomQuotes) => {
 		if (!randomQuotes || randomQuotes.length === 0) { return; }
