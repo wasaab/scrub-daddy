@@ -107,7 +107,7 @@ function getGamesBeingPlayedData(players) {
 		}
 	});
 
-    return { games: games, winner: winner, total: total };
+    return { games: games, winner: winner, total: total, max: max };
 }
 
 /**
@@ -151,11 +151,11 @@ exports.maybeOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
 };
 
 exports.updatePlayingStatus = function() {
-	var { winner } = getGamesBeingPlayedData(bot.getMembers());
+	var { winner, max } = getGamesBeingPlayedData(bot.getMembers());
 	if (winner === '') {
 		winner = 'nothing :(';
 	}
-	bot.getClient().user.setPresence({ game: { name: winner } });
+	bot.getClient().user.setPresence({ game: { name: `${winner} w/ ${max}` } });
 }
 
 /**
