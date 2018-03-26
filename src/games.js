@@ -767,13 +767,14 @@ exports.maybeUpdateNickname = function(member, game) {
 	const status = get(member, 'presence.status');
 
 	if (game && member.voiceChannel && status !== 'idle') {
+		c.LOG.info(`<INFO> ${util.getTimestamp()}  ${nameTokens[0]} is playing ${game}`);
 		if (game === `Sid Meier's Civilization VI`) {
 			game = 'C I V 6';
 		}
 		const gameTokens = game.split(' ');
 		var nick = `${nameTokens[0]} ▫ `;
 		gameTokens.forEach((token) => {
-			const firstChar = token[0].toUpperCase();
+			const firstChar = token.charAt(0).toUpperCase();
 			nick += c.ENCLOSED_CHARS[firstChar] || firstChar;
 		});
 		c.LOG.info(`<INFO> ${util.getTimestamp()}  Updating Nickname - ${member.displayName} -> ${nick}`);
