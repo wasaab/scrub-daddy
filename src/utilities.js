@@ -1239,7 +1239,7 @@ function banSpammer(user, channel) {
  * @param {Object} message - the message sent in a channel
  */
 function maybeBanSpammer(message) {
-	if (message.channel.id === c.BOT_SPAM_CHANNEL_ID || message.author.bot) { return; }
+	if (message.channel.id === c.BOT_SPAM_CHANNEL_ID || message.author.bot || message.attachments.size !== 0) { return; }
 
 	message.channel.fetchMessages({limit: 3})
 	.then((oldMessages) => {
