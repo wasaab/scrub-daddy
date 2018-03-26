@@ -257,6 +257,15 @@ function getScrubIDToNick() {
 	return bot.getScrubIDToNick();
 };
 
+function getAuthor(userID) {
+	if (!userID) { return; }
+
+	return {
+		name: bot.getScrubIDToNick()[userID],
+		icon_url: bot.getScrubIDToAvatar()[userID]
+	}
+}
+
 /**
  * Updates README.md to have the up to date list of commands.
  */
@@ -304,7 +313,7 @@ function outputHelpCategory(selection, userID) {
 
 function reactionTimedOut(userID, selectionType) {
 	c.LOG.info((`<INFO> ${getTimestamp()}  After 40 seconds, there were no reactions.`));
-	sendEmbedMessage('Reponse Timed Out',
+	sendEmbedMessage(`${selectionType.charAt(0).toUpperCase() + selectionType.slice(1)} Reponse Timed Out`,
 		`${bot.getScrubIDToNick()[userID]}, you have not made a ${selectionType} selection, via reaction, so I\'m not listening to you anymore 😛`, userID);
 }
 

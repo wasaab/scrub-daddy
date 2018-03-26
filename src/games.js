@@ -153,9 +153,12 @@ exports.maybeOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
 exports.updatePlayingStatus = function() {
 	var { winner, max } = getGamesBeingPlayedData(bot.getMembers());
 	if (winner === '') {
-		winner = 'nothing :(';
+		winner = 'nothing';
 	}
-	bot.getClient().user.setPresence({ game: { name: `${winner} w/ ${max}` } });
+
+	const pplEmojiIdx = max > 5 ? 5 : max;;
+	const newStatus = `${winner} - ${max} ${c.PPL_EMOJIS[pplEmojiIdx]}`;
+	bot.getClient().user.setPresence({ game: { name: newStatus } });
 }
 
 /**

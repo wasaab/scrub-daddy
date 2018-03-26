@@ -24,6 +24,7 @@ var logChannel = {};
 var purgatory = {};
 var feedbackCategory = {};
 var scrubIDtoNick = {};
+var scrubIDtoAvatar = {};
 var quoteBlocked = false;
 
 /**
@@ -33,6 +34,7 @@ function updateMembers() {
 	members = client.guilds.find('id', c.SERVER_ID).members;
 	members.forEach((member) => {
 		scrubIDtoNick[member.id] = member.displayName.split(' ▫ ')[0];
+		scrubIDtoAvatar[member.id] = member.user.displayAvatarURL.split('?')[0];
 	});
 }
 
@@ -494,6 +496,7 @@ client.on('ready', () => {
 
 	c.LOG.info(`<INFO> ${util.getTimestamp()}  Connected`);
 	if (util.isDevEnv()) { return; }
+	games.updatePlayingStatus();
 	util.updateLottoCountdown();
 	util.sendEmbedMessage('B A C K⠀O N L I N E !', null, null, c.ONLINE_IMG);
 });
@@ -503,6 +506,7 @@ exports.getScrubsChannel = () => scrubsChannel;
 exports.getLogChannel = () => logChannel;
 exports.getPurgatory = () => purgatory;
 exports.getScrubIDToNick = () => scrubIDtoNick;
+exports.getScrubIDToAvatar = () => scrubIDtoAvatar;
 exports.getClient = () => client;
 exports.getMembers = () => members;
 exports.updateMembers = updateMembers;

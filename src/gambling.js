@@ -23,7 +23,7 @@ exports.exportLedger = function() {
 /**
  * Gives a scrubbing bubble to the provided user, taking that amount from
  * the calling user's army.
- * 
+ *
  * @param {String} userID - the id of the user giving bubbles
  * @param {String} userName - the name of the user giving bubbles
  * @param {String} targetMention - a mention of the user to give bubbles to
@@ -46,7 +46,7 @@ exports.giveScrubBubbles = function (userID, userName, targetMention, numBubbles
 /**
  * Discharges a scrub bubble from the provided user's army, so that another
  * member may enlist the bubble to their army.
- * 
+ *
  * @param {String} userID - the id of the user discharging a bubble
  * @param {Number} numBubbles - the number of bubbles to discharge
  */
@@ -84,7 +84,7 @@ exports.maybeDischargeScrubBubble = function() {
 
 /**
  * Removes the given number of Scrubbing Bubbles from the provided user's army.
- * 
+ *
  * @param {String} userID - id of the user to remove from
  * @param {Number} amount - amount to remove
  */
@@ -95,7 +95,7 @@ function removeFromArmy(userID, amount) {
 
 /**
  * Adds the given number of Scrubbing Bubbles to the provided user's army.
- * 
+ *
  * @param {String} userID - id of the user to add to
  * @param {Number} amount - amount to add
  */
@@ -104,7 +104,7 @@ function addToArmy(userID, amount) {
         ledger[userID] = Object.assign({}, c.NEW_LEDGER_ENTRY);
     }
     ledger[userID].armySize += amount;
-    ledger[userID].totalEnlisted += amount;    
+    ledger[userID].totalEnlisted += amount;
     if (ledger[userID].armySize > ledger[userID].recordArmy) {
         ledger[userID].recordArmy = ledger[userID].armySize;
     }
@@ -126,7 +126,7 @@ exports.enlist = function(userID, message) {
 
 /**
  * returns true iff the side provided is valid.
- * 
+ *
  * @param {String} side - the side to battle
  */
 function isValidSide(side) {
@@ -134,8 +134,8 @@ function isValidSide(side) {
 }
 
 /**
- * Takes the user's bet from the ledger. 
- * 
+ * Takes the user's bet from the ledger.
+ *
  * @param {String} userID - the id of the user betting
  * @param {number} bet - the bet amount
  * @param {String} type - the type of bet
@@ -154,7 +154,7 @@ function takeBetFromUser(userID, bet, type) {
 
 /**
  * Resets the ledger's bets to 0.
- * 
+ *
  * @param {String} userID - the id of the user betting
  * @param {String} type - the type of bet
  */
@@ -168,7 +168,7 @@ function resetLedgerAfterBet(userID, type) {
 
 /**
  * Gets 0 for t and 1 for b.
- * 
+ *
  * @param {String} typeString - type of battle
  */
 function getTypeNum(typeString) {
@@ -180,8 +180,8 @@ function getTypeNum(typeString) {
 
 /**
  * returns an 's' iff count > 1.
- * 
- * @param {number} count 
+ *
+ * @param {number} count
  */
 function maybeGetPlural(count) {
     if (count > 1)
@@ -191,7 +191,7 @@ function maybeGetPlural(count) {
 
 /**
  * Adds to the given user's gaming streak stats.
- * 
+ *
  * @param {String} currentStreak - current win/loss streak
  * @param {String} highestStreak - highest win/loss streak
  * @param {String} oppositeStreak - opposite of current streak
@@ -208,7 +208,7 @@ function addToGamblingStreaks(currentStreak, highestStreak, oppositeStreak, user
 
 /**
  * Adds to to the user's gambling stats.
- * 
+ *
  * @param {String} outcome - outcome of the battle 'Won' or 'Lost'
  * @param {number} amount - amount the user won or lost
  * @param {String} user - the user to add stats to
@@ -226,7 +226,7 @@ function addToGamblingStats(outcome, amount, user) {
     if (amount > ledger[user][stat]) {
         ledger[user][stat] = amount;
     }
-   
+
     addToGamblingStreaks(`streak${plural}`, `maxStreak${plural}`, `streak${opposite}`, user);
     ledger[user][`scrubs${outcome}`] += amount;
     ledger[user][`total${plural}`]++;
@@ -235,7 +235,7 @@ function addToGamblingStats(outcome, amount, user) {
 /**
  * Handles !clean command. Takes the bet from the user and
  * keeps it if they lose. If they win, twice the bet is given to the user.
- * 
+ *
  * @param {String} userID - the id of the user betting
  * @param {number} bet - the bet amount
  * @param {String} type - the type of bet
@@ -314,7 +314,7 @@ function outputUserGamblingData(userID, args) {
                 `Total Bets Won: ${wallet.totalWins} Wins\n` +
                 `Total Bets Lost: ${wallet.totalLosses} Losses\n` +
                 `Total Scrubs Discharged: ${wallet.totalDischarged} Scrubs\n` +
-                `Total Scrubs Enlisted: ${wallet.totalEnlisted} Scrubs`; 
+                `Total Scrubs Enlisted: ${wallet.totalEnlisted} Scrubs`;
         }
         util.sendEmbedMessage(null, description, userID);
     }
@@ -332,7 +332,7 @@ exports.army = function(userID, args) {
  * Outputs the user's gambling stats.
  */
 exports.stats = function (userID, args) {
-    outputUserGamblingData(userID, args);    
+    outputUserGamblingData(userID, args);
 };
 
 /**
@@ -352,9 +352,9 @@ exports.armyRanks = function(userID) {
  * Deletes previous arrived for duty message if it exists.
  */
 exports.maybeDeletePreviousMessage = function (msg) {
-    if (!previousMessage) { 
+    if (!previousMessage) {
         previousMessage = msg;
-        return; 
+        return;
     }
 
     previousMessage.then((prevMsg) => {
@@ -420,15 +420,15 @@ exports.getTimeUntilLottoEnd = function() {
 }
 
 exports.checkLotto = function(userID) {
-    if (!config.lottoEntries) { 
+    if (!config.lottoEntries) {
         util.sendEmbedMessage('Beyond Lotto Information', 'There are currently no entries for the Beyond Lotto.', userID);
         return;
-    } 
+    }
     if (!config.lottoTime) {
         util.sendEmbedMessage('Beyond Lotto Information', 'There is no Beyond lotto currently running.', userID);
-        return;    
+        return;
     }
-    
+
     var entries = '';
     const scrubIDToNick = bot.getScrubIDToNick();
     config.lottoEntries.forEach((entry) => {
@@ -436,24 +436,24 @@ exports.checkLotto = function(userID) {
     })
 
     const { timeUntil, endDate } = exports.getTimeUntilLottoEnd();
-    util.sendEmbedMessage('Beyond Lotto Information', 
+    util.sendEmbedMessage('Beyond Lotto Information',
         `The lotto will end \`${timeUntil}\` on ${endDate} EST\n\n` +
         `**The following ${config.lottoEntries.length} users have entered:**\n${entries}`, userID);
 };
 
-exports.endLotto = function() {	
+exports.endLotto = function() {
 	if (!config.lottoEntries || config.lottoEntries.length <= 1) { return; }
-    
+
     const {fakeWinner, winner, winnerID} = getFakeAndRealWinner();
     const winningMsgs = [`...and ${winner} has risen from the filth to become...\nBEYOND!`,
         `Amongst the trashcans, ${winner} has been plucked from obscurity to become...\nBEYOND!`,
         `May your name once again be your own. Welcome to Beyond, ${winner}!`,
         `...and ${fakeWinner} is the winner in our hearts. However, the real winner is ${winner}!`,
         `Today the Gods of RNG have shined their light upon ${winner}!`];
-        
+
     const winningMsg = winningMsgs[util.getRand(0, winningMsgs.length)];
     util.sendEmbedMessage('The Beyond Lotto Has Concluded', winningMsg, null, c.BEYOND_LOTTO_IMG);
-    c.LOG.info(`<INFO> ${util.getTimestamp()}  Beyond lotto winner = ${winner}`);    
+    c.LOG.info(`<INFO> ${util.getTimestamp()}  Beyond lotto winner = ${winner}`);
 
     const server = bot.getClient().guilds.find('id', c.SERVER_ID);
     const winningUser = server.members.find('id', winnerID);
@@ -470,7 +470,7 @@ function getFakeAndRealWinner() {
 		winnerID = config.lottoEntries[util.getRand(0, config.lottoEntries.length)];
 		fakeWinnerID = config.lottoEntries[util.getRand(0, config.lottoEntries.length)];
     }
-    return { 
+    return {
         fakeWinner: bot.getScrubIDToNick()[fakeWinnerID],
         winner: bot.getScrubIDToNick()[winnerID],
         winnerID: winnerID
@@ -483,7 +483,7 @@ exports.getLedger = function() {
 
 exports.fakeSteal = function(amount, target, userID) {
     if (util.isLocked() || isNaN(amount)) { return; }
-    
+
     const targetID = util.getIdFromMention(target);
     if (ledger[targetID] && ledger[targetID].armySize/3 >= amount) {
         util.lock();
@@ -498,7 +498,7 @@ exports.fakeSteal = function(amount, target, userID) {
 }
 
 exports.fakeStealAll = function() {
-    if (util.isLocked()) { return; }    
+    if (util.isLocked()) { return; }
 
     util.lock();
     for (var id in ledger) {
@@ -514,7 +514,7 @@ exports.fakeStealAll = function() {
         for (var userID in idToAmountStolen) {
             ledger[userID].armySize += idToAmountStolen[userID];
             ledger[c.AF_ID].armySize -= idToAmountStolen[userID];
-            util.unLock();            
+            util.unLock();
         }
     }, 60000);
 }
