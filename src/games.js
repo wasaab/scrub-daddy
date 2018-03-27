@@ -774,7 +774,10 @@ exports.maybeUpdateNickname = function(member, game) {
 		const gameTokens = game.split(' ');
 		var nick = `${nameTokens[0]} ▫ `;
 		gameTokens.forEach((token) => {
-			const firstChar = token.charAt(0).toUpperCase();
+			var firstChar = token.charAt(0).toUpperCase();
+			if (!/[a-zA-Z0-9]/.test(firstChar)) {
+				firstChar = token;
+			}
 			nick += c.ENCLOSED_CHARS[firstChar] || firstChar;
 		});
 		c.LOG.info(`<INFO> ${util.getTimestamp()}  Updating Nickname - ${member.displayName} -> ${nick}`);
