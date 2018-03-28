@@ -76,7 +76,7 @@ function handleCommand(message) {
 	const channelID = message.channel.id;
 	const user = message.member.displayName;
 
-	if (channelID !== c.BOT_SPAM_CHANNEL_ID && cmd !== 'quote') { return; }
+	if (channelID !== c.BOT_SPAM_CHANNEL_ID && cmd !== 'quote' && cmd !== 'delete') { return; }
 
 	function fakeStealAllCalled() {
 		if (userID === c.AF_ID || util.isAdmin(userID)) {
@@ -125,6 +125,11 @@ function handleCommand(message) {
 		if (args[1]) {
 			util.createList(args, userID);
 		}
+	}
+	function deleteCalled() {
+		if (!util.isAdmin(userID)
+			&& !util.isChannelOwner(message.channel, message.member)) { return; }
+		util.deleteMessages(message);
 	}
 	function dischargeCalled() {
 		gambling.dischargeScrubBubble(userID, args[1]);
@@ -355,6 +360,7 @@ function handleCommand(message) {
 		'clean': cleanCalled,
 		'color': colorCalled,
 		'create-list': createListCalled,
+		'delete': deleteCalled,
 		'discharge': dischargeCalled,
 		'enlist': enlistCalled,
 		'export': exportCalled,

@@ -1334,6 +1334,39 @@ function showLists(userID) {
 	sendDynamicMessage(userID, 'list', results, homePage);
 }
 
+function deleteMessage(message) {
+	c.LOG.info(`<INFO> ${getTimestamp()} Deleting message with content: "${message.content}"`);
+	message.delete();
+}
+
+function hasDeleteReactions(message) {
+	return message.reactions.has(c.TRASH_REACTION) && message.reactions.has('⚫');
+}
+
+function deleteMessages(message) {
+	message.channel.fetchMessages({limit: 50})
+	.then((foundMessages) => {
+		message.delete();
+		var deleteReactionsFound = false;
+		foundMessages.array().some((message) => {
+			if (deleteReactionsFound) {
+				deleteMessage(message);
+				if (hasDeleteReactions(message)) { return true; }
+			} else if (hasDeleteReactions(message)) {
+				deleteReactionsFound = true;
+				deleteMessage(message);
+			}
+		});
+	});
+}
+
+function isChannelOwner(channel, user) {
+	const permissionOverwrites = channel.permissionOverwrites.find('id', user.id);
+	return permissionOverwrites
+		&& permissionOverwrites.allow !== 0
+		&& permissionOverwrites.deny === 0;
+}
+
 //-------------------- Public Functions --------------------
 exports.addInitialNumberReactions = addInitialNumberReactions;
 exports.addToList = addToList;
@@ -1346,6 +1379,7 @@ exports.compareFieldValues = compareFieldValues;
 exports.createAlias = createAlias;
 exports.createChannelInCategory = createChannelInCategory;
 exports.createList = createList;
+exports.deleteMessages = deleteMessages;
 exports.exportQuotes = exportQuotes;
 exports.getIdFromMention = getIdFromMention;
 exports.getQuotes = getQuotes;
@@ -1357,6 +1391,7 @@ exports.getTrueDisplayName = getTrueDisplayName;
 exports.handleMuteAndDeaf = handleMuteAndDeaf;
 exports.help = help;
 exports.isAdmin = isAdmin;
+exports.isChannelOwner =isChannelOwner;
 exports.isDevEnv = isDevEnv;
 exports.isLocked = isLocked;
 exports.listBackups = listBackups;

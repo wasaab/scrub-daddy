@@ -162,7 +162,8 @@ define('HELP_UTILITIES',[
 					{ name: '.quotes <`@user`>', value: '`to retrieve the list of quotes from the specified user.`', inline: 'false'},
 					{ name: '.create-list <`name of list`>', value: '`to create a named list that users can add entries to.`', inline: 'false'},
 					{ name: '.list', value: '`to view all of the user created lists.`', inline: 'false'},
-					{ name: '.list <`list-name`> <`your new entry`>', value: '`to add a new entry to a user created list.`', inline: 'false'}]);
+					{ name: '.list <`list-name`> <`your new entry`>', value: '`to add a new entry to a user created list.`', inline: 'false'},
+					{ name: '.delete', value: '`call this after adding both :trashcan: and :black_circle: reactions to first and last messages to delete.\nAll messages between the two you reacted to will be deleted, including those two.\nThis will only work if you are in a temp channel you created.`', inline: 'false'}]);
 define('HELP_CATEGORIES_PROMPT',[{ name: '.help <`command`>', value: '`to get help for a specific command`', inline: 'false'},
 						  { name: '1) Voting', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
 						  { name: '2) Scrubbing Bubbles', value: '`enlist`	`discharge`		`give`	`clean`	`army`	`ranks`	`stats`	`21`	`hit`	`stay`	`who-said`	`sunken-sailor`', inline: 'false'},
@@ -171,7 +172,7 @@ define('HELP_CATEGORIES_PROMPT',[{ name: '.help <`command`>', value: '`to get he
 						  { name: '5) Bot Issues, Feature Requests, and Help', value: '`tips`	`issue`	`feature`	`implement`	`help`', inline: 'false'},
 						  { name: '6) Roles & User Settings', value: '`join-review-team`	`leave-review-team`	`color`	`shuffle-scrubs`	`set-stream`	`toggle-streaming`	`alias`', inline: 'false'},
 						  { name: '7) Soundbytes', value: '`*sb`	`*add-sb`	`*fav-sb`	`*volume`', inline: 'false'},
-						  { name: '8) Utilities', value: '`temp`	`start-lotto`	`lotto`	`quote`	`quotes`	`list`	`create-list`', inline: 'false'},
+						  { name: '8) Utilities', value: '`temp`	`start-lotto`	`lotto`	`quote`	`quotes`	`list`	`create-list`	`delete`', inline: 'false'},
 						  { name: '⠀', value: '[Click here to see all 80 commands w/ descriptions](https://github.com/wasaab/scrub-daddy/blob/master/README.md)', inline: 'false'}]);
 define('HELP_CATEGORIES', [{name: '`Voting`', fields: exports.HELP_VOTING},
 						   {name: '`Scrubbing Bubbles`', fields: exports.HELP_SCRUBBING_BUBBLES},
@@ -245,7 +246,7 @@ define('TIPS',
 	{
 		color: 0xffff00,
 		title: '💡 New Commands',
-		description: '`list`	`create-list`	`give`	`tips`	`quote`	`quotes`	`21`	`fortnite-stats`	`fortnite-leaderboard`',
+		description: '`delete`	`list`	`create-list`	`give`	`tips`	`quote`	`quotes`	`21`	`fortnite-stats`	`fortnite-leaderboard`',
 		image: {
 			url: 'https://media3.giphy.com/media/UGxfEt5POsukg/giphy.gif'
 		}
@@ -273,7 +274,7 @@ define('COMMANDS', [
 	'add-sb', 'alias', 'army',
 	'backup',
 	'catfacts', 'clean', 'color', 'create-list',
-	'discharge',
+	'delete', 'discharge',
 	'enlist', 'export',
 	'feature',
 	'fortnite-leaderboard', 'fortnite-stats',
@@ -314,6 +315,7 @@ define('ENCLOSED_CHARS', {'A': '🄰', 'B': '🄱', 'C': '🄲', 'D': '🄳', 'E
 	'0': '⓪', '1': '①', '2': '②', '3': '③', '4': '④', '5': '⑤', '6': '⑥', '7': '⑦', '8': '⑧', '9': '⑨'});
 define('REACTION_NUMBERS', ['0⃣', '1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣', '8⃣','9⃣']);
 define('PPL_EMOJIS', ['😢', '🕺', '👬', '👨‍👨‍👧', '👨‍👨‍👧‍👦⠀', '🧙👩‍👩‍👧‍👦⠀']);
+define('TRASH_REACTION', 'trashcan:427231130241204224');
 define('STATS', ['trnRating','score' ,'top1','top3','top5','top6','top10','top12','top25','kd','winRatio',
 	'matches','kills','minutesPlayed','kpm','kpg','avgTimePlayed','scorePerMatch','scorePerMin'])
 define('GAME_MODE_TO_KEY', {
