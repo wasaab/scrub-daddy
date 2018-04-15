@@ -262,7 +262,7 @@ function handleCommand(message) {
 	}
 	function setFortniteNameCalled() {
 		if (args[1]) {
-			games.setFortniteName(userID, args[1], args[2]);
+			games.setFortniteName(userID, args);
 		}
 	}
 	function setStreamCalled() {
