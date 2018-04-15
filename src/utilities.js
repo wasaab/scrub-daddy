@@ -31,6 +31,9 @@ var quotingUserIDToQuotes = {};
 var locks = {};		//function locks
 var muteAndDeafUserIDToTime = {};
 var quoteTipMsg = {};
+var members = [];
+var scrubIdToNick = {};
+var scrubIdToAvatar = {};
 
 /**
  * Creates a channel in a category, specified by the command provided.
@@ -50,10 +53,8 @@ function createChannelInCategory(command, channelType, channelName, message, cre
 			channelName = channelName.trim().split(' ').join('-');
 		}
 		const description = feedback || ' ';
-		const channelCategoryName = command.charAt(0).toUpperCase() + command.slice(1);
+		const channelCategoryName = capitalizeFirstLetter(command);
 		const color = userIDToColor[userID] || 0xffff00;
-
-		//TODO: Update permissions to new 11.3.0 syntax.
 		const overwrites = [{
 			allow: ['MANAGE_CHANNELS', 'MANAGE_ROLES'],
 			id: userID
@@ -69,17 +70,36 @@ function createChannelInCategory(command, channelType, channelName, message, cre
 					url: c.SETTINGS_IMG
 				}
 			}));
+
+			sendEmbedMessage(`➕ ${channelCategoryName} Channel Created`,
+				`You can find your channel, ${mentionChannel(channel.id)}, under the \`${channelCategoryName}\` category.`, userID);
+			c.LOG.info(`<INFO> ${getTimestamp()}  ${channelCategoryName}${createdByMsg}  ${description}`);
 		})
-		sendEmbedMessage(`➕ ${channelCategoryName} Channel Created`,
-			`You can find your channel, \`${channelName}\`, under the \`${channelCategoryName}\` category.`, userID);
-		c.LOG.info(`<INFO> ${getTimestamp()}  ${channelCategoryName}${createdByMsg}  ${description}`);
 	}
 };
 
 /**
+ * Removes view channel permission for the provided user.
+ *
+ * @param {Object} channel - channel to leave
+ * @param {String} userID - user to remove
+ */
+function leaveTempChannel(channel, userID) {
+	if (channel.parentID !== c.CATEGORY_ID.Temp) { return; }
+
+	channel.overwritePermissions(userID, {
+		VIEW_CHANNEL: false
+	})
+	.then(c.LOG.info(`<INFO> ${getTimestamp()} ${scrubIdToNick[userID]} has left ${channel.name}`))
+	.catch((err) => {
+		c.LOG.error(`<ERROR> ${getTimestamp()}  Leave ${channel.name} - Overwrite Permissions Error: ${err}`);
+	});
+}
+
+/**
  * Discord server logger.
  *
- * @param {Object[]} opts
+ * @param {Object[]} opts - logger options
  */
 const discordServerTransport = class DiscordServerTransport extends Transport {
 	constructor(opts) {
@@ -87,10 +107,6 @@ const discordServerTransport = class DiscordServerTransport extends Transport {
 	}
 
 	log(info, callback) {
-		// setImmediate(function () {
-		// 	self.emit('logged', info);
-		// });
-
 		bot.getLogChannel().send(info.message);
 		callback();
 	}
@@ -251,18 +267,16 @@ function sendEmbedMessage(title, description, userID, image, thumbnail, footer) 
 };
 
 /**
- * Gets a map of scrub's ids to nicknames.
+ * Gets an author object for the provided userID.
+ *
+ * @param {String} userID - id of the user to get author object for
  */
-function getScrubIDToNick() {
-	return bot.getScrubIDToNick();
-};
-
 function getAuthor(userID) {
 	if (!userID) { return; }
 
 	return {
-		name: bot.getScrubIDToNick()[userID],
-		icon_url: bot.getScrubIDToAvatar()[userID]
+		name: scrubIdToNick[userID],
+		icon_url: scrubIdToAvatar[userID]
 	}
 }
 
@@ -311,10 +325,16 @@ function outputHelpCategory(selection, userID) {
 	sendEmbedFieldsMessage(helpCategory.name, helpCategory.fields, userID);
 }
 
+/**
+ * Outputs the reaction timed out message.
+ *
+ * @param {String} userID - id of the user
+ * @param {String} selectionType - type of selection that timed out
+ */
 function reactionTimedOut(userID, selectionType) {
 	c.LOG.info((`<INFO> ${getTimestamp()}  After 40 seconds, there were no reactions.`));
-	sendEmbedMessage(`${selectionType.charAt(0).toUpperCase() + selectionType.slice(1)} Reponse Timed Out`,
-		`${bot.getScrubIDToNick()[userID]}, you have not made a ${selectionType} selection, via reaction, so I\'m not listening to you anymore 😛`, userID);
+	sendEmbedMessage(`${capitalizeFirstLetter(selectionType)} Reponse Timed Out`,
+		`${scrubIdToNick[userID]}, you have not made a ${selectionType} selection, via reaction, so I\'m not listening to you anymore 😛`, userID);
 }
 
 /**
@@ -452,6 +472,9 @@ function catfacts(userID) {
 	sendEmbedMessage('Did you know?', msg, userID);
 };
 
+/**
+ * Schedules a recurring scan of voice channels.
+ */
 function scheduleRecurringVoiceChannelScan() {
 	(function(){
 		var client = bot.getClient();
@@ -462,6 +485,9 @@ function scheduleRecurringVoiceChannelScan() {
 	})();
 }
 
+/**
+ * Schedules a recurring export of json files.
+ */
 function scheduleRecurringExport() {
 	(function(){
 		games.exportTimeSheetAndGameHistory();
@@ -511,8 +537,8 @@ function scheduleRecurringJobs() {
 	updateMembersAndHeatMapRule.minute = 0;
 
 	schedule.scheduleJob(updateMembersAndHeatMapRule, function(){
-		bot.updateMembers();
-		games.maybeOutputCountOfGamesBeingPlayed(bot.getMembers(), c.SCRUB_DADDY_ID);
+		updateMembers();
+		games.maybeOutputCountOfGamesBeingPlayed(members, c.SCRUB_DADDY_ID);
 	});
 
 	var updatePlayingStatusRule = new schedule.RecurrenceRule();
@@ -591,8 +617,7 @@ function removeFromReviewRole(target, roles) {
  * exports bans.
  */
 function exportBanned() {
-	const json = JSON.stringify(bannedUserIDToBans);
-	fs.writeFile('./resources/data/banned.json', json, 'utf8', log);
+	exportJson(bannedUserIDToBans, 'banned');
 }
 
 /**
@@ -602,8 +627,7 @@ function exportColors(title, description, userID, guild, hex, color) {
 	sendEmbedMessage(title, description, userID);
 	//If color not taken, write to colors.json
 	if (title.substring(0, 1) !== 'C') {
-		var json = JSON.stringify(userIDToColor);
-		fs.writeFile('./resources/data/colors.json', json, 'utf8', log);
+		exportJson(userIDToColor, 'colors');
 		const target = guild.members.find('id', userID);
 
 		if (target.roles.find('id', c.BEYOND_ROLE_ID)) {
@@ -704,8 +728,7 @@ var downloadAttachment = co.wrap(function *(msg, userID) {
 
 	sendEmbedMessage('🎶 Sound Byte Successfully Added', `You may now hear the sound byte by calling \`*sb ${fileName}\` from within a voice channel.`, userID);
 	soundBytes.push(fileName);
-	var json = JSON.stringify(soundBytes);
-	fs.writeFile('./resources/data/soundbytes.json', json, 'utf8', log);
+	exportJson(soundBytes, 'soundbytes');
 }.bind(this));
 
 /**
@@ -737,15 +760,13 @@ function getTargetFromArgs(args, startIdx) {
  * @param {String[]} args - command args passed in by user
  */
 function createAlias(userID, user, args) {
-	const command = args[1];
+	const command = args[1].replace('.', '');
 	var aliases = userIDToAliases[userID] || {};
-	aliases[command] = getTargetFromArgs(args, 2);
+	aliases[command] = getTargetFromArgs(args, 2).replace('.', '');
 	userIDToAliases[userID] = aliases;
 	const msg = `Calling \`.${command}\` will now trigger a call to \`.${aliases[command]}\``;
 	sendEmbedMessage(`Alias Created for ${user}`, msg, userID)
-
-	var json = JSON.stringify(userIDToAliases);
-	fs.writeFile('./resources/data/aliases.json', json, 'utf8', log);
+	exportJson(userIDToAliases, 'aliases');
 };
 
 /**
@@ -773,12 +794,26 @@ function outputAliases(userID, user) {
 	var msg = 'None. Call `.help alias` for more info.';
 	if (aliases) {
 		msg = '';
-		for (var alias in aliases) {
-			msg += `\`.${alias}\` = \`.${aliases[alias]}\``
-		}
+		Object.keys(aliases).sort().forEach((alias) => {
+			msg += `**.${alias}** = \`.${aliases[alias]}\`\n`;
+		});
 	}
 	sendEmbedMessage(`Aliases Created by ${user}`, msg, userID)
 };
+
+/**
+ * Removes an alias created by a user.
+ *
+ * @param {String} alias - alias to remove
+ * @param {String} userID - user id alias belongs to
+ */
+function unalias(alias, userID) {
+	const aliases = userIDToAliases[userID];
+	if (!aliases) { return; }
+	delete aliases[alias];
+	sendEmbedMessage(`Alias Removed for ${scrubIdToNick[userID]}`, `calling \`.${alias}\` will no longer do anything.`, userID);
+	exportJson(userIDToAliases, 'aliases');
+}
 
 /**
  * Outputs the list of server backups.
@@ -832,8 +867,7 @@ function waitForFileToExist(time, path, timeout, restart) {
 function backupJson(restart) {
 	const time = moment().format('M[-]D[-]YY[@]h[-]mm[-]a');
 	config.lastBackup = time;
-	var json = JSON.stringify(config);
-	fs.writeFile('./resources/data/config.json', json, 'utf8', log);
+	exportJson(config, 'config');
 	backup.backup('./resources/data', `../jsonBackups/${time}.backup`);
 
 	const backupPath = `../jsonBackups/${time}.backup`
@@ -911,7 +945,7 @@ function quoteUser(ogMessage, quotedUserID, quotingUserID, channelID) {
 
 	if (quotedUserID) {
 		quotedUserID = getIdFromMention(quotedUserID);
-		if (!bot.getScrubIDToNick()[quotedUserID]) { return; }
+		if (!scrubIdToNick[quotedUserID]) { return; }
 		quoteableMessages.filter((message) => {
 			return message.member.id === quotedUserID;
 		}).reverse().slice(0, 15);
@@ -951,20 +985,19 @@ function quoteUser(ogMessage, quotedUserID, quotingUserID, channelID) {
  * @param {String} userID - id of user requesting quotes
  */
 function getQuotes(quoteTarget, userID) {
-	const scrubIDToNick = bot.getScrubIDToNick();
 	var targetName = 'Everyone';
 	var targetQuotes = quotes;
 	var fields = [];
 	if (quoteTarget) {
 		const targetID = getIdFromMention(quoteTarget);
-		targetName = scrubIDToNick[targetID];
+		targetName = scrubIdToNick[targetID];
 		targetQuotes = quotes.filter((quote) => { return quote.quotedUserID === targetID; });
 		targetQuotes.forEach((quote) => {
 			fields.push(buildField(moment(quote.time).format('l'), quote.message, 'false'));
 		});
 	} else {
 		targetQuotes.forEach((quote) => {
-			fields.push(buildField(scrubIDToNick[quote.quotedUserID], `${quote.message}\n	— ${moment(quote.time).format('l')}`, 'false'));
+			fields.push(buildField(scrubIdToNick[quote.quotedUserID], `${quote.message}\n	— ${moment(quote.time).format('l')}`, 'false'));
 		});
 	}
 	if (fields.length > 0) {
@@ -984,14 +1017,13 @@ function maybeInsertQuotes(message) {
 	const replyQuotes = quotingUserIDToQuotes[message.author.id];
 	if (!replyQuotes) { return; }
 	var quoteBlocks = '';
-	const idToNick = bot.getScrubIDToNick();
 	replyQuotes.forEach((quote) => {
-		const author = idToNick[quote.quotedUserID];
+		const author = scrubIdToNick[quote.quotedUserID];
 		const time = moment(quote.time).format('l');
 		const userMentions = quote.message.match(/<@![0-9]*>/g);
 		if (userMentions) {
 			userMentions.forEach((mention) => {
-				quote.message = quote.message.replace(mention, idToNick[getIdFromMention(mention)]);
+				quote.message = quote.message.replace(mention, scrubIdToNick[getIdFromMention(mention)]);
 			});
 		}
 		const roleMentions = quote.message.match(/<@&[0-9]*>/g);
@@ -1004,7 +1036,7 @@ function maybeInsertQuotes(message) {
 		quoteBlocks += `${block} ${quote.message}\n	— ${author}, ${time}${block}\n`;
 	});
 	message.delete();
-	message.channel.send(`${quoteBlocks}**${message.member.displayName}** : ${message.content}`);
+	message.channel.send(`${quoteBlocks}**${getNick(message.member.id)}** : ${message.content}`);
 	quotingUserIDToQuotes[message.author.id] = null;
 }
 
@@ -1012,8 +1044,7 @@ function maybeInsertQuotes(message) {
  * Exports the quotes to json.
  */
 function exportQuotes() {
-	var json = JSON.stringify(quotes);
-	fs.writeFile('./resources/data/quotes.json', json, 'utf8', log);
+	exportJson(quotes, 'quotes');
 }
 
 /**
@@ -1155,7 +1186,7 @@ function updateMuteAndDeaf(channels) {
 				}
 			} else if (!muteAndDeafUserIDToTime[member.id] && !isInPurgatoryOrAFK(channel.id)) {
 				muteAndDeafUserIDToTime[member.id] = moment();
-				c.LOG.info(`<INFO> ${getTimestamp()}  Adding ${member.displayName} to mute & deaf list.`);
+				c.LOG.info(`<INFO> ${getTimestamp()}  Adding ${getNick(member.id)} to mute & deaf list.`);
 			}
 		});
 	});
@@ -1165,7 +1196,6 @@ function updateMuteAndDeaf(channels) {
  * Moves mute and deaf members to solitary iff they have been muted and deaf for at least 5 minutes.
  */
 function maybeMoveMuteAndDeaf() {
-	const members = bot.getMembers();
 	const purgatoryVC = bot.getPurgatory();
 	const now = moment();
 	for (userID in muteAndDeafUserIDToTime) {
@@ -1174,7 +1204,7 @@ function maybeMoveMuteAndDeaf() {
 		const deafMember = members.find('id', userID);
 		if (!deafMember) { continue; }
 		deafMember.setVoiceChannel(purgatoryVC);
-		c.LOG.info(`<INFO> ${getTimestamp()}  Sending ${deafMember.displayName} to solitary for being mute & deaf.`);
+		c.LOG.info(`<INFO> ${getTimestamp()}  Sending ${getNick(deafMember.id)} to solitary for being mute & deaf.`);
 	}
 }
 
@@ -1219,7 +1249,7 @@ function banSpammer(user, channel) {
 	channel.overwritePermissions(user, {
 		SEND_MESSAGES: false
 	})
-	.then(c.LOG.info(`<INFO> ${getTimestamp()}  Banning ${user.displayName} from ${channel.name} for spamming.`))
+	.then(c.LOG.info(`<INFO> ${getTimestamp()}  Banning ${getNick(user.id)} from ${channel.name} for spamming.`))
 	.catch((err) => {
 		c.LOG.error(`<ERROR> ${getTimestamp()}  Ban - Overwrite Permissions Error: ${err}`);
 	});
@@ -1263,7 +1293,7 @@ function unBanSpammer(userID, channelID) {
 	channel.overwritePermissions(userID, {
 		SEND_MESSAGES: true
 	})
-	.then(c.LOG.info(`<INFO> ${getTimestamp()}  Un-banning ${bot.getScrubIDToNick()[userID]} from ${channel.name} for spamming.`))
+	.then(c.LOG.info(`<INFO> ${getTimestamp()}  Un-banning ${scrubIdToNick[userID]} from ${channel.name} for spamming.`))
 	.catch((err) => {
 		c.LOG.error(`<ERROR> ${getTimestamp()}  Un-ban - Overwrite Permissions Error: ${err}`);
 	});
@@ -1287,6 +1317,12 @@ function maybeUnbanSpammers() {
 	}
 }
 
+/**
+ * Adds an item to a list.
+ *
+ * @param {String[]} args - arguments passed to command
+ * @param {String} userID - id of the user
+ */
 function addToList(args, userID) {
 	const listName = args[1];
 	const entry = getTargetFromArgs(args, 2);
@@ -1298,15 +1334,26 @@ function addToList(args, userID) {
 	}
 	sendEmbedMessage(`Entry Added to ${listName}`, 'You can view all of the entries by calling `.list`', userID);
 	lists[listIdx].entries.push(entry);
-	fs.writeFile('./resources/data/lists.json', JSON.stringify(lists), 'utf8', log);
+	exportJson(lists, 'lists');
 }
 
+/**
+ * Creates a list.
+ *
+ * @param {String[]} args - arguments passed to command
+ * @param {String} userID - id of the user
+ */
 function createList(args, userID) {
 	var listName = getTargetFromArgs(args, 1).split(' ').join('-');
 	lists.push({name: listName, entries: []});
 	sendEmbedMessage('List Successfully Created', `You can now add entries by calling \`.list ${listName} <your new entry>\``, userID);
 }
 
+/**
+ * Shows all user created lists.
+ *
+ * @param {String} userID - id of user calling command
+ */
 function showLists(userID) {
 	if (lists.length === 0) { return; }
 
@@ -1334,15 +1381,30 @@ function showLists(userID) {
 	sendDynamicMessage(userID, 'list', results, homePage);
 }
 
+/**
+ * Deletes a message.
+ *
+ * @param {Object} message - the message to delete
+ */
 function deleteMessage(message) {
 	c.LOG.info(`<INFO> ${getTimestamp()} Deleting message with content: "${message.content}"`);
 	message.delete();
 }
 
+/**
+ * Checks if the message has the delete reactions.
+ *
+ * @param {Object} message - the message to check
+ */
 function hasDeleteReactions(message) {
 	return message.reactions.has(c.TRASH_REACTION) && message.reactions.has('⚫');
 }
 
+/**
+ * Deletes messages if the delete reactions are found.
+ *
+ * @param {Object} message - the message that triggered the command
+ */
 function deleteMessages(message) {
 	message.channel.fetchMessages({limit: 50})
 	.then((foundMessages) => {
@@ -1360,11 +1422,56 @@ function deleteMessages(message) {
 	});
 }
 
+/**
+ * Determines if the provided user owns the provided channel.
+ *
+ * @param {Object} channel - the channel to check ownership of
+ * @param {String} user - the user to check
+ */
 function isChannelOwner(channel, user) {
 	const permissionOverwrites = channel.permissionOverwrites.find('id', user.id);
 	return permissionOverwrites
 		&& permissionOverwrites.allow !== 0
 		&& permissionOverwrites.deny === 0;
+}
+
+/**
+ * Capitalizes the first letter of the provided string.
+ *
+ * @param {String} original - the string to captitalize first letter of
+ */
+function capitalizeFirstLetter(original) {
+	return original.charAt(0).toUpperCase() + original.slice(1);
+}
+
+/**
+ * Writes the provided content to a file with the name provided.
+ *
+ * @param {Object} content - data to write to the file
+ * @param {String} fileName - name of the file
+ */
+function exportJson(content, fileName) {
+	fs.writeFile(`./resources/data/${fileName}.json`, JSON.stringify(content), 'utf8', log);
+}
+
+/**
+ * Updates the member list and scrubIDtoNick.
+ */
+function updateMembers() {
+	members = bot.getClient().guilds.find('id', c.SERVER_ID).members;
+	members.forEach((member) => {
+		scrubIdToNick[member.id] = member.displayName.split(' ▫ ')[0];
+		scrubIdToAvatar[member.id] = member.user.displayAvatarURL.split('?')[0];
+	});
+}
+
+/**
+ * Gets the nickname of the user with the provided id.
+ *
+ * @param {String} userID - id of user to get nickname of
+ */
+function getNick(userID) {
+	return scrubIdToNick[userID];
 }
 
 //-------------------- Public Functions --------------------
@@ -1374,17 +1481,22 @@ exports.addToReviewRole = addToReviewRole;
 exports.awaitAndHandleReaction = awaitAndHandleReaction;
 exports.backupJson = backupJson;
 exports.buildField = buildField;
+exports.capitalizeFirstLetter = capitalizeFirstLetter;
 exports.catfacts = catfacts;
 exports.compareFieldValues = compareFieldValues;
 exports.createAlias = createAlias;
 exports.createChannelInCategory = createChannelInCategory;
 exports.createList = createList;
 exports.deleteMessages = deleteMessages;
+exports.exportJson = exportJson;
 exports.exportQuotes = exportQuotes;
 exports.getIdFromMention = getIdFromMention;
+exports.getMembers = () => members;
+exports.getNick = getNick;
 exports.getQuotes = getQuotes;
 exports.getRand = getRand;
-exports.getScrubIDToNick = getScrubIDToNick;
+exports.getScrubIdToAvatar = () => scrubIdToAvatar;
+exports.getScrubIdToNick = () => scrubIdToNick;
 exports.getTargetFromArgs = getTargetFromArgs;
 exports.getTimestamp = getTimestamp;
 exports.getTrueDisplayName = getTrueDisplayName;
@@ -1395,6 +1507,7 @@ exports.isChannelOwner =isChannelOwner;
 exports.isDevEnv = isDevEnv;
 exports.isLocked = isLocked;
 exports.listBackups = listBackups;
+exports.leaveTempChannel = leaveTempChannel;
 exports.lock = lock;
 exports.log = log;
 exports.logger = logger;
@@ -1424,7 +1537,9 @@ exports.showLists = showLists;
 exports.showTips = showTips;
 exports.shuffleScrubs = shuffleScrubs;
 exports.toggleServerLogRedirect = toggleServerLogRedirect;
+exports.unalias = unalias;
 exports.unLock = unLock;
 exports.updateLottoCountdown = updateLottoCountdown;
+exports.updateMembers = updateMembers;
 exports.updateReadme = updateReadme;
 //----------------------------------------------------------

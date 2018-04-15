@@ -27,14 +27,9 @@ var whoSaidScore = {};
  * Exports the timesheet to a json file.
  */
 exports.exportTimeSheetAndGameHistory = function() {
-	var json = JSON.stringify(timeSheet);
-	fs.writeFile('./resources/data/timeSheet.json', json, 'utf8', util.log);
-
-	json = JSON.stringify(gameHistory);
-	fs.writeFile('./resources/data/gameHistory.json', json, 'utf8', util.log);
-
-	json = JSON.stringify(gamesPlayed);
-	fs.writeFile('./resources/data/gamesPlayed.json', json, 'utf8', util.log);
+	util.exportJson(timeSheet, 'timeSheet');
+	util.exportJson(gameHistory, 'gameHistory');
+	util.exportJson(gamesPlayed, 'gamesPlayed');
 };
 
 /**
@@ -83,8 +78,7 @@ function updateHeatMap(logTime, playerCount) {
  */
 exports.generateHeatMap = function() {
 	writeHeatMapDataToTsvFile();
-	var json = JSON.stringify(heatMapData);
-	fs.writeFile('./resources/data/rawHeatMapData.json', json, 'utf8', util.log);
+	util.exportJson(heatMapData, 'rawHeatMapData');
 }
 
 function getGamesBeingPlayedData(players) {
@@ -151,7 +145,7 @@ exports.maybeOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
 };
 
 exports.updatePlayingStatus = function() {
-	var { winner, max } = getGamesBeingPlayedData(bot.getMembers());
+	var { winner, max } = getGamesBeingPlayedData(util.getMembers());
 	if (winner === '') {
 		winner = 'nothing';
 	}
@@ -194,10 +188,9 @@ function getUsersPlaytimeForGame(userID, gameName) {
 	var playtime = timeSheet[userID][gameName];
 	var currentlyPlaying = timeSheet[userID]['playing'];
 
-	//TODO: THIS LOGIC IS WRONG! If they are currently playing a game and have already played it today, it won't include their current play time~~~~~~~~~~~~~~~~~~~~~~~~~
 	//if the target user is currently playing the game
-	if (playtime === 0 && currentlyPlaying && currentlyPlaying.name === gameName) {
-		playtime = getTimePlayed(currentlyPlaying);
+	if (playtime && currentlyPlaying && currentlyPlaying.name === gameName) {
+		playtime += getTimePlayed(currentlyPlaying);
 	}
 
 	return playtime;
@@ -367,7 +360,7 @@ function buildWhoPlaysFields(usersWhoPlay) {
     	return b.time - a.time;
 	});
 
-	const scrubIDToNick = bot.getScrubIDToNick();
+	const scrubIDToNick = util.getScrubIdToNick();
 	usersWhoPlay.forEach((user) => {
 		const lastPlayed = isNaN(user.time)?'N/A': moment(user.time).format('M/DD/YY hh:mm A');
 		const name = scrubIDToNick[user.id];
@@ -463,7 +456,7 @@ exports.letsPlay = function(args, userID, userName, message, oneMore) {
 
 	var usersWhoPlay = gameUserData.users;
 	if (usersWhoPlay) {
-		game = emojis.find('name', game) || game;
+		game = emojis.find('name',  util.capitalizeFirstLetter(game)) || game;
 		const oneMoreMsg = oneMore ? 'We need **1** more for ' : '';
 		const punctuation = oneMore ? '!' : '?';
 		var msg = `↪️ **${userName}**: ${oneMoreMsg}${game}${punctuation}`;
@@ -482,7 +475,7 @@ exports.maybeCallLetsPlay = function(message) {
 	const game = get(message, 'member.presence.game.name');
 	if (message.author.bot || message.content !== "" || message.attachments.size !== 0
 		|| message.type !== 'DEFAULT' || !game) { return; }
-	exports.letsPlay(['', '-ss', game], message.member.id, message.member.displayName, message.guild.emojis);
+	exports.letsPlay(['', '-ss', game], message.member.id, util.getNick(message.member.id), message.guild.emojis);
 }
 
 /**
@@ -538,15 +531,14 @@ function getUpdatedGameToTime(gameToTime, userName) {
 /**
  * Updates the provided users timesheet.
  *
- * TODO: Update this function to use the oldGame name to validate that is
- * what they just finished playing.
- *
- * @param {String} user
- * @param {String} userID
- * @param {Object} game
+ * @param {String} user - name of the user
+ * @param {String} userID - id of the user
+ * @param {String} highestRole - the user's highest role
+ * @param {String} oldGame - name of the game the user finished playing
+ * @param {String} newGame - name of the game the user started playing
  */
 exports.updateTimesheet = function(user, userID, highestRole, oldGame, newGame) {
-	c.LOG.info(`<INFO> Presence Update - ${user} id: ${userID} old game: ${oldGame} new game: ${newGame}`);
+	c.LOG.info(`<INFO> ${util.getTimestamp()}  Presence Update - ${user} id: ${userID} old game: ${oldGame} new game: ${newGame}`);
 
 	//get user's timesheet
 	var gameToTime = timeSheet[userID];
@@ -606,8 +598,7 @@ exports.optIn = function(user, userID) {
 	util.sendEmbedFieldsMessage('👀 YOU ARE BEING WATCHED', fields, userID);
 	waitAndSendScrubDaddyFact(0, 5, userID);
 	c.LOG.info(`<INFO> ${util.getTimestamp()}  ${user} (${userID}) has opted into time`);
-	var json = JSON.stringify(optedInUsers);
-	fs.writeFile('./resources/data/optedIn.json', json, 'utf8', util.log);
+	util.exportJson(optedInUsers, 'optedIn');
 };
 
 /**
@@ -731,9 +722,8 @@ exports.setStreamingUrl = function(member, url) {
 	shortener.shorten(url, function(err, shortUrl) {
 		if (shortUrl) {
 			userIDToStreamingUrl[member.id] = shortUrl;
-			const json = JSON.stringify(userIDToStreamingUrl);
-			fs.writeFile('./resources/data/streaming.json', json, 'utf8', util.log);
-			util.sendEmbedMessage(`Stream Url Set For ${member.displayName}`, `Your stream can be watched at ${shortUrl}`)
+			util.exportJson(userIDToStreamingUrl, 'streaming');
+			util.sendEmbedMessage(`Stream Url Set For ${util.getNick(member.id)}`, `Your stream can be watched at ${shortUrl}`)
 		}
 	});
 
@@ -805,12 +795,12 @@ exports.getFortniteStats = function(gameMode, stat, callingUserID, fortniteUserN
 					const label = get(player, `${statKeyBase}.label`);
 					const value = get(player, `${statKeyBase}.displayValue`);
 					const percentile = get(player, `${statKeyBase}.percentile`);
-					const gameModeTitle = `${gameMode.charAt(0).toUpperCase()}${gameMode.slice(1)}`;
+					const gameModeTitle = util.capitalizeFirstLetter(gameMode);
 					if (fortniteUserName) {
 						const title = `Fortnite ${gameModeTitle} ${label} for ${fortniteUserName}`;
 						util.sendEmbedMessage(title, `${value}\nTop ${percentile}% in the world`, callingUserID);
 					} else if (label) {
-						fields.push(util.buildField(bot.getScrubIDToNick()[userID], value));
+						fields.push(util.buildField(util.getNick(userID), value));
 						if (!statTitleLabel) {
 							statTitleLabel = label;
 						}
@@ -820,7 +810,7 @@ exports.getFortniteStats = function(gameMode, stat, callingUserID, fortniteUserN
 					get(player, c.GAME_MODE_TO_KEY[gameMode.toLowerCase()]).forEach((category) => {
 						allFields.push(util.buildField(category.key, category.value));
 					});
-					util.sendEmbedFieldsMessage(`Fortnite Lifetime Stats for ${fortniteUserName}`, allFields, callingUserID);
+					util.sendEmbedFieldsMessage(`Fortnite Lifetime Stats for ${util.getNick(userID)}`, allFields, callingUserID);
 				}
 			}
 		})
@@ -838,7 +828,7 @@ exports.getFortniteStats = function(gameMode, stat, callingUserID, fortniteUserN
 		});
 	}
 
-	const gameModeTitle = `${gameMode.charAt(0).toUpperCase()}${gameMode.slice(1)}`;
+	const gameModeTitle = util.capitalizeFirstLetter(gameMode);
 	var userIDs = Object.keys(userIDToFortniteUserName);
 	var fields = [];
 	var statTitleLabel;
@@ -871,8 +861,7 @@ exports.getFortniteStats = function(gameMode, stat, callingUserID, fortniteUserN
  */
 exports.setFortniteName = function(userID, userName) {
 	userIDToFortniteUserName[userID] = userName;
-	const json = JSON.stringify(userIDToFortniteUserName);
-	fs.writeFile('./resources/data/fortniteUserData.json', json, 'utf8', util.log);
+	util.exportJson(userIDToFortniteUserName, 'fortniteUserData');
 };
 
 function shuffleArray(array) {
@@ -907,7 +896,7 @@ exports.sunkenSailor = function(callingMember) {
 	shuffleArray(players);
 	var turnOrderMsg = '';
 	players.forEach((player, index) => {
-		turnOrderMsg += `\`${index + 1}.\`  **${player.displayName}**\n`;
+		turnOrderMsg += `\`${index + 1}.\`  **${util.getNick(player.id)}**\n`;
 	});
 	util.sendEmbedMessage('Sunken Sailor Turn Order', turnOrderMsg);
 };
@@ -949,7 +938,7 @@ function maybeGetImageFromContent(content) {
 function endWhoSaidGame() {
 	var fields =[];
 	for(userID in whoSaidScore) {
-		fields.push(util.buildField(bot.getScrubIDToNick()[userID], whoSaidScore[userID]));
+		fields.push(util.buildField(util.getNick(userID), whoSaidScore[userID]));
 	}
 
 	fields.sort(util.compareFieldValues);
@@ -962,7 +951,7 @@ function startWhoSaidRound(quote, round) {
 	util.sendEmbedMessage(`Who Said - Round ${round}`, `Who said "${quote.content}"?`, null, maybeGetImageFromContent(quote.content))
 
 	const filter = (m) => {
-		if (m.content === util.mentionUser(quote.author.id) || m.content === quote.member.displayName) { return m; }
+		if (m.content === util.mentionUser(quote.author.id) || m.content === util.getNick(quote.member.id)) { return m; }
 	};
 	return bot.getBotSpam().awaitMessages(filter, { max: 1, time: 30000, errors: ['time'] });
 }
@@ -977,8 +966,8 @@ function whoSaidGameLoop(randomQuotes, round) {
     startWhoSaidRound(selectedQuote, round)
     .then((answers) => {
 		const roundWinner = answers.array()[0].member;
-		util.sendEmbedMessage(`Congrats ${roundWinner.displayName}`,
-		`You're correct! **${bot.getScrubIDToNick()[selectedQuote.author.id]}**\nsaid that on \`${moment(selectedQuote.createdTimestamp).format('LLLL')}\``);
+		util.sendEmbedMessage(`Congrats ${util.getNick(roundWinner.id)}`,
+		`You're correct! **${util.getNick(selectedQuote.author.id)}**\nsaid that on \`${moment(selectedQuote.createdTimestamp).format('LLLL')}\``);
 		whoSaidScore[roundWinner.id] = whoSaidScore[roundWinner.id] ? whoSaidScore[roundWinner.id] + 1 : 1;
 		whoSaidGameLoop(randomQuotes, round + 1);
 	})

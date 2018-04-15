@@ -16,8 +16,7 @@ const idToAmountStolen = {};
  * exports the ledger to a json file.
  */
 exports.exportLedger = function() {
-    var json = JSON.stringify(ledger);
-    fs.writeFile('./resources/data/ledger.json', json, 'utf8', util.log);
+    util.exportJson(ledger, 'ledger');
 };
 
 /**
@@ -35,7 +34,7 @@ exports.giveScrubBubbles = function (userID, userName, targetMention, numBubbles
     if (numBubbles < 1 || !(ledger[userID] && ledger[userID].armySize >= numBubbles)) { return; }
 
     const targetID = util.getIdFromMention(targetMention);
-    if (bot.getScrubIDToNick()[targetID]) {
+    if (util.getNick(targetID)) {
         removeFromArmy(userID, numBubbles);
         addToArmy(targetID, numBubbles);
         const msg = `${targetMention}  Your Scrubbing Bubbles army has grown by ${numBubbles}! You now have an army of ${ledger[targetID].armySize}.`;
@@ -340,7 +339,7 @@ exports.stats = function (userID, args) {
  */
 exports.armyRanks = function(userID) {
     var fields = [];
-    const scrubIDToNick = util.getScrubIDToNick();
+    const scrubIDToNick = util.getScrubIdToNick();
     for (var id in ledger) {
         fields.push(util.buildField(scrubIDToNick[id], ledger[id].armySize));
     }
@@ -375,8 +374,7 @@ function isValidTime(monthDayTokens, hour) {
 }
 
 function exportConfig() {
-    var json = JSON.stringify(config);
-    fs.writeFile('./resources/data/config.json', json, 'utf8', util.log);
+    util.exportJson(config, 'config');
 }
 
 exports.startLotto = function(user, userID, monthDay, hour) {
@@ -430,7 +428,7 @@ exports.checkLotto = function(userID) {
     }
 
     var entries = '';
-    const scrubIDToNick = bot.getScrubIDToNick();
+    const scrubIDToNick = util.getScrubIdToNick();
     config.lottoEntries.forEach((entry) => {
         entries += `${scrubIDToNick[entry]}\n`
     })
@@ -471,8 +469,8 @@ function getFakeAndRealWinner() {
 		fakeWinnerID = config.lottoEntries[util.getRand(0, config.lottoEntries.length)];
     }
     return {
-        fakeWinner: bot.getScrubIDToNick()[fakeWinnerID],
-        winner: bot.getScrubIDToNick()[winnerID],
+        fakeWinner: util.getNick(fakeWinnerID),
+        winner: util.getNick(winnerID),
         winnerID: winnerID
     };
 }

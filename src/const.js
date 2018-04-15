@@ -30,9 +30,6 @@ define('REVIEW_ROLE_ID', '376391242105225216');
 define('DAYS', ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']);
 define('PUBG_ALIASES', ['scrubg', 'pubg', 'pugG', 'pabg', 'pobg', 'pebg', 'pibg', 'pybg', 'Mr. Pib G.', 'pub', 'pudgy', 'puh ba gee']);
 define('GREETINGS', ['you guys', 'yous guys', 'y\'all', 'hey buddies,', 'hey pals,', 'hey friends,', 'sup dudes,', 'hello fellow humans,']);
-//Todo: pull from config.json or determine programtically on start
-define('BOT_IDS', ['172002275412279296', '86920406476292096', '188064764008726528',
-	'263059218104320000', '116275390695079945', '362784198848675842', '306583221565521921']);
 //Todo: pull from config.json or make a system that searches web for img
 define('GAME_NAME_TO_IMG', {
     'World of Warcraft' : 'http://i.imgur.com/US59X7X.jpg',
@@ -144,7 +141,8 @@ define('HELP_ROLE_AND_USER',[{ name: '.join-review-team', value: '`to be added t
 							 { name: '.shuffle-scrubs <`letter`>', value: '`to set the first letter of every Srub\'s name.`', inline: 'false'},
 							 { name: '.set-stream <`url`>', value: '`to set the url for either your stream or the stream you are watching.`', inline: 'false'},
 							 { name: '.toggle-streaming', value: '`to toggle your streaming state on/off, which will update your nickname.`', inline: 'false'},
-							 { name: '.alias <`alias`> <`command to call`>', value: '`creates an alias for the provided command call. \ne.g. .alias ow who-plays Overwatch ... will allow you to call .ow`', inline: 'false'}]);
+							 { name: '.alias <`alias`> <`command to call`>', value: '`creates an alias for the provided command call. \ne.g. .alias ow who-plays Overwatch ... will allow you to call .ow`', inline: 'false'},
+							 { name: '.unalias <`alias`>', value: '`removes the alias with the provided name.`', inline: 'false'}]);
 define('HELP_SOUNDBYTES', [{ name: '*sb', value: '`to get the list of available soundbytes.`', inline: 'false'},
 						   { name: '*sb <`name`>', value: '`to play the sound byte of the given name in your voice channel.`', inline: 'false'},
 						   { name: '*add-sb + `ATTACHMENT IN SAME MESSAGE`', value: '`to add a sound byte.`', inline: 'false'},
@@ -152,8 +150,9 @@ define('HELP_SOUNDBYTES', [{ name: '*sb', value: '`to get the list of available 
 						   { name: '*volume + `ATTACHMENT IN SAME MESSAGE`', value: '`to add a sound byte.`', inline: 'false'}]);
 define('HELP_UTILITIES',[
 					{ name: '.temp', value: '`Creates a temporary text channel`', inline: 'false'},
-					{ name: '.temp <`text|voice`>', value: '`Creates a temp text/voice channel`', inline: 'false'},
-					{ name: '.temp <`text|voice`> <`channel-title`>', value: '`Creates a voice/text channel with the provided title`', inline: 'false'},
+					{ name: '.temp <`text|voice`>', value: '`Creates a temp text/voice channel.`', inline: 'false'},
+					{ name: '.temp <`text|voice`> <`channel-title`>', value: '`Creates a voice/text channel with the provided title.`', inline: 'false'},
+					{ name: '.leave-temp', value: '`to leave the temp channel the command is called in.`', inline: 'false'},
 					{ name: '.start-lotto <`MM/DD`> <`HH`>', value: '`to start a Beyond lotto that will end at the specified time (`HH` can be 0-23).`', inline: 'false'},
 					{ name: '.lotto', value: '`to join the currently running Beyond lotto or get the time remaining.`', inline: 'false'},
 					{ name: '.quote', value: '`to quote and reply or save the quote, depending on which reaction you use (:quoteReply: or :quoteSave:).`', inline: 'false'},
@@ -172,7 +171,7 @@ define('HELP_CATEGORIES_PROMPT',[{ name: '.help <`command`>', value: '`to get he
 						  { name: '5) Bot Issues, Feature Requests, and Help', value: '`tips`	`issue`	`feature`	`implement`	`help`', inline: 'false'},
 						  { name: '6) Roles & User Settings', value: '`join-review-team`	`leave-review-team`	`color`	`shuffle-scrubs`	`set-stream`	`toggle-streaming`	`alias`', inline: 'false'},
 						  { name: '7) Soundbytes', value: '`*sb`	`*add-sb`	`*fav-sb`	`*volume`', inline: 'false'},
-						  { name: '8) Utilities', value: '`temp`	`start-lotto`	`lotto`	`quote`	`quotes`	`list`	`create-list`	`delete`', inline: 'false'},
+						  { name: '8) Utilities', value: '`temp`	`leave-temp`	`start-lotto`	`lotto`	`quote`	`quotes`	`list`	`create-list`	`delete`', inline: 'false'},
 						  { name: '⠀', value: '[Click here to see all 80 commands w/ descriptions](https://github.com/wasaab/scrub-daddy/blob/master/README.md)', inline: 'false'}]);
 define('HELP_CATEGORIES', [{name: '`Voting`', fields: exports.HELP_VOTING},
 						   {name: '`Scrubbing Bubbles`', fields: exports.HELP_SCRUBBING_BUBBLES},
@@ -246,7 +245,7 @@ define('TIPS',
 	{
 		color: 0xffff00,
 		title: '💡 New Commands',
-		description: '`delete`	`list`	`create-list`	`give`	`tips`	`quote`	`quotes`	`21`	`fortnite-stats`	`fortnite-leaderboard`',
+		description: '`leave-temp`	`unalias`	`delete`	`list`	`create-list`	`give`	`tips`	`quote`	`quotes`	`21`	`fortnite-stats`	`fortnite-leaderboard`',
 		image: {
 			url: 'https://media3.giphy.com/media/UGxfEt5POsukg/giphy.gif'
 		}
@@ -282,14 +281,14 @@ define('COMMANDS', [
 	'h', 'heatmap', 'help', 'hit',
 	'implement', 'info', 'issue',
 	'join-review-team',
-	'list', 'leave-review-team', 'lets-play', 'list-backups', 'log', 'lotto',
+	'list', 'leave-temp', 'leave-review-team', 'lets-play', 'list-backups', 'log', 'lotto',
 	'opt-in',
 	'p', 'playing',
 	'quote', 'quotes',
 	'rank', 'ranks', 'restart', 'restore', 'revive',
 	'sb', 'sb-add', 'set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'start-lotto', 'stats', 'stay', 'steal','sunken-sailor',
 	'temp', 'time', 'tips', 'toggle-streaming',
-	'update-readme',
+	'unalias', 'update-readme',
 	'vote', 'voteban', 'voteinfo', 'votekick',
 	'who-plays', 'who-said']);
 define('WHO_PLAYS_FUZZY_OPTIONS', {

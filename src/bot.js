@@ -17,26 +17,12 @@ var client = new Discord.Client();
 client.login(private.token);
 
 var fuse = new Fuse(c.COMMANDS, {verbose: false});
-var members = [];
 var botSpam = {};
 var scrubsChannel = {};
 var logChannel = {};
 var purgatory = {};
 var feedbackCategory = {};
-var scrubIDtoNick = {};
-var scrubIDtoAvatar = {};
 var quoteBlocked = false;
-
-/**
- * Updates the member list and scrubIDtoNick.
- */
-function updateMembers() {
-	members = client.guilds.find('id', c.SERVER_ID).members;
-	members.forEach((member) => {
-		scrubIDtoNick[member.id] = member.displayName.split(' ▫ ')[0];
-		scrubIDtoAvatar[member.id] = member.user.displayAvatarURL.split('?')[0];
-	});
-}
 
 /**
  * Returns the closest matching command to what was provided.
@@ -74,9 +60,9 @@ function handleCommand(message) {
 	}
 
 	const channelID = message.channel.id;
-	const user = message.member.displayName;
+	const user = util.getNick(message.member.id);
 
-	if (channelID !== c.BOT_SPAM_CHANNEL_ID && cmd !== 'quote' && cmd !== 'delete') { return; }
+	if (channelID !== c.BOT_SPAM_CHANNEL_ID && cmd !== 'quote' && cmd !== 'delete' && cmd !== 'leave-temp') { return; }
 
 	function fakeStealAllCalled() {
 		if (userID === c.AF_ID || util.isAdmin(userID)) {
@@ -198,6 +184,9 @@ function handleCommand(message) {
 	function joinReviewTeamCalled() {
 		util.addToReviewRole(message.member, message.guild.roles);
 	}
+	function leaveTempCalled() {
+		util.leaveTempChannel(message.channel, userID);
+	}
 	function leaveReviewTeamCalled() {
 		util.removeFromReviewRole(message.member, message.guild.roles);
 	}
@@ -317,6 +306,11 @@ function handleCommand(message) {
 	function toggleStreamingCalled() {
 		games.toggleStreaming(message.member)
 	}
+	function unaliasCalled() {
+		if (args[1]) {
+			util.unalias(args[1], userID);
+		}
+	}
 	function updateReadmeCalled() {
 		if (!util.isAdmin(userID)) { return; }
 		util.updateReadme();
@@ -377,6 +371,7 @@ function handleCommand(message) {
 		'info': helpCalled,
 		'issue': issueOrFeatureCalled,
 		'join-review-team': joinReviewTeamCalled,
+		'leave-temp': leaveTempCalled,
 		'leave-review-team': leaveReviewTeamCalled,
 		'lets-play': letsPlayCalled,
 		'list': listCalled,
@@ -407,6 +402,7 @@ function handleCommand(message) {
 		'time': timeCalled,
 		'tips': tipsCalled,
 		'toggle-streaming': toggleStreamingCalled,
+		'unalias': unaliasCalled,
 		'update-readme': updateReadmeCalled,
 		'vote': voteCalled,
 		'voteban': votebanCalled,
@@ -451,7 +447,7 @@ client.on('presenceUpdate', (oldMember, newMember) => {
 	//ignore presence updates for bots and online status changes
 	if (!newMember.user.bot && newMember.highestRole.name !== 'Pleb' && oldGame !== newGame) {
 		games.maybeUpdateNickname(newMember, newGame);
-		games.updateTimesheet(newMember.displayName, newMember.id, newMember.highestRole, oldGame, newGame);
+		games.updateTimesheet(util.getNick(newMember.id), newMember.id, newMember.highestRole, oldGame, newGame);
 		gambling.maybeDischargeScrubBubble();
 	}
 });
@@ -491,7 +487,7 @@ client.on('error', (error) => {
  * Logs the bot into Discord, stores id to nick map, and retrieves 3 crucial channels.
  */
 client.on('ready', () => {
-	updateMembers();
+	util.updateMembers();
 	botSpam = client.channels.find('id', c.BOT_SPAM_CHANNEL_ID);
 	scrubsChannel = client.channels.find('id', c.SCRUBS_CHANNEL_ID);
 	purgatory = client.channels.find('id', c.PURGATORY_CHANNEL_ID);
@@ -511,11 +507,7 @@ exports.getBotSpam = () => botSpam;
 exports.getScrubsChannel = () => scrubsChannel;
 exports.getLogChannel = () => logChannel;
 exports.getPurgatory = () => purgatory;
-exports.getScrubIDToNick = () => scrubIDtoNick;
-exports.getScrubIDToAvatar = () => scrubIDtoAvatar;
 exports.getClient = () => client;
-exports.getMembers = () => members;
-exports.updateMembers = updateMembers;
 
 //return the elements of the array that match your conditional
 // var userEntry = usersWhoPlay.filter((player) => {return player.id === userID;});
