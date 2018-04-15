@@ -75,6 +75,12 @@ define('GAME_CHANNEL_NAMES', {
 	'370626139972042752': `They'll fix that b4 release`,
 });
 
+define('LEAVE_IMAGES', ['https://media.giphy.com/media/48FhEMYGWji8/giphy.gif',
+ 	'https://media.giphy.com/media/l0K42RIaNOZcK7CNy/giphy.gif',
+  	'https://media.giphy.com/media/LPtp3yR0EiVc4/giphy.gif',
+   	'https://media.giphy.com/media/3oEjHZmJLsBqZWKlFK/giphy.gif',
+	'https://media.giphy.com/media/jUwpNzg9IcyrK/giphy.gif',
+	'https://media.giphy.com/media/PrGNf7O36heCs/giphy.gif']);
 define('SETTINGS_IMG', 'https://i.imgur.com/T2ABKgC.png');
 define('BUBBLE_IMAGES', ['https://i.imgur.com/rddtZR6.png','https://i.imgur.com/MdKfKVG.png','https://i.imgur.com/ZAyLJSJ.png','https://i.imgur.com/K6k4b3q.png','https://i.imgur.com/m7V6BEa.png',
 						 'https://i.imgur.com/Q7JO7Fn.png','https://i.imgur.com/lXZNXoz.png','https://i.imgur.com/xdwTSuG.png','https://i.imgur.com/PE99BJ8.png','https://i.imgur.com/VhFgbRQ.png',

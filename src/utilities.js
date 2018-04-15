@@ -90,7 +90,17 @@ function leaveTempChannel(channel, userID) {
 	channel.overwritePermissions(userID, {
 		VIEW_CHANNEL: false
 	})
-	.then(c.LOG.info(`<INFO> ${getTimestamp()} ${scrubIdToNick[userID]} has left ${channel.name}`))
+	.then(() => {
+		const color = userIDToColor[userID] || 0xffff00;
+		channel.send(new Discord.RichEmbed({
+			color: color,
+			title: `${scrubIdToNick[userID]} has left the channel` ,
+			image: {
+				url: c.LEAVE_IMAGES[getRand(0, c.LEAVE_IMAGES.length)]
+			}
+		}));
+		c.LOG.info(`<INFO> ${getTimestamp()} ${scrubIdToNick[userID]} has left ${channel.name}`);
+	})
 	.catch((err) => {
 		c.LOG.error(`<ERROR> ${getTimestamp()}  Leave ${channel.name} - Overwrite Permissions Error: ${err}`);
 	});
