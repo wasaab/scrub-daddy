@@ -859,7 +859,10 @@ exports.getFortniteStats = function(gameMode, stat, callingUserID, fortniteUserN
 /**
  * Stores the user's fortnite username
  */
-exports.setFortniteName = function(userID, userName) {
+exports.setFortniteName = function(userID, userName, targetUser) {
+	if (targetUser && util.isAdmin(userID)) {
+		userID = util.getIdFromMention(targetUser);
+	}
 	userIDToFortniteUserName[userID] = userName;
 	util.exportJson(userIDToFortniteUserName, 'fortniteUserData');
 };
