@@ -1,7 +1,7 @@
 # scrub-daddy
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/8f59c3e85df049d3bd319a21576f37c4)](https://www.codacy.com/app/Scrubs/scrub-daddy?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=wasaab/scrub-daddy&amp;utm_campaign=Badge_Grade)
 
-Discord bot with the following 80 commands:
+Discord bot with the following 83 commands:
 
 1. Voting
       + Please Note - `You must be in a voice channel with at least 3 members to participate in a kick/ban vote.`
@@ -69,7 +69,8 @@ Discord bot with the following 80 commands:
       + .set-stream <`url`> - `to set the url for either your stream or the stream you are watching.`
       + .toggle-streaming - `to toggle your streaming state on/off, which will update your nickname.`
       + .alias <`alias`> <`command to call`> - `creates an alias for the provided command call.
-            e.g. .alias ow who-plays Overwatch ... will allow you to call .ow`
+             e.g. .alias ow who-plays Overwatch ... will allow you to call .ow`
+      + .unalias <`alias`> - `removes the alias with the provided name.`
 
 1. Soundbytes
       + *sb - `to get the list of available soundbytes.`
@@ -80,8 +81,9 @@ Discord bot with the following 80 commands:
 
 1. Utilities
       + .temp - `Creates a temporary text channel`
-      + .temp <`text|voice`> - `Creates a temp text/voice channel`
-      + .temp <`text|voice`> <`channel-title`> - `Creates a voice/text channel with the provided title`
+      + .temp <`text|voice`> - `Creates a temp text/voice channel.`
+      + .temp <`text|voice`> <`channel-title`> - `Creates a voice/text channel with the provided title.`
+      + .leave-temp - `to leave the temp channel the command is called in.`
       + .start-lotto <`MM/DD`> <`HH`> - `to start a Beyond lotto that will end at the specified time (`HH` can be 0-23).`
       + .lotto - `to join the currently running Beyond lotto or get the time remaining.`
       + .quote - `to quote and reply or save the quote, depending on which reaction you use (:quoteReply: or :quoteSave:).`
@@ -91,7 +93,9 @@ Discord bot with the following 80 commands:
       + .create-list <`name of list`> - `to create a named list that users can add entries to.`
       + .list - `to view all of the user created lists.`
       + .list <`list-name`> <`your new entry`> - `to add a new entry to a user created list.`
-
+      + .delete - `call this after adding both :trashcan: and :black_circle: reactions to first and last messages to delete.
+             All messages between the two you reacted to will be deleted, including those two.
+             This will only work if you are in a temp channel you created.`
 1. Admin Commands
       + backup - `backs up all json files within the data folder to ../jsonBackups.`
       + restore <`backupFileName`> - `restores json files to the specified backup.`
