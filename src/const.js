@@ -14,6 +14,8 @@ define('LOOP_DELAY', 1500);							//delay between each loop
 //Todo: pull up to line 26 from config.json
 define('BOT_SPAM_CHANNEL_ID', '372570540482887701');//listen's to messages from this channel
 define('SCRUBS_CHANNEL_ID', '370626384059695107');	//channel ID of scrubs text channel
+define('PLEBS_CHANNEL_ID', '370623193528008705');	//channel ID of plebs text channel
+define('NEW_MEMBER_CHANNEL_ID', '435154703312224287') //channel ID of new member info text channel
 define('LOG_CHANNEL_ID', '410258655322308608');		//channel ID of the text channel used for redirecting the console
 define('SERVER_ID', private.serverID);				//Bed Bath Server ID
 define('CATEGORY_ID', {

@@ -465,7 +465,9 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
  */
 client.on('guildMemberAdd', (member) => {
 	member.addRole(c.PLEB_ROLE_ID);
-	updateMembers();
+	const plebsChannel = client.channels.find('id', c.PLEBS_CHANNEL_ID);
+	util.updateMembers();
+	plebsChannel.send(`Welcome to the server, ${util.mentionUser(member.id)}! Check out ${util.mentionChannel(c.NEW_MEMBER_CHANNEL_ID)}.`);
 });
 
 /**
