@@ -475,7 +475,7 @@ exports.maybeCallLetsPlay = function(message) {
 	const game = get(message, 'member.presence.game.name');
 	if (message.author.bot || message.content !== "" || message.attachments.size !== 0
 		|| message.type !== 'DEFAULT' || !game) { return; }
-	exports.letsPlay(['', '-ss', game], message.member.id, util.getNick(message.member.id), message.guild.emojis);
+	exports.letsPlay(['', '-ss', game], message.member.id, util.getNick(message.member.id), message);
 }
 
 /**
