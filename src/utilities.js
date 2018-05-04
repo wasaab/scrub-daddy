@@ -34,6 +34,7 @@ var quoteTipMsg = {};
 var members = [];
 var scrubIdToNick = {};
 var scrubIdToAvatar = {};
+var reviewQueue = [];
 
 /**
  * Creates a channel in a category, specified by the command provided.
@@ -1484,8 +1485,34 @@ function getNick(userID) {
 	return scrubIdToNick[userID];
 }
 
+/**
+ * Adds a message to the queue for review.
+ *
+ * @param {Object} message - message to add to the queue
+ */
+function addMessageToReviewQueue(message) {
+	reviewQueue.push(message.content);
+	message.delete();
+}
+
+/**
+ * Sends messages from the review queue to the reviewer.
+ *
+ * @param {Object} reviewer - user reviewing the queue of messages
+ */
+function reviewMessages(reviewer) {
+	reviewer.createDM()
+	.then((dm) => {
+		reviewQueue.forEach((message) => {
+			c.LOG.info(`<INFO> ${getTimestamp()}  Message to review: ${message}`);
+			dm.send(message);
+		});
+	});
+}
+
 //-------------------- Public Functions --------------------
 exports.addInitialNumberReactions = addInitialNumberReactions;
+exports.addMessageToReviewQueue = addMessageToReviewQueue;
 exports.addToList = addToList;
 exports.addToReviewRole = addToReviewRole;
 exports.awaitAndHandleReaction = awaitAndHandleReaction;
@@ -1538,6 +1565,7 @@ exports.quoteUser = quoteUser;
 exports.removeFromReviewRole = removeFromReviewRole;
 exports.restartBot = restartBot;
 exports.restoreJsonFromBackup = restoreJsonFromBackup;
+exports.reviewMessages = reviewMessages;
 exports.scheduleRecurringJobs = scheduleRecurringJobs;
 exports.sendDynamicMessage = sendDynamicMessage;
 exports.sendEmbedFieldsMessage = sendEmbedFieldsMessage;

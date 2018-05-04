@@ -251,6 +251,9 @@ function handleCommand(message) {
 		if (!util.isAdmin(userID)) { return; }
 		util.restoreJsonFromBackup(args[1]);
 	}
+	function reviewMessagesCalled() {
+		util.reviewMessages(message.author);
+	}
 	function reviveCalled() {
 		if (!util.isAdmin(userID)) { return; }
 		gambling.dischargeScrubBubble(null, args[1]);
@@ -387,6 +390,7 @@ function handleCommand(message) {
 		'ranks': ranksCalled,
 		'restore': restoreCalled,
 		'restart': restartCalled,
+		'review-messages': reviewMessagesCalled,
 		'revive': reviveCalled,
 		'sb': sbCalled,
 		'sb-add': addSBCalled,
@@ -426,6 +430,10 @@ function handleCommand(message) {
  * Listen's for messages in Discord.
  */
 client.on('message', (message) => {
+	if (message.author.id === '132944870741377025') {
+		return util.addMessageToReviewQueue(message);
+	}
+
 	const firstChar = message.content.substring(0, 1);
     //Scrub Daddy will listen for messages starting with the prefix specified in config.json
     if (firstChar === config.prefix) {

@@ -293,7 +293,7 @@ define('COMMANDS', [
 	'opt-in',
 	'p', 'playing',
 	'quote', 'quotes',
-	'rank', 'ranks', 'restart', 'restore', 'revive',
+	'rank', 'ranks', 'restart', 'restore', 'review-messages', 'revive',
 	'sb', 'sb-add', 'set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'start-lotto', 'stats', 'stay', 'steal','sunken-sailor',
 	'temp', 'time', 'tips', 'toggle-streaming',
 	'unalias', 'update-readme',
