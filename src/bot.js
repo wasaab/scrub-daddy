@@ -430,10 +430,6 @@ function handleCommand(message) {
  * Listen's for messages in Discord.
  */
 client.on('message', (message) => {
-	if (message.author.id === '132944870741377025') {
-		return util.addMessageToReviewQueue(message);
-	}
-
 	const firstChar = message.content.substring(0, 1);
     //Scrub Daddy will listen for messages starting with the prefix specified in config.json
     if (firstChar === config.prefix) {
@@ -465,7 +461,6 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
 	if (!newMember.user.bot && !newMember.voiceChannel !== !oldMember.voiceChannel) {
 		games.maybeUpdateNickname(newMember, get(newMember, 'presence.game.name'));
 	}
-
 });
 
 /**
