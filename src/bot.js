@@ -62,7 +62,8 @@ function handleCommand(message) {
 	const channelID = message.channel.id;
 	const user = util.getNick(message.member.id);
 
-	if (channelID !== c.BOT_SPAM_CHANNEL_ID && cmd !== 'quote' && cmd !== 'delete' && cmd !== 'leave-temp') { return; }
+	//If not called in from bot spam and not a global command, do nothing
+	if (channelID !== c.BOT_SPAM_CHANNEL_ID && !c.GLOBAL_COMMANDS.includes(cmd)) { return; }
 
 	function fakeStealAllCalled() {
 		if (userID === c.AF_ID || util.isAdmin(userID)) {
@@ -243,6 +244,15 @@ function handleCommand(message) {
 		gambling.armyRanks(userID);
 		message.delete();
 	}
+	function rateCalled() {
+		if (args.length < 4 || channelID !== c.RATINGS_CHANNEL_ID) { return; }
+		util.updateRating(args[1], Number(args[2]), args, message.channel, userID);
+		message.delete();
+	}
+	function ratingsCalled() {
+		util.outputRatings(Number(args[1]), args[2], args[3]);
+		message.delete();
+	}
 	function restartCalled() {
 		if (!util.isAdmin(userID)) { return; }
 		util.restartBot(args[1]);
@@ -388,6 +398,8 @@ function handleCommand(message) {
 		'quotes': quotesCalled,
 		'rank': ranksCalled,
 		'ranks': ranksCalled,
+		'rate': rateCalled,
+		'ratings': ratingsCalled,
 		'restore': restoreCalled,
 		'restart': restartCalled,
 		'review-messages': reviewMessagesCalled,

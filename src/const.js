@@ -17,6 +17,7 @@ define('SCRUBS_CHANNEL_ID', '370626384059695107');	//channel ID of scrubs text c
 define('PLEBS_CHANNEL_ID', '370623193528008705');	//channel ID of plebs text channel
 define('NEW_MEMBER_CHANNEL_ID', '435154703312224287') //channel ID of new member info text channel
 define('LOG_CHANNEL_ID', '410258655322308608');		//channel ID of the text channel used for redirecting the console
+define('RATINGS_CHANNEL_ID', '415305610179903492');
 define('SERVER_ID', private.serverID);				//Bed Bath Server ID
 define('CATEGORY_ID', {
 	'Issue': '372143355070644255',
@@ -293,12 +294,13 @@ define('COMMANDS', [
 	'opt-in',
 	'p', 'playing',
 	'quote', 'quotes',
-	'rank', 'ranks', 'restart', 'restore', 'review-messages', 'revive',
+	'rank', 'ranks', 'rate', 'ratings', 'restart', 'restore', 'review-messages', 'revive',
 	'sb', 'sb-add', 'set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'start-lotto', 'stats', 'stay', 'steal','sunken-sailor',
 	'temp', 'time', 'tips', 'toggle-streaming',
 	'unalias', 'update-readme',
 	'vote', 'voteban', 'voteinfo', 'votekick',
 	'who-plays', 'who-said']);
+define('GLOBAL_COMMANDS', ['quote', 'delete', 'leave-temp', 'rate']);
 define('WHO_PLAYS_FUZZY_OPTIONS', {
 	shouldSort: true,
 	threshold: 0.3,
@@ -322,7 +324,25 @@ define('ENCLOSED_CHARS', {'A': '🄰', 'B': '🄱', 'C': '🄲', 'D': '🄳', 'E
 	'0': '⓪', '1': '①', '2': '②', '3': '③', '4': '④', '5': '⑤', '6': '⑥', '7': '⑦', '8': '⑧', '9': '⑨'});
 define('REACTION_NUMBERS', ['0⃣', '1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣', '8⃣','9⃣']);
 define('PPL_EMOJIS', ['😢', '🕺', '👬', '👨‍👨‍👧', '👨‍👨‍👧‍👦⠀', '🧙👩‍👩‍👧‍👦⠀']);
+define('TV_EMOJI', '📺');
+define('MOVIES_EMOJI', '📀');
 define('TRASH_REACTION', 'trashcan:427231130241204224');
+define('4_STAR_TV_MSG_ID', '442826386776915999');
+define('3_STAR_TV_MSG_ID', '442826418209161219');
+define('2_STAR_TV_MSG_ID', '442826440304623637');
+define('1_STAR_TV_MSG_ID', '442826455156523010');
+define('4_STAR_MOVIES_MSG_ID', '442826556675457024');
+define('3_STAR_MOVIES_MSG_ID', '442826587046543366');
+define('2_STAR_MOVIES_MSG_ID', '442826627089694721');
+define('1_STAR_MOVIES_MSG_ID', '442826641748525079');
+define('UNVERIFIED_4_STAR_TV_MSG_ID', '442827009169555456');
+define('UNVERIFIED_3_STAR_TV_MSG_ID', '442827036889841664');
+define('UNVERIFIED_2_STAR_TV_MSG_ID', '442827063624204298');
+define('UNVERIFIED_1_STAR_TV_MSG_ID', '442827098348978186');
+define('UNVERIFIED_4_STAR_MOVIES_MSG_ID', '442827139679649795');
+define('UNVERIFIED_3_STAR_MOVIES_MSG_ID', '442827167441879040');
+define('UNVERIFIED_2_STAR_MOVIES_MSG_ID', '442827184932126741');
+define('UNVERIFIED_1_STAR_MOVIES_MSG_ID', '442827203344990209');
 define('STATS', ['trnRating','score' ,'top1','top3','top5','top6','top10','top12','top25','kd','winRatio',
 	'matches','kills','minutesPlayed','kpm','kpg','avgTimePlayed','scorePerMatch','scorePerMin'])
 define('GAME_MODE_TO_KEY', {

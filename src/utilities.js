@@ -22,9 +22,10 @@ var userIDToColor = require('../resources/data/colors.json');
 var userIDToAliases = require('../resources/data/aliases.json');
 var soundBytes = require('../resources/data/soundbytes.json');
 var lists = require('../resources/data/lists.json');
+var quotes = require('../resources/data/quotes.json');
+var ratings = require('../resources/data/ratings.json');
 const catFacts = require('../resources/data/catfacts.json');
 const private = require('../../private.json');
-const quotes = require('../resources/data/quotes.json');
 
 var previousTip = {};
 var quotingUserIDToQuotes = {};
@@ -1510,6 +1511,184 @@ function reviewMessages(reviewer) {
 	});
 }
 
+/**
+ * Gets the proper title from a string.
+ * Source: https://stackoverflow.com/a/6475125
+ *
+ * @param {String} original - string to get proper title from
+ */
+function determineTitle(original) {
+	var i, j, title;
+	var title = original.replace(/([^\W_]+[^\s-]*) */g, function(txt) {
+		return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
+	});
+
+	// Certain minor words should be left lowercase unless
+	// they are the first or last words in the string
+	const lowers = ['A', 'An', 'The', 'And', 'But', 'Or', 'For', 'Nor', 'As', 'At',
+	'By', 'For', 'From', 'In', 'Into', 'Near', 'Of', 'On', 'Onto', 'To', 'With'];
+	for (i = 0, j = lowers.length; i < j; i++)
+		title = title.replace(new RegExp('\\s' + lowers[i] + '\\s', 'g'),
+		function(txt) {
+			return txt.toLowerCase();
+		});
+
+	// Certain words such as initialisms or acronyms should be left uppercase
+	const uppers = ['Id', 'Tv'];
+	for (i = 0, j = uppers.length; i < j; i++)
+		title = title.replace(new RegExp('\\b' + uppers[i] + '\\b', 'g'),
+		uppers[i].toUpperCase());
+
+	return title;
+}
+
+/**
+ * Gets a string of stars.
+ *
+ * @param {Number} count - number of stars to get
+ */
+function getStars(count) {
+	var result = '';
+	for (i=0; i < Math.floor(count); i++) {
+		result += '⭐';
+	}
+
+	if (count % 1 !== 0) {
+		result += '★'
+	}
+
+	return result;
+}
+
+/**
+ * Determines the average rating of a tv show or movie.
+ *
+ * @param {String} category - tv or movie
+ * @param {String} title - title to get rating of
+ */
+function determineRating(category, title) {
+	const reviews = ratings[category][title].reviews;
+	const allRatings = Object.values(reviews);
+	const ratingSum = allRatings.reduce((a, b) => a + b);
+
+	return ratingSum / allRatings.length;
+}
+
+/**
+ * Outputs the movies or tv shows with the rating provided.
+ *
+ * @param {Number} rating - numerical rating 1-4
+ * @param {String} category - tv, movies, or unverified
+ * @param {String=} subCategory - tv or movies
+ * @param {Object=} channel - text channelt to output ratings in
+ */
+function outputRatings(rating, category, subCategory, channel) {
+	category = category === 'movie' ? 'movies' : category;
+	const targetRatings = category === 'unverified' ? ratings.unverified : ratings;
+	const targetCategory = subCategory || category;
+	const categoryEmoji = targetCategory === 'tv' ? c.TV_EMOJI : c.MOVIES_EMOJI;
+	var titles = [];
+
+	for (title in targetRatings[targetCategory]) {
+		const currRating = targetRatings[targetCategory][title];
+		if (Math.floor(currRating.rating) === rating) {
+			if (currRating.rating % 1 !== 0) {
+				title += `	${getStars(currRating.rating)}`;
+			}
+			titles.push(title);
+		}
+	}
+
+	if (titles.length === 0) { return; }
+	titles.sort(); // Sort the titles alphabetically
+	const titlesMsg = titles.reduce((result, title) => result + '\n' + title);
+
+	if (channel) {
+		var msgToEdit = `${rating}_STAR_${targetCategory.toUpperCase()}_MSG_ID`;
+		if (category === 'unverified') {
+			msgToEdit =  `UNVERIFIED_${msgToEdit}`;
+		}
+
+		channel.fetchMessage(c[msgToEdit])
+			.then((message) => {
+				const updatedMsg = new Discord.RichEmbed({
+					color: 0xffff00,
+					title: message.embeds[0].title,
+					description: titlesMsg
+				});
+				message.edit('', updatedMsg);
+			})
+			.catch((err) => {
+				c.LOG.error(`<ERROR> ${getTimestamp()}  Edit Ratings Msg Error: ${err}`);
+			});
+	} else {
+		sendEmbedMessage(`${categoryEmoji}	${getStars(rating)}`, titlesMsg);
+	}
+}
+
+/**
+ * Updates the rating for a tv show or movie.
+ *
+ * @param {String} category - tv or movies
+ * @param {Number} rating - numerical rating 1-4
+ * @param {String[]} args - arguments passed to the command
+ * @param {Object} channel - the channel the msg was sent from
+ * @param {String} userID - id of user adding rating
+ */
+function updateRating(category, rating, args, channel, userID) {
+	category = category === 'movie' ? 'movies' : category;
+	const categoryEmoji = category === 'tv' ? c.TV_EMOJI : c.MOVIES_EMOJI;
+	const title = determineTitle(getTargetFromArgs(args, 3));
+	var oldReview = ratings[category][title];
+	const unverifiedReview = ratings.unverified[category][title];
+	var avgRating;
+	var isUnverified = false;
+
+	// If the title has never been rated or only rated by current reviewer
+	if (!oldReview && (!unverifiedReview || unverifiedReview.reviews[userID])) {
+		ratings.unverified[category][title] = {
+			reviews: {},
+			rating: rating
+		};
+		ratings.unverified[category][title].reviews[userID] = rating;
+		avgRating = rating;
+		isUnverified = true;
+	} else  {
+		// If the title being rated was previously unverified, move it to verified
+		if (unverifiedReview) {
+			oldReview = unverifiedReview;
+			ratings[category][title] = oldReview;
+			delete ratings.unverified[category][title];
+			// update unverified list
+			outputRatings(Math.floor(oldReview.rating), 'unverified', category, channel);
+		}
+
+		ratings[category][title].reviews[userID] = rating;
+		avgRating = determineRating(category, title);
+		ratings[category][title].rating = avgRating;
+
+		// Update list review used to be in
+		if (!unverifiedReview && Math.floor(avgRating) !== Math.floor(oldReview.rating)) {
+			outputRatings(Math.floor(oldReview.rating), category, null, channel);
+		}
+	}
+
+	const color = userIDToColor[userID] || 0xffff00;
+	channel.send(new Discord.RichEmbed({
+		color: color,
+		title: `${categoryEmoji} ${title} - Rated ${getStars(rating)} by ${getNick(userID)}`,
+		description: `Average Rating: ${getStars(avgRating)}`
+	}));
+
+	// Update list review is now in
+	if (isUnverified) {
+		outputRatings(Math.floor(avgRating), 'unverified', category, channel);
+	} else {
+		outputRatings(Math.floor(avgRating), category, null, channel);
+	}
+	exportJson(ratings, 'ratings');
+}
+
 //-------------------- Public Functions --------------------
 exports.addInitialNumberReactions = addInitialNumberReactions;
 exports.addMessageToReviewQueue = addMessageToReviewQueue;
@@ -1559,6 +1738,7 @@ exports.mentionRole = mentionRole;
 exports.mentionUser = mentionUser;
 exports.outputAliases = outputAliases;
 exports.outputHelpForCommand = outputHelpForCommand;
+exports.outputRatings = outputRatings;
 exports.playSoundByte = playSoundByte;
 exports.deleteQuoteTipMsg = deleteQuoteTipMsg;
 exports.quoteUser = quoteUser;
@@ -1579,5 +1759,6 @@ exports.unalias = unalias;
 exports.unLock = unLock;
 exports.updateLottoCountdown = updateLottoCountdown;
 exports.updateMembers = updateMembers;
+exports.updateRating = updateRating;
 exports.updateReadme = updateReadme;
 //----------------------------------------------------------
