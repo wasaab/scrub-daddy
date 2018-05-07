@@ -1637,6 +1637,8 @@ function outputRatings(rating, category, subCategory, channel) {
  */
 function updateRating(category, rating, args, channel, userID) {
 	category = category === 'movie' ? 'movies' : category;
+	if (category !== 'movies' && category !== 'tv') { return; }
+
 	const categoryEmoji = category === 'tv' ? c.TV_EMOJI : c.MOVIES_EMOJI;
 	const title = determineTitle(getTargetFromArgs(args, 3));
 	var oldReview = ratings[category][title];

@@ -245,7 +245,7 @@ function handleCommand(message) {
 		message.delete();
 	}
 	function rateCalled() {
-		if (args.length < 4 || channelID !== c.RATINGS_CHANNEL_ID) { return; }
+		if (args.length < 4 || channelID !== c.RATINGS_CHANNEL_ID || isNaN(args[2])) { return; }
 		util.updateRating(args[1], Number(args[2]), args, message.channel, userID);
 		message.delete();
 	}
