@@ -349,6 +349,9 @@ define('GAME_MODE_TO_KEY', {
 		'solo': 'stats.p2',
 		'duo':  'stats.p10',
 		'squad': 'stats.p9',
+		's-solo': 'stats.curr_p2',
+		's-duo':  'stats.curr_p10',
+		's-squad': 'stats.curr_p9',
 		'all': 'lifeTimeStats'
 });
 define('DEV', 'dev');
