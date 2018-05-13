@@ -1607,6 +1607,7 @@ function outputRatings(rating, category, subCategory, channel) {
 	if (titles.length === 0) { return; }
 	titles.sort(); // Sort the titles alphabetically
 	const titlesMsg = titles.reduce((result, title) => result + '\n' + title);
+	c.LOG.info(`<INFO> ${getTimestamp()}  Updated ${getStars(rating)} ${targetCategory} ratings:\n${titlesMsg}`);
 
 	if (channel) {
 		var msgToEdit = `${rating}_STAR_${targetCategory.toUpperCase()}_MSG_ID`;
@@ -1710,7 +1711,13 @@ function updateRTRatingsForCategory(responses, category) {
 		if (!response.success) { return; }
 		const rtRating = get(response, 'result.aggregateRating.ratingValue');
 		if (!rtRating) { return; }
-		category[response.result.name].rtRating = rtRating;
+
+		if (!category[response.result.name]) {
+			c.LOG.error(`<ERROR> ${getTimestamp()}  RT rating found, but no matching title for: ${response.result.name}`);
+		} else {
+			category[response.result.name].rtRating = rtRating;
+			c.LOG.info(`<INFO> ${getTimestamp()} RT Rating for ${response.result.name} = ${rtRating}`);
+		}
 	})
 
 	return category;
