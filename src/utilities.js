@@ -6,6 +6,7 @@ var moment = require('moment');
 var backup = require('backup');
 var get = require('lodash.get');
 var fs = require('fs');
+var rt = require('lw5');
 
 const winston = require('winston');
 const Transport = require('winston-transport');
@@ -36,6 +37,7 @@ var members = [];
 var scrubIdToNick = {};
 var scrubIdToAvatar = {};
 var reviewQueue = [];
+var ratingsResponses = 0;
 
 /**
  * Creates a channel in a category, specified by the command provided.
@@ -1593,7 +1595,10 @@ function outputRatings(rating, category, subCategory, channel) {
 		const currRating = targetRatings[targetCategory][title];
 		if (Math.floor(currRating.rating) === rating) {
 			if (currRating.rating % 1 !== 0) {
-				title += `	${getStars(currRating.rating)}`;
+				title += `	${getStars(1)} **${currRating.rating.toPrecision(2)}**`;
+			}
+			if (currRating.rtRating) {
+				title += `	🍅 **${currRating.rtRating}**`
 			}
 			titles.push(title);
 		}
@@ -1691,6 +1696,69 @@ function updateRating(category, rating, args, channel, userID) {
 	exportJson(ratings, 'ratings');
 }
 
+function maybeExportRatings() {
+	if (ratingsResponses < 3) {
+		ratingsResponses++;
+	} else {
+		exportJson(ratings, 'ratings');
+		ratingsResponses = 0
+	}
+}
+
+function updateRTRatingsForCategory(responses, category) {
+	responses.forEach((response) => {
+		if (!response.success) { return; }
+		const rtRating = get(response, 'result.aggregateRating.ratingValue');
+		if (!rtRating) { return; }
+		category[response.result.name].rtRating = rtRating;
+	})
+
+	return category;
+}
+
+
+function getRTRatingsForCategory(category) {
+	var titles = Object.keys(category);
+	var promises = [];
+
+	titles.forEach((title) => {
+		promises.push(rt(title, 0, 3000));
+	});
+
+	const toResultObject = (promise) => {
+		return promise
+			.then(result => ({ success: true, result }))
+			.catch(error => ({ success: false, error }));
+	};
+
+	return Promise.all(promises.map(toResultObject));
+}
+
+function updateRTRatings() {
+	const channel = bot.getClient().channels.find('id', c.RATINGS_CHANNEL_ID);
+	const categories = ['movies', 'tv'];
+
+	categories.forEach((category) => {
+		getRTRatingsForCategory(ratings[category])
+			.then((responses) => {
+				ratings[category] = updateRTRatingsForCategory(responses, ratings[category]);
+				for (var i=1; i < 5; i++) {
+					outputRatings(i, category, null, channel);
+				}
+				maybeExportRatings();
+			});
+
+		getRTRatingsForCategory(ratings.unverified[category])
+			.then((responses) => {
+				ratings.unverified[category] = updateRTRatingsForCategory(responses, ratings.unverified[category]);
+				for (var i=1; i < 5; i++) {
+					outputRatings(i, 'unverified', category, channel);
+				}
+				maybeExportRatings();
+			});
+	});
+}
+
 //-------------------- Public Functions --------------------
 exports.addInitialNumberReactions = addInitialNumberReactions;
 exports.addMessageToReviewQueue = addMessageToReviewQueue;
@@ -1763,4 +1831,5 @@ exports.updateLottoCountdown = updateLottoCountdown;
 exports.updateMembers = updateMembers;
 exports.updateRating = updateRating;
 exports.updateReadme = updateReadme;
+exports.updateRTRatings = updateRTRatings;
 //----------------------------------------------------------

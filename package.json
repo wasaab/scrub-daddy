@@ -26,7 +26,8 @@
     "util-inspect": "^0.1.8",
     "winston": "git+http://github.com/winstonjs/winston.git#master",
     "winston-transport": "^3.0.1",
-    "xmlserializer": "^0.6.0"
+    "xmlserializer": "^0.6.0",
+    "lw5": "^2.0.5"
   },
   "devDependencies": {
     "lebab": "^2.7.7"

@@ -517,6 +517,7 @@ client.on('ready', () => {
 	if (util.isDevEnv()) { return; }
 	games.updatePlayingStatus();
 	util.updateLottoCountdown();
+	util.updateRTRatings();
 	util.sendEmbedMessage('B A C K⠀O N L I N E !', null, null, c.ONLINE_IMG);
 });
 
