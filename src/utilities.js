@@ -1604,17 +1604,21 @@ function outputRatings(rating, category, subCategory, channel) {
 
 	titles.forEach((title) => {
 		const currRating = targetRatings[targetCategory][title];
-		var extraRating = '\u200B';
+		var extraRating = '';
 		if (Math.floor(currRating.rating) === rating) {
-			if (currRating.rating % 1 !== 0) {
-				title += `	${getStars(1)} **${currRating.rating.toPrecision(2)}**`;
-			}
 			if (targetCategory === 'movies' && currRating.rtRating) {
-				extraRating = `🍅 **${currRating.rtRating}**`;
+				extraRating += `🍅 **${currRating.rtRating}**	`;
 			}
 			if (currRating.imdbRating && currRating.imdbRating !== 'N/A') {
-				extraRating = extraRating === '\u200B' ? '' : `${extraRating}	`;
-				extraRating += `**\`IMDB\`** **${currRating.imdbRating}**`;
+				extraRating += `**\`IMDB\`** **${currRating.imdbRating}**	`;
+			}
+
+			if (currRating.rating % 1 !== 0) {
+				extraRating += `${getStars(1)} **${currRating.rating.toPrecision(2)}**`;
+			}
+
+			if (extraRating === '') {
+				extraRating = '\u200B';
 			}
 			fields.push(buildField(title, extraRating, 'false'));
 		}
@@ -1750,7 +1754,6 @@ function updateThirdPartyRatingsForCategory(site, responses, category) {
 	return category;
 }
 
-
 function getThirdPartyRatingsForCategory(category, site) {
 	var titles = Object.keys(category);
 	var promises = [];
@@ -1795,7 +1798,9 @@ function updateThirdPartyRatings() {
 }
 
 function rename(category, args, userID, channel) {
-	const renameOperation = getTargetFromArgs(2);
+	category = category === 'movie' ? 'movies' : category;
+
+	const renameOperation = getTargetFromArgs(args, 2);
 	if (!renameOperation.includes('=')) { return; }
 
 	const titles = renameOperation.split('=');
@@ -1805,9 +1810,11 @@ function rename(category, args, userID, channel) {
 	if (ratings[category][oldTitle]) {
 		ratings[category][newTitle] = ratings[category][oldTitle];
 		delete ratings[category][oldTitle];
+		outputRatings(Math.floor(ratings[category][newTitle].rating), category, null, channel);
 	} else if (ratings.unverified[category][oldTitle]) {
 		ratings.unverified[category][newTitle] = ratings.unverified[category][oldTitle];
 		delete ratings.unverified[category][oldTitle];
+		outputRatings(Math.floor(ratings.unverified[category][newTitle].rating), 'unverified', category, channel);
 	} else {
 		channel.send(`${mentionUser(userID)} \`${oldTitle}\` has not been rated.`)
 		return;
@@ -1819,6 +1826,8 @@ function rename(category, args, userID, channel) {
 		title: `${oldTitle} - Renamed by ${getNick(userID)}`,
 		description: `New Title: ${newTitle}`
 	}));
+
+	exportJson(ratings, 'ratings');
 }
 
 //-------------------- Public Functions --------------------
