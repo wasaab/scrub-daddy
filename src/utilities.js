@@ -1710,21 +1710,26 @@ function updateRating(category, rating, args, channel, userID) {
 	exportJson(ratings, 'ratings');
 }
 
-function maybeExportRatings(channel) {
+function refreshRatings(channel) {
+	const categories = ['tv', 'movies'];
+	categories.forEach((category) => {
+		for (var i=1; i < 5; i++) {
+			outputRatings(i, category, null, channel);
+			outputRatings(i, 'unverified', category, channel);
+		}
+	})
+}
+
+function maybeExportAndRefreshRatings(channel) {
 	if (ratingsResponses < 5) {
 		ratingsResponses++;
 	} else {
-		//exportJson(ratings, 'ratings');
+		exportJson(ratings, 'ratings');
 		ratingsResponses = 0
-		const categories = ['tv', 'movies'];
-		categories.forEach((category) => {
-			for (var i=1; i < 5; i++) {
-				outputRatings(i, category, null, channel);
-				outputRatings(i, 'unverified', category, channel);
-			}
-		})
+		refreshRatings(channel);
 	}
 }
+
 
 function updateThirdPartyRatingsForCategory(site, responses, category) {
 	responses.forEach((response) => {
@@ -1777,13 +1782,13 @@ function updateThirdPartyRatings() {
 			getThirdPartyRatingsForCategory(ratings[category], site)
 				.then((responses) => {
 					ratings[category] = updateThirdPartyRatingsForCategory(site, responses, ratings[category]);
-					maybeExportRatings(channel);
+					maybeExportAndRefreshRatings(channel);
 				});
 
 			getThirdPartyRatingsForCategory(ratings.unverified[category], site)
 				.then((responses) => {
 					ratings.unverified[category] = updateThirdPartyRatingsForCategory(site, responses, ratings.unverified[category]);
-					maybeExportRatings(channel);
+					maybeExportAndRefreshRatings(channel);
 				});
 		});
 	});
@@ -1869,6 +1874,7 @@ exports.outputRatings = outputRatings;
 exports.playSoundByte = playSoundByte;
 exports.deleteQuoteTipMsg = deleteQuoteTipMsg;
 exports.quoteUser = quoteUser;
+exports.refreshRatings = refreshRatings;
 exports.removeFromReviewRole = removeFromReviewRole;
 exports.rename = rename;
 exports.restartBot = restartBot;

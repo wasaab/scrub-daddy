@@ -254,6 +254,10 @@ function handleCommand(message) {
 		util.outputRatings(Number(args[1]), args[2], args[3]);
 		message.delete();
 	}
+	function refreshRatingsCalled() {
+		if (!util.isAdmin(userID)) { return; }
+		util.refreshRatings(message.channel);
+	}
 	function renameCalled() {
 		util.rename(args[1], args, userID, message.channel);
 		message.delete();
@@ -405,6 +409,7 @@ function handleCommand(message) {
 		'ranks': ranksCalled,
 		'rate': rateCalled,
 		'ratings': ratingsCalled,
+		'refresh-ratings': refreshRatingsCalled,
 		'rename': renameCalled,
 		'restore': restoreCalled,
 		'restart': restartCalled,

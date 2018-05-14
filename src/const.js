@@ -282,7 +282,7 @@ module.exports = {
 		'opt-in',
 		'p', 'playing',
 		'quote', 'quotes',
-		'rank', 'ranks', 'rate', 'ratings', 'rename', 'restart', 'restore', 'review-messages', 'revive',
+		'rank', 'ranks', 'rate', 'refresh-ratings','ratings', 'rename', 'restart', 'restore', 'review-messages', 'revive',
 		'sb', 'sb-add', 'set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'start-lotto', 'stats', 'stay', 'steal','sunken-sailor',
 		'temp', 'time', 'tips', 'toggle-streaming',
 		'unalias', 'update-readme',
