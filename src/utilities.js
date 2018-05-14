@@ -4,6 +4,7 @@ var Discord = require('discord.js');
 var inspect = require('util-inspect');
 var moment = require('moment');
 var backup = require('backup');
+var imdb = require('imdb-api');
 var get = require('lodash.get');
 var fs = require('fs');
 var rt = require('lw5');
@@ -77,7 +78,7 @@ function createChannelInCategory(command, channelType, channelName, message, cre
 
 			sendEmbedMessage(`➕ ${channelCategoryName} Channel Created`,
 				`You can find your channel, ${mentionChannel(channel.id)}, under the \`${channelCategoryName}\` category.`, userID);
-			c.LOG.info(`<INFO> ${getTimestamp()}  ${channelCategoryName}${createdByMsg}  ${description}`);
+			logger.info(`<INFO> ${getTimestamp()}  ${channelCategoryName}${createdByMsg}  ${description}`);
 		})
 	}
 };
@@ -103,10 +104,10 @@ function leaveTempChannel(channel, userID) {
 				url: c.LEAVE_IMAGES[getRand(0, c.LEAVE_IMAGES.length)]
 			}
 		}));
-		c.LOG.info(`<INFO> ${getTimestamp()} ${scrubIdToNick[userID]} has left ${channel.name}`);
+		logger.info(`<INFO> ${getTimestamp()} ${scrubIdToNick[userID]} has left ${channel.name}`);
 	})
 	.catch((err) => {
-		c.LOG.error(`<ERROR> ${getTimestamp()}  Leave ${channel.name} - Overwrite Permissions Error: ${err}`);
+		logger.error(`<ERROR> ${getTimestamp()}  Leave ${channel.name} - Overwrite Permissions Error: ${err}`);
 	});
 }
 
@@ -140,14 +141,14 @@ const logger = new winston.createLogger({
  * Toggles the logger redirect to discord text channel on or off.
  */
 function toggleServerLogRedirect(userID) {
-	if (c.LOG.transports.length === 2) {
-		const discordTransport = c.LOG.transports.find(transport => {
+	if (logger.transports.length === 2) {
+		const discordTransport = logger.transports.find(transport => {
 			return transport.constructor.name === 'DiscordServerTransport';
 		});
-		c.LOG.remove(discordTransport);
+		logger.remove(discordTransport);
 		sendEmbedMessage('Server Log Redirection Disabled', 'Server logs will stay where they belong!', userID)
 	} else {
-		c.LOG.add(new discordServerTransport());
+		logger.add(new discordServerTransport());
 		sendEmbedMessage('Server Log Redirection Enabled', `The server log will now be redirected to ${mentionChannel(c.LOG_CHANNEL_ID)}`, userID)
 	}
 };
@@ -199,9 +200,9 @@ function getTimestamp() {
  */
 function log(error, response) {
 	if (error) {
-		c.LOG.error(`<API ERROR> ${getTimestamp()}  ERROR: ${error}`);
+		logger.error(`<API ERROR> ${getTimestamp()}  ERROR: ${error}`);
 	} else if (response) {
-		c.LOG.info(`<API RESPONSE> ${getTimestamp()}  ${inspect(response)}`);
+		logger.info(`<API RESPONSE> ${getTimestamp()}  ${inspect(response)}`);
 	}
 };
 
@@ -346,7 +347,7 @@ function outputHelpCategory(selection, userID) {
  * @param {String} selectionType - type of selection that timed out
  */
 function reactionTimedOut(userID, selectionType) {
-	c.LOG.info((`<INFO> ${getTimestamp()}  After 40 seconds, there were no reactions.`));
+	logger.info((`<INFO> ${getTimestamp()}  After 40 seconds, there were no reactions.`));
 	sendEmbedMessage(`${capitalizeFirstLetter(selectionType)} Reponse Timed Out`,
 		`${scrubIdToNick[userID]}, you have not made a ${selectionType} selection, via reaction, so I\'m not listening to you anymore 😛`, userID);
 }
@@ -583,7 +584,7 @@ function scheduleRecurringJobs() {
 		const lottoTime = config.lottoTime;
 		const lottoRule = `0 ${lottoTime.hour} ${lottoTime.day} ${lottoTime.month} *`;
 		var endLotto = schedule.scheduleJob(lottoRule, function() {
-			c.LOG.info(`<INFO> ${getTimestamp()}  Beyond lotto ending`);
+			logger.info(`<INFO> ${getTimestamp()}  Beyond lotto ending`);
 			gambling.endLotto();
 		});
 
@@ -654,7 +655,7 @@ function exportColors(title, description, userID, guild, hex, color) {
 				target.addRole(role);
 			})
 			.catch((err) => {
-				c.LOG.error(`<ERROR> ${getTimestamp()}  Add Role Error: ${err}`);
+				logger.error(`<ERROR> ${getTimestamp()}  Add Role Error: ${err}`);
 			});
 		}
 	}
@@ -697,7 +698,7 @@ function playSoundByte(channel, target, userID) {
 	if (soundBytes.includes(target.toLowerCase())) {
 		channel.join()
 		.then((connection) => {
-			c.LOG.error(`<INFO> ${getTimestamp()}  Connected to channel!`);
+			logger.error(`<INFO> ${getTimestamp()}  Connected to channel!`);
 			const dispatcher = connection.playFile(`./resources/audio/${target}.mp3`);
 
 			dispatcher.on('end', () => {
@@ -705,7 +706,7 @@ function playSoundByte(channel, target, userID) {
 			});
 		})
 		.catch((err) => {
-			c.LOG.error(`<ERROR> ${getTimestamp()}  Add Role Error: ${err}`);
+			logger.error(`<ERROR> ${getTimestamp()}  Add Role Error: ${err}`);
 		});
 	}
 }
@@ -970,7 +971,7 @@ function quoteUser(ogMessage, quotedUserID, quotingUserID, channelID) {
 	quoteableMessages.forEach((message) => {
 		message.awaitReactions(filter, { time: 15000, max: 2})
 		.then((collected) => {
-			c.LOG.info(`<INFO> ${getTimestamp()}  Collected ${collected.size} reactions: ${inspect(collected)}`);
+			logger.info(`<INFO> ${getTimestamp()}  Collected ${collected.size} reactions: ${inspect(collected)}`);
 			var replyQuotes = quotingUserIDToQuotes[quotingUserID] || [];
 			collected.forEach((reaction) => {
 				const quote = {
@@ -987,7 +988,7 @@ function quoteUser(ogMessage, quotedUserID, quotingUserID, channelID) {
 			});
 		})
 		.catch((err) => {
-			c.LOG.error(`<ERROR> ${getTimestamp()}  Add Role Error: ${err}`);
+			logger.error(`<ERROR> ${getTimestamp()}  Add Role Error: ${err}`);
 		});
 	});
 };
@@ -1200,7 +1201,7 @@ function updateMuteAndDeaf(channels) {
 				}
 			} else if (!muteAndDeafUserIDToTime[member.id] && !isInPurgatoryOrAFK(channel.id)) {
 				muteAndDeafUserIDToTime[member.id] = moment();
-				c.LOG.info(`<INFO> ${getTimestamp()}  Adding ${getNick(member.id)} to mute & deaf list.`);
+				logger.info(`<INFO> ${getTimestamp()}  Adding ${getNick(member.id)} to mute & deaf list.`);
 			}
 		});
 	});
@@ -1218,7 +1219,7 @@ function maybeMoveMuteAndDeaf() {
 		const deafMember = members.find('id', userID);
 		if (!deafMember) { continue; }
 		deafMember.setVoiceChannel(purgatoryVC);
-		c.LOG.info(`<INFO> ${getTimestamp()}  Sending ${getNick(deafMember.id)} to solitary for being mute & deaf.`);
+		logger.info(`<INFO> ${getTimestamp()}  Sending ${getNick(deafMember.id)} to solitary for being mute & deaf.`);
 	}
 }
 
@@ -1263,9 +1264,9 @@ function banSpammer(user, channel) {
 	channel.overwritePermissions(user, {
 		SEND_MESSAGES: false
 	})
-	.then(c.LOG.info(`<INFO> ${getTimestamp()}  Banning ${getNick(user.id)} from ${channel.name} for spamming.`))
+	.then(logger.info(`<INFO> ${getTimestamp()}  Banning ${getNick(user.id)} from ${channel.name} for spamming.`))
 	.catch((err) => {
-		c.LOG.error(`<ERROR> ${getTimestamp()}  Ban - Overwrite Permissions Error: ${err}`);
+		logger.error(`<ERROR> ${getTimestamp()}  Ban - Overwrite Permissions Error: ${err}`);
 	});
 	usersBans.push({
 		channelID: channel.id,
@@ -1307,9 +1308,9 @@ function unBanSpammer(userID, channelID) {
 	channel.overwritePermissions(userID, {
 		SEND_MESSAGES: true
 	})
-	.then(c.LOG.info(`<INFO> ${getTimestamp()}  Un-banning ${scrubIdToNick[userID]} from ${channel.name} for spamming.`))
+	.then(logger.info(`<INFO> ${getTimestamp()}  Un-banning ${scrubIdToNick[userID]} from ${channel.name} for spamming.`))
 	.catch((err) => {
-		c.LOG.error(`<ERROR> ${getTimestamp()}  Un-ban - Overwrite Permissions Error: ${err}`);
+		logger.error(`<ERROR> ${getTimestamp()}  Un-ban - Overwrite Permissions Error: ${err}`);
 	});
 	delete bannedUserIDToBans[userID];
 	exportBanned();
@@ -1401,7 +1402,7 @@ function showLists(userID) {
  * @param {Object} message - the message to delete
  */
 function deleteMessage(message) {
-	c.LOG.info(`<INFO> ${getTimestamp()} Deleting message with content: "${message.content}"`);
+	logger.info(`<INFO> ${getTimestamp()} Deleting message with content: "${message.content}"`);
 	message.delete();
 }
 
@@ -1472,7 +1473,7 @@ function exportJson(content, fileName) {
  * Updates the member list and scrubIDtoNick.
  */
 function updateMembers() {
-	members = bot.getClient().guilds.find('id', c.SERVER_ID).members;
+	members = bot.getClient().guilds.find('id', private.serverID).members;
 	members.forEach((member) => {
 		scrubIdToNick[member.id] = member.displayName.split(' ▫ ')[0];
 		scrubIdToAvatar[member.id] = member.user.displayAvatarURL.split('?')[0];
@@ -1507,7 +1508,7 @@ function reviewMessages(reviewer) {
 	reviewer.createDM()
 	.then((dm) => {
 		reviewQueue.forEach((message) => {
-			c.LOG.info(`<INFO> ${getTimestamp()}  Message to review: ${message}`);
+			logger.info(`<INFO> ${getTimestamp()}  Message to review: ${message}`);
 			dm.send(message);
 		});
 	});
@@ -1576,6 +1577,15 @@ function determineRating(category, title) {
 	return ratingSum / allRatings.length;
 }
 
+function getSpaces(currentLength, targetLength) {
+	var spaces = '';
+	for (var i=currentLength; i < targetLength; i++) {
+		spaces += ' ';
+	}
+
+	return spaces;
+}
+
 /**
  * Outputs the movies or tv shows with the rating provided.
  *
@@ -1589,25 +1599,28 @@ function outputRatings(rating, category, subCategory, channel) {
 	const targetRatings = category === 'unverified' ? ratings.unverified : ratings;
 	const targetCategory = subCategory || category;
 	const categoryEmoji = targetCategory === 'tv' ? c.TV_EMOJI : c.MOVIES_EMOJI;
-	var titles = [];
+	var fields = [];
+	const titles = Object.keys(targetRatings[targetCategory]).sort();
 
-	for (title in targetRatings[targetCategory]) {
+	titles.forEach((title) => {
 		const currRating = targetRatings[targetCategory][title];
+		var extraRating = '\u200B';
 		if (Math.floor(currRating.rating) === rating) {
 			if (currRating.rating % 1 !== 0) {
 				title += `	${getStars(1)} **${currRating.rating.toPrecision(2)}**`;
 			}
-			if (currRating.rtRating) {
-				title += `	🍅 **${currRating.rtRating}**`
+			if (targetCategory === 'movies' && currRating.rtRating) {
+				extraRating = `🍅 **${currRating.rtRating}**`;
 			}
-			titles.push(title);
+			if (currRating.imdbRating && currRating.imdbRating !== 'N/A') {
+				extraRating = extraRating === '\u200B' ? '' : `${extraRating}	`;
+				extraRating += `**\`IMDB\`** **${currRating.imdbRating}**`;
+			}
+			fields.push(buildField(title, extraRating, 'false'));
 		}
-	}
+	});
 
-	if (titles.length === 0) { return; }
-	titles.sort(); // Sort the titles alphabetically
-	const titlesMsg = titles.reduce((result, title) => result + '\n' + title);
-	c.LOG.info(`<INFO> ${getTimestamp()}  Updated ${getStars(rating)} ${targetCategory} ratings:\n${titlesMsg}`);
+	if (fields.length === 0) { return; }
 
 	if (channel) {
 		var msgToEdit = `${rating}_STAR_${targetCategory.toUpperCase()}_MSG_ID`;
@@ -1620,12 +1633,12 @@ function outputRatings(rating, category, subCategory, channel) {
 				const updatedMsg = new Discord.RichEmbed({
 					color: 0xffff00,
 					title: message.embeds[0].title,
-					description: titlesMsg
+					fields: fields
 				});
 				message.edit('', updatedMsg);
 			})
 			.catch((err) => {
-				c.LOG.error(`<ERROR> ${getTimestamp()}  Edit Ratings Msg Error: ${err}`);
+				logger.error(`<ERROR> ${getTimestamp()}  Edit Ratings Msg Error: ${err}`);
 			});
 	} else {
 		sendEmbedMessage(`${categoryEmoji}	${getStars(rating)}`, titlesMsg);
@@ -1697,26 +1710,35 @@ function updateRating(category, rating, args, channel, userID) {
 	exportJson(ratings, 'ratings');
 }
 
-function maybeExportRatings() {
-	if (ratingsResponses < 3) {
+function maybeExportRatings(channel) {
+	if (ratingsResponses < 5) {
 		ratingsResponses++;
 	} else {
-		exportJson(ratings, 'ratings');
+		//exportJson(ratings, 'ratings');
 		ratingsResponses = 0
+		const categories = ['tv', 'movies'];
+		categories.forEach((category) => {
+			for (var i=1; i < 5; i++) {
+				outputRatings(i, category, null, channel);
+				outputRatings(i, 'unverified', category, channel);
+			}
+		})
 	}
 }
 
-function updateRTRatingsForCategory(responses, category) {
+function updateThirdPartyRatingsForCategory(site, responses, category) {
 	responses.forEach((response) => {
 		if (!response.success) { return; }
-		const rtRating = get(response, 'result.aggregateRating.ratingValue');
-		if (!rtRating) { return; }
+		const review = response.result;
+		const title = site === 'rt' ? review.name : review.title;
+		const score = site === 'rt' ? get(review, 'aggregateRating.ratingValue') : review.rating;
+		if (!score) { return; }
 
-		if (!category[response.result.name]) {
-			c.LOG.error(`<ERROR> ${getTimestamp()}  RT rating found, but no matching title for: ${response.result.name}`);
+		if (!category[title]) {
+			logger.error(`<ERROR> ${getTimestamp()}  RT rating found, but no matching title for: ${title}`);
 		} else {
-			category[response.result.name].rtRating = rtRating;
-			c.LOG.info(`<INFO> ${getTimestamp()} RT Rating for ${response.result.name} = ${rtRating}`);
+			category[title][`${site}Rating`] = score;
+			logger.info(`<INFO> ${getTimestamp()} ${site} Rating for ${title} = ${score}`);
 		}
 	})
 
@@ -1724,12 +1746,16 @@ function updateRTRatingsForCategory(responses, category) {
 }
 
 
-function getRTRatingsForCategory(category) {
+function getThirdPartyRatingsForCategory(category, site) {
 	var titles = Object.keys(category);
 	var promises = [];
 
 	titles.forEach((title) => {
-		promises.push(rt(title, 0, 3000));
+		if (site === 'rt') {
+			promises.push(rt(title, 0, 3000))
+		} else {
+			promises.push(imdb.get(title, {apiKey: 'fa354300', timeout: 10000}));
+		}
 	});
 
 	const toResultObject = (promise) => {
@@ -1741,29 +1767,53 @@ function getRTRatingsForCategory(category) {
 	return Promise.all(promises.map(toResultObject));
 }
 
-function updateRTRatings() {
+function updateThirdPartyRatings() {
 	const channel = bot.getClient().channels.find('id', c.RATINGS_CHANNEL_ID);
-	const categories = ['movies', 'tv'];
+	const categories =  ['tv', 'movies'];
 
 	categories.forEach((category) => {
-		getRTRatingsForCategory(ratings[category])
-			.then((responses) => {
-				ratings[category] = updateRTRatingsForCategory(responses, ratings[category]);
-				for (var i=1; i < 5; i++) {
-					outputRatings(i, category, null, channel);
-				}
-				maybeExportRatings();
-			});
+		const sites = category === 'tv' ? ['imdb'] : ['rt', 'imdb'];
+		sites.forEach((site) => {
+			getThirdPartyRatingsForCategory(ratings[category], site)
+				.then((responses) => {
+					ratings[category] = updateThirdPartyRatingsForCategory(site, responses, ratings[category]);
+					maybeExportRatings(channel);
+				});
 
-		getRTRatingsForCategory(ratings.unverified[category])
-			.then((responses) => {
-				ratings.unverified[category] = updateRTRatingsForCategory(responses, ratings.unverified[category]);
-				for (var i=1; i < 5; i++) {
-					outputRatings(i, 'unverified', category, channel);
-				}
-				maybeExportRatings();
-			});
+			getThirdPartyRatingsForCategory(ratings.unverified[category], site)
+				.then((responses) => {
+					ratings.unverified[category] = updateThirdPartyRatingsForCategory(site, responses, ratings.unverified[category]);
+					maybeExportRatings(channel);
+				});
+		});
 	});
+}
+
+function rename(category, args, userID, channel) {
+	const renameOperation = getTargetFromArgs(2);
+	if (!renameOperation.includes('=')) { return; }
+
+	const titles = renameOperation.split('=');
+	const oldTitle = titles[0];
+	const newTitle = titles[1];
+
+	if (ratings[category][oldTitle]) {
+		ratings[category][newTitle] = ratings[category][oldTitle];
+		delete ratings[category][oldTitle];
+	} else if (ratings.unverified[category][oldTitle]) {
+		ratings.unverified[category][newTitle] = ratings.unverified[category][oldTitle];
+		delete ratings.unverified[category][oldTitle];
+	} else {
+		channel.send(`${mentionUser(userID)} \`${oldTitle}\` has not been rated.`)
+		return;
+	}
+
+	const color = userIDToColor[userID] || 0xffff00;
+	channel.send(new Discord.RichEmbed({
+		color: color,
+		title: `${oldTitle} - Renamed by ${getNick(userID)}`,
+		description: `New Title: ${newTitle}`
+	}));
 }
 
 //-------------------- Public Functions --------------------
@@ -1820,6 +1870,7 @@ exports.playSoundByte = playSoundByte;
 exports.deleteQuoteTipMsg = deleteQuoteTipMsg;
 exports.quoteUser = quoteUser;
 exports.removeFromReviewRole = removeFromReviewRole;
+exports.rename = rename;
 exports.restartBot = restartBot;
 exports.restoreJsonFromBackup = restoreJsonFromBackup;
 exports.reviewMessages = reviewMessages;
@@ -1838,5 +1889,5 @@ exports.updateLottoCountdown = updateLottoCountdown;
 exports.updateMembers = updateMembers;
 exports.updateRating = updateRating;
 exports.updateReadme = updateReadme;
-exports.updateRTRatings = updateRTRatings;
+exports.updateThirdPartyRatings = updateThirdPartyRatings;
 //----------------------------------------------------------

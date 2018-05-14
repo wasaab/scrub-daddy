@@ -267,7 +267,7 @@ function outputCumulativeTimePlayed(timePlayedData, userID) {
 	}
 	fields.sort(util.compareFieldValues);
 	util.sendEmbedFieldsMessage('🕒 Cumulative Hours Played', fields, userID);
-	c.LOG.info(`<INFO> ${util.getTimestamp()}  Cumulative Hours Played All Games: ${inspect(fields)}`);
+	util.logger.info(`<INFO> ${util.getTimestamp()}  Cumulative Hours Played All Games: ${inspect(fields)}`);
 }
 
 /**
@@ -280,10 +280,10 @@ exports.maybeOutputTimePlayed = function(args, userID) {
 	var target = nameAndTargetData.target;
 	var game = nameAndTargetData.game;
 
-	c.LOG.info(`<INFO> ${util.getTimestamp()}  Time Called - game: ${game} target: ${target}`);
+	util.logger.info(`<INFO> ${util.getTimestamp()}  Time Called - game: ${game} target: ${target}`);
 	if (target !== '' && !isOptedIn(target)) {
 		util.sendEmbedMessage(null,'I do not track that scrub\'s playtime.', userID);
-		c.LOG.info(`<INFO> ${util.getTimestamp()}  ${target} is not opted in.`);
+		util.logger.info(`<INFO> ${util.getTimestamp()}  ${target} is not opted in.`);
 		return;
 	}
 
@@ -297,7 +297,7 @@ exports.maybeOutputTimePlayed = function(args, userID) {
 		var fields = [];
 		fields.push(util.buildField(game,timePlayedData.total.toFixed(1)));
 		util.sendEmbedFieldsMessage('🕒 Hours Played', fields, userID);
-		c.LOG.info(`<INFO> ${util.getTimestamp()}  Hours Played: ${inspect(fields)}`);
+		util.logger.info(`<INFO> ${util.getTimestamp()}  Hours Played: ${inspect(fields)}`);
     }
 };
 
@@ -412,7 +412,7 @@ exports.whoPlays = function(args, userID) {
 	}
 	const game = util.getTargetFromArgs(args, 1);
 	const gameUserData = getGameUserData(game, 0.3);
-	c.LOG.info(`<INFO> ${util.getTimestamp()}  Who Plays ${game} - ${inspect(gameUserData)}`);
+	util.logger.info(`<INFO> ${util.getTimestamp()}  Who Plays ${game} - ${inspect(gameUserData)}`);
 
 	var usersWhoPlay = gameUserData.users;
 	if (usersWhoPlay) {
@@ -452,7 +452,7 @@ exports.letsPlay = function(args, userID, userName, message, oneMore) {
 		game = gameTokens[1];
 	}
 	const gameUserData = getGameUserData(game, 0.3);
-	c.LOG.info(`<INFO> ${util.getTimestamp()}  Lets Play ${game} - ${inspect(gameUserData)}`);
+	util.logger.info(`<INFO> ${util.getTimestamp()}  Lets Play ${game} - ${inspect(gameUserData)}`);
 
 	var usersWhoPlay = gameUserData.users;
 	if (usersWhoPlay) {
@@ -521,7 +521,7 @@ function getUpdatedGameToTime(gameToTime, userName) {
 
 	if (currentlyPlaying) {
 		var hoursPlayed = getTimePlayed(currentlyPlaying);
-		c.LOG.info(`<INFO> ${util.getTimestamp()}  Presence Update - ${userName} finished a ${hoursPlayed.toFixed(4)}hr session of ${currentlyPlaying.name}`);
+		util.logger.info(`<INFO> ${util.getTimestamp()}  Presence Update - ${userName} finished a ${hoursPlayed.toFixed(4)}hr session of ${currentlyPlaying.name}`);
 		gameToTime[currentlyPlaying.name] += hoursPlayed;
 		gameToTime['playing'] = null;
 	}
@@ -538,7 +538,7 @@ function getUpdatedGameToTime(gameToTime, userName) {
  * @param {String} newGame - name of the game the user started playing
  */
 exports.updateTimesheet = function(user, userID, highestRole, oldGame, newGame) {
-	c.LOG.info(`<INFO> ${util.getTimestamp()}  Presence Update - ${user} id: ${userID} old game: ${oldGame} new game: ${newGame}`);
+	util.logger.info(`<INFO> ${util.getTimestamp()}  Presence Update - ${user} id: ${userID} old game: ${oldGame} new game: ${newGame}`);
 
 	//get user's timesheet
 	var gameToTime = timeSheet[userID];
@@ -597,7 +597,7 @@ exports.optIn = function(user, userID) {
 	fields.push(util.buildField(user, '👀 I\'m watching you.'));
 	util.sendEmbedFieldsMessage('👀 YOU ARE BEING WATCHED', fields, userID);
 	waitAndSendScrubDaddyFact(0, 5, userID);
-	c.LOG.info(`<INFO> ${util.getTimestamp()}  ${user} (${userID}) has opted into time`);
+	util.logger.info(`<INFO> ${util.getTimestamp()}  ${user} (${userID}) has opted into time`);
 	util.exportJson(optedInUsers, 'optedIn');
 };
 
@@ -643,7 +643,7 @@ function determineMajorityGame(voiceChannel) {
 function resetChannelName(voiceChannel) {
 	const defaultName = c.GAME_CHANNEL_NAMES[voiceChannel.id];
 	if (voiceChannel.name !== defaultName) {
-		c.LOG.info(`<INFO> ${util.getTimestamp()}  Resetting Channel Name - ${voiceChannel.name} -> ${defaultName}`);
+		util.logger.info(`<INFO> ${util.getTimestamp()}  Resetting Channel Name - ${voiceChannel.name} -> ${defaultName}`);
 		voiceChannel.setName(defaultName);
 	}
 }
@@ -660,7 +660,7 @@ exports.maybeUpdateChannelNames = function() {
 			//only rename if the name is not already up to date
 			if (fuse.search(`▶ ${majorityGame}`).length === 0) {
 				if (majorityGame) {
-					c.LOG.info(`<INFO> ${util.getTimestamp()}  Updating Channel Name - ${channel.name} -> ▶ ${majorityGame}`);
+					util.logger.info(`<INFO> ${util.getTimestamp()}  Updating Channel Name - ${channel.name} -> ▶ ${majorityGame}`);
 					channel.setName(`▶ ${majorityGame}`);
 				} else {
 					resetChannelName(channel);
@@ -687,15 +687,15 @@ exports.maybeChangeAudioQuality = function(channels) {
 				}).length;
 				if (memberCount === beyondCount && channel.bitrate !== c.MAX_BITRATE) {
 					channel.setBitrate(c.MAX_BITRATE)
-					.then(c.LOG.info(`<INFO> ${util.getTimestamp()}  Raising Channel Bitrate - ${channel.name}`))
+					.then(util.logger.info(`<INFO> ${util.getTimestamp()}  Raising Channel Bitrate - ${channel.name}`))
 					.catch((err) => {
-						c.LOG.error(`<ERROR> ${util.getTimestamp()}  Add Role Error: ${err}`);
+						util.logger.error(`<ERROR> ${util.getTimestamp()}  Add Role Error: ${err}`);
 					});
 				} else if (channel.bitrate === c.MAX_BITRATE && memberCount !== beyondCount) {
 					channel.setBitrate(c.MIN_BITRATE)
-					.then(c.LOG.info(`<INFO> ${util.getTimestamp()}  Lowering Channel Bitrate - ${channel.name}`))
+					.then(util.logger.info(`<INFO> ${util.getTimestamp()}  Lowering Channel Bitrate - ${channel.name}`))
 					.catch((err) => {
-						c.LOG.error(`<ERROR> ${util.getTimestamp()}  Add Role Error: ${err}`);
+						util.logger.error(`<ERROR> ${util.getTimestamp()}  Add Role Error: ${err}`);
 					});
 				}
 			}
@@ -757,7 +757,7 @@ exports.maybeUpdateNickname = function(member, game) {
 	const status = get(member, 'presence.status');
 
 	if (game && member.voiceChannel && status !== 'idle') {
-		c.LOG.info(`<INFO> ${util.getTimestamp()}  ${nameTokens[0]} is playing ${game}`);
+		util.logger.info(`<INFO> ${util.getTimestamp()}  ${nameTokens[0]} is playing ${game}`);
 		if (game === `Sid Meier's Civilization VI`) {
 			game = 'C I V 6';
 		}
@@ -770,11 +770,11 @@ exports.maybeUpdateNickname = function(member, game) {
 			}
 			nick += c.ENCLOSED_CHARS[firstChar] || firstChar;
 		});
-		c.LOG.info(`<INFO> ${util.getTimestamp()}  Updating Nickname - ${member.displayName} -> ${nick}`);
+		util.logger.info(`<INFO> ${util.getTimestamp()}  Updating Nickname - ${member.displayName} -> ${nick}`);
 		member.setNickname(nick);
 	} else {
 		if (nameTokens[1]) {
-			c.LOG.info(`<INFO> ${util.getTimestamp()}  Updating Nickname - ${member.displayName} -> ${nameTokens[0]}`);
+			util.logger.info(`<INFO> ${util.getTimestamp()}  Updating Nickname - ${member.displayName} -> ${nameTokens[0]}`);
 			member.setNickname(nameTokens[0]);
 		}
 	}
@@ -815,7 +815,7 @@ exports.getFortniteStats = function(gameMode, stat, callingUserID, fortniteUserN
 			}
 		})
 		.catch(function (err) {
-			c.LOG.error(`<ERROR> ${util.getTimestamp()}  ERROR: ${err}`);
+			util.logger.error(`<ERROR> ${util.getTimestamp()}  ERROR: ${err}`);
 		})
 		.finally(() => {
 			if (userIDs.length > 0 && !fortniteUserName) {
@@ -979,7 +979,7 @@ function whoSaidGameLoop(randomQuotes, round) {
 		whoSaidGameLoop(randomQuotes, round + 1);
 	})
     .catch((answers) => {
-		c.LOG.info((`<INFO> ${util.getTimestamp() }  After 30 seconds, there were no responses for Who Said.`));
+		util.logger.info((`<INFO> ${util.getTimestamp() }  After 30 seconds, there were no responses for Who Said.`));
 		util.sendEmbedMessage('Reponse Timed Out', 'Nobody wins this round! 😛');
 		whoSaidGameLoop(randomQuotes, round + 1);
     });

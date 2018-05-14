@@ -12,9 +12,11 @@
     "ffmpeg-binaries": "^3.2.2-3",
     "fuse.js": "^3.2.0",
     "google-url": "0.0.4",
+    "imdb-api": "^3.1.2",
     "imgur": "^0.2.1",
     "jsdom": "^11.3.0",
     "lodash.get": "^4.4.2",
+    "lw5": "^2.0.5",
     "moment": "^2.19.1",
     "node-schedule": "^1.2.5",
     "opusscript": "0.0.4",
@@ -26,8 +28,7 @@
     "util-inspect": "^0.1.8",
     "winston": "git+http://github.com/winstonjs/winston.git#master",
     "winston-transport": "^3.0.1",
-    "xmlserializer": "^0.6.0",
-    "lw5": "^2.0.5"
+    "xmlserializer": "^0.6.0"
   },
   "devDependencies": {
     "lebab": "^2.7.7"

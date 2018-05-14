@@ -30,7 +30,7 @@ var quoteBlocked = false;
 function findClosestCommandMatch(command) {
 	const fuzzyResults = fuse.search(command.toLowerCase());
 	if (fuzzyResults.length !== 0) {
-		c.LOG.info(`<INFO> ${util.getTimestamp()}	1st: ${c.COMMANDS[fuzzyResults[0]]}, 2nd: ${c.COMMANDS[fuzzyResults[1]]}`);
+		util.logger.info(`<INFO> ${util.getTimestamp()}	1st: ${c.COMMANDS[fuzzyResults[0]]}, 2nd: ${c.COMMANDS[fuzzyResults[1]]}`);
 		return c.COMMANDS[fuzzyResults[0]];
 	}
 }
@@ -250,7 +250,12 @@ function handleCommand(message) {
 		message.delete();
 	}
 	function ratingsCalled() {
+		if (args.length < 3) { return; }
 		util.outputRatings(Number(args[1]), args[2], args[3]);
+		message.delete();
+	}
+	function renameCalled() {
+		util.rename(args[1], args, userID, message.channel);
 		message.delete();
 	}
 	function restartCalled() {
@@ -332,20 +337,20 @@ function handleCommand(message) {
 		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.CUSTOM);
 	}
 	function votebanCalled() {
-		c.LOG.info(`<VOTE Ban> ${util.getTimestamp()}  ${user}: ${message}`);
+		util.logger.info(`<VOTE Ban> ${util.getTimestamp()}  ${user}: ${message}`);
 		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.BAN, message.member.voiceChannel, message.guild.roles);
 	}
 	function voteinfoCalled() {
 		if (!args[1]) {
-			c.LOG.info(`<VOTE Info Custom> ${util.getTimestamp()}  ${user}: ${message}`);
+			util.logger.info(`<VOTE Info Custom> ${util.getTimestamp()}  ${user}: ${message}`);
 			vote.getCustomVoteTotals(userID);
 		} else {
-			c.LOG.info(`<VOTE Info User> ${util.getTimestamp()}  ${user}: ${message}`);
+			util.logger.info(`<VOTE Info User> ${util.getTimestamp()}  ${user}: ${message}`);
 			vote.getTotalVotesForTarget(user, userID, message.member.voiceChannel, channelID, args);
 		}
 	}
 	function votekickCalled() {
-		c.LOG.info(`<VOTE Kick> ${util.getTimestamp()}  ${user}: ${message}`);
+		util.logger.info(`<VOTE Kick> ${util.getTimestamp()}  ${user}: ${message}`);
 		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.KICK, message.member.voiceChannel, message.guild.roles);
 	}
 	function whoPlaysCalled() {
@@ -400,6 +405,7 @@ function handleCommand(message) {
 		'ranks': ranksCalled,
 		'rate': rateCalled,
 		'ratings': ratingsCalled,
+		'rename': renameCalled,
 		'restore': restoreCalled,
 		'restart': restartCalled,
 		'review-messages': reviewMessagesCalled,
@@ -430,10 +436,10 @@ function handleCommand(message) {
 
 	if (args[1] === 'help') {
 		args[1] = args[0];
-		c.LOG.info(`<CMD> ${util.getTimestamp()}  help for ${cmd} called`);
+		util.logger.info(`<CMD> ${util.getTimestamp()}  help for ${cmd} called`);
 		helpCalled();
 	} else {
-		c.LOG.info(`<CMD> ${util.getTimestamp()}  ${cmd} called`);
+		util.logger.info(`<CMD> ${util.getTimestamp()}  ${cmd} called`);
 		return commandToHandler[cmd]();
 	}
 }
@@ -489,7 +495,7 @@ client.on('guildMemberAdd', (member) => {
  * Reconnects the bot if diconnected.
  */
 client.on('disconnect', (event) => {
-	c.LOG.error(`<ERROR> ${util.getTimestamp()}  event: ${inspect(event)}`);
+	util.logger.error(`<ERROR> ${util.getTimestamp()}  event: ${inspect(event)}`);
 	client.login(private.token);
 });
 
@@ -497,7 +503,7 @@ client.on('disconnect', (event) => {
  * Listens for error events and logs them.
  */
 client.on('error', (error) => {
-	c.LOG.error(`<ERROR> ${util.getTimestamp()}  message: ${inspect(error)}`);
+	util.logger.error(`<ERROR> ${util.getTimestamp()}  message: ${inspect(error)}`);
 });
 
 /**
@@ -513,11 +519,11 @@ client.on('ready', () => {
 	util.scheduleRecurringJobs();
 	games.setDynamicGameChannels(client.channels);
 
-	c.LOG.info(`<INFO> ${util.getTimestamp()}  Connected`);
+	util.logger.info(`<INFO> ${util.getTimestamp()}  Connected`);
+	//util.updateThirdPartyRatings();
 	if (util.isDevEnv()) { return; }
 	games.updatePlayingStatus();
 	util.updateLottoCountdown();
-	util.updateRTRatings();
 	util.sendEmbedMessage('B A C K⠀O N L I N E !', null, null, c.ONLINE_IMG);
 });
 

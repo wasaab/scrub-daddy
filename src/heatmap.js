@@ -78,14 +78,14 @@ function convertSvgToPng() {
     svg_to_png.convert(path.join(imageDir, 'heatMap.svg'), imageDir)
     .then(() => {
         const imgPath = path.join(imageDir, 'heatMap.png');
-        c.LOG.info(`<INFO> ${util.getTimestamp()} png created: ${fs.existsSync(imgPath)}`);
+        util.logger.info(`<INFO> ${util.getTimestamp()} png created: ${fs.existsSync(imgPath)}`);
         imgur.uploadFile(imgPath)
         .then(function (json) {
-            c.LOG.info(`<INFO> ${util.getTimestamp()} heat map url: ${json.data.link}`);
+            util.logger.info(`<INFO> ${util.getTimestamp()} heat map url: ${json.data.link}`);
             imgUrl = json.data.link;
         })
         .catch(function (err) {
-            c.LOG.error(`<ERROR> ${util.getTimestamp()} uploading to imgur failed - ${err.message}`);
+            util.logger.error(`<ERROR> ${util.getTimestamp()} uploading to imgur failed - ${err.message}`);
         });
     });
 }
@@ -95,11 +95,11 @@ function writeSvgToFile() {
     svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="960" height="430" style="background: rgba(54, 57, 62, 0.74);" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml" type="text/css"/>    <g transform="translate(30,50)"> ${svgString.split('type="text/css"></style>')[1]} </svg>`;
     fs.writeFile('./resources/images/heatMap.svg', svgString, 'utf8', function(error, response) {
         if (error) {
-            c.LOG.error(`<API ERROR> ${util.getTimestamp()}  ERROR: ${error}`);			
+            util.logger.error(`<API ERROR> ${util.getTimestamp()}  ERROR: ${error}`);
         } else if (response) {
-            c.LOG.info(`<API RESPONSE> ${util.getTimestamp()}  ${inspect(response)}`);
+            util.logger.info(`<API RESPONSE> ${util.getTimestamp()}  ${inspect(response)}`);
         }
-    });  
+    });
     setTimeout(convertSvgToPng, 1000);
 }
 
@@ -152,7 +152,7 @@ function heatmapChart (tsvFile) {
                 })
                 .attr("width", gridSize)
                 .attr("height", gridSize);
-                
+
             cards.select("title").text(function (d) {
                 return d.value;
             });
@@ -206,7 +206,7 @@ function getSVGString(svgNode) {
 }
 
 exports.generateHeatMap = function() {
-    heatmapChart('avgHeatMapData.tsv');    
+    heatmapChart('avgHeatMapData.tsv');
 }
 
 exports.getUpdatedHeatMapUrl = function() {

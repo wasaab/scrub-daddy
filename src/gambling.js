@@ -7,6 +7,7 @@ var bot = require('./bot.js');
 var util = require('./utilities.js');
 var ledger = require('../resources/data/ledger.json');   //keeps track of how big of an army each member has as well as bet amounts
 var config = require('../resources/data/config.json');
+const private = require('../../private.json');
 
 var dropped = 0;
 var previousMessage;
@@ -451,9 +452,9 @@ exports.endLotto = function() {
 
     const winningMsg = winningMsgs[util.getRand(0, winningMsgs.length)];
     util.sendEmbedMessage('The Beyond Lotto Has Concluded', winningMsg, null, c.BEYOND_LOTTO_IMG);
-    c.LOG.info(`<INFO> ${util.getTimestamp()}  Beyond lotto winner = ${winner}`);
+    util.logger.info(`<INFO> ${util.getTimestamp()}  Beyond lotto winner = ${winner}`);
 
-    const server = bot.getClient().guilds.find('id', c.SERVER_ID);
+    const server = bot.getClient().guilds.find('id', private.serverID);
     const winningUser = server.members.find('id', winnerID);
     winningUser.addRole(server.roles.find('id', c.BEYOND_ROLE_ID));
 
