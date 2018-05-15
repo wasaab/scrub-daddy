@@ -15,6 +15,7 @@ const request = require('request')
 const co = require('co')
 
 var gambling = require('./gambling.js');
+var heatmap = require('./heatmap.js');
 var games = require('./games.js');
 var bot = require('./bot.js');
 var c = require('./const.js');
@@ -554,6 +555,14 @@ function scheduleRecurringJobs() {
 	schedule.scheduleJob(updateMembersAndHeatMapRule, function(){
 		updateMembers();
 		games.maybeOutputCountOfGamesBeingPlayed(members, c.SCRUB_DADDY_ID);
+	});
+
+	var uploadHeatMapToImgurRule = new schedule.RecurrenceRule();
+	uploadHeatMapToImgurRule.hour = 0;
+	uploadHeatMapToImgurRule.minute = 0;
+
+	schedule.scheduleJob(uploadHeatMapToImgurRule, function(){
+		heatmap.uploadToImgur();
 	});
 
 	var updatePlayingStatusRule = new schedule.RecurrenceRule();

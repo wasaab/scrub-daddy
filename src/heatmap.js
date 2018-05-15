@@ -11,6 +11,7 @@ var jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 const { window } = new JSDOM(`<!DOCTYPE html><html><body></body></html>`);
 const { document } = new JSDOM(`<!DOCTYPE html><html><body></body></html>`).window;
+const imageDir = path.join(__dirname.slice(0, -4), 'resources', 'images');
 var imgUrl = '';
 
 function XMLSerializer() {
@@ -73,13 +74,10 @@ var timeLabels = svg.selectAll(".timeLabel")
         return ((i >= 7 && i <= 16) ? "timeLabel mono axis" : "timeLabel mono axis");
     });
 
-function convertSvgToPng() {
-    const imageDir = path.join(__dirname.slice(0, -4), 'resources', 'images');
-    svg_to_png.convert(path.join(imageDir, 'heatMap.svg'), imageDir)
-    .then(() => {
-        const imgPath = path.join(imageDir, 'heatMap.png');
-        util.logger.info(`<INFO> ${util.getTimestamp()} png created: ${fs.existsSync(imgPath)}`);
-        imgur.uploadFile(imgPath)
+exports.uploadToImgur = function() {
+    const imgPath = path.join(imageDir, 'heatMap.png');
+    util.logger.info(`<INFO> ${util.getTimestamp()} png created: ${fs.existsSync(imgPath)}`);
+    imgur.uploadFile(imgPath)
         .then(function (json) {
             util.logger.info(`<INFO> ${util.getTimestamp()} heat map url: ${json.data.link}`);
             imgUrl = json.data.link;
@@ -87,7 +85,10 @@ function convertSvgToPng() {
         .catch(function (err) {
             util.logger.error(`<ERROR> ${util.getTimestamp()} uploading to imgur failed - ${err.message}`);
         });
-    });
+}
+
+function convertSvgToPng() {
+    svg_to_png.convert(path.join(imageDir, 'heatMap.svg'), imageDir);
 }
 
 function writeSvgToFile() {

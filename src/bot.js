@@ -6,6 +6,7 @@ var fs = require('fs');
 
 var c = require('./const.js');
 var util = require('./utilities.js');
+var heatmap = require('./heatmap.js');
 var gambling = require('./gambling.js');
 var games = require('./games.js');
 var vote = require('./vote.js');
@@ -152,6 +153,9 @@ function handleCommand(message) {
 	function genHeatMapCalled() {
 		if (!util.isAdmin(userID)) { return; }
 		games.generateHeatMap();
+		setTimeout(() => {
+			heatmap.uploadToImgur();
+		}, 10000);
 	}
 	function giveCalled() {
 		if (args.length === 3) {
