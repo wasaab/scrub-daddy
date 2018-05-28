@@ -445,7 +445,7 @@ exports.letsPlay = function(args, userID, userName, message, oneMore) {
 	if (!args) {
 		util.outputHelpForCommand('lets-play', userID);
 	}
-	const gameIdx = args[1] === '-ss' ? 2 : 1;
+	const gameIdx = args[1] === '-ss' || args[1] === '-r' ? 2 : 1;
 	var game = util.getTargetFromArgs(args, gameIdx);
 	const gameTokens = game.split(':');
 	if (gameTokens && gameTokens.length === 3) {
@@ -461,9 +461,11 @@ exports.letsPlay = function(args, userID, userName, message, oneMore) {
 		const punctuation = oneMore ? '!' : '?';
 		var msg = `↪️ **${userName}**: ${oneMoreMsg}${game}${punctuation}`;
 		usersWhoPlay.forEach((user) => {
-			if (gameIdx === 1 || user.role !== '(ᵔᴥᵔ) ͡Super ͡Scrubs ™') {
-				msg += ` ${util.mentionUser(user.id)}`;
+			if ((gameIdx === 2 && user.role === '(ᵔᴥᵔ) ͡Super ͡Scrubs ™') ||
+				(args[1] === '-r' && moment().diff(moment(user.time), 'days') > 5)) {
+					 return;
 			}
+			msg += ` ${util.mentionUser(user.id)}`;
 		});
 		bot.getScrubsChannel().send(msg);
 	} else {
@@ -552,7 +554,7 @@ exports.updateTimesheet = function(user, userID, highestRole, oldGame, newGame) 
 	}
 	//started playing a game
 	if (newGame) {
-		gameToTime['playing'] = {name : newGame, start : (new Date).getTime()};
+		gameToTime['playing'] = {name : newGame, start : new Date().getTime()};
 		if (!gameToTime[newGame]) {
 			gameToTime[newGame] = 0;
 		}
