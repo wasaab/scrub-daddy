@@ -1609,24 +1609,7 @@ function outputRatings(rating, category, subCategory, channel) {
 	const targetCategory = subCategory || category;
 	const categoryEmoji = targetCategory === 'tv' ? c.TV_EMOJI : c.MOVIES_EMOJI;
 	const titles = Object.keys(targetRatings[targetCategory]).sort();
-	var output = '';
-
-	titles.forEach((title) => {
-		const currRating = targetRatings[targetCategory][title];
-		var extraRating = '';
-		if (Math.floor(currRating.rating) === rating) {
-			output += `**${title}**\n`
-			if (targetCategory === 'movies' && currRating.rtRating) {
-				output += `🍅 **${currRating.rtRating}**	`;
-			}
-			if (currRating.imdbRating && currRating.imdbRating !== 'N/A') {
-				output += `**\`IMDB\`** **${currRating.imdbRating}**	`;
-			}
-			if (currRating.rating % 1 !== 0) {
-				output += `${getStars(1)} **${currRating.rating.toPrecision(2)}**`;
-			}
-		}
-	});
+	const output = determineRatingsOutput(titles, targetRatings, targetCategory, rating);
 
 	if (output === '') { return; }
 
@@ -1651,6 +1634,31 @@ function outputRatings(rating, category, subCategory, channel) {
 	} else {
 		sendEmbedMessage(`${categoryEmoji}	${getStars(rating)}`, titlesMsg);
 	}
+}
+
+function determineRatingsOutput(titles, targetRatings, targetCategory, rating) {
+	var output = '';
+	titles.forEach((title, i) => {
+		const currRating = targetRatings[targetCategory][title];
+		var extraRating = '';
+		if (Math.floor(currRating.rating) === rating) {
+			output += `**${title}**\n`;
+			if (targetCategory === 'movies' && currRating.rtRating) {
+				output += `🍅 **${currRating.rtRating}**	`;
+			}
+			if (currRating.imdbRating && currRating.imdbRating !== 'N/A') {
+				output += `**\`IMDB\`** **${currRating.imdbRating}**	`;
+			}
+			if (currRating.rating % 1 !== 0) {
+				output += `${getStars(1)} **${currRating.rating.toPrecision(2)}**`;
+			}
+			if (i !== titles.length - 1) {
+				output += '\n';
+			}
+		}
+	});
+
+	return output;
 }
 
 /**
