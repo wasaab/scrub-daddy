@@ -1644,17 +1644,18 @@ function determineRatingsOutput(titles, targetRatings, targetCategory, rating) {
 		if (Math.floor(currRating.rating) === rating) {
 			output += `**${title}**\n`;
 			if (targetCategory === 'movies' && currRating.rtRating) {
-				output += `🍅 **${currRating.rtRating}**	`;
+				extraRating += `🍅 **${currRating.rtRating}**	`;
 			}
 			if (currRating.imdbRating && currRating.imdbRating !== 'N/A') {
-				output += `**\`IMDB\`** **${currRating.imdbRating}**	`;
+				extraRating += `**\`IMDB\`** **${currRating.imdbRating}**	`;
 			}
 			if (currRating.rating % 1 !== 0) {
-				output += `${getStars(1)} **${currRating.rating.toPrecision(2)}**`;
+				extraRating += `${getStars(1)} **${currRating.rating.toPrecision(2)}**`;
 			}
-			if (i !== titles.length - 1) {
-				output += '\n';
+			if (i !== titles.length - 1 && extraRating !== '') {
+				extraRating += '\n';
 			}
+			output += extraRating;
 		}
 	});
 
