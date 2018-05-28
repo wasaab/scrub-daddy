@@ -1608,32 +1608,27 @@ function outputRatings(rating, category, subCategory, channel) {
 	const targetRatings = category === 'unverified' ? ratings.unverified : ratings;
 	const targetCategory = subCategory || category;
 	const categoryEmoji = targetCategory === 'tv' ? c.TV_EMOJI : c.MOVIES_EMOJI;
-	var fields = [];
 	const titles = Object.keys(targetRatings[targetCategory]).sort();
+	var output = '';
 
 	titles.forEach((title) => {
 		const currRating = targetRatings[targetCategory][title];
 		var extraRating = '';
 		if (Math.floor(currRating.rating) === rating) {
+			output += `**${title}**\n`
 			if (targetCategory === 'movies' && currRating.rtRating) {
-				extraRating += `🍅 **${currRating.rtRating}**	`;
+				output += `🍅 **${currRating.rtRating}**	`;
 			}
 			if (currRating.imdbRating && currRating.imdbRating !== 'N/A') {
-				extraRating += `**\`IMDB\`** **${currRating.imdbRating}**	`;
+				output += `**\`IMDB\`** **${currRating.imdbRating}**	`;
 			}
-
 			if (currRating.rating % 1 !== 0) {
-				extraRating += `${getStars(1)} **${currRating.rating.toPrecision(2)}**`;
+				output += `${getStars(1)} **${currRating.rating.toPrecision(2)}**`;
 			}
-
-			if (extraRating === '') {
-				extraRating = '\u200B';
-			}
-			fields.push(buildField(title, extraRating, 'false'));
 		}
 	});
 
-	if (fields.length === 0) { return; }
+	if (output === '') { return; }
 
 	if (channel) {
 		var msgToEdit = `${rating}_STAR_${targetCategory.toUpperCase()}_MSG_ID`;
@@ -1646,7 +1641,7 @@ function outputRatings(rating, category, subCategory, channel) {
 				const updatedMsg = new Discord.RichEmbed({
 					color: 0xffff00,
 					title: message.embeds[0].title,
-					fields: fields
+					description: output
 				});
 				message.edit('', updatedMsg);
 			})
