@@ -1671,12 +1671,23 @@ function determineRatingsOutput(titles, targetRatings, targetCategory, rating) {
  * @param {Object} channel - the channel the msg was sent from
  * @param {String} userID - id of user adding rating
  */
-function updateRating(category, rating, args, channel, userID) {
+function rate(category, rating, args, channel, userID) {
 	category = category === 'movie' ? 'movies' : category;
 	if (category !== 'movies' && category !== 'tv') { return; }
 
 	const categoryEmoji = category === 'tv' ? c.TV_EMOJI : c.MOVIES_EMOJI;
 	const title = determineTitle(getTargetFromArgs(args, 3));
+	var avgRating = updateRatingAndDetermineAvg(category, title, userID, rating, channel);
+
+	const color = userIDToColor[userID] || 0xffff00;
+	channel.send(new Discord.RichEmbed({
+		color: color,
+		title: `${categoryEmoji} ${title} - Rated ${getStars(rating)} by ${getNick(userID)}`,
+		description: `Average Rating: ${getStars(avgRating)}`
+	}));
+}
+
+function updateRatingAndDetermineAvg(category, title, userID, rating, channel) {
 	var oldReview = ratings[category][title];
 	const unverifiedReview = ratings.unverified[category][title];
 	var avgRating;
@@ -1684,25 +1695,18 @@ function updateRating(category, rating, args, channel, userID) {
 
 	// If the title has never been rated or only rated by current reviewer
 	if (!oldReview && (!unverifiedReview || unverifiedReview.reviews[userID])) {
-		ratings.unverified[category][title] = {
-			reviews: {},
-			rating: rating
-		};
-		ratings.unverified[category][title].reviews[userID] = rating;
+		updateUnverifiedReview(category, title, rating, userID);
 		avgRating = rating;
 		isUnverified = true;
-	} else  {
+	} else {
 		// If the title being rated was previously unverified, move it to verified
 		if (unverifiedReview) {
 			oldReview = unverifiedReview;
-			ratings[category][title] = oldReview;
-			delete ratings.unverified[category][title];
-			// update unverified list
-			outputRatings(Math.floor(oldReview.rating), 'unverified', category, channel);
+			verifyReview(category, title, oldReview, channel);
 		}
 
-		ratings[category][title].reviews[userID] = rating;
 		avgRating = determineRating(category, title);
+		ratings[category][title].reviews[userID] = rating;
 		ratings[category][title].rating = avgRating;
 
 		// Update list review used to be in
@@ -1711,13 +1715,6 @@ function updateRating(category, rating, args, channel, userID) {
 		}
 	}
 
-	const color = userIDToColor[userID] || 0xffff00;
-	channel.send(new Discord.RichEmbed({
-		color: color,
-		title: `${categoryEmoji} ${title} - Rated ${getStars(rating)} by ${getNick(userID)}`,
-		description: `Average Rating: ${getStars(avgRating)}`
-	}));
-
 	// Update list review is now in
 	if (isUnverified) {
 		outputRatings(Math.floor(avgRating), 'unverified', category, channel);
@@ -1725,6 +1722,23 @@ function updateRating(category, rating, args, channel, userID) {
 		outputRatings(Math.floor(avgRating), category, null, channel);
 	}
 	exportJson(ratings, 'ratings');
+
+	return avgRating;
+}
+
+function verifyReview(category, title, oldReview, channel) {
+	ratings[category][title] = oldReview;
+	delete ratings.unverified[category][title];
+	// update unverified list
+	outputRatings(Math.floor(oldReview.rating), 'unverified', category, channel);
+}
+
+function updateUnverifiedReview(category, title, rating, userID) {
+	ratings.unverified[category][title] = {
+		reviews: {},
+		rating: rating
+	};
+	ratings.unverified[category][title].reviews[userID] = rating;
 }
 
 function refreshRatings(channel) {
@@ -1734,7 +1748,7 @@ function refreshRatings(channel) {
 			outputRatings(i, category, null, channel);
 			outputRatings(i, 'unverified', category, channel);
 		}
-	})
+	});
 }
 
 function maybeExportAndRefreshRatings(channel) {
@@ -1746,7 +1760,6 @@ function maybeExportAndRefreshRatings(channel) {
 		refreshRatings(channel);
 	}
 }
-
 
 function updateThirdPartyRatingsForCategory(site, responses, category) {
 	responses.forEach((response) => {
@@ -1915,7 +1928,7 @@ exports.unalias = unalias;
 exports.unLock = unLock;
 exports.updateLottoCountdown = updateLottoCountdown;
 exports.updateMembers = updateMembers;
-exports.updateRating = updateRating;
+exports.rate = rate;
 exports.updateReadme = updateReadme;
 exports.updateThirdPartyRatings = updateThirdPartyRatings;
 //----------------------------------------------------------

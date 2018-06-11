@@ -250,7 +250,7 @@ function handleCommand(message) {
 	}
 	function rateCalled() {
 		if (args.length < 4 || channelID !== c.RATINGS_CHANNEL_ID || isNaN(args[2])) { return; }
-		util.updateRating(args[1], Number(args[2]), args, message.channel, userID);
+		util.rate(args[1], Number(args[2]), args, message.channel, userID);
 		message.delete();
 	}
 	function ratingsCalled() {
@@ -260,7 +260,7 @@ function handleCommand(message) {
 	}
 	function refreshRatingsCalled() {
 		if (!util.isAdmin(userID)) { return; }
-		util.refreshRatings(message.channel);
+		util.updateThirdPartyRatings();
 	}
 	function renameCalled() {
 		util.rename(args[1], args, userID, message.channel);
@@ -529,7 +529,6 @@ client.on('ready', () => {
 	games.setDynamicGameChannels(client.channels);
 
 	util.logger.info(`<INFO> ${util.getTimestamp()}  Connected`);
-	//util.updateThirdPartyRatings();
 	if (util.isDevEnv()) { return; }
 	games.updatePlayingStatus();
 	util.updateLottoCountdown();
