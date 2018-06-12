@@ -4,6 +4,7 @@ var Discord = require('discord.js');
 var inspect = require('util-inspect');
 var moment = require('moment');
 var backup = require('backup');
+var Fuse = require('fuse.js');
 var imdb = require('imdb-api');
 var get = require('lodash.get');
 var fs = require('fs');
@@ -1856,6 +1857,59 @@ function rename(category, args, userID, channel) {
 	exportJson(ratings, 'ratings');
 }
 
+function ratingInfo(targetTitle, userID) {
+	const { title, rating } = getRating(targetTitle);
+	if (!title || !rating) { return; }
+
+	var info = '';
+	if (rating.rtRating) {
+		info += `🍅 **${rating.rtRating}**	`;
+	}
+	if (rating.imdbRating && rating.imdbRating !== 'N/A') {
+		info += `**\`IMDB\`** **${rating.imdbRating}**	`;
+	}
+	if (rating.rating % 1 !== 0) {
+		info += `${getStars(1)} **${rating.rating.toPrecision(2)}**`;
+	}
+	info += '\n\n**Reviews**';
+	for (reviewer in rating.reviews) {
+		info += `\n${getNick(reviewer)}	${getStars(rating.reviews[reviewer])}`
+	}
+
+	const channel = bot.getClient().channels.find('id', c.RATINGS_CHANNEL_ID);
+	const color = userIDToColor[userID] || 0xffff00;
+	channel.send(new Discord.RichEmbed({
+		color: color,
+		title: title,
+		description: info
+	}));
+}
+
+function getRating(title) {
+	const titles = getAllTitles();
+	var fuse = new Fuse(titles, c.RATING_FUZZY_OPTIONS);
+	const fuzzyResults = fuse.search(title);
+	if (fuzzyResults.length !== 0) {
+		const matchingTitle = titles[fuzzyResults[0]];
+		logger.info(`<INFO> ${getTimestamp()}	Rating Info Title Match ${matchingTitle}`);
+		const rating = ratings.movies[matchingTitle] || ratings.tv[matchingTitle]
+			|| ratings.unverified.movies[matchingTitle] || ratings.unverified.tv[matchingTitle];
+		return {
+			title: matchingTitle,
+			rating: rating
+		}
+	}
+}
+
+function getAllTitles() {
+	return Object.keys(ratings.movies).concat(
+		Object.keys(ratings.tv),
+		Object.keys(ratings.unverified.tv),
+		Object.keys(ratings.unverified.movies)
+	);
+}
+
+
 //-------------------- Public Functions --------------------
 exports.addInitialNumberReactions = addInitialNumberReactions;
 exports.addMessageToReviewQueue = addMessageToReviewQueue;
@@ -1909,6 +1963,7 @@ exports.outputRatings = outputRatings;
 exports.playSoundByte = playSoundByte;
 exports.deleteQuoteTipMsg = deleteQuoteTipMsg;
 exports.quoteUser = quoteUser;
+exports.ratingInfo = ratingInfo;
 exports.refreshRatings = refreshRatings;
 exports.removeFromReviewRole = removeFromReviewRole;
 exports.rename = rename;

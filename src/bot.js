@@ -253,6 +253,11 @@ function handleCommand(message) {
 		util.rate(args[1], Number(args[2]), args, message.channel, userID);
 		message.delete();
 	}
+	function ratingInfoCalled() {
+		if (!args[1]) { return; }
+		util.ratingInfo(args[1], userID);
+		message.delete();
+	}
 	function ratingsCalled() {
 		if (args.length < 3) { return; }
 		util.outputRatings(Number(args[1]), args[2], args[3]);
@@ -413,6 +418,7 @@ function handleCommand(message) {
 		'ranks': ranksCalled,
 		'rate': rateCalled,
 		'ratings': ratingsCalled,
+		'rating-info': ratingInfoCalled,
 		'refresh-ratings': refreshRatingsCalled,
 		'rename': renameCalled,
 		'restore': restoreCalled,

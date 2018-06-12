@@ -316,14 +316,14 @@ module.exports = {
 		'opt-in',
 		'p', 'playing',
 		'quote', 'quotes',
-		'rank', 'ranks', 'rate', 'refresh-ratings','ratings', 'rename', 'restart', 'restore', 'review-messages', 'revive',
+		'rank', 'ranks', 'rate', 'refresh-ratings', 'ratings', 'rating-info', 'rename', 'restart', 'restore', 'review-messages', 'revive',
 		'sb', 'sb-add', 'set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'start-lotto', 'stats', 'stay', 'steal','sunken-sailor',
 		'temp', 'time', 'tips', 'toggle-streaming',
 		'unalias', 'update-readme',
 		'vote', 'voteban', 'voteinfo', 'votekick',
 		'who-plays', 'who-said'
 	],
-	GLOBAL_COMMANDS: ['quote', 'delete', 'leave-temp', 'rate', 'rename', 'refresh-ratings'],
+	GLOBAL_COMMANDS: ['quote', 'delete', 'leave-temp', 'rate', 'rename', 'refresh-ratings', 'rating-info'],
 	WHO_PLAYS_FUZZY_OPTIONS: {
 		shouldSort: true,
 		threshold: 0.3,
@@ -332,6 +332,14 @@ module.exports = {
 		maxPatternLength: 32,
 		minMatchCharLength: 1,
 		keys: ['title']
+	},
+	RATING_FUZZY_OPTIONS: {
+		shouldSort: true,
+		threshold: 0.3,
+		location: 0,
+		distance: 100,
+		maxPatternLength: 32,
+		minMatchCharLength: 1,
 	},
 	CHANNEL_NAME_FUZZY_OPTIONS: {
 		threshold: 0.1,
