@@ -29,24 +29,20 @@ function maybeGetPlural(count) {
 }
 
 /**
- * Adds the given number of Scrubbing Bubbles to the provided user's army.
+ * Adjusts the given number of Scrubbing Bubbles in provided user's army.
  * 
  * @param {String} userID - id of the user to add to
- * @param {Number} amount - amount to add
- * @param {String} addTake - Whether to Add or Take from Army
+ * @param {Number} amount - amount to add if positive or remove if negative
  */
-function addToArmy(userID, amount, addTake) {
+function adjustArmySize(userID, amount) {
     if (!ledger[userID]) {
         ledger[userID] = Object.assign({}, c.NEW_LEDGER_ENTRY);
     }
-    if(addTake === 'add'){
-        ledger[userID].armySize += amount;
-    
-        if (ledger[userID].armySize > ledger[userID].recordArmy) {
-            ledger[userID].recordArmy = ledger[userID].armySize;
-        }
-    }else{
-        ledger[userID].armySize -= amount;
+
+    ledger[userID].armySize += amount;
+
+    if (ledger[userID].armySize > ledger[userID].recordArmy) {
+        ledger[userID].recordArmy = ledger[userID].armySize;
     }
     exports.exportLedger();
 }
@@ -55,17 +51,14 @@ function addToArmy(userID, amount, addTake) {
  * member may enlist the bubble to their army.
  * 
  * @param {String} userID - the id of the user discharging a bubble
- * @param {String} discharging - the number of scrubs the user will discharge
+ * @param {Number} discharging - the number of scrubs the user will discharge
  */
-
 function dischargeScrubBubble(userID, discharging) {
     if (userID && userID !== 'dev') {
-        if (ledger[userID] && ledger[userID].armySize >= discharging) {
-            addToArmy(userID, discharging, 'take');
-            ledger[userID].totalDischarged += discharging;
-        } else {
-            return;
-        }
+        if (!ledger[userID] || ledger[userID].armySize < discharging) { return; }
+        
+        adjustArmySize(userID, Number(discharging) * -1);
+        ledger[userID].totalDischarged += discharging;
     }
     dropped += discharging;
     var droppedImg = dropped;
@@ -81,42 +74,21 @@ function dischargeScrubBubble(userID, discharging) {
     util.sendEmbedMessage(title, null, c.BUBBLE_IMAGES[droppedImg-1]);
 }
 /**
+ * Dispatches scrubbing bubbles from the provided user's army.
+ * 
  * @param {Number} userID - user's ID dispatching Scrubs
  * @param {Number} amount - amount the user wants to dispatch
  * @param {Number} dispatchee - user ID of the receiver for Dispatch Command
  */
 function dispatchScrubs(userID, amount, dispatchee){
     if(ledger[userID] && ledger[dispatchee] && ledger[userID].armySize >= amount){
-        addToArmy(userID, amount, 'take');
-        addToArmy(dispatchee, amount, 'add');
+        adjustArmySize(userID, amount * -1);
+        adjustArmySize(dispatchee, amount);
 
         description = '<@!' + dispatchee + '>'+ ' '+ amount +  ' Scrubbing Bubble' + maybeGetPlural(amount) + ' have been dispatched to you by' + '<@!' + userID + '>';
         util.sendEmbedMessage(null, description);
     }
     
-}
-/**
- * @param {String} mode - Decides which function to call
- * @param {Number} userID - the id of the user calling command
- * @param {String} args - text after command
- */
-exports.checkNumber = function(mode, userID, args){
-    const discharging = Number(args[1]);
-    var dispatchee = userID;
-    if (!discharging || discharging < 1) {
-        return;
-    }
-    if(mode === 'discharging'){
-        dischargeScrubBubble(userID, discharging);
-    }
-    if(mode === 'dispatch'){
-        if (args[2]) {
-            if (args[2].match(/\d/g) !== null) {
-                dispatchee = args[2].match(/\d/g).join('');
-            }
-        }
-        dispatchScrubs(userID, discharging, dispatchee);
-    }
 }
 
 /**
@@ -130,14 +102,12 @@ exports.maybeDischargeScrubBubble = function(botSpamChannel) {
     }
 }
 
-
-
 /**
  * enlists a scrubbing bubble in userID's army.
  */
 exports.enlist = function(userID) {
     if (dropped > 0) {
-        addToArmy(userID, dropped, 'add');
+        adjustArmySize(userID, dropped);
         ledger[userID].totalEnlisted += dropped;
         const msg = '<@!' + userID + '>  ' + 'Your Scrubbing Bubbles army has grown by ' + dropped + '! You now have an army of ' + ledger[userID].armySize + '.';
         util.sendEmbedMessage(null, msg);
@@ -161,16 +131,16 @@ function isValidSide(side) {
  * Takes the user's bet from the ledger. 
  * 
  * @param {String} userID - the id of the user betting
- * @param {number} bet - the bet amount
+ * @param {Number} bet - the bet amount
  * @param {String} type - the type of bet
  */
 function takeBetFromUser(userID, bet, type) {
     if (type === 'clean') {
-        addToArmy(userID, bet, 'take');
+        adjustArmySize(userID, bet * -1);
         ledger[userID].scrubsBet += bet;
         ledger[userID].cleanBet = bet;
     } else if (type === 'race') {
-        addToArmy(userID, bet, 'take');
+        adjustArmySize(userID, bet * -1);
         ledger[userID].scrubsBet += bet;
         ledger[userID].raceBet = bet;
     }
@@ -276,7 +246,7 @@ function betClean(userID, bet, type, side) {
             const payout = bet*2;
             img = c.CLEAN_WIN_IMG;
             msg = 'Congrats, your auxiliary army gained ' + payout + ' Scrubbing Bubbles after cleaning the bathroom and conquering the land!';
-            addToArmy(userID, payout, 'add');
+            adjustArmySize(userID, payout);
             addToGamblingStats('Won', payout, userID);
         } else {
             img = c.CLEAN_LOSE_IMG;
