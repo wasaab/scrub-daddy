@@ -208,8 +208,8 @@ function heatmapChart (tsvFile) {
 
 exports.generateHeatMap = function() {
     heatmapChart('avgHeatMapData.tsv');
-}
+};
 
 exports.getUpdatedHeatMapUrl = function() {
     return imgUrl;
-}
+};
