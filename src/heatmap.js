@@ -1,5 +1,5 @@
 var xmlserializer = require('xmlserializer');
-var svg_to_png = require('svg-to-png');
+var svgToPng = require('svg-to-png');
 var imgur = require('imgur');
 var path = require('path');
 var fs = require('fs');
@@ -85,10 +85,22 @@ exports.uploadToImgur = function() {
         .catch(function (err) {
             util.logger.error(`<ERROR> ${util.getTimestamp()} uploading to imgur failed - ${err.message}`);
         });
-}
+};
 
 function convertSvgToPng() {
-    svg_to_png.convert(path.join(imageDir, 'heatMap.svg'), imageDir);
+    svgToPng.convert(path.join(imageDir, 'heatMap.svg'), imageDir);
+}
+
+function getSVGString(svgNode) {
+    svgNode.setAttribute('xlink', 'http://www.w3.org/1999/xlink');
+
+    var serializer = new XMLSerializer();
+    var svgString = serializer.serializeToString(svgNode);
+    svgString = svgString.replace(/(\w+)?:?xlink=/g, 'xmlns:xlink='); // Fix root xlink without namespace
+    svgString = svgString.replace(/NS\d+:href/g, 'xlink:href'); // Safari NS namespace fix
+    svgString = svgString.replace('xlink">', 'xlink"> <style type="text/css"></style>');
+
+    return svgString;
 }
 
 function writeSvgToFile() {
@@ -98,7 +110,7 @@ function writeSvgToFile() {
         if (error) {
             util.logger.error(`<API ERROR> ${util.getTimestamp()}  ERROR: ${error}`);
         } else if (response) {
-            util.logger.info(`<API RESPONSE> ${util.getTimestamp()}  ${inspect(response)}`);
+            util.logger.info(`<API RESPONSE> ${util.getTimestamp()}  ${response}`);
         }
     });
     setTimeout(convertSvgToPng, 1000);
@@ -192,18 +204,6 @@ function heatmapChart (tsvFile) {
             legend.exit().remove();
         });
     setTimeout(writeSvgToFile, 100);
-};
-
-function getSVGString(svgNode) {
-    svgNode.setAttribute('xlink', 'http://www.w3.org/1999/xlink');
-
-    var serializer = new XMLSerializer();
-    var svgString = serializer.serializeToString(svgNode);
-    svgString = svgString.replace(/(\w+)?:?xlink=/g, 'xmlns:xlink='); // Fix root xlink without namespace
-    svgString = svgString.replace(/NS\d+:href/g, 'xlink:href'); // Safari NS namespace fix
-    svgString = svgString.replace('xlink">', 'xlink"> <style type="text/css"></style>')
-
-    return svgString;
 }
 
 exports.generateHeatMap = function() {
