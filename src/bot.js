@@ -457,7 +457,7 @@ function handleCommand(message) {
 		'voteinfo': voteinfoCalled,
 		'votekick': votekickCalled,
 		'who-plays': whoPlaysCalled,
-		'who-said': whoSaidCalled,
+		'who-said': whoSaidCalled
 	};
 
 	if (args[1] === 'help') {
