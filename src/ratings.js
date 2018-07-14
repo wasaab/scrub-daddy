@@ -86,7 +86,7 @@ function determineRatingsOutput(titles, targetRatings, targetCategory, rating) {
 		const currRating = targetRatings[targetCategory][title];
 		var extraRating = '';
 		if (Math.floor(currRating.rating) === rating) {
-			if (currRating.time &&  moment().diff(moment(currRating.time), 'weeks') < 2) {
+			if (currRating.time && moment().diff(moment(currRating.time), 'weeks') < 2) {
 				title += ' 🆕'
 			}
 			output += `**${title}**\n`;
@@ -202,6 +202,11 @@ function refreshRatings(channel) {
 			exports.outputRatings(i, 'unverified', category, channel);
 		}
 	});
+	channel.send(new Discord.RichEmbed({
+		color: util.getUserColor(),
+		title: `Ratings Refreshed`,
+		description: `All rating info is now up to date with user ratings, IMDB, and RT.`
+	}));
 }
 
 /**
@@ -474,8 +479,9 @@ exports.updateThirdPartyRatings = function() {
  * @param {String} currentCategory - current category
  * @param {String} newCategory - new category
  * @param {Object} channel - channel called from
+ * @param {String} userID - id of calling user
  */
-exports.changeCategory = function(args, currentCategory, newCategory, channel) {
+exports.changeCategory = function(args, currentCategory, newCategory, channel, userID) {
 	currentCategory = currentCategory === 'movie' ? 'movies' : currentCategory;
 	newCategory = newCategory === 'movie' ? 'movies' : newCategory;
 	const title = util.getTargetFromArgs(args, 3);
@@ -508,8 +514,9 @@ exports.changeCategory = function(args, currentCategory, newCategory, channel) {
  * @param {String[]} args - arguments provided to the command
  * @param {String} category - category title is in
  * @param {Object} channel - channel called from
+ * @param {String} userID - id of calling user
  */
-exports.delete = function(args, category, channel) {
+exports.delete = function(args, category, channel, userID) {
 	category = category === 'movie' ? 'movies' : category;
 	const title = util.getTargetFromArgs(args, 2);
 

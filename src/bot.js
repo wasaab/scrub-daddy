@@ -103,9 +103,9 @@ function handleCommand(message) {
 		message.delete();
 	}
 	function changeCategoryCalled() {
-		if (args.length > 3) {
-			ratings.changeCategory(args, args[1], args[2], message.channel);
-		}
+		if (args.length < 4 || channelID !== c.RATINGS_CHANNEL_ID) { return; }
+		ratings.changeCategory(args, args[1], args[2], message.channel, userID);
+		message.delete();
 	}
 	function cleanCalled() {
 		gambling.maybeBetClean(userID, args, message);
@@ -126,7 +126,9 @@ function handleCommand(message) {
 		util.deleteMessages(message);
 	}
 	function deleteRatingCalled() {
-		ratings.delete(args, args[1], message.channel);
+		if (args.length < 3 || channelID !== c.RATINGS_CHANNEL_ID) { return; }
+		ratings.delete(args, args[1], message.channel, userID);
+		message.delete();
 	}
 	function dischargeCalled() {
 		gambling.dischargeScrubBubble(userID, args[1]);

@@ -323,7 +323,7 @@ module.exports = {
 		'vote', 'voteban', 'voteinfo', 'votekick',
 		'who-plays', 'who-said'
 	],
-	GLOBAL_COMMANDS: ['quote', 'delete', 'leave-temp', 'rate', 'rename', 'refresh-ratings', 'rating-info'],
+	GLOBAL_COMMANDS: ['quote', 'delete', 'leave-temp', 'rate', 'rename', 'refresh-ratings', 'rating-info', 'change-category', 'delete-rating'],
 	WHO_PLAYS_FUZZY_OPTIONS: {
 		shouldSort: true,
 		threshold: 0.3,
