@@ -37,7 +37,6 @@ var members = [];
 var scrubIdToNick = {};
 var scrubIdToAvatar = {};
 var reviewQueue = [];
-var ratingsResponses = 0;
 
 /**
  * Creates a channel in a category, specified by the command provided.

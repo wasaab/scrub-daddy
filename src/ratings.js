@@ -8,6 +8,7 @@ var c = require('./const.js');
 var bot = require('./bot.js');
 var util = require('./utilities.js');
 var ratings = require('../resources/data/ratings.json');
+var ratingsResponses = 0;
 
 /**
  * Gets the proper title from a string.
