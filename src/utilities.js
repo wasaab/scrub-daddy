@@ -5,10 +5,8 @@ var inspect = require('util-inspect');
 var moment = require('moment');
 var backup = require('backup');
 var Fuse = require('fuse.js');
-var imdb = require('imdb-api');
 var get = require('lodash.get');
 var fs = require('fs');
-var rt = require('lw5');
 
 const winston = require('winston');
 const Transport = require('winston-transport');
@@ -27,7 +25,6 @@ var userIDToAliases = require('../resources/data/aliases.json');
 var soundBytes = require('../resources/data/soundbytes.json');
 var lists = require('../resources/data/lists.json');
 var quotes = require('../resources/data/quotes.json');
-var ratings = require('../resources/data/ratings.json');
 const catFacts = require('../resources/data/catfacts.json');
 const private = require('../../private.json');
 
@@ -61,7 +58,6 @@ function createChannelInCategory(command, channelType, channelName, message, cre
 		}
 		const description = feedback || ' ';
 		const channelCategoryName = capitalizeFirstLetter(command);
-		const color = userIDToColor[userID] || 0xffff00;
 		const overwrites = [{
 			allow: ['MANAGE_CHANNELS', 'MANAGE_ROLES'],
 			id: userID
@@ -70,7 +66,7 @@ function createChannelInCategory(command, channelType, channelName, message, cre
 		.then((channel) => {
 			channel.setParent(c.CATEGORY_ID[channelCategoryName]);
 			channel.send(new Discord.RichEmbed({
-				color: color,
+				color: getUserColor(userID),
 				title: channelCategoryName + createdByMsg,
 				description: description,
 				image: {
@@ -98,9 +94,8 @@ function leaveTempChannel(channel, userID) {
 		VIEW_CHANNEL: false
 	})
 	.then(() => {
-		const color = userIDToColor[userID] || 0xffff00;
 		channel.send(new Discord.RichEmbed({
-			color: color,
+			color: getUserColor(userID),
 			title: `${scrubIdToNick[userID]} has left the channel` ,
 			image: {
 				url: c.LEAVE_IMAGES[getRand(0, c.LEAVE_IMAGES.length)]
@@ -253,9 +248,8 @@ function sendEmbedFieldsMessage(title, fields, userID, footer) {
 		return;
 	}
 
-	const color = userIDToColor[userID] || 0xffff00;
 	return bot.getBotSpam().send(new Discord.RichEmbed({
-		color: color,
+		color: getUserColor(userID),
 		title: title,
 		fields: fields,
 		footer: footer
@@ -271,9 +265,8 @@ function sendEmbedMessage(title, description, userID, image, thumbnail, footer) 
 	description = description || '';
 	image = image || '';
 	const picType = thumbnail ? 'thumbnail' : 'image';
-	const color = userIDToColor[userID] || 0xffff00;
 	var message = {
-		color: color,
+		color: getUserColor(userID),
 		title: title,
 		description: description,
 		footer: footer
@@ -395,9 +388,8 @@ function maybeUpdateDynamicMessage(selectedReactions, msg, userID, results, sele
 	const correction = results.length > 9 ? 0 : 1;
 	const selection = numberSelected === -1 ? homeResult : results[numberSelected - correction];
 
-	const color = userIDToColor[userID] || 0xffff00;
 	const newMsg = new Discord.RichEmbed({
-		color: color,
+		color: getUserColor(userID),
 		title: selection.name
 	});
 	const contentType = selection.fields ? 'fields' : 'description';
@@ -953,9 +945,9 @@ function deleteQuoteTipMsg() {
  * Quotes a user.
  *
  * @param {Object} ogMessage - original message being quoted
- * @param {*} quotedUserID - id of user being quoted
- * @param {*} quotingUserID - id of user creating quote
- * @param {*} channelID - id of the channel quote was found in
+ * @param {String} quotedUserID - id of user being quoted
+ * @param {String} quotingUserID - id of user creating quote
+ * @param {String} channelID - id of the channel quote was found in
  */
 function quoteUser(ogMessage, quotedUserID, quotingUserID, channelID) {
 	const numMessagesToCheck = quotedUserID ? 50 : 20;
@@ -1525,390 +1517,13 @@ function reviewMessages(reviewer) {
 }
 
 /**
- * Gets the proper title from a string.
- * Source: https://stackoverflow.com/a/6475125
+ * Gets the preferred color of the provided user.
  *
- * @param {String} original - string to get proper title from
+ * @param {String} userID - userid to get color preference of
  */
-function determineTitle(original) {
-	var i, j, title;
-	var title = original.replace(/([^\W_]+[^\s-]*) */g, function(txt) {
-		return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-	});
-
-	// Certain minor words should be left lowercase unless
-	// they are the first or last words in the string
-	const lowers = ['A', 'An', 'The', 'And', 'But', 'Or', 'For', 'Nor', 'As', 'At',
-	'By', 'For', 'From', 'In', 'Into', 'Near', 'Of', 'On', 'Onto', 'To', 'With'];
-	for (i = 0, j = lowers.length; i < j; i++)
-		title = title.replace(new RegExp('\\s' + lowers[i] + '\\s', 'g'),
-		function(txt) {
-			return txt.toLowerCase();
-		});
-
-	// Certain words such as initialisms or acronyms should be left uppercase
-	const uppers = ['Id', 'Tv'];
-	for (i = 0, j = uppers.length; i < j; i++)
-		title = title.replace(new RegExp('\\b' + uppers[i] + '\\b', 'g'),
-		uppers[i].toUpperCase());
-
-	return title;
+function getUserColor(userID) {
+	return userIDToColor[userID] || 0xffff00;
 }
-
-/**
- * Gets a string of stars.
- *
- * @param {Number} count - number of stars to get
- */
-function getStars(count) {
-	var result = '';
-	for (i=0; i < Math.floor(count); i++) {
-		result += '⭐';
-	}
-
-	if (count % 1 !== 0) {
-		result += '★'
-	}
-
-	return result;
-}
-
-/**
- * Determines the average rating of a tv show or movie.
- *
- * @param {String} category - tv or movie
- * @param {String} title - title to get rating of
- */
-function determineRating(category, title) {
-	const reviews = ratings[category][title].reviews;
-	const allRatings = Object.values(reviews);
-	const ratingSum = allRatings.reduce((a, b) => a + b);
-
-	return ratingSum / allRatings.length;
-}
-
-function getSpaces(currentLength, targetLength) {
-	var spaces = '';
-	for (var i=currentLength; i < targetLength; i++) {
-		spaces += ' ';
-	}
-
-	return spaces;
-}
-
-/**
- * Outputs the movies or tv shows with the rating provided.
- *
- * @param {Number} rating - numerical rating 1-4
- * @param {String} category - tv, movies, or unverified
- * @param {String=} subCategory - tv or movies
- * @param {Object=} channel - text channelt to output ratings in
- */
-function outputRatings(rating, category, subCategory, channel) {
-	category = category === 'movie' ? 'movies' : category;
-	const targetRatings = category === 'unverified' ? ratings.unverified : ratings;
-	const targetCategory = subCategory || category;
-	const categoryEmoji = targetCategory === 'tv' ? c.TV_EMOJI : c.MOVIES_EMOJI;
-	const titles = Object.keys(targetRatings[targetCategory]).sort();
-	const output = determineRatingsOutput(titles, targetRatings, targetCategory, rating);
-
-	if (output === '') { return; }
-
-	if (channel) {
-		var msgToEdit = `${rating}_STAR_${targetCategory.toUpperCase()}_MSG_ID`;
-		if (category === 'unverified') {
-			msgToEdit =  `UNVERIFIED_${msgToEdit}`;
-		}
-
-		channel.fetchMessage(c[msgToEdit])
-			.then((message) => {
-				const updatedMsg = new Discord.RichEmbed({
-					color: 0xffff00,
-					title: message.embeds[0].title,
-					description: output
-				});
-				message.edit('', updatedMsg);
-			})
-			.catch((err) => {
-				logger.error(`<ERROR> ${getTimestamp()}  Edit Ratings Msg Error: ${err}`);
-			});
-	} else {
-		sendEmbedMessage(`${categoryEmoji}	${getStars(rating)}`, titlesMsg);
-	}
-}
-
-function determineRatingsOutput(titles, targetRatings, targetCategory, rating) {
-	var output = '';
-	titles.forEach((title, i) => {
-		const currRating = targetRatings[targetCategory][title];
-		var extraRating = '';
-		if (Math.floor(currRating.rating) === rating) {
-			output += `**${title}**\n`;
-			if (targetCategory === 'movies' && currRating.rtRating) {
-				extraRating += `🍅 **${currRating.rtRating}**	`;
-			}
-			if (currRating.imdbRating && currRating.imdbRating !== 'N/A') {
-				extraRating += `**\`IMDB\`** **${currRating.imdbRating}**	`;
-			}
-			if (currRating.rating % 1 !== 0) {
-				extraRating += `${getStars(1)} **${currRating.rating.toPrecision(2)}**`;
-			}
-			if (i !== titles.length - 1 && extraRating !== '') {
-				extraRating += '\n';
-			}
-			output += extraRating;
-		}
-	});
-
-	return output;
-}
-
-/**
- * Updates the rating for a tv show or movie.
- *
- * @param {String} category - tv or movies
- * @param {Number} rating - numerical rating 1-4
- * @param {String[]} args - arguments passed to the command
- * @param {Object} channel - the channel the msg was sent from
- * @param {String} userID - id of user adding rating
- */
-function rate(category, rating, args, channel, userID) {
-	category = category === 'movie' ? 'movies' : category;
-	if (category !== 'movies' && category !== 'tv') { return; }
-
-	const categoryEmoji = category === 'tv' ? c.TV_EMOJI : c.MOVIES_EMOJI;
-	const title = determineTitle(getTargetFromArgs(args, 3));
-	var avgRating = updateRatingAndDetermineAvg(category, title, userID, rating, channel);
-
-	const color = userIDToColor[userID] || 0xffff00;
-	channel.send(new Discord.RichEmbed({
-		color: color,
-		title: `${categoryEmoji} ${title} - Rated ${getStars(rating)} by ${getNick(userID)}`,
-		description: `Average Rating: ${getStars(avgRating)}`
-	}));
-}
-
-function updateRatingAndDetermineAvg(category, title, userID, rating, channel) {
-	var oldReview = ratings[category][title];
-	const unverifiedReview = ratings.unverified[category][title];
-	var avgRating;
-	var isUnverified = false;
-
-	// If the title has never been rated or only rated by current reviewer
-	if (!oldReview && (!unverifiedReview || unverifiedReview.reviews[userID])) {
-		updateUnverifiedReview(category, title, rating, userID);
-		avgRating = rating;
-		isUnverified = true;
-	} else {
-		// If the title being rated was previously unverified, move it to verified
-		if (unverifiedReview) {
-			oldReview = unverifiedReview;
-			verifyReview(category, title, oldReview, channel);
-		}
-
-		avgRating = determineRating(category, title);
-		ratings[category][title].reviews[userID] = rating;
-		ratings[category][title].rating = avgRating;
-
-		// Update list review used to be in
-		if (!unverifiedReview && Math.floor(avgRating) !== Math.floor(oldReview.rating)) {
-			outputRatings(Math.floor(oldReview.rating), category, null, channel);
-		}
-	}
-
-	// Update list review is now in
-	if (isUnverified) {
-		outputRatings(Math.floor(avgRating), 'unverified', category, channel);
-	} else {
-		outputRatings(Math.floor(avgRating), category, null, channel);
-	}
-	exportJson(ratings, 'ratings');
-
-	return avgRating;
-}
-
-function verifyReview(category, title, oldReview, channel) {
-	ratings[category][title] = oldReview;
-	delete ratings.unverified[category][title];
-	// update unverified list
-	outputRatings(Math.floor(oldReview.rating), 'unverified', category, channel);
-}
-
-function updateUnverifiedReview(category, title, rating, userID) {
-	ratings.unverified[category][title] = {
-		reviews: {},
-		rating: rating
-	};
-	ratings.unverified[category][title].reviews[userID] = rating;
-}
-
-function refreshRatings(channel) {
-	const categories = ['tv', 'movies'];
-	categories.forEach((category) => {
-		for (var i=1; i < 5; i++) {
-			outputRatings(i, category, null, channel);
-			outputRatings(i, 'unverified', category, channel);
-		}
-	});
-}
-
-function maybeExportAndRefreshRatings(channel) {
-	if (ratingsResponses < 5) {
-		ratingsResponses++;
-	} else {
-		exportJson(ratings, 'ratings');
-		ratingsResponses = 0
-		refreshRatings(channel);
-	}
-}
-
-function updateThirdPartyRatingsForCategory(site, responses, category) {
-	responses.forEach((response) => {
-		if (!response.success) { return; }
-		const review = response.result;
-		const title = site === 'rt' ? review.name : review.title;
-		const score = site === 'rt' ? get(review, 'aggregateRating.ratingValue') : review.rating;
-		if (!score) { return; }
-
-		if (!category[title]) {
-			logger.error(`<ERROR> ${getTimestamp()}  RT rating found, but no matching title for: ${title}`);
-		} else {
-			category[title][`${site}Rating`] = score;
-			logger.info(`<INFO> ${getTimestamp()} ${site} Rating for ${title} = ${score}`);
-		}
-	})
-
-	return category;
-}
-
-function getThirdPartyRatingsForCategory(category, site) {
-	var titles = Object.keys(category);
-	var promises = [];
-
-	titles.forEach((title) => {
-		if (site === 'rt') {
-			promises.push(rt(title, 0, 3000))
-		} else {
-			promises.push(imdb.get(title, {apiKey: 'fa354300', timeout: 10000}));
-		}
-	});
-
-	const toResultObject = (promise) => {
-		return promise
-			.then(result => ({ success: true, result }))
-			.catch(error => ({ success: false, error }));
-	};
-
-	return Promise.all(promises.map(toResultObject));
-}
-
-function updateThirdPartyRatings() {
-	const channel = bot.getClient().channels.find('id', c.RATINGS_CHANNEL_ID);
-	const categories =  ['tv', 'movies'];
-
-	categories.forEach((category) => {
-		const sites = category === 'tv' ? ['imdb'] : ['rt', 'imdb'];
-		sites.forEach((site) => {
-			getThirdPartyRatingsForCategory(ratings[category], site)
-				.then((responses) => {
-					ratings[category] = updateThirdPartyRatingsForCategory(site, responses, ratings[category]);
-					maybeExportAndRefreshRatings(channel);
-				});
-
-			getThirdPartyRatingsForCategory(ratings.unverified[category], site)
-				.then((responses) => {
-					ratings.unverified[category] = updateThirdPartyRatingsForCategory(site, responses, ratings.unverified[category]);
-					maybeExportAndRefreshRatings(channel);
-				});
-		});
-	});
-}
-
-function rename(category, args, userID, channel) {
-	category = category === 'movie' ? 'movies' : category;
-
-	const renameOperation = getTargetFromArgs(args, 2);
-	if (!renameOperation.includes('=')) { return; }
-
-	const titles = renameOperation.split('=');
-	const oldTitle = titles[0];
-	const newTitle = titles[1];
-
-	if (ratings[category][oldTitle]) {
-		ratings[category][newTitle] = ratings[category][oldTitle];
-		delete ratings[category][oldTitle];
-		outputRatings(Math.floor(ratings[category][newTitle].rating), category, null, channel);
-	} else if (ratings.unverified[category][oldTitle]) {
-		ratings.unverified[category][newTitle] = ratings.unverified[category][oldTitle];
-		delete ratings.unverified[category][oldTitle];
-		outputRatings(Math.floor(ratings.unverified[category][newTitle].rating), 'unverified', category, channel);
-	} else {
-		channel.send(`${mentionUser(userID)} \`${oldTitle}\` has not been rated.`)
-		return;
-	}
-
-	const color = userIDToColor[userID] || 0xffff00;
-	channel.send(new Discord.RichEmbed({
-		color: color,
-		title: `${oldTitle} - Renamed by ${getNick(userID)}`,
-		description: `New Title: ${newTitle}`
-	}));
-
-	exportJson(ratings, 'ratings');
-}
-
-function ratingInfo(targetTitle, userID) {
-	const { title, rating } = getRating(targetTitle);
-	if (!title || !rating) { return; }
-
-	var info = '';
-	if (rating.rtRating) {
-		info += `🍅 **${rating.rtRating}**	`;
-	}
-	if (rating.imdbRating && rating.imdbRating !== 'N/A') {
-		info += `**\`IMDB\`** **${rating.imdbRating}**	`;
-	}
-	if (rating.rating % 1 !== 0) {
-		info += `${getStars(1)} **${rating.rating.toPrecision(2)}**`;
-	}
-	info += '\n\n**Reviews**';
-	for (reviewer in rating.reviews) {
-		info += `\n${getNick(reviewer)}	${getStars(rating.reviews[reviewer])}`
-	}
-
-	const channel = bot.getClient().channels.find('id', c.RATINGS_CHANNEL_ID);
-	const color = userIDToColor[userID] || 0xffff00;
-	channel.send(new Discord.RichEmbed({
-		color: color,
-		title: title,
-		description: info
-	}));
-}
-
-function getRating(title) {
-	const titles = getAllTitles();
-	var fuse = new Fuse(titles, c.RATING_FUZZY_OPTIONS);
-	const fuzzyResults = fuse.search(title);
-	if (fuzzyResults.length !== 0) {
-		const matchingTitle = titles[fuzzyResults[0]];
-		logger.info(`<INFO> ${getTimestamp()}	Rating Info Title Match ${matchingTitle}`);
-		const rating = ratings.movies[matchingTitle] || ratings.tv[matchingTitle]
-			|| ratings.unverified.movies[matchingTitle] || ratings.unverified.tv[matchingTitle];
-		return {
-			title: matchingTitle,
-			rating: rating
-		}
-	}
-}
-
-function getAllTitles() {
-	return Object.keys(ratings.movies).concat(
-		Object.keys(ratings.tv),
-		Object.keys(ratings.unverified.tv),
-		Object.keys(ratings.unverified.movies)
-	);
-}
-
 
 //-------------------- Public Functions --------------------
 exports.addInitialNumberReactions = addInitialNumberReactions;
@@ -1937,6 +1552,7 @@ exports.getScrubIdToNick = () => scrubIdToNick;
 exports.getTargetFromArgs = getTargetFromArgs;
 exports.getTimestamp = getTimestamp;
 exports.getTrueDisplayName = getTrueDisplayName;
+exports.getUserColor = getUserColor;
 exports.handleMuteAndDeaf = handleMuteAndDeaf;
 exports.help = help;
 exports.isAdmin = isAdmin;
@@ -1959,14 +1575,10 @@ exports.mentionRole = mentionRole;
 exports.mentionUser = mentionUser;
 exports.outputAliases = outputAliases;
 exports.outputHelpForCommand = outputHelpForCommand;
-exports.outputRatings = outputRatings;
 exports.playSoundByte = playSoundByte;
 exports.deleteQuoteTipMsg = deleteQuoteTipMsg;
 exports.quoteUser = quoteUser;
-exports.ratingInfo = ratingInfo;
-exports.refreshRatings = refreshRatings;
 exports.removeFromReviewRole = removeFromReviewRole;
-exports.rename = rename;
 exports.restartBot = restartBot;
 exports.restoreJsonFromBackup = restoreJsonFromBackup;
 exports.reviewMessages = reviewMessages;
@@ -1983,7 +1595,5 @@ exports.unalias = unalias;
 exports.unLock = unLock;
 exports.updateLottoCountdown = updateLottoCountdown;
 exports.updateMembers = updateMembers;
-exports.rate = rate;
 exports.updateReadme = updateReadme;
-exports.updateThirdPartyRatings = updateThirdPartyRatings;
 //----------------------------------------------------------

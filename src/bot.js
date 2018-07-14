@@ -6,6 +6,7 @@ var fs = require('fs');
 
 var c = require('./const.js');
 var util = require('./utilities.js');
+var ratings = require('./ratings.js');
 var heatmap = require('./heatmap.js');
 var gambling = require('./gambling.js');
 var games = require('./games.js');
@@ -101,6 +102,11 @@ function handleCommand(message) {
 		util.catfacts(userID);
 		message.delete();
 	}
+	function changeCategoryCalled() {
+		if (args.length > 3) {
+			ratings.changeCategory(args, args[1], args[2], message.channel);
+		}
+	}
 	function cleanCalled() {
 		gambling.maybeBetClean(userID, args, message);
 	}
@@ -118,6 +124,9 @@ function handleCommand(message) {
 		if (!util.isAdmin(userID)
 			&& !util.isChannelOwner(message.channel, message.member)) { return; }
 		util.deleteMessages(message);
+	}
+	function deleteRatingCalled() {
+		ratings.delete(args, args[1], message.channel);
 	}
 	function dischargeCalled() {
 		gambling.dischargeScrubBubble(userID, args[1]);
@@ -250,25 +259,25 @@ function handleCommand(message) {
 	}
 	function rateCalled() {
 		if (args.length < 4 || channelID !== c.RATINGS_CHANNEL_ID || isNaN(args[2])) { return; }
-		util.rate(args[1], Number(args[2]), args, message.channel, userID);
+		ratings.rate(args[1], Number(args[2]), args, message.channel, userID);
 		message.delete();
 	}
 	function ratingInfoCalled() {
 		if (!args[1]) { return; }
-		util.ratingInfo(args[1], userID);
+		ratings.ratingInfo(args[1], userID);
 		message.delete();
 	}
 	function ratingsCalled() {
 		if (args.length < 3) { return; }
-		util.outputRatings(Number(args[1]), args[2], args[3]);
+		ratings.outputRatings(Number(args[1]), args[2], args[3]);
 		message.delete();
 	}
 	function refreshRatingsCalled() {
 		if (!util.isAdmin(userID)) { return; }
-		util.updateThirdPartyRatings();
+		ratings.updateThirdPartyRatings();
 	}
 	function renameCalled() {
-		util.rename(args[1], args, userID, message.channel);
+		ratings.rename(args[1], args, userID, message.channel);
 		message.delete();
 	}
 	function restartCalled() {
@@ -382,10 +391,12 @@ function handleCommand(message) {
 		'army': armyCalled,
 		'backup': backupCalled,
 		'catfacts': catfactsCalled,
+		'change-category': changeCategoryCalled,
 		'clean': cleanCalled,
 		'color': colorCalled,
 		'create-list': createListCalled,
 		'delete': deleteCalled,
+		'delete-rating': deleteRatingCalled,
 		'discharge': dischargeCalled,
 		'enlist': enlistCalled,
 		'export': exportCalled,
