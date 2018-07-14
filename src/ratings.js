@@ -534,7 +534,7 @@ exports.delete = function(args, category, channel, userID) {
 		delete ratings[category][title];
 		exports.outputRatings(Math.floor(verifiedReviewRating), category, null, channel);
 	} else if (ratings.unverified[category][title]) {
-		const unverifiedReviewRating = ratings.unverified[category][title];
+		const unverifiedReviewRating = ratings.unverified[category][title].rating;
 		delete ratings.unverified[category][title];
 		exports.outputRatings(Math.floor(unverifiedReviewRating), 'unverified', category, channel);
 	} else {
