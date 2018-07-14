@@ -491,12 +491,14 @@ exports.changeCategory = function(args, currentCategory, newCategory, channel, u
 		const verifiedReview = ratings[currentCategory][title];
 		ratings[newCategory][title] = verifiedReview;
 		delete ratings[currentCategory][title];
-		exports.outputRatings(Math.floor(verifiedReview.rating), category, null, channel);
+		exports.outputRatings(Math.floor(verifiedReview.rating), currentCategory, null, channel);
+		exports.outputRatings(Math.floor(verifiedReview.rating), newCategory, null, channel);
 	} else if (ratings.unverified[currentCategory][title]) {
 		const unverifiedReview = ratings.unverified[currentCategory][title];
 		ratings.unverified[newCategory][title] = unverifiedReview;
 		delete ratings.unverified[currentCategory][title];
-		exports.outputRatings(Math.floor(unverifiedReview.rating), 'unverified', category, channel);
+		exports.outputRatings(Math.floor(unverifiedReview.rating), 'unverified', currentCategory, channel);
+		exports.outputRatings(Math.floor(unverifiedReview.rating), 'unverified', newCategory, channel);
 	} else {
 		channel.send(new Discord.RichEmbed({
 			color: util.getUserColor(userID),
@@ -506,6 +508,11 @@ exports.changeCategory = function(args, currentCategory, newCategory, channel, u
 		return;
 	}
 
+	channel.send(new Discord.RichEmbed({
+		color: util.getUserColor(userID),
+		title: `Category Changed`,
+		description: `"${title}" has been moved from ${currentCategory} to ${newCategory}`
+	}));
 	util.exportJson(ratings, 'ratings');
 }
 
@@ -521,6 +528,7 @@ exports.delete = function(args, category, channel, userID) {
 	category = category === 'movie' ? 'movies' : category;
 	const title = util.getTargetFromArgs(args, 2);
 
+	util.logger.info(`<INFO> ${util.getTimestamp()} Deleting rating for "${title}" in ${category}`);
 	if (ratings[category][title]) {
 		const verifiedReviewRating = ratings[category][title].rating;
 		delete ratings[category][title];
@@ -538,5 +546,10 @@ exports.delete = function(args, category, channel, userID) {
 		return;
 	}
 
+	channel.send(new Discord.RichEmbed({
+		color: util.getUserColor(userID),
+		title: `Rating Deleted`,
+		description: `"${title}" has been deleted`
+	}));
 	util.exportJson(ratings, 'ratings');
 }
