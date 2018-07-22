@@ -7,14 +7,15 @@ module.exports = {
 	PURGATORY_CHANNEL_ID: '370626266786824192',	    //sends kicked user's to this channel
 	LOG_CHANNEL_ID: '410258655322308608',			//channel ID of the text channel used for redirecting the console
 	RATINGS_CHANNEL_ID: '415305610179903492',		//channel used for rating tv and movies
+
 	CATEGORY_ID: {
 		'Issue': '372143355070644255',				//category for bot issues
 		'Feature': '374009714213781504',			//category for bot feature requests
 		'Temp': '374246719648694282',				//category for temporary channels
 		'In Progress': '374702344316780567'			//category for bot features/issues actively being worked on
 	},
+
 	BEYOND_ROLE_ID: '370670924992610305',			//elevated role ID
-	SCRUBS_ROLE: '<@&370671041644724226>',			//main role
 	SCRUBS_ROLE_ID: '370671041644724226',			//main role ID
 	PLEB_ROLE_ID: '370671263473074177',				//newly joined member role ID
 	SCRUB_DADDY_ID: '370688149971795982',			//ID of this bot
@@ -60,7 +61,7 @@ module.exports = {
 
 
 
-
+	//TODO: Consider public release. Handle the following 5 entries somehow
 	K_ID: '132944096347160576',
 	R_ID: '208790727197589504',
 	AF_ID: '162434234357645312',
@@ -331,7 +332,7 @@ module.exports = {
 		'p', 'playing',
 		'quote', 'quotes',
 		'rank', 'ranks', 'rate', 'refresh-ratings', 'ratings', 'rating-info', 'rename', 'restart', 'restore', 'review-messages', 'revive',
-		'sb', 'sb-add', 'set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'start-lotto', 'stats', 'stay', 'steal','sunken-sailor',
+		'sb', 'sb-add', 'set-fortnite-name', 'set-stream', 'setup-ratings', 'shuffle-scrubs', 'start-lotto', 'stats', 'stay', 'steal','sunken-sailor',
 		'temp', 'time', 'tips', 'toggle-streaming',
 		'unalias', 'update-readme',
 		'vote', 'voteban', 'voteinfo', 'votekick',
@@ -372,8 +373,8 @@ module.exports = {
 	REACTION_NUMBERS: ['0⃣', '1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣', '8⃣','9⃣'],
 	PPL_EMOJIS: ['😢', '🕺', '👬', '👨‍👨‍👧', '👨‍👨‍👧‍👦⠀', '🧙👩‍👩‍👧‍👦⠀'],
 	TV_EMOJI: '📺',
-	MOVIES_EMOJI: '📀',
-	TRASH_REACTION: 'trashcan:427231130241204224',
+	MOVIE_EMOJI: '📀',
+	TRASH_REACTION: 'trashcan:427231130241204224',	//TODO: consider public release
 	STATS: ['trnRating','score' ,'top1','top3','top5','top6','top10','top12','top25','kd','winRatio',
 		'matches','kills','minutesPlayed','kpm','kpg','avgTimePlayed','scorePerMatch','scorePerMin'],
 	GAME_MODE_TO_KEY: {
@@ -385,12 +386,28 @@ module.exports = {
 		's-squad': 'stats.curr_p9',
 		'all': 'lifeTimeStats'
 	},
+	RATINGS_KEY: `------------ **KEY** ------------\n` +
+		`**:star::star::star::star:** = \`very good\`\n` +
+		`**:star::star::star:** = \`enjoyable\`\n` +
+		`**:star::star:** = \`watchable\`\n` +
+		`**:star:** = \`I regret this\`\n\n` +
+		`:new: = \`added in past 2 weeks\`\n` +
+		`-------------------------------`,
+	RATINGS_USAGE: `**Usage**:\n\n`
+		`.rate <\`tv\`|\`movie\`> <\`1-4\`> <\`title being rated\`>\n` +
+		`.rating-info <\`title\`>\n` +
+		`.rename <\`tv\`|\`movie\`> <\`old title\`>=<\`new title\`>\n` +
+		`.delete-rating <\`tv\`|\`movie\`> <\`title\`>\n` +
+		`.change-category <\`currCategory\`> <\`newCategory\`> <\`title\`>\n` +
+		`.refresh-ratings -  to update the 3rd party ratings\n\n\n` +
+		`**VERIFIED**`,
 	DEV: 'dev',
 	MAX_BITRATE: 96,
 	MIN_BITRATE: 64,
 	CODACY_BADGE: '[![Codacy Badge](https://api.codacy.com/project/badge/Grade/8f59c3e85df049d3bd319a21576f37c4)]'
 		+ '(https://www.codacy.com/app/Scrubs/scrub-daddy?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=wasaab/scrub-daddy&amp;utm_campaign=Badge_Grade)'
 };
+
 
 function deepFreeze(constants) {
 	var propNames = Object.getOwnPropertyNames(constants);

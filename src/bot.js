@@ -312,6 +312,9 @@ function handleCommand(message) {
 			games.setStreamingUrl(message.member, args[1]);
 		}
 	}
+	function setupRatingsCalled() {
+		ratings.setup(message);
+	}
 	function shuffleScrubsCalled() {
 		util.shuffleScrubs(message.guild.members.array(), message.member, args);
 	}
@@ -442,6 +445,7 @@ function handleCommand(message) {
 		'sb-add': addSBCalled,
 		'set-fortnite-name': setFortniteNameCalled,
 		'set-stream': setStreamCalled,
+		'setup-ratings': setupRatingsCalled,
 		'shuffle-scrubs': shuffleScrubsCalled,
 		'start-lotto': startLottoCalled,
 		'stats': statsCalled,

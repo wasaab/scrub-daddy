@@ -1,1 +1,108 @@
-{}
+{
+    "tv": {
+        "tv-": {
+            "reviews": {
+                "12345": 1
+            },
+            "rating": 1
+        },
+        "tv--": {
+            "reviews": {
+                "12345": 2
+            },
+            "rating": 2
+        },
+        "tv---": {
+            "reviews": {
+                "12345": 3
+            },
+            "rating": 3
+        },
+        "tv----": {
+            "reviews": {
+                "12345": 4
+            },
+            "rating": 4
+        }
+    },
+    "movie": {
+        "movie-": {
+            "reviews": {
+                "12345": 1
+            },
+            "rating": 1
+        },
+        "movie--": {
+            "reviews": {
+                "12345": 2
+            },
+            "rating": 2
+        },
+        "movie---": {
+            "reviews": {
+                "12345": 3
+            },
+            "rating": 3
+        },
+        "movie----": {
+            "reviews": {
+                "12345": 4
+            },
+            "rating": 4
+        }
+    },
+    "unverified": {
+        "tv": {
+            "unverified tv-": {
+                "reviews": {
+                    "12345": 1
+                },
+                "rating": 1
+            },
+            "unverified tv--": {
+                "reviews": {
+                    "12345": 2
+                },
+                "rating": 2
+            },
+            "unverified tv---": {
+                "reviews": {
+                    "12345": 3
+                },
+                "rating": 3
+            },
+            "unverified tv----": {
+                "reviews": {
+                    "12345": 4
+                },
+                "rating": 4
+            }
+        },
+        "movie": {
+            "unverified movie-": {
+                "reviews": {
+                    "12345": 1
+                },
+                "rating": 1
+            },
+            "unverified movie--": {
+                "reviews": {
+                    "12345": 2
+                },
+                "rating": 2
+            },
+            "unverified movie---": {
+                "reviews": {
+                    "12345": 3
+                },
+                "rating": 3
+            },
+            "unverified movie----": {
+                "reviews": {
+                    "12345": 4
+                },
+                "rating": 4
+            }
+        }
+    }
+}
