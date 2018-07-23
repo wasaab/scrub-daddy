@@ -120,9 +120,10 @@ function createNewMemberInfo(message) {
 		.then((channel) => {
 			config.NEW_MEMBER_INFO_CHANNEL_ID = channel.id;
 			const afkChannel = bot.getClient().channels.find('id', config.AFK_CHANNEL_ID);
-			if (!afkChannel) { return; }
-
-			config.NEW_MEMBER_INFO.replace('Where he at doe?', afkChannel.name);
+			const afkChannelName = afkChannel ? afkChannel.name : 'AFK Channel';
+			const info = config.NEW_MEMBER_INFO.replace('Where he at doe?', afkChannelName)
+				.replace('@Scrub Daddy#2173', util.mentionUser(bot.getClient().user.id));
+			channel.send(info);
 		});
 }
 
