@@ -564,12 +564,13 @@ client.on('ready', () => {
 	scrubsChannel = client.channels.find('id', c.SCRUBS_CHANNEL_ID);
 	purgatory = client.channels.find('id', c.PURGATORY_CHANNEL_ID);
 	logChannel = client.channels.find('id', c.LOG_CHANNEL_ID);
+	ratings.setRatingsChannel(client.channels.find('id', c.RATINGS_CHANNEL_ID));
 
 	util.scheduleRecurringJobs();
 	games.setDynamicGameChannels(client.channels);
 
 	util.logger.info(`<INFO> ${util.getTimestamp()}  Connected`);
-	if (util.isDevEnv()) { return; }
+	if (util.isDevEnv() || c.IN_SETUP) { return; }
 	games.updatePlayingStatus();
 	util.updateLottoCountdown();
 	util.sendEmbedMessage('B A C K⠀O N L I N E !', null, null, c.ONLINE_IMG);

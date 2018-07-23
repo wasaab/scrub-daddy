@@ -126,4 +126,5 @@ Discord bot with the following 83 commands:
 
       If you need help generating the discord bot token needed to add the bot to your server, use [the guide created by jagrosh](https://github.com/jagrosh/MusicBot/wiki/Adding-Your-Bot-To-Your-Server)
 
-4. Call `.setup` within the server you added this bot to once that file is created. You can add the api keys later, but the token needs to be added prior to calling `.setup`.
+4. Give the bot admin permissions on your server.
+5. Call `.setup` within the server you added this bot to once that file is created. You can add the api keys later, but the token needs to be added prior to calling `.setup`.

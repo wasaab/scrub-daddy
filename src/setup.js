@@ -1,4 +1,5 @@
 const fs = require('fs');
+const get = require('lodash.get');
 
 var c = require('./const.js');
 var bot = require('./bot.js');
@@ -7,20 +8,41 @@ var private = require('../../private.json');
 var config = require('../resources/data/config.json');
 var configKeys = Object.keys(config);
 
-function configure(message, key, prompt, transformationFunc) {
-    message.reply(prompt)
+function configure(configArgs, message, key, prompt, transformationFunc) {
+	const filter = (m) => {
+		if (m.author.id === message.author.id) { return m; }
+	};
 
-    bot.getBotSpam().awaitMessages(filter, { max: 1, time: 180000, errors: ['time'] })
-	.then((collected) => {
-		var response = collected.array()[0];
-		var content = transformationFunc ? transformationFunc(response.conent) : response.content;
-		config[key] = content;
-		response.delete();
-	})
-	.catch((collected) => {
-		c.LOG.info((`After 3 minutes, only ${collected.size} responses.`));
-        message.reply('You need to reply.');
-	});
+	var promptMsg;
+	message.reply(prompt)
+		.then((msg) => {
+			promptMsg = msg;
+		});
+    message.channel.awaitMessages(filter, { max: 1, time: 180000, errors: ['time'] })
+		.then((collected) => {
+			var response = collected.array()[0];
+
+			if (response.content !== 'none') {
+				var content = transformationFunc ? transformationFunc(response.content) : response.content;
+				config[key] = content;
+			}
+
+			response.delete();
+			promptMsg.delete();
+
+			if (configArgs.length === 0) {
+				message.reply('Dynamic voice channels will change their name to whichever game the majority of connected users are playing.'
+					+ ' If you would like to convert voice channels to dynamic, join each and call `.add-dynamic`.');
+				message.reply('Setup will be complete when you call `.done`');
+				return;
+			}
+
+			return configure(configArgs, ...configArgs.pop());
+		})
+		.catch((collected) => {
+			util.logger.info((`After 3 minutes, only ${collected.size} responses.`));
+			message.reply('You need to reply.');
+		});
 }
 
 function isPositiveReponse(text) {
@@ -34,11 +56,11 @@ exports.addDynamicVoiceChannel = function(message) {
 }
 
 function createBanRole(message, voiceChannel) {
-	const voiceChannel = voiceChannel || message.member.voiceChannel;
+	voiceChannel = voiceChannel || message.member.voiceChannel;
 
 	bot.getClient().guilds.first().createRole({
 		name: `Banned from ${voiceChannel.name}`,
-		position: guild.roles.array().length - 3,
+		position: message.guild.roles.array().length - 3,
 	})
 	.then((role) => {
 		config.CHANNEL_ID_TO_BAN_ROLE_ID[voiceChannel.id] = role.id;
@@ -68,7 +90,7 @@ function createLogChannel(message) {
 		},
 		{
 			deny: ['READ_MESSAGES'],
-			id: guild.defaultRole.id
+			id: message.guild.defaultRole.id
 		}
 	];
 
@@ -105,21 +127,24 @@ function createNewMemberInfo(message) {
 }
 
 exports.setup = function(message) {
-	private.serverID = message.guild.id;
-	fs.writeFile('../../private.json', JSON.stringify(private), 'utf8', util.log);
+	var configArgs = [
+		[message, 'prefix', 'Please choose a command prefix, e.g. `.`'],
+		[message, 'enableSoundbytes', 'Enable soundbyte functionality?', isPositiveReponse],
+		[message, 'K_ID', `Mention the server admin e.g. ${util.mentionUser(message.author.id)}`, util.getIdFromMention],
+		[message, 'BOT_SPAM_CHANNEL_ID', `Mention the text channel where user\'s are allowed to communicate with the bot.`
+			+  `I recommend creating a new channel. e.g. ${util.mentionChannel(message.channel.id)}`, util.getIdFromMention],
+		[message, 'SCRUBS_CHANNEL_ID', `Mention the main text channel. e.g. ${util.mentionChannel(message.channel.id)}`, util.getIdFromMention],
+		[message, 'NEW_MEMBER_CHANNEL_ID', `Mention the text channel that new members can see.`
+			+  ` This can be the same as the previous channel.  e.g. ${util.mentionChannel(message.channel.id)}`, util.getIdFromMention],
+		[message, 'SCRUBS_ROLE_ID', `Mention the main user role e.g. ${util.mentionRole(message.guild.roles.first().id)}`, util.getIdFromMention],
+		[message, 'NEW_MEMBER_ROLE_ID', `Mention the new user role. This can be the same as the previous role. e.g. ${util.mentionRole(message.guild.roles.first().id)}`, util.getIdFromMention],
+		[message, 'BEYOND_ROLE_ID', `Mention the elevated user role. Write \`none\` if all roles are equal. e.g. ${util.mentionRole(message.guild.roles.first().id)}`, util.getIdFromMention]
+	].reverse();
 
-	configure(message, 'prefix', 'Please choose a command prefix, e.g. `.`');
-	configure(message, 'enableSoundbytes', isPositiveReponse);
-	configure(message, 'K_ID', `Mention the server admin e.g. ${util.mentionUser(message.author.id)}`, util.getIdFromMention);
-	configure(message, 'BOT_SPAM_CHANNEL_ID', `Mention the text channel where user\'s are allowed to communicate with the bot.`
-		+  `I recommend creating a new channel. e.g. ${util.mentionChannel(message.channel.id)}`, util.getIdFromMention);
-	configure(message, 'SCRUBS_CHANNEL_ID', `Mention the main text channel. e.g. ${util.mentionChannel(message.channel.id)}`, util.getIdFromMention);
-	configure(message, 'NEW_MEMBER_CHANNEL_ID', `Mention the text channel that new members can see.`
-		+  ` This can be the same as the previous channel.  e.g. ${util.mentionChannel(message.channel.id)}`, util.getIdFromMention);
-	configure(message, 'SCRUBS_ROLE_ID', `Mention the main user role e.g. ${util.mentionRole(message.guild.roles.first().id)}`, util.getIdFromMention);
-	configure(message, 'NEW_MEMBER_ROLE_ID', `Mention the new user role. This can be the same as the previous role. e.g. ${util.mentionRole(message.guild.roles.first().id)}`, util.getIdFromMention);
-	configure(message, 'BEYOND_ROLE_ID', `Mention the elevated user role. Write \`none\` if all roles are equal. e.g. ${util.mentionRole(message.guild.roles.first().id)}`, util.getIdFromMention);
-	config.AFK_CHANNEL_ID = message.guild.afkChannel.id;
+	private.serverID = message.guild.id;
+	//fs.writeFile('../../private.json', JSON.stringify(private), 'utf8', util.log);
+
+	config.AFK_CHANNEL_ID = get(message, 'guild.afkChannel.id');
 	config.SCRUB_DADDY_ID = bot.getClient().user.id;
 
 	createLogChannel(message);
@@ -127,14 +152,13 @@ exports.setup = function(message) {
 	createTempCategory(message);
 	createNewMemberInfo(message);
 	createBanRoles(message);
-	message.reply('Dynamic voice channels will change their name to whichever game the majority of connected users are playing.'
-		+ ' If you would like to convert voice channels to dynamic, join each and call `.add-dynamic`.');
-	message.reply('Setup will be complete when you call `.done`');
+
+	configure(configArgs, ...configArgs.pop())
 }
 
 exports.done = function(message) {
 	config.IN_SETUP = false;
-	util.exportJson('config', config);
+	util.exportJson(config, 'config');
 	message.reply(`Setup will be complete after you restart the bot. You can call \`${config.prefix}restart\` in ${util.mentionChannel(config.BOT_SPAM_CHANNEL_ID)}`);
 	message.reply(`You will then be able to call \`${config.prefix}setup-ratings\` in ${util.mentionChannel(config.BOT_SPAM_CHANNEL_ID)} to create the tv and movies ratings channel.`);
 }

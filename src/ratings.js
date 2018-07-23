@@ -7,10 +7,10 @@ var rt = require('lw5');
 var c = require('./const.js');
 var bot = require('./bot.js');
 var util = require('./utilities.js');
-var config = require('../resources/data/cofnig.json');
+var config = require('../resources/data/config.json');
 var ratings = require('../resources/data/ratings.json');
 var ratingsResponses = 0;
-var ratingsChannel = bot.getClient().find('id', c.RATINGS_CHANNEL_ID);
+var ratingsChannel;
 
 /**
  * Outputs a message explaining how to setup the ratings channel.
@@ -618,4 +618,8 @@ exports.setup = function(message) {
 
 	util.sendEmbedMessage('TV and Movies Ratings Channel Created',
 		`Initial ratings have been generated in ${util.mentionChannel(config.RATINGS_CHANNEL_ID)}.`);
+}
+
+exports.setRatingsChannel = function(channel) {
+	ratingsChannel = channel;
 }

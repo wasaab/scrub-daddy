@@ -333,7 +333,7 @@ module.exports = {
 		`**:star:** = \`I regret this\`\n\n` +
 		`:new: = \`added in past 2 weeks\`\n` +
 		`-------------------------------`,
-	RATINGS_USAGE: `**Usage**:\n\n`
+	RATINGS_USAGE: `**Usage**:\n\n` +
 		`.rate <\`tv\`|\`movie\`> <\`1-4\`> <\`title being rated\`>\n` +
 		`.rating-info <\`title\`>\n` +
 		`.rename <\`tv\`|\`movie\`> <\`old title\`>=<\`new title\`>\n` +
