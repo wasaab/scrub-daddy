@@ -1,24 +1,22 @@
 {
+    "IN_SETUP": true,
     "env": "prod",
     "prefix": ".",
     "soundBytesEnabled": null,
     "BOT_SPAM_CHANNEL_ID": null,
     "SCRUBS_CHANNEL_ID": null,
-    "PLEBS_CHANNEL_ID": null,
     "NEW_MEMBER_CHANNEL_ID": null,
+    "NEW_MEMBER_INFO_CHANNEL_ID": null,
     "AFK_CHANNEL_ID": null,
     "PURGATORY_CHANNEL_ID": null,
     "LOG_CHANNEL_ID": null,
     "RATINGS_CHANNEL_ID": null,
     "CATEGORY_ID": {
-        "Issue": null,
-        "Feature": null,
-        "Temp": null,
-        "In Progress": null
+        "Temp": null
     },
     "BEYOND_ROLE_ID": null,
     "SCRUBS_ROLE_ID": null,
-    "PLEB_ROLE_ID": null,
+    "NEW_MEMBER_ROLE_ID": null,
     "SCRUB_DADDY_ID": null,
     "GAME_NAME_TO_IMG": {
         "World of Warcraft": "http://i.imgur.com/US59X7X.jpg",
@@ -26,10 +24,9 @@
         "PUBG": "https://i.imgur.com/nT2CNCs.png",
         "Fortnite": "https://i.imgur.com/S0CN7n9.jpg"
     },
-    "CHANNEL_ID_TO_BAN_ROLE_ID": {
-    },
-    "GAME_CHANNEL_NAMES": {
-    },
+    "K_ID": null,
+    "CHANNEL_ID_TO_BAN_ROLE_ID": {},
+    "GAME_CHANNEL_NAMES": {},
     "4_STAR_TV_MSG_ID": null,
     "3_STAR_TV_MSG_ID": null,
     "2_STAR_TV_MSG_ID": null,
@@ -45,5 +42,6 @@
     "UNVERIFIED_4_STAR_MOVIE_MSG_ID": null,
     "UNVERIFIED_3_STAR_MOVIE_MSG_ID": null,
     "UNVERIFIED_2_STAR_MOVIE_MSG_ID": null,
-    "UNVERIFIED_1_STAR_MOVIE_MSG_ID": null
+    "UNVERIFIED_1_STAR_MOVIE_MSG_ID": null,
+    "NEW_MEMBER_INFO": "Welcome to the server, ya scrub.\n\nHere are some things you'll need to know:\n**1.** While you are connected to a voice channel and playing a game, the game's name will be abbreviated and added to the end of your nickname.\n\n**2.** You can view all commands for the bot by typing `.help` in #bot-spam. This includes inviting all players of a game to join you and 80 other commands.\n\n**3.** You will be moved to ***Solitary Confinement*** if you are deafened for `5` minutes.\n\n**4.** You will be moved to ***Where he at doe?*** if you are afk for `15` minutes.\n\n**5.** Channels in the ***Dynamic Voice*** category will change their name to whichever game the majority of connected users are playing.\n\n**6.** @Scrub Daddy#2173's playing status will show the game and player count of whichever game the majority of online users are playing."
 }

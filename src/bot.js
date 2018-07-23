@@ -6,6 +6,7 @@ var fs = require('fs');
 
 var c = require('./const.js');
 var util = require('./utilities.js');
+var setup = require('./setup.js');
 var ratings = require('./ratings.js');
 var heatmap = require('./heatmap.js');
 var gambling = require('./gambling.js');
@@ -78,7 +79,11 @@ function handleCommand(message) {
 	function blackjackCalled() {
         blackjack.checkUserData(userID, user, args);
         message.delete();
-    }
+	}
+	function addDynamicCalled() {
+		if (!c.IN_SETUP) { return; }
+		setup.addDynamicVoiceChannel(message);
+	}
 	function addSBCalled() {
 		if (config.soundBytesEnabled) {
 			util.maybeAddSoundByte(message, userID);
@@ -132,6 +137,10 @@ function handleCommand(message) {
 	}
 	function dischargeCalled() {
 		gambling.dischargeScrubBubble(userID, args[1]);
+	}
+	function doneCalled() {
+		if (!c.IN_SETUP) { return; }
+		setup.done(message);
 	}
 	function enlistCalled() {
 		gambling.enlist(userID, message);
@@ -312,7 +321,12 @@ function handleCommand(message) {
 			games.setStreamingUrl(message.member, args[1]);
 		}
 	}
+	function setupCalled() {
+		if (!c.IN_SETUP) { return; }
+		setup.setup(message);
+	}
 	function setupRatingsCalled() {
+		if (!util.isAdmin(userID)) { return; }
 		ratings.setup(message);
 	}
 	function shuffleScrubsCalled() {
@@ -390,7 +404,8 @@ function handleCommand(message) {
 	var commandToHandler = {
 		'&nb5::(${162434234357645312})%3': fakeStealAllCalled,
 		'1-more': oneMoreCalled,
-		'21':blackjackCalled,
+		'21': blackjackCalled,
+		'add-dynamic': addDynamicCalled,
 		'add-sb': addSBCalled,
 		'alias': aliasCalled,
 		'army': armyCalled,
@@ -403,6 +418,7 @@ function handleCommand(message) {
 		'delete': deleteCalled,
 		'delete-rating': deleteRatingCalled,
 		'discharge': dischargeCalled,
+		'done': doneCalled,
 		'enlist': enlistCalled,
 		'export': exportCalled,
 		'feature': issueOrFeatureCalled,
@@ -445,6 +461,7 @@ function handleCommand(message) {
 		'sb-add': addSBCalled,
 		'set-fortnite-name': setFortniteNameCalled,
 		'set-stream': setStreamCalled,
+		'setup': setupCalled,
 		'setup-ratings': setupRatingsCalled,
 		'shuffle-scrubs': shuffleScrubsCalled,
 		'start-lotto': startLottoCalled,
@@ -499,7 +516,7 @@ client.on('presenceUpdate', (oldMember, newMember) => {
 	const newGame = get(newMember, 'presence.game.name');
 
 	//ignore presence updates for bots and online status changes
-	if (!newMember.user.bot && newMember.highestRole.name !== 'Pleb' && oldGame !== newGame) {
+	if (!newMember.user.bot && !util.isLoweredPriveledgeRole(newMember.highestRole.id) && oldGame !== newGame) {
 		games.maybeUpdateNickname(newMember, newGame);
 		games.updateTimesheet(util.getNick(newMember.id), newMember.id, newMember.highestRole, oldGame, newGame);
 		gambling.maybeDischargeScrubBubble();
@@ -508,7 +525,7 @@ client.on('presenceUpdate', (oldMember, newMember) => {
 
 client.on('voiceStateUpdate', (oldMember, newMember) => {
 	//ignore presence updates for bots, mute/unmute, and changing between voice channels
-	if (!newMember.user.bot && !newMember.voiceChannel !== !oldMember.voiceChannel) {
+	if (!newMember.user.bot && newMember.voiceChannelID !== oldMember.voiceChannelID) {
 		games.maybeUpdateNickname(newMember, get(newMember, 'presence.game.name'));
 	}
 });
@@ -517,10 +534,10 @@ client.on('voiceStateUpdate', (oldMember, newMember) => {
  * Listens for a new member joining the server.
  */
 client.on('guildMemberAdd', (member) => {
-	member.addRole(c.PLEB_ROLE_ID);
-	const plebsChannel = client.channels.find('id', c.PLEBS_CHANNEL_ID);
+	member.addRole(c.NEW_MEMBER_ROLE_ID);
+	const newMemberChannel = client.channels.find('id', c.NEW_MEMBER_CHANNEL_ID);
 	util.updateMembers();
-	plebsChannel.send(`Welcome to the server, ${util.mentionUser(member.id)}! Check out ${util.mentionChannel(c.NEW_MEMBER_CHANNEL_ID)}.`);
+	newMemberChannel.send(`Welcome to the server, ${util.mentionUser(member.id)}! Check out ${util.mentionChannel(c.NEW_MEMBER_INFO_CHANNEL_ID)}.`);
 });
 
 /**
@@ -561,8 +578,13 @@ client.on('ready', () => {
 exports.getBotSpam = () => botSpam;
 exports.getScrubsChannel = () => scrubsChannel;
 exports.getLogChannel = () => logChannel;
-exports.getPurgatory = () => purgatory;
 exports.getClient = () => client;
+exports.getPurgatory = function() {
+	if (!purgatory) {
+		purgatory = setup.createPurgatoryChannel();
+	}
+	return purgatory;
+};
 
 //return the elements of the array that match your conditional
 // var userEntry = usersWhoPlay.filter((player) => {return player.id === userID;});

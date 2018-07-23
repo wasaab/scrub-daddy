@@ -1,7 +1,7 @@
 # scrub-daddy
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/8f59c3e85df049d3bd319a21576f37c4)](https://www.codacy.com/app/Scrubs/scrub-daddy?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=wasaab/scrub-daddy&amp;utm_campaign=Badge_Grade)
 
-[Update Log](https://boostlog.io/@wasaab/scrub-daddy-update-log-5ad3d7f547018500491f3bde)
+[Update Log](https://github.com/wasaab/scrub-daddy/tree/update-log)
 
 Discord bot with the following 83 commands:
 
@@ -108,3 +108,20 @@ Discord bot with the following 83 commands:
       + revive - `revives a fallen Scrubbing Bubble.`
       + update-readme - `updates the readme to include new commands.`
       + gen-heatmap - `generates the player count heatmap.`
+
+## Setup
+---
+
+Add a file named `private.json` with the following contents one directory outside of the `scrub-daddy` directory:
+
+```
+{
+    "token": "Insert your discord bot token here.",
+    "trnApiKey": "Get a fortnite stats TRN API key from https://fortnitetracker.com/site-api and insert it here",
+    "googleUrlApiKey": "Get a Google URL Shortener API key from https://developers.google.com/url-shortener/v1/getting_started#APIKey and insert it here"
+}
+```
+
+If you need help generating the discord bot token needed to add the bot to your server, use [the guide created by jagrosh](https://github.com/jagrosh/MusicBot/wiki/Adding-Your-Bot-To-Your-Server)
+
+Call `.setup` within the server you added this bot to once that file is created. You can add the api keys later, but the token needs to be added prior to calling `.setup`.

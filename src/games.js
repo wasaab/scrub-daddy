@@ -1,3 +1,4 @@
+
 var Discord = require('discord.js');
 var inspect = require('util-inspect');
 var txtgen = require('txtgen');
@@ -91,7 +92,7 @@ function getGamesBeingPlayedData(players) {
 		const game = get (player, 'presence.game.name');
 		const status = get (player, 'presence.status');
 
-		if(game && !player.user.bot && player.highestRole.name !== 'Pleb' && status !== 'idle') {
+		if(game && !player.user.bot && !util.isLoweredPriveledgeRole(player.highestRole.id) && status !== 'idle') {
 			games[game] = games[game] ? games[game] + 1 : 1;
 			if(games[game] > max) {
 				max = games[game];
@@ -461,7 +462,7 @@ exports.letsPlay = function(args, userID, userName, message, oneMore) {
 		const punctuation = oneMore ? '!' : '?';
 		var msg = `↪️ **${userName}**: ${oneMoreMsg}${game}${punctuation}`;
 		usersWhoPlay.forEach((user) => {
-			if ((gameIdx === 2 && user.role === '(ᵔᴥᵔ) ͡Super ͡Scrubs ™') ||
+			if ((gameIdx === 2 && user.role === c.SUPER_SCRUB_ROLE_ID) ||
 				(args[1] === '-r' && moment().diff(moment(user.time), 'days') > 5)) {
 					 return;
 			}

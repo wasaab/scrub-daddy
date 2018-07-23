@@ -3,6 +3,7 @@ var get = require('lodash.get');
 var c = require('./const.js');
 var bot = require('./bot.js');
 var util = require('./utilities.js');
+var setup = require('./setup.js');
 
 var voteChannelMembers = {
 	'370625207150575617' : [],						//Beyond
@@ -119,7 +120,14 @@ function getTargetInVoteChannel(vote) {
 function endVote(vote, target, roles) {
 	switch (vote.targetConcat.split(':-:')[2]) {
 		case c.VOTE_TYPE.BAN:
-			target.addRole(roles.find('id', c.CHANNEL_ID_TO_BAN_ROLE_ID[vote.channelID]));
+			var banRole = roles.find('id', c.CHANNEL_ID_TO_BAN_ROLE_ID[vote.channelID])
+			if (!banRole) {
+				const banChannel = client.channels.find('id', vote.channelID);
+				setup.createBanRole(null, banChannel);
+			}
+
+			banRole = roles.find('id', c.CHANNEL_ID_TO_BAN_ROLE_ID[vote.channelID])
+			target.addRole(banRole);
 			target.setVoiceChannel(bot.getPurgatory());
 			break;
 		case c.VOTE_TYPE.KICK:

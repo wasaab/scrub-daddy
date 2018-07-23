@@ -1,68 +1,7 @@
+const config = require('../resources/data/config.json');
+
 module.exports = {
-	BOT_SPAM_CHANNEL_ID: '372570540482887701',		//listen's to messages from this channel
-	SCRUBS_CHANNEL_ID: '370626384059695107',		//channel ID of scrubs text channel
-	PLEBS_CHANNEL_ID: '370623193528008705',			//channel ID of plebs text channel
-	NEW_MEMBER_CHANNEL_ID: '435154703312224287', 	//channel ID of new member info text channel
-	AFK_CHANNEL_ID: '370628203523473408',			//channel ID of the server's afk voice channel
-	PURGATORY_CHANNEL_ID: '370626266786824192',	    //sends kicked user's to this channel
-	LOG_CHANNEL_ID: '410258655322308608',			//channel ID of the text channel used for redirecting the console
-	RATINGS_CHANNEL_ID: '415305610179903492',		//channel used for rating tv and movies
-
-	CATEGORY_ID: {
-		'Issue': '372143355070644255',				//category for bot issues
-		'Feature': '374009714213781504',			//category for bot feature requests
-		'Temp': '374246719648694282',				//category for temporary channels
-		'In Progress': '374702344316780567'			//category for bot features/issues actively being worked on
-	},
-
-	BEYOND_ROLE_ID: '370670924992610305',			//elevated role ID
-	SCRUBS_ROLE_ID: '370671041644724226',			//main role ID
-	PLEB_ROLE_ID: '370671263473074177',				//newly joined member role ID
-	SCRUB_DADDY_ID: '370688149971795982',			//ID of this bot
-	GAME_NAME_TO_IMG: {
-		'World of Warcraft' : 'http://i.imgur.com/US59X7X.jpg',
-		'Overwatch' : 'http://i.imgur.com/WRQsSYp.png',
-		'PUBG' : 'https://i.imgur.com/nT2CNCs.png',
-		'Fortnite' : 'https://i.imgur.com/S0CN7n9.jpg'
-	},
-	CHANNEL_ID_TO_BAN_ROLE_ID:{
-		'370625207150575617' : '370746310346801164',	        //Beyond
-		'370625515293507584' : '370747862302326785',	        //Str8 Chillin
-		'370625345138720809' : '370747704621662218',	        //Post Beta
-		'370626021227233290' : '370748388578295808',	        //Spazzy's Scrub Shack
-		'370625671833190400' : '370747928400232448',	        //Cartoon Network
-		'378656154726957067' : '370748471835230209',	        //Civ Anonymous
-		'370626139972042752' : '370747759130705922'	        	//They'll fix that b4 release
-	},
-	GAME_CHANNEL_NAMES: {
-		'370625345138720809': 'Post Beta',
-		'370626021227233290': `Spazzy's Scrub Shack`,
-		'370625671833190400': 'Cartoon Network',
-		'378656154726957067': 'Civ Anonymous',
-		'370626139972042752': `They'll fix that b4 release`,
-	},
-	'4_STAR_TV_MSG_ID': '442826386776915999',
-	'3_STAR_TV_MSG_ID': '442826418209161219',
-	'2_STAR_TV_MSG_ID': '442826440304623637',
-	'1_STAR_TV_MSG_ID': '442826455156523010',
-	'4_STAR_MOVIES_MSG_ID': '442826556675457024',
-	'3_STAR_MOVIES_MSG_ID': '442826587046543366',
-	'2_STAR_MOVIES_MSG_ID': '442826627089694721',
-	'1_STAR_MOVIES_MSG_ID': '442826641748525079',
-	UNVERIFIED_4_STAR_TV_MSG_ID: '442827009169555456',
-	UNVERIFIED_3_STAR_TV_MSG_ID: '442827036889841664',
-	UNVERIFIED_2_STAR_TV_MSG_ID: '442827063624204298',
-	UNVERIFIED_1_STAR_TV_MSG_ID: '442827098348978186',
-	UNVERIFIED_4_STAR_MOVIES_MSG_ID: '442827139679649795',
-	UNVERIFIED_3_STAR_MOVIES_MSG_ID: '442827167441879040',
-	UNVERIFIED_2_STAR_MOVIES_MSG_ID: '442827184932126741',
-	UNVERIFIED_1_STAR_MOVIES_MSG_ID: '442827203344990209',
-
-
-
-
-	//TODO: Consider public release. Handle the following 5 entries somehow
-	K_ID: '132944096347160576',
+	SUPER_SCRUB_ROLE_ID: '370671068282617866',
 	R_ID: '208790727197589504',
 	AF_ID: '162434234357645312',
 	REVIEW_ROLE: '<@&376391242105225216>',
@@ -222,6 +161,7 @@ module.exports = {
 				{ name: '.create-list <`name of list`>', value: '`to create a named list that users can add entries to.`', inline: 'false'},
 				{ name: '.list', value: '`to view all of the user created lists.`', inline: 'false'},
 				{ name: '.list <`list-name`> <`your new entry`>', value: '`to add a new entry to a user created list.`', inline: 'false'},
+				{ name: '.setup-ratings', value: '`to setup the tv and movies ratings channel (Admin only).`', inline: 'false'},
 				{ name: '.delete', value: '`call this after adding both :trashcan: and :black_circle: reactions to first and last messages to delete.\n' +
 					'All messages between the two you reacted to will be deleted, including those two.\nThis will only work if you are in a temp channel you created.`', inline: 'false'}
 			]
@@ -316,10 +256,10 @@ module.exports = {
 	],
 	COMMANDS: [
 		'&nb5::(${162434234357645312})%3', '1-more','21',
-		'add-sb', 'alias', 'army',
+		'add-dynamic', 'add-sb', 'alias', 'army',
 		'backup',
 		'catfacts', 'change-category', 'clean', 'color', 'create-list',
-		'delete', 'delete-rating', 'discharge',
+		'delete', 'delete-rating', 'discharge', 'done',
 		'enlist', 'export',
 		'feature',
 		'fortnite-leaderboard', 'fortnite-stats',
@@ -332,13 +272,13 @@ module.exports = {
 		'p', 'playing',
 		'quote', 'quotes',
 		'rank', 'ranks', 'rate', 'refresh-ratings', 'ratings', 'rating-info', 'rename', 'restart', 'restore', 'review-messages', 'revive',
-		'sb', 'sb-add', 'set-fortnite-name', 'set-stream', 'setup-ratings', 'shuffle-scrubs', 'start-lotto', 'stats', 'stay', 'steal','sunken-sailor',
+		'sb', 'sb-add', 'set-fortnite-name', 'set-stream', 'setup', 'setup-ratings', 'shuffle-scrubs', 'start-lotto', 'stats', 'stay', 'steal','sunken-sailor',
 		'temp', 'time', 'tips', 'toggle-streaming',
 		'unalias', 'update-readme',
 		'vote', 'voteban', 'voteinfo', 'votekick',
 		'who-plays', 'who-said'
 	],
-	GLOBAL_COMMANDS: ['quote', 'delete', 'leave-temp', 'rate', 'rename', 'refresh-ratings', 'rating-info', 'change-category', 'delete-rating'],
+	GLOBAL_COMMANDS: ['add-dynamic', 'done', 'setup', 'setup-ratings', 'quote', 'delete', 'leave-temp', 'rate', 'rename', 'refresh-ratings', 'rating-info', 'change-category', 'delete-rating'],
 	WHO_PLAYS_FUZZY_OPTIONS: {
 		shouldSort: true,
 		threshold: 0.3,
@@ -408,7 +348,6 @@ module.exports = {
 		+ '(https://www.codacy.com/app/Scrubs/scrub-daddy?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=wasaab/scrub-daddy&amp;utm_campaign=Badge_Grade)'
 };
 
-
 function deepFreeze(constants) {
 	var propNames = Object.getOwnPropertyNames(constants);
 	propNames.forEach((name) => {
@@ -422,4 +361,6 @@ function deepFreeze(constants) {
 	return Object.freeze(constants);
 }
 
+// Copy user specified configs into exported constants
+Object.assign(module.exports, config);
 deepFreeze(module.exports);

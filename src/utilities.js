@@ -61,9 +61,12 @@ function createChannelInCategory(command, channelType, channelName, message, cre
 			allow: ['MANAGE_CHANNELS', 'MANAGE_ROLES'],
 			id: userID
 		}];
+		const categoryId = c.CATEGORY_ID[channelCategoryName];
+		if (!categoryId || !bot.getClient().channels.find('id', categoryId)) { return; }
+
 		message.guild.createChannel(channelName, channelType, overwrites)
 		.then((channel) => {
-			channel.setParent(c.CATEGORY_ID[channelCategoryName]);
+			channel.setParent(categoryId);
 			channel.send(new Discord.RichEmbed({
 				color: getUserColor(userID),
 				title: channelCategoryName + createdByMsg,
@@ -603,6 +606,7 @@ function scheduleRecurringJobs() {
  */
 function shuffleScrubs(scrubs, caller, args) {
 	if (!caller.roles.find('id', c.BEYOND_ROLE_ID) || (args[1] && args[1].length > 1)) { return; }
+
 	var randLetter = args[1] || c.ALPHABET.substr(getRand(0, 26), 1);
 	randLetter = randLetter.toUpperCase();
 
@@ -617,6 +621,8 @@ function shuffleScrubs(scrubs, caller, args) {
  * Adds the provided target to the review role.
  */
 function addToReviewRole(target, roles) {
+	if (!c.REVIEW_ROLE_ID) { return; }
+
 	target.addRole(roles.find('id', c.REVIEW_ROLE_ID));
 	sendEmbedMessage(null, `Welcome to the team ${mentionUser(target.id)}!`, target.id);
 };
@@ -625,6 +631,8 @@ function addToReviewRole(target, roles) {
  * Removes the review role from the provided target.
  */
 function removeFromReviewRole(target, roles) {
+	if (!c.REVIEW_ROLE_ID) { return; }
+
 	target.removeRole(roles.find('id', c.REVIEW_ROLE_ID));
 	sendEmbedMessage(null, `Good riddance. You were never there to review with us anyways, ${mentionUser(target.id)}!`, target.id);
 };
@@ -645,8 +653,9 @@ function exportColors(title, description, userID, guild, hex, color) {
 	if (title.substring(0, 1) !== 'C') {
 		exportJson(userIDToColor, 'colors');
 		const target = guild.members.find('id', userID);
+		const targetRoleId = c.BEYOND_ROLE_ID || c.SCRUBS_ROLE_ID;	// Use scrubs if no beyond on server
 
-		if (target.roles.find('id', c.BEYOND_ROLE_ID)) {
+		if (target.roles.find('id', targetRoleId)) {
 			guild.createRole({
 				name: color,
 				color: hex,
@@ -1474,6 +1483,8 @@ function exportJson(content, fileName) {
  * Updates the member list and scrubIDtoNick.
  */
 function updateMembers() {
+	if (!private.serverID) { return; }
+
 	members = bot.getClient().guilds.find('id', private.serverID).members;
 	members.forEach((member) => {
 		scrubIdToNick[member.id] = member.displayName.split(' ▫ ')[0];
@@ -1524,6 +1535,15 @@ function getUserColor(userID) {
 	return userIDToColor[userID] || 0xffff00;
 }
 
+/**
+ * Determines if the role is of lowered priveledge.
+ *
+ * @param {String} roleID - id of role to check priveledge of
+ */
+function isLoweredPriveledgeRole(roleID) {
+	return roleID === c.NEW_MEMBER_ROLE_ID && c.NEW_MEMBER_ROLE_ID !== c.SCRUBS_ROLE_ID;
+}
+
 //-------------------- Public Functions --------------------
 exports.addInitialNumberReactions = addInitialNumberReactions;
 exports.addMessageToReviewQueue = addMessageToReviewQueue;
@@ -1558,6 +1578,7 @@ exports.isAdmin = isAdmin;
 exports.isChannelOwner =isChannelOwner;
 exports.isDevEnv = isDevEnv;
 exports.isLocked = isLocked;
+exports.isLoweredPriveledgeRole = isLoweredPriveledgeRole;
 exports.listBackups = listBackups;
 exports.leaveTempChannel = leaveTempChannel;
 exports.lock = lock;
