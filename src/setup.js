@@ -30,6 +30,7 @@ function configure(configArgs, message, key, prompt, transformationFunc) {
 			promptMsg.delete();
 
 			if (configArgs.length === 0) {
+				util.exportJson(config, 'config');
 				message.reply('Dynamic voice channels will change their name to whichever game the majority of connected users are playing.'
 					+ ' If you would like to convert voice channels to dynamic, join each and call `.add-dynamic`.');
 				message.reply('Setup will be complete when you call `.done`');
@@ -63,8 +64,7 @@ function createBanRole(message, voiceChannel) {
 	voiceChannel = voiceChannel || message.member.voiceChannel;
 
 	bot.getClient().guilds.first().createRole({
-		name: `Banned from ${voiceChannel.name}`,
-		position: message.guild.roles.array().length - 3,
+		name: `Banned from ${voiceChannel.name}`
 	})
 	.then((role) => {
 		config.CHANNEL_ID_TO_BAN_ROLE_ID[voiceChannel.id] = role.id;
@@ -76,9 +76,11 @@ function createBanRole(message, voiceChannel) {
 		.then(() => console.log('Done!'))
 		.catch(console.error);
 	})
+	.catch(console.error);
 }
 
 function createBanRoles(message) {
+	config.CHANNEL_ID_TO_BAN_ROLE_ID = {};
 	bot.getClient().channels.array().forEach((channel) => {
 		if (channel.type !== 'voice') { return; }
 
@@ -131,10 +133,10 @@ function createNewMemberInfo(message) {
 		});
 }
 
-// TODO: Explain that @everyone cant be used
 // fix setting of private configs
 // the 3rd party docs on bot setup are out of date. make your own with a gif or something.
 exports.setup = function(message) {
+	var exampleRole = message.guild.roles.find((role) => role.name !== '@everyone') || '@youNeedToMakeARoleFirst';
 	var configArgs = [
 		[message, 'prefix', 'Please choose a command prefix, e.g. `.`'],
 		[message, 'soundBytesEnabled', 'Enable soundbyte functionality?', isPositiveReponse],
@@ -144,13 +146,13 @@ exports.setup = function(message) {
 		[message, 'SCRUBS_CHANNEL_ID', `Mention the main text channel. e.g. ${util.mentionChannel(message.channel.id)}`, util.getIdFromMention],
 		[message, 'NEW_MEMBER_CHANNEL_ID', `Mention the text channel that new members can see.`
 			+  ` This can be the same as the previous channel.  e.g. ${util.mentionChannel(message.channel.id)}`, util.getIdFromMention],
-		[message, 'SCRUBS_ROLE_ID', `Mention the main user role e.g. ${util.mentionRole(message.guild.roles.first().id)}`, util.getIdFromMention],
-		[message, 'NEW_MEMBER_ROLE_ID', `Mention the new user role. This can be the same as the previous role. e.g. ${util.mentionRole(message.guild.roles.first().id)}`, util.getIdFromMention],
-		[message, 'BEYOND_ROLE_ID', `Mention the elevated user role. Write \`none\` if all roles are equal. e.g. ${util.mentionRole(message.guild.roles.first().id)}`, util.getIdFromMention]
+		[message, 'SCRUBS_ROLE_ID', `Mention the main user role e.g. ${exampleRole}`, util.getIdFromMention],
+		[message, 'NEW_MEMBER_ROLE_ID', `Mention the new user role. This can be the same as the previous role. e.g. ${exampleRole}`, util.getIdFromMention],
+		[message, 'BEYOND_ROLE_ID', `Mention the elevated user role. Write \`none\` if all roles are equal. e.g. ${exampleRole}`, util.getIdFromMention]
 	].reverse();
 
 	private.serverID = message.guild.id;
-	fs.writeFile('../../private.json', JSON.stringify(private), 'utf8', util.log);
+	fs.writeFile('../private.json', JSON.stringify(private), 'utf8', util.log);
 
 	config.AFK_CHANNEL_ID = get(message, 'guild.afkChannel.id');
 	config.SCRUB_DADDY_ID = bot.getClient().user.id;
@@ -167,6 +169,6 @@ exports.setup = function(message) {
 exports.done = function(message) {
 	config.IN_SETUP = false;
 	util.exportJson(config, 'config');
-	message.reply(`Setup will be complete after you restart the bot. You can call \`${config.prefix}restart\` in ${util.mentionChannel(config.BOT_SPAM_CHANNEL_ID)}`);
+	message.reply(`Setup will be complete after you restart the bot.`);
 	message.reply(`You will then be able to call \`${config.prefix}setup-ratings\` in ${util.mentionChannel(config.BOT_SPAM_CHANNEL_ID)} to create the tv and movies ratings channel.`);
 }
