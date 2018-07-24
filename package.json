@@ -7,6 +7,7 @@
   "dependencies": {
     "backup": "^1.1.0",
     "co": "^4.6.0",
+    "d3": "^5.5.0",
     "d3-node": "^1.1.1",
     "discord.js": "^11.3.0",
     "ffmpeg-binaries": "^3.2.2-3",
@@ -26,11 +27,12 @@
     "tinycolor2": "^1.4.1",
     "txtgen": "^2.0.1",
     "util-inspect": "^0.1.8",
-    "winston": "git+http://github.com/winstonjs/winston.git#master",
+    "winston": "^3.0.0-rc0",
     "winston-transport": "^3.0.1",
     "xmlserializer": "^0.6.0"
   },
   "devDependencies": {
-    "lebab": "^2.7.7"
+    "lebab": "^2.7.7",
+    "forever": "^0.15.3"
   }
 }
