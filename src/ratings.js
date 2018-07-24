@@ -210,10 +210,10 @@ function refreshRatings(inSetup) {
 		categories.forEach((category) => {
 			for (var i=4; i > 0; i--) {
 				if (outputVerified) {
-					exports.outputRatings(i, category, null);
+					exports.outputRatings(i, category, null, inSetup);
 				}
 				if (outputUnverified) {
-					exports.outputRatings(i, 'unverified', category);
+					exports.outputRatings(i, 'unverified', category, inSetup);
 				}
 			}
 		});
@@ -226,13 +226,12 @@ function refreshRatings(inSetup) {
 		}, 3000);
 	} else {
 		outputAllRatings(true, true);
+		ratingsChannel.send(new Discord.RichEmbed({
+			color: util.getUserColor(),
+			title: `Ratings Refreshed`,
+			description: `All rating info is now up to date with user ratings, IMDB, and RT.`
+		}));
 	}
-
-	ratingsChannel.send(new Discord.RichEmbed({
-		color: util.getUserColor(),
-		title: `Ratings Refreshed`,
-		description: `All rating info is now up to date with user ratings, IMDB, and RT.`
-	}));
 }
 
 /**
@@ -386,14 +385,14 @@ exports.outputRatings = function(rating, category, subCategory, inSetup) {
 			});
 	} else {
 		// Send the category header message
-		if (category === 'unverified' && subCategory === 'tv') {
+		if (category === 'unverified' && subCategory === 'tv' && rating === 4) {
 			ratingsChannel.send('**UNVERIFIED**');
 		}
 
 		ratingsChannel.send(new Discord.RichEmbed({
-			color: util.getUserColor(userID),
+			color: util.getUserColor(),
 			title: `${categoryEmoji}	${getStars(rating)}`,
-			description: titlesMsg
+			description: output
 		}))
 		.then((msg) => {
 			config[msgToEdit] = msg.id;
@@ -613,7 +612,7 @@ exports.setup = function(message) {
 			ratingsChannel.send(c.RATINGS_USAGE);
 
 			// output initial ratings
-			refreshRatings();
+			refreshRatings(true);
 		});
 
 	util.sendEmbedMessage('TV and Movies Ratings Channel Created',

@@ -712,6 +712,8 @@ exports.maybeChangeAudioQuality = function(channels) {
  * @param {Object[]} channels - the server's channels
  */
 exports.setDynamicGameChannels = function(channels) {
+	if (!c.GAME_CHANNEL_NAMES) { return; }
+
 	Object.keys(c.GAME_CHANNEL_NAMES).forEach((channelID) => {
 		gameChannels.push(channels.find('id', channelID));
 	});

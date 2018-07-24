@@ -6,7 +6,6 @@ var bot = require('./bot.js');
 var util = require('./utilities.js');
 var private = require('../../private.json');
 var config = require('../resources/data/config.json');
-var configKeys = Object.keys(config);
 
 function configure(configArgs, message, key, prompt, transformationFunc) {
 	const filter = (m) => {
@@ -51,6 +50,11 @@ function isPositiveReponse(text) {
 
 exports.addDynamicVoiceChannel = function(message) {
 	const voiceChannel = message.member.voiceChannel;
+
+	if (!config.GAME_CHANNEL_NAMES) {
+		config.GAME_CHANNEL_NAMES = {};
+	}
+
 	config.GAME_CHANNEL_NAMES[voiceChannel.id] = voiceChannel.name;
 	message.reply(`\`${voiceChannel.name}\` is now a dynamic voice channel.`);
 }
@@ -75,7 +79,7 @@ function createBanRole(message, voiceChannel) {
 }
 
 function createBanRoles(message) {
-	bot.getClient().channels.forEach((channel) => {
+	bot.getClient().channels.array().forEach((channel) => {
 		if (channel.type !== 'voice') { return; }
 
 		createBanRole(message, channel);
@@ -111,7 +115,7 @@ exports.createPurgatoryChannel = function(message) {
 function createTempCategory(message) {
 	message.guild.createChannel('Temp Channels', 'category')
 	.then((channel) => {
-		config.CATEGORY_ID.Temp = channel.id;
+		config.CATEGORY_ID = { Temp: channel.id };
 	});
 }
 
@@ -127,10 +131,13 @@ function createNewMemberInfo(message) {
 		});
 }
 
+// TODO: Explain that @everyone cant be used
+// fix setting of private configs
+// the 3rd party docs on bot setup are out of date. make your own with a gif or something.
 exports.setup = function(message) {
 	var configArgs = [
 		[message, 'prefix', 'Please choose a command prefix, e.g. `.`'],
-		[message, 'enableSoundbytes', 'Enable soundbyte functionality?', isPositiveReponse],
+		[message, 'soundBytesEnabled', 'Enable soundbyte functionality?', isPositiveReponse],
 		[message, 'K_ID', `Mention the server admin e.g. ${util.mentionUser(message.author.id)}`, util.getIdFromMention],
 		[message, 'BOT_SPAM_CHANNEL_ID', `Mention the text channel where user\'s are allowed to communicate with the bot.`
 			+  `I recommend creating a new channel. e.g. ${util.mentionChannel(message.channel.id)}`, util.getIdFromMention],
@@ -143,7 +150,7 @@ exports.setup = function(message) {
 	].reverse();
 
 	private.serverID = message.guild.id;
-	//fs.writeFile('../../private.json', JSON.stringify(private), 'utf8', util.log);
+	fs.writeFile('../../private.json', JSON.stringify(private), 'utf8', util.log);
 
 	config.AFK_CHANNEL_ID = get(message, 'guild.afkChannel.id');
 	config.SCRUB_DADDY_ID = bot.getClient().user.id;

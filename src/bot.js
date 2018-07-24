@@ -498,6 +498,7 @@ function handleCommand(message) {
  */
 client.on('message', (message) => {
 	const firstChar = message.content.substring(0, 1);
+
     //Scrub Daddy will listen for messages starting with the prefix specified in config.json
     if (firstChar === config.prefix) {
 		handleCommand(message);

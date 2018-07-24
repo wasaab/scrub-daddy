@@ -110,7 +110,6 @@ Discord bot with the following 83 commands:
       + gen-heatmap - `generates the player count heatmap.`
 
 ## Setup
----
 
 1. Clone or download this repo.
 2. Call `npm install` within `scrub-daddy`.
@@ -118,9 +117,9 @@ Discord bot with the following 83 commands:
 
       ```
       {
-      "token": "Insert your discord bot token here.",
-      "trnApiKey": "Get a fortnite stats TRN API key from https://fortnitetracker.com/site-api and insert it here",
-      "googleUrlApiKey": "Get a Google URL Shortener API key from https://developers.google.com/url-shortener/v1/getting_started#APIKey and insert it here"
+            "token": "Insert your discord bot token here.",
+            "trnApiKey": "Get a fortnite stats TRN API key from https://fortnitetracker.com/site-api and insert it here",
+            "googleUrlApiKey": "Get a Google URL Shortener API key from https://developers.google.com/url-shortener/v1/getting_started#APIKey and insert it here"
       }
       ```
 
