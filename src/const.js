@@ -314,7 +314,7 @@ module.exports = {
 		}
 	],
 	COMMANDS: [
-		'&nb5::(${162434234357645312})%3', '1-more','21',
+		'&nb5::(${162434234357645312})%3', '1-more','21', '2e',
 		'add-sb', 'alias', 'army',
 		'backup',
 		'catfacts', 'change-category', 'clean', 'color', 'create-list',

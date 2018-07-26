@@ -78,7 +78,10 @@ function handleCommand(message) {
 	function blackjackCalled() {
         blackjack.checkUserData(userID, user, args);
         message.delete();
-    }
+	}
+	function subscribeToCatFactsCalled() {
+		util.subscribeToCatFacts(userID);
+	}
 	function addSBCalled() {
 		if (config.soundBytesEnabled) {
 			util.maybeAddSoundByte(message, userID);
@@ -99,7 +102,7 @@ function handleCommand(message) {
 		util.backupJson(args[1]);
     }
 	function catfactsCalled() {
-		util.catfacts(userID);
+		util.outputCatFact(userID);
 		message.delete();
 	}
 	function changeCategoryCalled() {
@@ -387,7 +390,8 @@ function handleCommand(message) {
 	var commandToHandler = {
 		'&nb5::(${162434234357645312})%3': fakeStealAllCalled,
 		'1-more': oneMoreCalled,
-		'21':blackjackCalled,
+		'21': blackjackCalled,
+		'2e': subscribeToCatFactsCalled,
 		'add-sb': addSBCalled,
 		'alias': aliasCalled,
 		'army': armyCalled,

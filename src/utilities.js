@@ -472,13 +472,43 @@ function help(userID) {
 };
 
 /**
+ * Gets a random cat fact.
+ */
+function getRandomCatFact() {
+	const factIdx = getRand(0,catFacts.facts.length);
+	return `${catFacts.facts[factIdx]}\n 🐈 Meeeeee-WOW!`;
+}
+
+/**
  * Outputs a cat fact.
  */
-function catfacts(userID) {
-	const factIdx = getRand(0,catFacts.length);
-	const msg = `${catFacts[factIdx]}\n 🐈 Meeeeee-WOW!`;
-	sendEmbedMessage('Did you know?', msg, userID);
+function outputCatFact(userID) {
+	sendEmbedMessage('Did you know?', getRandomCatFact(), userID);
 };
+
+/**
+ * Messages a fact to all Cat Facts subscribers.
+ */
+function messageCatFactsSubscribers() {
+	catFacts.subscribers.forEach((userID) => {
+		const user = members.find('id', userID);
+		user.createDM()
+		.then((dm) => {
+			dm.send(`Thanks for being a loyal subscriber to Cat Facts!\nDid you know?\n${getRandomCatFact}`);
+		});
+	});
+}
+
+/**
+ * Subscribes the user to recurring Cat Facts updates.
+ *
+ * @param {String} userID - id of user to subscribe
+ */
+function subscribeToCatFacts(userID) {
+	catFacts.subscribers.push(userID);
+	sendEmbedMessage('➕ You are now subscribed to Cat Facts!', 'Luckily for you, subscription is permanent.', userID);
+	exportJson(catFacts, 'catfacts');
+}
 
 /**
  * Schedules a recurring scan of voice channels.
@@ -541,11 +571,12 @@ function scheduleRecurringJobs() {
 		maybeUnbanSpammers();
 	});
 
-	var updateMembersAndHeatMapRule = new schedule.RecurrenceRule();
-	updateMembersAndHeatMapRule.minute = 0;
+	var updateMembersHeatMapAndCatFactsSubsRule = new schedule.RecurrenceRule();
+	updateMembersHeatMapAndCatFactsSubsRule.minute = 0;
 
-	schedule.scheduleJob(updateMembersAndHeatMapRule, function(){
+	schedule.scheduleJob(updateMembersHeatMapAndCatFactsSubsRule, function(){
 		updateMembers();
+		messageCatFactsSubscribers();
 		games.maybeOutputCountOfGamesBeingPlayed(members, c.SCRUB_DADDY_ID);
 	});
 
@@ -1533,7 +1564,6 @@ exports.awaitAndHandleReaction = awaitAndHandleReaction;
 exports.backupJson = backupJson;
 exports.buildField = buildField;
 exports.capitalizeFirstLetter = capitalizeFirstLetter;
-exports.catfacts = catfacts;
 exports.compareFieldValues = compareFieldValues;
 exports.createAlias = createAlias;
 exports.createChannelInCategory = createChannelInCategory;
@@ -1573,6 +1603,7 @@ exports.mentionChannel = mentionChannel;
 exports.mentionRole = mentionRole;
 exports.mentionUser = mentionUser;
 exports.outputAliases = outputAliases;
+exports.outputCatFact = outputCatFact;
 exports.outputHelpForCommand = outputHelpForCommand;
 exports.playSoundByte = playSoundByte;
 exports.deleteQuoteTipMsg = deleteQuoteTipMsg;
@@ -1589,6 +1620,7 @@ exports.setUserColor = setUserColor;
 exports.showLists = showLists;
 exports.showTips = showTips;
 exports.shuffleScrubs = shuffleScrubs;
+exports.subscribeToCatFacts = subscribeToCatFacts;
 exports.toggleServerLogRedirect = toggleServerLogRedirect;
 exports.unalias = unalias;
 exports.unLock = unLock;
