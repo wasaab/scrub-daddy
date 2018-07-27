@@ -286,25 +286,29 @@ function getThirdPartyRatingsForCategory(category, site) {
  */
 function getRating(title) {
 	const categories = ['movies', 'tv', 'unverified.movies', 'unverified.tv'];
+	var rating = {
+		title: null,
+		rating: null,
+		category: null,
+		isVerified: null
+	};
 
-	categories.forEach((category) => {
+	categories.some((category) => {
 		const ratingsInCategory = get(ratings, category);
 		const ratingsKeys = Object.keys(ratingsInCategory);
-		const fuse = new Fuse(ratingsKeys);
+		const fuse = new Fuse(ratingsKeys, c.RATING_FUZZY_OPTIONS);
 		const fuzzyResults = fuse.search(title);
-		if (fuzzyResults.length === 0) { return; }
+		if (fuzzyResults.length === 0) { return false; }
 
-		const matchingTitle = ratingsKeys[fuzzyResults[0]];
-		const isVerified = !category.includes('.');
-		const formattedCategory =  isVerified ? category : category.split('.')[1];
+		rating.title = ratingsKeys[fuzzyResults[0]];
+		rating.isVerified = !category.includes('.');
+		rating.category =  rating.isVerified ? category : category.split('.')[1];
+		rating.rating = ratingsInCategory[rating.title];
 
-		return {
-			title: matchingTitle,
-			rating: ratingsInCategory[matchingTitle],
-			category: formattedCategory,
-			isVerified: isVerified
-		}
+		return true;
 	});
+
+	return rating;
 }
 
 /**
@@ -388,7 +392,7 @@ exports.rate = function(targetCategory, rating, args, channel, userID) {
 	const title = determineTitle(util.getTargetFromArgs(args, 3));
 	const { category } = getRating(title);
 
-	if (category !== targetCategory) {
+	if (category && category !== targetCategory) {
 		return channel.send(new Discord.RichEmbed({
 			color: util.getUserColor(userID),
 			title: `Duplicate Titles Not Allowed`,
