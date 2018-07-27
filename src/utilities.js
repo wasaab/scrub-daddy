@@ -134,6 +134,14 @@ const logger = new winston.createLogger({
 })
 
 /**
+ * Enables the server log redirect.
+ */
+function enableServerLogRedirect() {
+	if (!bot.getLogChannel()) { return; }
+	logger.add(new discordServerTransport());
+}
+
+/**
  * Toggles the logger redirect to discord text channel on or off.
  */
 function toggleServerLogRedirect(userID) {
@@ -144,7 +152,7 @@ function toggleServerLogRedirect(userID) {
 		logger.remove(discordTransport);
 		sendEmbedMessage('Server Log Redirection Disabled', 'Server logs will stay where they belong!', userID)
 	} else {
-		logger.add(new discordServerTransport());
+		enableServerLogRedirect();
 		sendEmbedMessage('Server Log Redirection Enabled', `The server log will now be redirected to ${mentionChannel(c.LOG_CHANNEL_ID)}`, userID)
 	}
 };
@@ -1569,6 +1577,7 @@ exports.createAlias = createAlias;
 exports.createChannelInCategory = createChannelInCategory;
 exports.createList = createList;
 exports.deleteMessages = deleteMessages;
+exports.enableServerLogRedirect = enableServerLogRedirect;
 exports.exportJson = exportJson;
 exports.exportQuotes = exportQuotes;
 exports.getIdFromMention = getIdFromMention;

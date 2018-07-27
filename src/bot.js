@@ -106,8 +106,8 @@ function handleCommand(message) {
 		message.delete();
 	}
 	function changeCategoryCalled() {
-		if (args.length < 4 || channelID !== c.RATINGS_CHANNEL_ID) { return; }
-		ratings.changeCategory(args, args[1], args[2], message.channel, userID);
+		if (!args[1] || channelID !== c.RATINGS_CHANNEL_ID) { return; }
+		ratings.changeCategory(args, message.channel, userID);
 		message.delete();
 	}
 	function cleanCalled() {
@@ -129,8 +129,8 @@ function handleCommand(message) {
 		util.deleteMessages(message);
 	}
 	function deleteRatingCalled() {
-		if (args.length < 3 || channelID !== c.RATINGS_CHANNEL_ID) { return; }
-		ratings.delete(args, args[1], message.channel, userID);
+		if (!args[1] || channelID !== c.RATINGS_CHANNEL_ID) { return; }
+		ratings.delete(args, message.channel, userID);
 		message.delete();
 	}
 	function dischargeCalled() {
@@ -269,7 +269,7 @@ function handleCommand(message) {
 	}
 	function ratingInfoCalled() {
 		if (!args[1]) { return; }
-		ratings.ratingInfo(args[1], userID);
+		ratings.ratingInfo(args, userID);
 		message.delete();
 	}
 	function ratingsCalled() {
@@ -282,7 +282,8 @@ function handleCommand(message) {
 		ratings.updateThirdPartyRatings();
 	}
 	function renameCalled() {
-		ratings.rename(args[1], args, userID, message.channel);
+		if (!args[1]) { return; }
+		ratings.rename(args, userID, message.channel);
 		message.delete();
 	}
 	function restartCalled() {
@@ -548,6 +549,7 @@ client.on('ready', () => {
 	purgatory = client.channels.find('id', c.PURGATORY_CHANNEL_ID);
 	logChannel = client.channels.find('id', c.LOG_CHANNEL_ID);
 
+	util.enableServerLogRedirect();
 	util.scheduleRecurringJobs();
 	games.setDynamicGameChannels(client.channels);
 
