@@ -128,7 +128,8 @@ function createNewMemberInfo(message) {
 			const afkChannel = bot.getClient().channels.find('id', config.AFK_CHANNEL_ID);
 			const afkChannelName = afkChannel ? afkChannel.name : 'AFK Channel';
 			const info = config.NEW_MEMBER_INFO.replace('Where he at doe?', afkChannelName)
-				.replace('@Scrub Daddy#2173', util.mentionUser(bot.getClient().user.id));
+				.replace('@Scrub Daddy#2173', util.mentionUser(bot.getClient().user.id))
+				.replace('#bot-spam', util.mentionChannel(config.BOT_SPAM_CHANNEL_ID));
 			channel.send(info);
 		});
 }
