@@ -502,7 +502,7 @@ function messageCatFactsSubscribers() {
 		const user = members.find('id', userID);
 		user.createDM()
 		.then((dm) => {
-			dm.send(`Thanks for being a loyal subscriber to Cat Facts!\nDid you know?\n${getRandomCatFact}`);
+			dm.send(`Thanks for being a loyal subscriber to Cat Facts!\nDid you know?\n${getRandomCatFact()}`);
 		});
 	});
 }
