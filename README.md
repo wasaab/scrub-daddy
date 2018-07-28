@@ -127,11 +127,11 @@ Discord bot with the following 83 commands:
 
 4. Give the bot admin permissions on your server.
 5. Call `npm install forever -g` in the console.
-6. To start the bot call one of the following commands witin `scrub-daddy`:
-      + `forever start src/bot.js`
+6. To start the bot call one of the following commands within `scrub-daddy`:
+      1. `forever start src/bot.js`
             + Will auto restart on errors.
             + Console output is redirected to a log file, which can be found by calling: `forever logs`
-      + `node src/bot.js`
+      2. `node src/bot.js`
             + No auto restart
             + Console output is shown
 7. Call `.setup` within the server you added this bot to once that file is created. You can add the api keys later, but the token needs to be added prior to calling `.setup`.
