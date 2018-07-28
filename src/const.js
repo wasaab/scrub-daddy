@@ -225,6 +225,7 @@ module.exports = {
 				{ name: '.create-group <`groupName`> <`title of game`>', value: '`To create a mentionable group of users who play the specified game.`', inline: 'false'},
 				{ name: '.@<`groupName`> <`message to send`>', value: '`To mention all members of a custom group in a message.`', inline: 'false'},
 				{ name: '.@<`gameName`> <`message to send`>', value: '`To mention all users who play gameName in a message.`', inline: 'false'},
+				{ name: '.@power <`message to send`>', value: '`If not called from #bot-spam or #scrubs will mention the channel\'s power users in a message.`', inline: 'false'},
 				{ name: '.delete', value: '`call this after adding both :trashcan: and :black_circle: reactions to first and last messages to delete.\n' +
 					'All messages between the two you reacted to will be deleted, including those two.\nThis will only work if you are in a temp channel you created.`', inline: 'false'}
 			]

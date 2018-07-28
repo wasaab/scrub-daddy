@@ -1383,27 +1383,24 @@ function getKeysSortedByValues(obj) {
 }
 
 /**
- * Determines the power users of a channel.
+ * Determines the power users based on number of posts.
  *
- * @param {Object} channel - channel to determine power users of
+ * @param {Object[]} messages - messages to count with
  */
-function determineChannelsPowerUsers(channel) {
+function determinePowerUsers(messages) {
 	var userIDToPostCount = {};
 
-	return channel.fetchMessages({limit: 100})
-	.then((messages) => {
-		messages.array().forEach((message) => {
-			if (message.author.bot) { return; }
+	messages.forEach((message) => {
+		if (message.author.bot) { return; }
 
-			if (!userIDToPostCount[message.author.id]) {
-				userIDToPostCount[message.author.id] = 1;
-			} else {
-				userIDToPostCount[message.author.id]++;
-			}
-		})
+		if (!userIDToPostCount[message.author.id]) {
+			userIDToPostCount[message.author.id] = 1;
+		} else {
+			userIDToPostCount[message.author.id]++;
+		}
+	})
 
-		return getKeysSortedByValues(userIDToPostCount).splice(7);	// Only include the 7 top posters
-	});
+	return getKeysSortedByValues(userIDToPostCount);
 }
 
 /**
@@ -1414,16 +1411,26 @@ function determineChannelsPowerUsers(channel) {
  * @param {String} customMessage - message to send to power users
  */
 function mentionChannelsPowerUsers(channel, nickName, customMessage) {
-	var msg = `↪️ **${nickName}**: \`@${channel}\` ${customMessage}`;
+	var msg = `↪️ **${nickName}**: @${channel} ${customMessage}`;
 
-	const powerUsers = determineChannelsPowerUsers(channel);
-	if (!powerUsers) { return; }
+	channel.fetchMessages({limit: 100})
+	.then((firstHundredMessages) => {
+		const lastMsgID = firstHundredMessages.get(firstHundredMessages.lastKey()).id;
+		channel.fetchMessages({limit: 100, before: lastMsgID})
+		.then((secondHundredMessages) => {
+			const messages = firstHundredMessages.array().concat(secondHundredMessages.array());
+			const powerUsers = determinePowerUsers(messages);
 
-	powerUsers.forEach((powerUserID) => {
-		msg += ` ${mentionUser(powerUserID)}`;
+			if (!powerUsers) { return; }
+			powerUsers.splice(5);	// Only include the 5 top posters
+
+			powerUsers.forEach((powerUserID) => {
+				msg += ` ${mentionUser(powerUserID)}`;
+			});
+
+			channel.send(msg);
+		});
 	});
-
-	channel.send(msg);
 }
 
 /**
