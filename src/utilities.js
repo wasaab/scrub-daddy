@@ -1450,7 +1450,7 @@ function getGroup(targetGroupName) {
 	if (fuzzyResults.length === 0) { return; }
 
 	const groupName = groupNames[fuzzyResults[0]];
-	return groups[groupName];
+	return { group: groups[groupName], name: groupName };
 }
 
 /**
@@ -1464,7 +1464,7 @@ function getGroup(targetGroupName) {
  */
 function mentionGroup(groupName, args, message, channel, userID) {
 	const customMessage = getTargetFromArgs(args, 2);
-	const group = getGroup(groupName);
+	const { group, name } = getGroup(groupName);
 	const nickName = getNick(userID);
 
 	if (!group) {
@@ -1476,7 +1476,7 @@ function mentionGroup(groupName, args, message, channel, userID) {
 			mentionChannelsPowerUsers(channel, nickName, customMessage);
 		}
 	} else if (Array.isArray(group)) { //Mention the group of users retrieved from getGroup
-		var msg = `↪️ **${nickName}**: \`@${groupName}\` ${customMessage}`;
+		var msg = `↪️ **${nickName}**: \`@${name}\` ${customMessage}`;
 		group.forEach((groupMemberID) => {
 			msg += ` ${mentionUser(groupMemberID)}`;
 		});
