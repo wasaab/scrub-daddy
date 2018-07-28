@@ -80,10 +80,8 @@ function handleCommand(message) {
         blackjack.checkUserData(userID, user, args);
         message.delete();
     }
-	}
 	function subscribeToCatFactsCalled() {
 		util.subscribeToCatFacts(userID);
-	}
 	}
 	function addDynamicCalled() {
 		if (!c.IN_SETUP) { return; }

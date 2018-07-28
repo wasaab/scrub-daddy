@@ -147,8 +147,8 @@ exports.setup = function(message) {
 		[message, 'NEW_MEMBER_CHANNEL_ID', `Mention the text channel that new members can see.`
 			+  ` This can be the same as the previous channel.  e.g. ${util.mentionChannel(message.channel.id)}`, util.getIdFromMention],
 		[message, 'SCRUBS_ROLE_ID', `Mention the main user role e.g. ${exampleRole}`, util.getIdFromMention],
-		[message, 'NEW_MEMBER_ROLE_ID', `Mention the new user role. This can be the same as the previous role. e.g. ${exampleRole}`, util.getIdFromMention],
-		[message, 'BEYOND_ROLE_ID', `Mention the elevated user role. Write \`none\` if all roles are equal. e.g. ${exampleRole}`, util.getIdFromMention]
+		[message, 'NEW_MEMBER_ROLE_ID', `Mention the new user role. This can be the same as the previous role, but if it is different, the new members will have lowered bot privileges. e.g. ${exampleRole}`, util.getIdFromMention],
+		[message, 'BEYOND_ROLE_ID', `Mention the elevated user role. Write \`none\` if the main role should have full bot privileges. If you mention a role, that role will have elevated bot privileges. e.g. ${exampleRole}`, util.getIdFromMention]
 	].reverse();
 
 	private.serverID = message.guild.id;
