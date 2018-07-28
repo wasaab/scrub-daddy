@@ -2,6 +2,7 @@ var Discord = require('discord.js');
 var moment = require('moment');
 var Fuse = require('fuse.js');
 var imdb = require('imdb-api');
+var get = require('lodash.get');
 var rt = require('lw5');
 
 var c = require('./const.js');
@@ -152,15 +153,15 @@ function updateRatingAndDetermineAvg(category, title, userID, rating) {
 
 		// Update list review used to be in
 		if (!unverifiedReview && Math.floor(avgRating) !== Math.floor(oldReview.rating)) {
-			exports.outputRatings(Math.floor(oldReview.rating), category, null);
+			exports.outputRatings(Math.floor(oldReview.rating), category, true);
 		}
 	}
 
 	// Update list review is now in
 	if (isUnverified) {
-		exports.outputRatings(Math.floor(avgRating), 'unverified', category);
+		exports.outputRatings(Math.floor(avgRating), category, false);
 	} else {
-		exports.outputRatings(Math.floor(avgRating), category, null);
+		exports.outputRatings(Math.floor(avgRating), category, true);
 	}
 	util.exportJson(ratings, 'ratings');
 
@@ -178,7 +179,7 @@ function verifyReview(category, title, oldReview) {
 	ratings[category][title] = oldReview;
 	delete ratings.unverified[category][title];
 	// update unverified list
-	exports.outputRatings(Math.floor(oldReview.rating), 'unverified', category);
+	exports.outputRatings(Math.floor(oldReview.rating), category, false);
 }
 
 /**
@@ -250,9 +251,9 @@ function maybeExportAndRefreshRatings() {
 /**
  * Updates the 3rd party ratings for every title in the category.
  *
- * @param {Object} category - reviews in the category
- * @param {Object[]} responses - responses from 3rd party sites
  * @param {String} site - site ratings are from
+ * @param {Object[]} responses - responses from 3rd party sites
+ * @param {Object} category - reviews in the category
  */
 function updateThirdPartyRatingsForCategory(site, responses, category) {
 	responses.forEach((response) => {
@@ -306,19 +307,30 @@ function getThirdPartyRatingsForCategory(category, site) {
  * @param {String} title - title to get rating of
  */
 function getRating(title) {
-	const titles = getAllTitles();
-	var fuse = new Fuse(titles, c.RATING_FUZZY_OPTIONS);
-	const fuzzyResults = fuse.search(title);
-	if (fuzzyResults.length !== 0) {
-		const matchingTitle = titles[fuzzyResults[0]];
-		util.logger.info(`<INFO> ${util.getTimestamp()}	Rating Info Title Match ${matchingTitle}`);
-		const rating = ratings.movie[matchingTitle] || ratings.tv[matchingTitle]
-		|| ratings.unverified.movie[matchingTitle] || ratings.unverified.tv[matchingTitle];
-		return {
-			title: matchingTitle,
-			rating: rating
-		}
-	}
+	const categories = ['movie', 'tv', 'unverified.movie', 'unverified.tv'];
+	var rating = {
+		title: null,
+		rating: null,
+		category: null,
+		isVerified: null
+	};
+
+	categories.some((category) => {
+		const ratingsInCategory = get(ratings, category);
+		const ratingsKeys = Object.keys(ratingsInCategory);
+		const fuse = new Fuse(ratingsKeys, c.RATING_FUZZY_OPTIONS);
+		const fuzzyResults = fuse.search(title);
+		if (fuzzyResults.length === 0) { return false; }
+
+		rating.title = ratingsKeys[fuzzyResults[0]];
+		rating.isVerified = !category.includes('.');
+		rating.category =  rating.isVerified ? category : category.split('.')[1];
+		rating.rating = ratingsInCategory[rating.title];
+
+		return true;
+	});
+
+	return rating;
 }
 
 /**
@@ -351,26 +363,22 @@ function getAllTitles() {
  *
  * @param {Number} rating - numerical rating 1-4
  * @param {String} category - tv, movie, or unverified
- * @param {String=} subCategory - tv or movie
+ * @param {Boolean} isVerified - whether or not the title is verified
  * @param {Boolean} inSetup - true if channel is in setup
  */
-exports.outputRatings = function(rating, category, subCategory, inSetup) {
+exports.outputRatings = function(rating, category, isVerified, inSetup) {
 	if (!ratingsChannel) { return outputSetupChannelMsg(); }
 
-	const targetRatings = category === 'unverified' ? ratings.unverified : ratings;
-	const targetCategory = subCategory || category;
-	const categoryEmoji = targetCategory === 'tv' ? c.TV_EMOJI : c.MOVIE_EMOJI;
-	const titles = Object.keys(targetRatings[targetCategory]).sort();
-	const output = determineRatingsOutput(titles, targetRatings, targetCategory, rating);
+	const targetRatings = isVerified ? ratings : ratings.unverified;
+	const titles = Object.keys(targetRatings[category]).sort();
+	const output = determineRatingsOutput(titles, targetRatings, category, rating);
 
 	if (output === '') { return; }
 
-	var msgToEdit = `${rating}_STAR_${targetCategory.toUpperCase()}_MSG_ID`;
-	if (category === 'unverified') {
-		msgToEdit =  `UNVERIFIED_${msgToEdit}`;
-	}
 
 	if (!inSetup) {
+		const verification = isVerified ? '' : 'UNVERIFIED_';
+		const msgToEdit = `${verification}${rating}_STAR_${category.toUpperCase()}_MSG_ID`;
 		ratingsChannel.fetchMessage(c[msgToEdit])
 			.then((message) => {
 				const updatedMsg = new Discord.RichEmbed({
@@ -384,6 +392,8 @@ exports.outputRatings = function(rating, category, subCategory, inSetup) {
 				util.logger.error(`<ERROR> ${util.getTimestamp()}  Edit Ratings Msg Error: ${err}`);
 			});
 	} else {
+		const categoryEmoji = c[`${category.toUpperCase()}_EMOJI`];
+
 		// Send the category header message
 		if (category === 'unverified' && subCategory === 'tv' && rating === 4) {
 			ratingsChannel.send('**UNVERIFIED**');
@@ -407,17 +417,27 @@ exports.outputRatings = function(rating, category, subCategory, inSetup) {
 /**
  * Updates the rating for a tv show or movie.
  *
- * @param {String} category - tv or movie
+ * @param {String} targetCategory - tv or movie
  * @param {Number} rating - numerical rating 1-4
  * @param {String[]} args - arguments passed to the command
  * @param {String} userID - id of user adding rating
  */
-exports.rate = function(category, rating, args, userID) {
-	if (category !== 'movie' && category !== 'tv') { return; }
+exports.rate = function(targetCategory, rating, args, userID) {
+	if (targetCategory !== 'movie' && targetCategory !== 'tv') { return; }
 
-	const categoryEmoji = category === 'tv' ? c.TV_EMOJI : c.MOVIE_EMOJI;
 	const title = determineTitle(util.getTargetFromArgs(args, 3));
-	var avgRating = updateRatingAndDetermineAvg(category, title, userID, rating);
+	const { category } = getRating(title);
+
+	if (category && category !== targetCategory) {
+		return ratingsChannel.send(new Discord.RichEmbed({
+			color: util.getUserColor(userID),
+			title: `Duplicate Titles Not Allowed`,
+			description: `Try adding the year released, to make the title unique, e.g. \`${title} (${(new Date()).getFullYear()})\``
+		}));
+	}
+
+	var avgRating = updateRatingAndDetermineAvg(targetCategory, title, userID, rating);
+	const categoryEmoji = c[`${targetCategory.toUpperCase()}_EMOJI`];
 
 	ratingsChannel.send(new Discord.RichEmbed({
 		color: util.getUserColor(userID),
@@ -429,14 +449,15 @@ exports.rate = function(category, rating, args, userID) {
 /**
  * Displays the reviewers and ratings for the provided title.
  *
- * @param {String} targetTitle - title to get info for
+ * @param {String[]} args - arguments provided to the command
  * @param {String} userID - id of user requesting info
  */
-exports.ratingInfo = function(targetTitle, userID) {
-	const { title, rating } = getRating(targetTitle);
-	if (!title || !rating) { return; }
+exports.ratingInfo = function(args, userID) {
+	const { title, rating, category, isVerified } = getRating(util.getTargetFromArgs(args, 1));
+	if (!title) { return titleNotFound(title, userID); }
 
-	var info = '';
+	const verification = isVerified ? '' : 'Unverified ';
+	var info = `***${verification}${util.capitalizeFirstLetter(category)}***\n\n`;
 	if (rating.rtRating) {
 		info += `🍅 **${rating.rtRating}**	`;
 	}
@@ -461,34 +482,33 @@ exports.ratingInfo = function(targetTitle, userID) {
 /**
  * Renames a title.
  *
- * @param {String} category - category the title is in
  * @param {String[]} args - arguments provided to the command
  * @param {String} userID - id of calling user
  */
-exports.rename = function(category, args, userID) {
-	const renameOperation = util.getTargetFromArgs(args, 2);
+exports.rename = function(args, userID) {
+	const renameOperation = util.getTargetFromArgs(args, 1);
 	if (!renameOperation.includes('=')) { return; }
 
 	const titles = renameOperation.split('=');
 	const oldTitle = titles[0];
 	const newTitle = titles[1];
 
-	if (ratings[category][oldTitle]) {
-		ratings[category][newTitle] = ratings[category][oldTitle];
-		delete ratings[category][oldTitle];
-		exports.outputRatings(Math.floor(ratings[category][newTitle].rating), category, null);
-	} else if (ratings.unverified[category][oldTitle]) {
-		ratings.unverified[category][newTitle] = ratings.unverified[category][oldTitle];
-		delete ratings.unverified[category][oldTitle];
-		exports.outputRatings(Math.floor(ratings.unverified[category][newTitle].rating), 'unverified', category);
+	const { title, rating, category, isVerified } = getRating(oldTitle);
+	if (!title) { return titleNotFound(title, userID); }
+
+	if (isVerified) {
+		ratings[category][newTitle] = ratings[category][title];
+		delete ratings[category][title];
 	} else {
-		ratingsChannel.send(`${util.mentionUser(userID)} \`${oldTitle}\` has not been rated.`)
-		return;
+		ratings.unverified[category][newTitle] = ratings.unverified[category][title];
+		delete ratings.unverified[category][title];
 	}
+
+	exports.outputRatings(Math.floor(rating.rating), category, isVerified);
 
 	ratingsChannel.send(new Discord.RichEmbed({
 		color: util.getUserColor(userID),
-		title: `${oldTitle} - Renamed by ${util.getNick(userID)}`,
+		title: `${title} - Renamed by ${util.getNick(userID)}`,
 		description: `New Title: ${newTitle}`
 	}));
 
@@ -523,39 +543,30 @@ exports.updateThirdPartyRatings = function() {
  * Changes the category of a title.
  *
  * @param {String[]} args - arguments provided to the command
- * @param {String} currentCategory - current category
- * @param {String} newCategory - new category
  * @param {String} userID - id of calling user
  */
-exports.changeCategory = function(args, currentCategory, newCategory, userID) {
-	const title = util.getTargetFromArgs(args, 3);
-	if (!getRating(title)) { return titleNotFound(title, userID); }
+exports.changeCategory = function(args, userID) {
+	const targetTitle = util.getTargetFromArgs(args, 1);
+	const { title, rating, category, isVerified } = getRating(targetTitle);
+	if (!title) { return titleNotFound(targetTitle, userID); }
 
-	if (ratings[currentCategory][title]) {
-		const verifiedReview = ratings[currentCategory][title];
-		ratings[newCategory][title] = verifiedReview;
-		delete ratings[currentCategory][title];
-		exports.outputRatings(Math.floor(verifiedReview.rating), currentCategory, null);
-		exports.outputRatings(Math.floor(verifiedReview.rating), newCategory, null);
-	} else if (ratings.unverified[currentCategory][title]) {
-		const unverifiedReview = ratings.unverified[currentCategory][title];
-		ratings.unverified[newCategory][title] = unverifiedReview;
-		delete ratings.unverified[currentCategory][title];
-		exports.outputRatings(Math.floor(unverifiedReview.rating), 'unverified', currentCategory);
-		exports.outputRatings(Math.floor(unverifiedReview.rating), 'unverified', newCategory);
+	const newCategory = category === 'tv' ? 'movie' : 'tv';
+	if (isVerified) {
+		ratings[newCategory][title] = rating;
+		delete ratings[category][title];
 	} else {
-		ratingsChannel.send(new Discord.RichEmbed({
-			color: util.getUserColor(userID),
-			title: `Title not Found`,
-			description: `There is no title matching "${title}" in ${currentCategory}`
-		}));
-		return;
+		ratings.unverified[newCategory][title] = rating;
+		delete ratings.unverified[category][title];
 	}
+
+	const flooredRating = Math.floor(rating.rating);
+	exports.outputRatings(flooredRating, category, isVerified);
+	exports.outputRatings(flooredRating, newCategory, isVerified);
 
 	ratingsChannel.send(new Discord.RichEmbed({
 		color: util.getUserColor(userID),
 		title: `Category Changed`,
-		description: `"${title}" has been moved from ${currentCategory} to ${newCategory}`
+		description: `"${title}" has been moved from ${category} to ${newCategory}`
 	}));
 	util.exportJson(ratings, 'ratings');
 }
@@ -564,31 +575,29 @@ exports.changeCategory = function(args, currentCategory, newCategory, userID) {
  * Deletes a title from the review list.
  *
  * @param {String[]} args - arguments provided to the command
- * @param {String} category - category title is in
  * @param {String} userID - id of calling user
  */
-exports.delete = function(args, category, userID) {
-	const title = util.getTargetFromArgs(args, 2);
-	if (!getRating(title)) { return titleNotFound(title, userID); }
+exports.delete = function(args, userID) {
+	const { title, rating, category, isVerified } = getRating(util.getTargetFromArgs(args, 1));
+	if (!title) { return titleNotFound(title, userID); }
 
-	util.logger.info(`<INFO> ${util.getTimestamp()} Deleting rating for "${title}" in ${category}`);
-	if (ratings[category][title]) {
-		const verifiedReviewRating = ratings[category][title].rating;
-		delete ratings[category][title];
-		exports.outputRatings(Math.floor(verifiedReviewRating), category);
-	} else if (ratings.unverified[category][title]) {
-		const unverifiedReviewRating = ratings.unverified[category][title].rating;
-		delete ratings.unverified[category][title];
-		exports.outputRatings(Math.floor(unverifiedReviewRating), 'unverified', category);
-	} else {
-		ratingsChannel.send(new Discord.RichEmbed({
+	if (!rating.reviews[userID] || Object.keys(rating.reviews).length !== 1) {
+		return ratingsChannel.send(new Discord.RichEmbed({
 			color: util.getUserColor(userID),
-			title: `Title not Found`,
-			description: `There is no title matching "${title}" in ${category}`
+			title: `Deletion Not Authorized`,
+			description: `"${title}" can not be deleted, except by ${util.mentionUser(c.K_ID)},` +
+				' as you are not the sole reviewer of this title.'
 		}));
-		return;
 	}
 
+	util.logger.info(`<INFO> ${util.getTimestamp()} Deleting rating for "${title}" in ${category}`);
+	if (isVerified) {
+		delete ratings[category][title];
+	} else {
+		delete ratings.unverified[category][title];
+	}
+
+	exports.outputRatings(Math.floor(rating.rating), category, isVerified);
 	ratingsChannel.send(new Discord.RichEmbed({
 		color: util.getUserColor(userID),
 		title: `Rating Deleted`,
