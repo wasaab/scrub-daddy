@@ -126,4 +126,12 @@ Discord bot with the following 83 commands:
       If you need help generating the discord bot token needed to add the bot to your server, use [the guide created by jagrosh](https://github.com/jagrosh/MusicBot/wiki/Adding-Your-Bot-To-Your-Server)
 
 4. Give the bot admin permissions on your server.
-5. Call `.setup` within the server you added this bot to once that file is created. You can add the api keys later, but the token needs to be added prior to calling `.setup`.
+5. Call `npm install forever -g` in the console.
+6. To start the bot call one of the following commands witin `scrub-daddy`:
+      + `forever start src/bot.js`
+            + Will auto restart on errors.
+            + Console output is redirected to a log file, which can be found by calling: `forever logs`
+      + `node src/bot.js`
+            + No auto restart
+            + Console output is shown
+7. Call `.setup` within the server you added this bot to once that file is created. You can add the api keys later, but the token needs to be added prior to calling `.setup`.
