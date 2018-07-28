@@ -1390,7 +1390,7 @@ function getKeysSortedByValues(obj) {
 function determineChannelsPowerUsers(channel) {
 	var userIDToPostCount = {};
 
-	channel.fetchMessages({limit: 100})
+	return channel.fetchMessages({limit: 100})
 	.then((messages) => {
 		messages.array().forEach((message) => {
 			if (message.author.bot) { return; }
@@ -1401,9 +1401,9 @@ function determineChannelsPowerUsers(channel) {
 				userIDToPostCount[message.author.id]++;
 			}
 		})
-	});
 
-	return getKeysSortedByValues(userIDToPostCount).splice(7);	// Only include the 7 top posters
+		return getKeysSortedByValues(userIDToPostCount).splice(7);	// Only include the 7 top posters
+	});
 }
 
 /**
@@ -1414,7 +1414,7 @@ function determineChannelsPowerUsers(channel) {
  * @param {String} customMessage - message to send to power users
  */
 function mentionChannelsPowerUsers(channel, nickName, customMessage) {
-	var msg = `↪️ **${nickName}**: \`@${mentionChannel(channel.id)}\` ${customMessage}`;
+	var msg = `↪️ **${nickName}**: \`@${channel}\` ${customMessage}`;
 
 	const powerUsers = determineChannelsPowerUsers(channel);
 	if (!powerUsers) { return; }
