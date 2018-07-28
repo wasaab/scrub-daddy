@@ -715,7 +715,10 @@ exports.setDynamicGameChannels = function(channels) {
 	if (!c.GAME_CHANNEL_NAMES) { return; }
 
 	Object.keys(c.GAME_CHANNEL_NAMES).forEach((channelID) => {
-		gameChannels.push(channels.find('id', channelID));
+		const channel = channels.find('id', channelID);
+		if (!channel) { return; }
+
+		gameChannels.push(channel);
 	});
 };
 
