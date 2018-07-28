@@ -549,7 +549,8 @@ exports.delete = function(args, channel, userID) {
 	const { title, rating, category, isVerified } = getRating(util.getTargetFromArgs(args, 1));
 	if (!title) { return titleNotFound(title, channel, userID); }
 
-	if (!rating.reviews[userID] || Object.keys(rating.reviews).length !== 1) {
+	//If not admin and the user is not the only reviewer of the title
+	if (!util.isAdmin(userID) && (!rating.reviews[userID] || Object.keys(rating.reviews).length !== 1)) {
 		return channel.send(new Discord.RichEmbed({
 			color: util.getUserColor(userID),
 			title: `Deletion Not Authorized`,

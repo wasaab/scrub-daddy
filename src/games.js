@@ -439,7 +439,7 @@ function maybeAddCurrPlayingToArgs(args, message) {
 /**
  * @Mentions every user that plays the provided game, asking them if they want to play.
  */
-exports.letsPlay = function(args, userID, userName, message, oneMore) {
+exports.letsPlay = function(args, userID, userName, message, oneMore, customMessage) {
 	const emojis = message.guild.emojis;
 	args = maybeAddCurrPlayingToArgs(args, message);
 	if (!args) {
@@ -457,9 +457,15 @@ exports.letsPlay = function(args, userID, userName, message, oneMore) {
 	var usersWhoPlay = gameUserData.users;
 	if (usersWhoPlay) {
 		game = emojis.find('name',  util.capitalizeFirstLetter(game)) || game;
-		const oneMoreMsg = oneMore ? 'We need **1** more for ' : '';
-		const punctuation = oneMore ? '!' : '?';
-		var msg = `↪️ **${userName}**: ${oneMoreMsg}${game}${punctuation}`;
+		var msg = `↪️ **${userName}**: `;
+		if (customMessage) {
+			msg += `\`@${gameUserData.title}\` ${customMessage}`;
+		} else {
+			const oneMoreMsg = oneMore ? 'We need **1** more for ' : '';
+			const punctuation = oneMore ? '!' : '?';
+			msg += `${oneMoreMsg}${game}${punctuation}`
+		}
+
 		usersWhoPlay.forEach((user) => {
 			if ((gameIdx === 2 && user.role === '(ᵔᴥᵔ) ͡Super ͡Scrubs ™') ||
 				(args[1] === '-r' && moment().diff(moment(user.time), 'days') > 5)) {

@@ -25,7 +25,8 @@ var userIDToAliases = require('../resources/data/aliases.json');
 var soundBytes = require('../resources/data/soundbytes.json');
 var lists = require('../resources/data/lists.json');
 var quotes = require('../resources/data/quotes.json');
-const catFacts = require('../resources/data/catfacts.json');
+var groups = require('../resources/data/groups.json');
+var catFacts = require('../resources/data/catfacts.json');
 const private = require('../../private.json');
 
 var previousTip = {};
@@ -1373,6 +1374,138 @@ function maybeUnbanSpammers() {
 }
 
 /**
+ * Gets an array of the keys, sorted by their values (descending).
+ *
+ * @param {Object} obj - object to sort keys by values on
+ */
+function getKeysSortedByValues(obj) {
+	return Object.keys(obj).sort((a,b) => obj[b]-obj[a]);
+}
+
+/**
+ * Determines the power users of a channel.
+ *
+ * @param {Object} channel - channel to determine power users of
+ */
+function determineChannelsPowerUsers(channel) {
+	var userIDToPostCount = {};
+
+	channel.fetchMessages({limit: 100})
+	.then((messages) => {
+		messages.array().forEach((message) => {
+			if (message.author.bot) { return; }
+
+			if (!userIDToPostCount[message.author.id]) {
+				userIDToPostCount[message.author.id] = 1;
+			} else {
+				userIDToPostCount[message.author.id]++;
+			}
+		})
+	});
+
+	return getKeysSortedByValues(userIDToPostCount).splice(7);	// Only include the 7 top posters
+}
+
+/**
+ * Mentions the power users of the channel with a custom message.
+ *
+ * @param {Object} channel - channel to mention power users of
+ * @param {String} nickName - nickname of calling user
+ * @param {String} customMessage - message to send to power users
+ */
+function mentionChannelsPowerUsers(channel, nickName, customMessage) {
+	var msg = `↪️ **${nickName}**: \`@${mentionChannel(channel.id)}\` ${customMessage}`;
+
+	const powerUsers = determineChannelsPowerUsers(channel);
+	if (!powerUsers) { return; }
+
+	powerUsers.forEach((powerUserID) => {
+		msg += ` ${mentionUser(powerUserID)}`;
+	});
+
+	channel.send(msg);
+}
+
+/**
+ * Gets the group matching the target name.
+ *
+ * @param {String} targetGroupName - group to find
+ */
+function getGroup(targetGroupName) {
+	if (!targetGroupName) { return; }
+
+	const groupNames = Object.keys(groups);
+	var groupFuzzyOptions = c.WHO_PLAYS_FUZZY_OPTIONS;
+	delete groupFuzzyOptions.keys;
+
+	const fuse = new Fuse(groupNames, groupFuzzyOptions);
+	const fuzzyResults = fuse.search(targetGroupName);
+	if (fuzzyResults.length === 0) { return; }
+
+	const groupName = groupNames[fuzzyResults[0]];
+	return groups[groupName];
+}
+
+/**
+ * Mentions a group of users with a custom message.
+ *
+ * @param {String} groupName - name of the group to mention
+ * @param {String[]} args - arguments passed to command
+ * @param {Object} message - the message command was sent in
+ * @param {Object} channel - channel command was sent in
+ * @param {String} userID - id of the user
+ */
+function mentionGroup(groupName, args, message, channel, userID) {
+	const customMessage = getTargetFromArgs(args, 2);
+	const group = getGroup(groupName);
+	const nickName = getNick(userID);
+
+	if (!group) {
+		//If no group found and called from bot spam or scrubs channel, trigger a call to letsPlay with groupName
+		if (c.BOT_SPAM_CHANNEL_ID === channel.id || c.SCRUBS_CHANNEL_ID === channel.id) {
+			const letsPlayArgs = ['lets-play', groupName];
+			games.letsPlay(letsPlayArgs, userID, nickName, message, false, customMessage);
+		} else { //If no group found and called from any other channel, trigger a call to mentionChannelsPowerUsers
+			mentionChannelsPowerUsers(channel, nickName, customMessage);
+		}
+	} else if (Array.isArray(group)) { //Mention the group of users retrieved from getGroup
+		var msg = `↪️ **${nickName}**: \`@${groupName}\` ${customMessage}`;
+		group.forEach((groupMemberID) => {
+			msg += ` ${mentionUser(groupMemberID)}`;
+		});
+		bot.getScrubsChannel().send(msg);
+	} else { //Trigger a call to letsPlay with title retrieved from getGroup
+		const letsPlayArgs = ['lets-play', ...group.split(' ')];
+		games.letsPlay(letsPlayArgs, userID, nickName, message, false, customMessage);
+	}
+}
+
+/**
+ * Creates a group of users that can be mentioned.
+ *
+ * @param {String} groupName - name of the group to create
+ * @param {String[]} args - arguments passed to command
+ * @param {String} userID - id of the user
+ */
+function createGroup(groupName, args, userID) {
+	var group = [];
+
+	if (args[2].startsWith('<@!')) {	//create a mentionable group of users
+		args.slice(2).forEach((userMention) => {
+			group.push(getIdFromMention(userMention));
+		});
+	} else {	//create a mentionable group of users who play a specific game
+		const gameName = getTargetFromArgs(args, 2);
+		group = gameName;
+	}
+
+	groups[groupName] = group;
+	sendEmbedMessage('Group Created', `You can now call \`${config.prefix}@${groupName} message to send to group\` ` +
+		`from ${mentionChannel(c.BOT_SPAM_CHANNEL_ID)} or ${mentionChannel(c.SCRUBS_CHANNEL_ID)}`, userID);
+	exportJson(groups, 'groups');
+}
+
+/**
  * Adds an item to a list.
  *
  * @param {String[]} args - arguments passed to command
@@ -1575,6 +1708,7 @@ exports.capitalizeFirstLetter = capitalizeFirstLetter;
 exports.compareFieldValues = compareFieldValues;
 exports.createAlias = createAlias;
 exports.createChannelInCategory = createChannelInCategory;
+exports.createGroup = createGroup;
 exports.createList = createList;
 exports.deleteMessages = deleteMessages;
 exports.enableServerLogRedirect = enableServerLogRedirect;
@@ -1609,6 +1743,7 @@ exports.maybeInsertQuotes = maybeInsertQuotes;
 exports.maybeRemoveFromArray = maybeRemoveFromArray;
 exports.maybeUpdateDynamicMessage = maybeUpdateDynamicMessage;
 exports.mentionChannel = mentionChannel;
+exports.mentionGroup = mentionGroup;
 exports.mentionRole = mentionRole;
 exports.mentionUser = mentionUser;
 exports.outputAliases = outputAliases;

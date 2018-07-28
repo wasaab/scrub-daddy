@@ -221,6 +221,10 @@ module.exports = {
 				{ name: '.create-list <`name of list`>', value: '`to create a named list that users can add entries to.`', inline: 'false'},
 				{ name: '.list', value: '`to view all of the user created lists.`', inline: 'false'},
 				{ name: '.list <`list-name`> <`your new entry`>', value: '`to add a new entry to a user created list.`', inline: 'false'},
+				{ name: '.create-group <`groupName`> <`@user1`> <`@user2`>', value: '`To create a mentionable group of users. You can mention as many users as you want.`', inline: 'false'},
+				{ name: '.create-group <`groupName`> <`title of game`>', value: '`To create a mentionable group of users who play the specified game.`', inline: 'false'},
+				{ name: '.@<`groupName`> <`message to send`>', value: '`To mention all members of a custom group in a message.`', inline: 'false'},
+				{ name: '.@<`gameName`> <`message to send`>', value: '`To mention all users who play gameName in a message.`', inline: 'false'},
 				{ name: '.delete', value: '`call this after adding both :trashcan: and :black_circle: reactions to first and last messages to delete.\n' +
 					'All messages between the two you reacted to will be deleted, including those two.\nThis will only work if you are in a temp channel you created.`', inline: 'false'}
 			]
@@ -314,10 +318,10 @@ module.exports = {
 		}
 	],
 	COMMANDS: [
-		'&nb5::(${162434234357645312})%3', '1-more','21', '2e',
+		'@', '1-more','21', '2e',
 		'add-sb', 'alias', 'army',
 		'backup',
-		'catfacts', 'change-category', 'clean', 'color', 'create-list',
+		'catfacts', 'change-category', 'clean', 'color', 'create-group', 'create-list',
 		'delete', 'delete-rating', 'discharge',
 		'enlist', 'export',
 		'feature',
@@ -331,13 +335,13 @@ module.exports = {
 		'p', 'playing',
 		'quote', 'quotes',
 		'rank', 'ranks', 'rate', 'refresh-ratings', 'ratings', 'rating-info', 'rename', 'restart', 'restore', 'review-messages', 'revive',
-		'sb', 'sb-add', 'set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'start-lotto', 'stats', 'stay', 'steal','sunken-sailor',
+		'sb', 'sb-add', 'set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'start-lotto', 'stats', 'stay', 'steal', 'steal-all', 'sunken-sailor',
 		'temp', 'time', 'tips', 'toggle-streaming',
 		'unalias', 'update-readme',
 		'vote', 'voteban', 'voteinfo', 'votekick',
 		'who-plays', 'who-said'
 	],
-	GLOBAL_COMMANDS: ['quote', 'delete', 'leave-temp', 'rate', 'rename', 'refresh-ratings', 'rating-info', 'change-category', 'delete-rating'],
+	GLOBAL_COMMANDS: ['@', 'quote', 'delete', 'leave-temp', 'rate', 'rename', 'refresh-ratings', 'rating-info', 'change-category', 'delete-rating'],
 	WHO_PLAYS_FUZZY_OPTIONS: {
 		shouldSort: true,
 		threshold: 0.3,
