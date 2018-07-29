@@ -386,13 +386,21 @@ exports.outputRatings = function(rating, category, isVerified, channel) {
  */
 exports.rate = function(targetCategory, rating, args, channel, userID) {
 	targetCategory = targetCategory === 'movie' ? 'movies' : targetCategory;
-	if (targetCategory !== 'movies' && targetCategory !== 'tv') { return; }
+	var titleIdx = 3;
+	if (targetCategory !== 'movies' && targetCategory !== 'tv') {
+		if (isNaN(targetCategory)) { return; }
 
-	const categoryEmoji = targetCategory === 'tv' ? c.TV_EMOJI : c.MOVIES_EMOJI;
-	const title = determineTitle(util.getTargetFromArgs(args, 3));
-	const { category } = getRating(title);
+		rating = targetCategory;
+		targetCategory = null;
+		titleIdx = 2;
+	}
 
-	if (category && category !== targetCategory) {
+	const targetTitle = determineTitle(util.getTargetFromArgs(args, titleIdx));
+	const { category, title } = getRating(targetTitle);
+	if (!title && !targetCategory) { return; }
+
+
+	if (category && targetCategory && category !== targetCategory) {
 		return channel.send(new Discord.RichEmbed({
 			color: util.getUserColor(userID),
 			title: `Duplicate Titles Not Allowed`,
@@ -400,7 +408,9 @@ exports.rate = function(targetCategory, rating, args, channel, userID) {
 		}));
 	}
 
+	targetCategory = targetCategory || category;
 	var avgRating = updateRatingAndDetermineAvg(targetCategory, title, userID, rating, channel);
+	const categoryEmoji = c[`${targetCategory.toUpperCase()}_EMOJI`];
 
 	channel.send(new Discord.RichEmbed({
 		color: util.getUserColor(userID),
