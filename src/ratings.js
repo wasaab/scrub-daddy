@@ -376,9 +376,9 @@ exports.outputRatings = function(rating, category, isVerified, inSetup) {
 	if (output === '') { return; }
 
 
+	const verification = isVerified ? '' : 'UNVERIFIED_';
+	const msgToEdit = `${verification}${rating}_STAR_${category.toUpperCase()}_MSG_ID`;
 	if (!inSetup) {
-		const verification = isVerified ? '' : 'UNVERIFIED_';
-		const msgToEdit = `${verification}${rating}_STAR_${category.toUpperCase()}_MSG_ID`;
 		ratingsChannel.fetchMessage(c[msgToEdit])
 			.then((message) => {
 				const updatedMsg = new Discord.RichEmbed({
