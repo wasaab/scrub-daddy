@@ -222,13 +222,15 @@ function refreshRatings(channel) {
  *
  * @param {Object} channel - channel to refresh ratings in
  */
-function maybeExportAndRefreshRatings(channel) {
+function maybeExportAndRefreshRatings(channel, titleToPartialTitleMatch, missingTitles) {
 	if (ratingsResponses < 5) {
 		ratingsResponses++;
 	} else {
 		util.exportJson(ratings, 'ratings');
 		ratingsResponses = 0
 		refreshRatings(channel);
+		util.logger.info(`<INFO> ${util.getTimestamp()}  3rd Party Ratings Partial Matches: ${inspect(titleToPartialTitleMatch)}`);
+		util.logger.info(`<INFO> ${util.getTimestamp()}  3rd Party Ratings Not Matched: ${inspect(missingTitles)}`);
 	}
 }
 
@@ -241,10 +243,14 @@ function maybeExportAndRefreshRatings(channel) {
  */
 function updateThirdPartyRatingsForCategory(site, responses, category) {
 	var titles = Reflect.ownKeys(category);
+	var titleToPartialMatch = {};
+	var titlesNotFound = [];
 
 	responses.forEach((response, responseIdx) => {
+		const targetTitle = titles[responseIdx];
 		if (!response.success) {
-			util.logger.error(`<ERROR> ${util.getTimestamp()}  RT/IMDB Rating not found for title "${titles[responseIdx]}", Error: ${inspect(response.error)}`);
+			titlesNotFound.push(targetTitle);
+			util.logger.error(`<ERROR> ${util.getTimestamp()}  RT/IMDB Rating not found for title "${targetTitle}", Error: ${inspect(response.error)}`);
 			return;
 		}
 
@@ -254,14 +260,15 @@ function updateThirdPartyRatingsForCategory(site, responses, category) {
 		if (!score) { return; }
 
 		if (!category[title]) {
-			util.logger.error(`<ERROR> ${util.getTimestamp()}  RT/IMDB rating found, but expected title of ${titles[responseIdx]} does not match result: ${title}`);
+			titleToPartialMatch[targetTitle] = title;
+			util.logger.error(`<ERROR> ${util.getTimestamp()}  RT/IMDB rating found, but expected title of ${targetTitle} does not match result: ${title}`);
 		} else {
 			category[title][`${site}Rating`] = score;
 			util.logger.info(`<INFO> ${util.getTimestamp()} ${site} Rating for ${title} = ${score}`);
 		}
 	})
 
-	return category;
+	return { updatedCategory: category, titleToPartialMatch: titleToPartialMatch, titlesNotFound: titlesNotFound };
 }
 
 /**
@@ -511,20 +518,31 @@ exports.rename = function(args, userID, channel) {
 exports.updateThirdPartyRatings = function() {
 	const channel = bot.getClient().channels.find('id', c.RATINGS_CHANNEL_ID);
 	const categories =  ['tv', 'movies'];
+	var titleToPartialTitleMatch = {};
+	var missingTitles = [];
+
+	function sumRatingErrors(titleToPartialMatch, titlesNotFound) {
+		Object.assign(titleToPartialTitleMatch, titleToPartialMatch);
+		missingTitles.concat(titlesNotFound);
+	}
 
 	categories.forEach((category) => {
 		const sites = category === 'tv' ? ['imdb'] : ['rt', 'imdb'];
 		sites.forEach((site) => {
 			getThirdPartyRatingsForCategory(ratings[category], site)
 				.then((responses) => {
-					ratings[category] = updateThirdPartyRatingsForCategory(site, responses, ratings[category]);
-					maybeExportAndRefreshRatings(channel);
+					const { updatedCategory, titleToPartialMatch, titlesNotFound } = updateThirdPartyRatingsForCategory(site, responses, ratings[category]);
+					sumRatingErrors(titleToPartialMatch, titlesNotFound);
+					ratings[category] = updatedCategory;
+					maybeExportAndRefreshRatings(channel, titleToPartialTitleMatch, missingTitles);
 				});
 
 			getThirdPartyRatingsForCategory(ratings.unverified[category], site)
 				.then((responses) => {
-					ratings.unverified[category] = updateThirdPartyRatingsForCategory(site, responses, ratings.unverified[category]);
-					maybeExportAndRefreshRatings(channel);
+					const { updatedCategory, titleToPartialMatch, titlesNotFound } = updateThirdPartyRatingsForCategory(site, responses, ratings.unverified[category]);
+					sumRatingErrors(titleToPartialMatch, titlesNotFound);
+					ratings.unverified[category] = updatedCategory;
+					maybeExportAndRefreshRatings(channel, titleToPartialTitleMatch, missingTitles);
 				});
 		});
 	});
