@@ -3,6 +3,33 @@
 
 [Update Log](https://github.com/wasaab/scrub-daddy/tree/update-log)
 
+## Setup
+
+1. Clone or download this repo.
+2. Call `npm install` within `scrub-daddy`.
+3. Add a file named `private.json` with the following contents one directory outside of the `scrub-daddy` directory:
+
+      ```
+      {
+            "token": "Insert your discord bot token here.",
+            "trnApiKey": "Get a fortnite stats TRN API key from https://fortnitetracker.com/site-api and insert it here",
+            "googleUrlApiKey": "Get a Google URL Shortener API key from https://developers.google.com/url-shortener/v1/getting_started#APIKey and insert it here"
+      }
+      ```
+
+      If you need help generating the discord bot token needed to add the bot to your server, use [the guide created by jagrosh](https://github.com/jagrosh/MusicBot/wiki/Adding-Your-Bot-To-Your-Server)
+
+4. Give the bot admin permissions on your server.
+5. Call `npm install forever -g` in the console.
+6. To start the bot call one of the following commands within `scrub-daddy`:
+      1. `forever start src/bot.js`
+            + Will auto restart on errors.
+            + Console output is redirected to a log file, which can be found by calling: `forever logs`
+      2. `node src/bot.js`
+            + No auto restart
+            + Console output is shown
+7. Call `.setup` within the server you added this bot to once that file is created. You can add the api keys later, but the token needs to be added prior to calling `.setup`.
+
 Discord bot with the following 83 commands:
 
 1. Voting
@@ -108,30 +135,3 @@ Discord bot with the following 83 commands:
       + revive - `revives a fallen Scrubbing Bubble.`
       + update-readme - `updates the readme to include new commands.`
       + gen-heatmap - `generates the player count heatmap.`
-
-## Setup
-
-1. Clone or download this repo.
-2. Call `npm install` within `scrub-daddy`.
-3. Add a file named `private.json` with the following contents one directory outside of the `scrub-daddy` directory:
-
-      ```
-      {
-            "token": "Insert your discord bot token here.",
-            "trnApiKey": "Get a fortnite stats TRN API key from https://fortnitetracker.com/site-api and insert it here",
-            "googleUrlApiKey": "Get a Google URL Shortener API key from https://developers.google.com/url-shortener/v1/getting_started#APIKey and insert it here"
-      }
-      ```
-
-      If you need help generating the discord bot token needed to add the bot to your server, use [the guide created by jagrosh](https://github.com/jagrosh/MusicBot/wiki/Adding-Your-Bot-To-Your-Server)
-
-4. Give the bot admin permissions on your server.
-5. Call `npm install forever -g` in the console.
-6. To start the bot call one of the following commands within `scrub-daddy`:
-      1. `forever start src/bot.js`
-            + Will auto restart on errors.
-            + Console output is redirected to a log file, which can be found by calling: `forever logs`
-      2. `node src/bot.js`
-            + No auto restart
-            + Console output is shown
-7. Call `.setup` within the server you added this bot to once that file is created. You can add the api keys later, but the token needs to be added prior to calling `.setup`.
