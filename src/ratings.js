@@ -395,6 +395,8 @@ exports.rate = function(targetCategory, rating, args, channel, userID) {
 		titleIdx = 2;
 	}
 
+	if (isNaN(rating)) { return; }
+
 	const targetTitle = determineTitle(util.getTargetFromArgs(args, titleIdx));
 	const { category, title } = getRating(targetTitle);
 	if (!title && !targetCategory) { return; }
@@ -409,7 +411,7 @@ exports.rate = function(targetCategory, rating, args, channel, userID) {
 	}
 
 	targetCategory = targetCategory || category;
-	var avgRating = updateRatingAndDetermineAvg(targetCategory, title, userID, rating, channel);
+	var avgRating = updateRatingAndDetermineAvg(targetCategory, title, userID, Number(rating), channel);
 	const categoryEmoji = c[`${targetCategory.toUpperCase()}_EMOJI`];
 
 	channel.send(new Discord.RichEmbed({
