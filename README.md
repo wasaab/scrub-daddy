@@ -1,4 +1,6 @@
 # scrub-daddy
+![Scrub Daddy](https://i.imgur.com/aCIk1st.png)
+
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/8f59c3e85df049d3bd319a21576f37c4)](https://www.codacy.com/app/Scrubs/scrub-daddy?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=wasaab/scrub-daddy&amp;utm_campaign=Badge_Grade)
 
 [Update Log](https://github.com/wasaab/scrub-daddy/tree/update-log)
@@ -10,7 +12,7 @@ Discord bot with 90+ commands.
 ## Setup
 
 1. Clone or download this repo.
-2. Call `npm install` within `scrub-daddy`.
+2. Call `npm install` within the root directory (e.g. `scrub-daddy`)
 3. Add a file named `private.json` with the following contents one directory outside of the `scrub-daddy` directory:
 
       ```
@@ -23,16 +25,19 @@ Discord bot with 90+ commands.
 
       If you need help generating the discord bot token needed to add the bot to your server, use [the guide created by jagrosh](https://github.com/jagrosh/MusicBot/wiki/Adding-Your-Bot-To-Your-Server)
 
-4. Give the bot admin permissions on your server.
-5. Call `npm install forever -g` in the console.
-6. To start the bot call one of the following commands within `scrub-daddy`:
+4. Invite the bot to your server following the instructions linked above
+5. Create a role with admin permissions and assign it to the bot
+6. If you don't already have a default user role, create one now
+6. Call `npm install forever -g` in the console
+7. To start the bot call one of the following commands within `scrub-daddy`:
       1. `forever start src/bot.js`
             + Will auto restart on errors.
             + Console output is redirected to a log file, which can be found by calling: `forever logs`
       2. `node src/bot.js`
             + No auto restart
             + Console output is shown
-7. Call `.setup` within the server you added this bot to once that file is created. You can add the api keys later, but the token needs to be added prior to calling `.setup`.
+8. Call `.setup` within the server you added this bot to once that file is created. You can add the api keys later, but the token needs to be added prior to calling `.setup`.
+9. At the end of setup restart the bot by calling `forever stopall` or pressing `Ctrl + C` in the console and then use one of the run commands provided above
 
 ## Commands
 
