@@ -86,7 +86,7 @@ function determineRatingsOutput(titles, targetRatings, targetCategory, rating) {
 	var output = '';
 	titles.forEach((title, i) => {
 		const currRating = targetRatings[targetCategory][title];
-		var extraRating = '	';
+		var extraRating = '⠀⠀';
 		if (Math.floor(currRating.rating) === rating) {
 			if (currRating.time && moment().diff(moment(currRating.time), 'weeks') < 2) {
 				title += ' 🆕'
