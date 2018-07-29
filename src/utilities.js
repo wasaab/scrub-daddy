@@ -304,6 +304,7 @@ function getAuthor(userID) {
 function updateReadme() {
 	var result = '';
 	var cmdCount = 0;
+
 	c.HELP_CATEGORIES.forEach((category) => {
 		result += `\n1. ${category.name.split('\`').join('')}\n`;
 		category.fields.forEach((field) => {
@@ -311,7 +312,8 @@ function updateReadme() {
 			cmdCount++;
 		});
 	});
-	result = `# scrub-daddy\n${c.CODACY_BADGE}\n\nDiscord bot with the following ${cmdCount} commands:\n` + result;
+
+	result = `# scrub-daddy\n${c.CODACY_BADGE}\n\n${c.UPDATE_LOG_LINK}\n\nDiscord bot with the following ${cmdCount} commands:\n${result}\n\n${c.ADMIN_COMMANDS}`;
 	fs.writeFile('README.md', result, 'utf8', log);
 };
 

@@ -3,7 +3,9 @@
 
 [Update Log](https://boostlog.io/@wasaab/scrub-daddy-update-log-5ad3d7f547018500491f3bde)
 
-Discord bot with the following 83 commands:
+[Public Beta Release](https://github.com/wasaab/scrub-daddy/tree/public-release-2)
+
+Discord bot with the following 90 commands:
 
 1. Voting
       + Please Note - `You must be in a voice channel with at least 3 members to participate in a kick/ban vote.`
@@ -28,7 +30,7 @@ Discord bot with the following 83 commands:
       + .ranks - `outputs the army size of every user.`
       + .stats - `outputs your clean stats.`
       + .stats <`@user`> - `outputs the user's clean stats.`
-      + .who-said <`channel-name`> <`minMsgLength`> <`minMsgReactions`> <`sampleSize`> - `Starts a quote guessing game using 5 random quotes pulled from sampleSize messages, matching the provided criteria.`
+      + .who-said <`channel-name`> <`minMsgLength`> <`minMsgReactions`> <`sampleSize`> - `Starts a quote guessing game using 5 random quotes pulled from sampleSize messages matching the provided criteria.`
       + .sunken-sailor - `to start a game of Sunken Sailor with the users in your current voice channel.`
 
 1. Time Played
@@ -46,6 +48,7 @@ Discord bot with the following 83 commands:
       + .lets-play - `to ask all players of the game you are playing if they want to play.`
       + .lets-play <`Game Name|Game Emoji`> - `to ask all players of Game Name if they want to play.`
       + .lets-play -ss <`Game Name|Game Emoji`> - `.lets-play without @mentioning Super ͡Scrubs.`
+      + .lets-play -r <`Game Name|Game Emoji`> - `.lets-play without @mentioning Super ͡Scrubs and inactive players.`
       + .1-more - `to request 1 more player for the game you are playing via mentions.`
       + .p - `to ask @Scrubs to play PUBG in scrubs text channel.`
       + .fortnite-stats <`fortniteUserName|@user`> <`gameMode`> <`stat`> - `to lookup fortnite stats for the provided player.`
@@ -59,7 +62,7 @@ Discord bot with the following 83 commands:
       + .issue <`issue-title`> <`msg detailing issue`> - `to submit bot issues.`
       + .feature <`feature-title`> <`msg detailing feature`> - `to submit bot feature requests.`
       + .implement <`task-title`> - `to vote for the next task to complete.
-            where task-title is the channel title of the issue or feature.`
+            task-title is the channel title of the issue or feature.`
       + .help, .info, or .h - `to show this message again.`
 
 1. Roles & User Settings
@@ -71,7 +74,7 @@ Discord bot with the following 83 commands:
       + .set-stream <`url`> - `to set the url for either your stream or the stream you are watching.`
       + .toggle-streaming - `to toggle your streaming state on/off, which will update your nickname.`
       + .alias <`alias`> <`command to call`> - `creates an alias for the provided command call.
-             e.g. .alias ow who-plays Overwatch ... will allow you to call .ow`
+            e.g. .alias ow who-plays Overwatch ... will allow you to call .ow`
       + .unalias <`alias`> - `removes the alias with the provided name.`
 
 1. Soundbytes
@@ -95,9 +98,16 @@ Discord bot with the following 83 commands:
       + .create-list <`name of list`> - `to create a named list that users can add entries to.`
       + .list - `to view all of the user created lists.`
       + .list <`list-name`> <`your new entry`> - `to add a new entry to a user created list.`
+      + .create-group <`groupName`> <`@user1`> <`@user2`> - `To create a mentionable group of users. You can mention as many users as you want.`
+      + .create-group <`groupName`> <`title of game`> - `To create a mentionable group of users who play the specified game.`
+      + .@<`groupName`> <`message to send`> - `To mention all members of a custom group in a message.`
+      + .@<`gameName`> <`message to send`> - `To mention all users who play gameName in a message.`
+      + .@power <`message to send`> - `If not called from #bot-spam or #scrubs will mention the channel's power users in a message.`
       + .delete - `call this after adding both :trashcan: and :black_circle: reactions to first and last messages to delete.
-             All messages between the two you reacted to will be deleted, including those two.
-             This will only work if you are in a temp channel you created.`
+            All messages between the two you reacted to will be deleted, including those two.
+            This will only work if you are in a temp channel you created.`
+
+
 1. Admin Commands
       + backup - `backs up all json files within the data folder to ../jsonBackups.`
       + restore <`backupFileName`> - `restores json files to the specified backup.`

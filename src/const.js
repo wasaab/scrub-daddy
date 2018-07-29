@@ -394,7 +394,18 @@ module.exports = {
 	MAX_BITRATE: 96,
 	MIN_BITRATE: 64,
 	CODACY_BADGE: '[![Codacy Badge](https://api.codacy.com/project/badge/Grade/8f59c3e85df049d3bd319a21576f37c4)]'
-		+ '(https://www.codacy.com/app/Scrubs/scrub-daddy?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=wasaab/scrub-daddy&amp;utm_campaign=Badge_Grade)'
+		+ '(https://www.codacy.com/app/Scrubs/scrub-daddy?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=wasaab/scrub-daddy&amp;utm_campaign=Badge_Grade)',
+	UPDATE_LOG_LINK: '[Update Log](https://boostlog.io/@wasaab/scrub-daddy-update-log-5ad3d7f547018500491f3bde)',
+	ADMIN_COMMANDS: '1. Admin Commands\n' +
+		'+ backup - `backs up all json files within the data folder to ../jsonBackups.`\n' +
+		'+ restore <`backupFileName`> - `restores json files to the specified backup.`\n' +
+		'+ list-backups - `lists the available backups.`\n' +
+		'+ restart <`up|hard| `> - `restarts and updates the bot if specified.`\n' +
+		'+ export - `writes all local data to their appropriate json files immediately.`\n' +
+		'+ log - `toggles server output redirection to discord channel #server-log.`\n' +
+		'+ revive - `revives a fallen Scrubbing Bubble.`\n' +
+		'+ update-readme - `updates the readme to include new commands.`\n' +
+		'+ gen-heatmap - `generates the player count heatmap.`'
 };
 
 function deepFreeze(constants) {
