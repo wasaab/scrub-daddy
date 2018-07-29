@@ -3,6 +3,8 @@
 
 [Update Log](https://github.com/wasaab/scrub-daddy/tree/update-log)
 
+Discord bot with 90+ commands.
+
 ## Setup
 
 1. Clone or download this repo.
@@ -30,7 +32,7 @@
             + Console output is shown
 7. Call `.setup` within the server you added this bot to once that file is created. You can add the api keys later, but the token needs to be added prior to calling `.setup`.
 
-Discord bot with the following 83 commands:
+## Commands
 
 1. Voting
       + Please Note - `You must be in a voice channel with at least 3 members to participate in a kick/ban vote.`
