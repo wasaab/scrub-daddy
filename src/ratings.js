@@ -398,7 +398,7 @@ exports.rate = function(targetCategory, rating, args, channel, userID) {
 	if (isNaN(rating)) { return; }
 
 	const targetTitle = determineTitle(util.getTargetFromArgs(args, titleIdx));
-	const { category, title } = getRating(targetTitle);
+	var { category, title } = getRating(targetTitle);
 	if (!title && !targetCategory) { return; }
 
 
@@ -411,6 +411,7 @@ exports.rate = function(targetCategory, rating, args, channel, userID) {
 	}
 
 	targetCategory = targetCategory || category;
+	title = title || targetTitle;
 	var avgRating = updateRatingAndDetermineAvg(targetCategory, title, userID, Number(rating), channel);
 	const categoryEmoji = c[`${targetCategory.toUpperCase()}_EMOJI`];
 
