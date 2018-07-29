@@ -162,6 +162,11 @@ module.exports = {
 				{ name: '.list', value: '`to view all of the user created lists.`', inline: 'false'},
 				{ name: '.list <`list-name`> <`your new entry`>', value: '`to add a new entry to a user created list.`', inline: 'false'},
 				{ name: '.setup-ratings', value: '`to setup the tv and movies ratings channel (Admin only).`', inline: 'false'},
+				{ name: '.create-group <`groupName`> <`@user1`> <`@user2`>', value: '`To create a mentionable group of users. You can mention as many users as you want.`', inline: 'false'},
+				{ name: '.create-group <`groupName`> <`title of game`>', value: '`To create a mentionable group of users who play the specified game.`', inline: 'false'},
+				{ name: '.@<`groupName`> <`message to send`>', value: '`To mention all members of a custom group in a message.`', inline: 'false'},
+				{ name: '.@<`gameName`> <`message to send`>', value: '`To mention all users who play gameName in a message.`', inline: 'false'},
+				{ name: '.@power <`message to send`>', value: '`If not called from #bot-spam or #scrubs will mention the channel\'s power users in a message.`', inline: 'false'},
 				{ name: '.delete', value: '`call this after adding both :trashcan: and :black_circle: reactions to first and last messages to delete.\n' +
 					'All messages between the two you reacted to will be deleted, including those two.\nThis will only work if you are in a temp channel you created.`', inline: 'false'}
 			]
@@ -255,10 +260,10 @@ module.exports = {
 		}
 	],
 	COMMANDS: [
-		'&nb5::(${162434234357645312})%3', '1-more','21', '2e',
+		'@', '1-more','21', '2e',
 		'add-dynamic', 'add-sb', 'alias', 'army',
 		'backup',
-		'catfacts', 'change-category', 'clean', 'color', 'create-list',
+		'catfacts', 'change-category', 'clean', 'color', 'create-group', 'create-list',
 		'delete', 'delete-rating', 'discharge', 'done',
 		'enlist', 'export',
 		'feature',
@@ -272,13 +277,13 @@ module.exports = {
 		'p', 'playing',
 		'quote', 'quotes',
 		'rank', 'ranks', 'rate', 'refresh-ratings', 'ratings', 'rating-info', 'rename', 'restart', 'restore', 'review-messages', 'revive',
-		'sb', 'sb-add', 'set-fortnite-name', 'set-stream', 'setup', 'setup-ratings', 'shuffle-scrubs', 'start-lotto', 'stats', 'stay', 'steal','sunken-sailor',
+		'sb', 'sb-add', 'set-fortnite-name', 'set-stream', 'setup', 'setup-ratings', 'shuffle-scrubs', 'start-lotto', 'stats', 'stay', 'steal', 'steal-all','sunken-sailor',
 		'temp', 'time', 'tips', 'toggle-streaming',
 		'unalias', 'update-readme',
 		'vote', 'voteban', 'voteinfo', 'votekick',
 		'who-plays', 'who-said'
 	],
-	GLOBAL_COMMANDS: ['add-dynamic', 'done', 'setup', 'setup-ratings', 'quote', 'delete', 'leave-temp', 'rate', 'rename', 'refresh-ratings', 'rating-info', 'change-category', 'delete-rating'],
+	GLOBAL_COMMANDS: ['@', 'add-dynamic', 'done', 'setup', 'setup-ratings', 'quote', 'delete', 'leave-temp', 'rate', 'rename', 'refresh-ratings', 'rating-info', 'change-category', 'delete-rating'],
 	WHO_PLAYS_FUZZY_OPTIONS: {
 		shouldSort: true,
 		threshold: 0.3,
@@ -345,7 +350,18 @@ module.exports = {
 	MAX_BITRATE: 96,
 	MIN_BITRATE: 64,
 	CODACY_BADGE: '[![Codacy Badge](https://api.codacy.com/project/badge/Grade/8f59c3e85df049d3bd319a21576f37c4)]'
-		+ '(https://www.codacy.com/app/Scrubs/scrub-daddy?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=wasaab/scrub-daddy&amp;utm_campaign=Badge_Grade)'
+		+ '(https://www.codacy.com/app/Scrubs/scrub-daddy?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=wasaab/scrub-daddy&amp;utm_campaign=Badge_Grade)',
+	UPDATE_LOG_LINK: '[Update Log](https://boostlog.io/@wasaab/scrub-daddy-update-log-5ad3d7f547018500491f3bde)',
+	ADMIN_COMMANDS: '1. Admin Commands\n' +
+		'+ backup - `backs up all json files within the data folder to ../jsonBackups.`\n' +
+		'+ restore <`backupFileName`> - `restores json files to the specified backup.`\n' +
+		'+ list-backups - `lists the available backups.`\n' +
+		'+ restart <`up|hard| `> - `restarts and updates the bot if specified.`\n' +
+		'+ export - `writes all local data to their appropriate json files immediately.`\n' +
+		'+ log - `toggles server output redirection to discord channel #server-log.`\n' +
+		'+ revive - `revives a fallen Scrubbing Bubble.`\n' +
+		'+ update-readme - `updates the readme to include new commands.`\n' +
+		'+ gen-heatmap - `generates the player count heatmap.`'
 };
 
 function deepFreeze(constants) {

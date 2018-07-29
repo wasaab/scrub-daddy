@@ -46,16 +46,16 @@ function findClosestCommandMatch(command) {
 function handleCommand(message) {
 	var args = message.content.substring(1).match(/\S+/g);
 	if (!args) { return; }
-	if (args[0].startsWith('<@')) {
-		args[1] = args[0];
-		args[0] = 'quote';
-	}
+
 	var userID = message.member.id;
 	var cmd;
 	const aliasCmd = util.maybeGetAlias(args[0], userID);
 	if (aliasCmd) {
 		args = aliasCmd.split(' ');
 		cmd = args[0];
+	} else if ('@' === args[0][0]) {
+		args.splice(0,1,...['@', args[0].split('@')[1]]);
+		cmd = '@';
 	} else {
 		cmd = findClosestCommandMatch(args[0]);
 		if (!cmd) { return; }
@@ -68,10 +68,10 @@ function handleCommand(message) {
 	//If not called in from bot spam and not a global command, do nothing
 	if (channelID !== c.BOT_SPAM_CHANNEL_ID && !c.GLOBAL_COMMANDS.includes(cmd)) { return; }
 
-	function fakeStealAllCalled() {
-		if (userID === c.AF_ID || util.isAdmin(userID)) {
-			gambling.fakeStealAll();
-		}
+	function mentionGroupCalled() {
+		if (args.length < 2) { return; }
+		util.mentionGroup(args[1], args, message, message.channel, userID);
+		message.delete();
 	}
 	function oneMoreCalled() {
 		games.letsPlay(args, userID, user, message, true);
@@ -122,6 +122,11 @@ function handleCommand(message) {
 		if (args[1]) {
 			util.setUserColor(args[1], userID, message.guild);
 		}
+	}
+	function createGroupCalled() {
+		if (args.length < 3) { return; }
+		util.createGroup(args[1], args, userID);
+		message.delete();
 	}
 	function createListCalled() {
 		if (args[1]) {
@@ -352,6 +357,11 @@ function handleCommand(message) {
 			gambling.fakeSteal(Number(args[1]), args[2], userID)
 		}
 	}
+	function stealAllCalled() {
+		if (userID === c.AF_ID || util.isAdmin(userID)) {
+			gambling.fakeStealAll();
+		}
+	}
 	function sunkenSailorCalled() {
 		games.sunkenSailor(message.member);
 	}
@@ -406,7 +416,7 @@ function handleCommand(message) {
 	}
 
 	var commandToHandler = {
-		'&nb5::(${162434234357645312})%3': fakeStealAllCalled,
+		'@' : mentionGroupCalled,
 		'1-more': oneMoreCalled,
 		'21': blackjackCalled,
 		'2e': subscribeToCatFactsCalled,
@@ -420,6 +430,7 @@ function handleCommand(message) {
 		'change-category': changeCategoryCalled,
 		'clean': cleanCalled,
 		'color': colorCalled,
+		'create-group': createGroupCalled,
 		'create-list': createListCalled,
 		'delete': deleteCalled,
 		'delete-rating': deleteRatingCalled,
@@ -474,6 +485,7 @@ function handleCommand(message) {
 		'stats': statsCalled,
 		'stay': stayCalled,
 		'steal': stealCalled,
+		'steal-all': stealAllCalled,
 		'sunken-sailor': sunkenSailorCalled,
 		'temp': tempCalled,
 		'time': timeCalled,

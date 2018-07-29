@@ -25,7 +25,8 @@ var userIDToAliases = require('../resources/data/aliases.json');
 var soundBytes = require('../resources/data/soundbytes.json');
 var lists = require('../resources/data/lists.json');
 var quotes = require('../resources/data/quotes.json');
-const catFacts = require('../resources/data/catfacts.json');
+var groups = require('../resources/data/groups.json');
+var catFacts = require('../resources/data/catfacts.json');
 const private = require('../../private.json');
 
 var previousTip = {};
@@ -306,6 +307,7 @@ function getAuthor(userID) {
 function updateReadme() {
 	var result = '';
 	var cmdCount = 0;
+
 	c.HELP_CATEGORIES.forEach((category) => {
 		result += `\n1. ${category.name.split('\`').join('')}\n`;
 		category.fields.forEach((field) => {
@@ -313,7 +315,8 @@ function updateReadme() {
 			cmdCount++;
 		});
 	});
-	result = `# scrub-daddy\n${c.CODACY_BADGE}\n\nDiscord bot with the following ${cmdCount} commands:\n` + result;
+
+	result = `# scrub-daddy\n${c.CODACY_BADGE}\n\n${c.UPDATE_LOG_LINK}\n\nDiscord bot with the following ${cmdCount} commands:\n${result}\n\n${c.ADMIN_COMMANDS}`;
 	fs.writeFile('README.md', result, 'utf8', log);
 };
 
@@ -1382,6 +1385,145 @@ function maybeUnbanSpammers() {
 }
 
 /**
+ * Gets an array of the keys, sorted by their values (descending).
+ *
+ * @param {Object} obj - object to sort keys by values on
+ */
+function getKeysSortedByValues(obj) {
+	return Object.keys(obj).sort((a,b) => obj[b]-obj[a]);
+}
+
+/**
+ * Determines the power users based on number of posts.
+ *
+ * @param {Object[]} messages - messages to count with
+ */
+function determinePowerUsers(messages) {
+	var userIDToPostCount = {};
+
+	messages.forEach((message) => {
+		if (message.author.bot) { return; }
+
+		if (!userIDToPostCount[message.author.id]) {
+			userIDToPostCount[message.author.id] = 1;
+		} else {
+			userIDToPostCount[message.author.id]++;
+		}
+	})
+
+	return getKeysSortedByValues(userIDToPostCount);
+}
+
+/**
+ * Mentions the power users of the channel with a custom message.
+ *
+ * @param {Object} channel - channel to mention power users of
+ * @param {String} nickName - nickname of calling user
+ * @param {String} customMessage - message to send to power users
+ */
+function mentionChannelsPowerUsers(channel, nickName, customMessage) {
+	var msg = `↪️ **${nickName}**: @${channel} ${customMessage}`;
+
+	channel.fetchMessages({limit: 100})
+	.then((firstHundredMessages) => {
+		const lastMsgID = firstHundredMessages.get(firstHundredMessages.lastKey()).id;
+		channel.fetchMessages({limit: 100, before: lastMsgID})
+		.then((secondHundredMessages) => {
+			const messages = firstHundredMessages.array().concat(secondHundredMessages.array());
+			const powerUsers = determinePowerUsers(messages);
+
+			if (!powerUsers) { return; }
+			powerUsers.splice(5);	// Only include the 5 top posters
+
+			powerUsers.forEach((powerUserID) => {
+				msg += ` ${mentionUser(powerUserID)}`;
+			});
+
+			channel.send(msg);
+		});
+	});
+}
+
+/**
+ * Gets the group matching the target name.
+ *
+ * @param {String} targetGroupName - group to find
+ */
+function getGroup(targetGroupName) {
+	if (!targetGroupName) { return; }
+
+	const groupNames = Object.keys(groups);
+	var groupFuzzyOptions = c.WHO_PLAYS_FUZZY_OPTIONS;
+	delete groupFuzzyOptions.keys;
+
+	const fuse = new Fuse(groupNames, groupFuzzyOptions);
+	const fuzzyResults = fuse.search(targetGroupName);
+	if (fuzzyResults.length === 0) { return; }
+
+	const groupName = groupNames[fuzzyResults[0]];
+	return { group: groups[groupName], name: groupName };
+}
+
+/**
+ * Mentions a group of users with a custom message.
+ *
+ * @param {String} groupName - name of the group to mention
+ * @param {String[]} args - arguments passed to command
+ * @param {Object} message - the message command was sent in
+ * @param {Object} channel - channel command was sent in
+ * @param {String} userID - id of the user
+ */
+function mentionGroup(groupName, args, message, channel, userID) {
+	const customMessage = getTargetFromArgs(args, 2);
+	const { group, name } = getGroup(groupName);
+	const nickName = getNick(userID);
+
+	if (!group) {
+		//If no group found and called from bot spam or scrubs channel, trigger a call to letsPlay with groupName
+		if (c.BOT_SPAM_CHANNEL_ID === channel.id || c.SCRUBS_CHANNEL_ID === channel.id) {
+			const letsPlayArgs = ['lets-play', groupName];
+			games.letsPlay(letsPlayArgs, userID, nickName, message, false, customMessage);
+		} else { //If no group found and called from any other channel, trigger a call to mentionChannelsPowerUsers
+			mentionChannelsPowerUsers(channel, nickName, customMessage);
+		}
+	} else if (Array.isArray(group)) { //Mention the group of users retrieved from getGroup
+		var msg = `↪️ **${nickName}**: \`@${name}\` ${customMessage}`;
+		group.forEach((groupMemberID) => {
+			msg += ` ${mentionUser(groupMemberID)}`;
+		});
+		bot.getScrubsChannel().send(msg);
+	} else { //Trigger a call to letsPlay with title retrieved from getGroup
+		const letsPlayArgs = ['lets-play', ...group.split(' ')];
+		games.letsPlay(letsPlayArgs, userID, nickName, message, false, customMessage);
+	}
+}
+
+/**
+ * Creates a group of users that can be mentioned.
+ *
+ * @param {String} groupName - name of the group to create
+ * @param {String[]} args - arguments passed to command
+ * @param {String} userID - id of the user
+ */
+function createGroup(groupName, args, userID) {
+	var group = [];
+
+	if (args[2].startsWith('<@!')) {	//create a mentionable group of users
+		args.slice(2).forEach((userMention) => {
+			group.push(getIdFromMention(userMention));
+		});
+	} else {	//create a mentionable group of users who play a specific game
+		const gameName = getTargetFromArgs(args, 2);
+		group = gameName;
+	}
+
+	groups[groupName] = group;
+	sendEmbedMessage('Group Created', `You can now call \`${config.prefix}@${groupName} message to send to group\` ` +
+		`from ${mentionChannel(c.BOT_SPAM_CHANNEL_ID)} or ${mentionChannel(c.SCRUBS_CHANNEL_ID)}`, userID);
+	exportJson(groups, 'groups');
+}
+
+/**
  * Adds an item to a list.
  *
  * @param {String[]} args - arguments passed to command
@@ -1595,6 +1737,7 @@ exports.capitalizeFirstLetter = capitalizeFirstLetter;
 exports.compareFieldValues = compareFieldValues;
 exports.createAlias = createAlias;
 exports.createChannelInCategory = createChannelInCategory;
+exports.createGroup = createGroup;
 exports.createList = createList;
 exports.deleteMessages = deleteMessages;
 exports.enableServerLogRedirect = enableServerLogRedirect;
@@ -1630,6 +1773,7 @@ exports.maybeInsertQuotes = maybeInsertQuotes;
 exports.maybeRemoveFromArray = maybeRemoveFromArray;
 exports.maybeUpdateDynamicMessage = maybeUpdateDynamicMessage;
 exports.mentionChannel = mentionChannel;
+exports.mentionGroup = mentionGroup;
 exports.mentionRole = mentionRole;
 exports.mentionUser = mentionUser;
 exports.outputAliases = outputAliases;
