@@ -102,7 +102,7 @@ function determineRatingsOutput(titles, targetRatings, targetCategory, rating) {
 			if (currRating.rating % 1 !== 0) {
 				extraRating += `${getStars(1)} **${currRating.rating.toPrecision(2)}**`;
 			}
-			if (i !== titles.length - 1 && extraRating !== '') {
+			if (i !== titles.length - 1 && extraRating !== '⠀⠀') {
 				extraRating += '\n';
 			}
 			if ('⠀⠀' === extraRating) {
@@ -229,8 +229,8 @@ function maybeExportAndRefreshRatings(channel, titleToPartialTitleMatch, missing
 		util.exportJson(ratings, 'ratings');
 		ratingsResponses = 0
 		refreshRatings(channel);
-		util.logger.info(`<INFO> ${util.getTimestamp()}  3rd Party Ratings Partial Matches: ${inspect(titleToPartialTitleMatch)}`);
-		util.logger.info(`<INFO> ${util.getTimestamp()}  3rd Party Ratings Not Matched: ${inspect(missingTitles)}`);
+		util.logger.error(`<ERROR> ${util.getTimestamp()}  3rd Party Ratings Partial Matches: ${inspect(titleToPartialTitleMatch)}`);
+		util.logger.error(`<ERROR> ${util.getTimestamp()}  3rd Party Ratings Not Matched: ${inspect(missingTitles)}`);
 	}
 }
 
