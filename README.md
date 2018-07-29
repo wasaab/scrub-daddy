@@ -3,6 +3,8 @@
 
 [Update Log](https://github.com/wasaab/scrub-daddy/tree/update-log)
 
+[Bot Support Discord Server](https://discord.gg/gHfRWxs)
+
 Discord bot with 90+ commands.
 
 ## Setup
