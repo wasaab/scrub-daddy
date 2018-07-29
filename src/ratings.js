@@ -1,4 +1,5 @@
 var Discord = require('discord.js');
+var inspect = require('util-inspect');
 var moment = require('moment');
 var Fuse = require('fuse.js');
 var imdb = require('imdb-api');
@@ -239,9 +240,11 @@ function maybeExportAndRefreshRatings(channel) {
  * @param {String} site - site ratings are from
  */
 function updateThirdPartyRatingsForCategory(site, responses, category) {
-	responses.forEach((response) => {
+	var titles = Reflect.ownKeys(category);
+
+	responses.forEach((response, responseIdx) => {
 		if (!response.success) {
-			util.logger.error(`<ERROR> ${util.getTimestamp()}  RT/IMDB Rating not found for the title, Error: ${response.error}`);
+			util.logger.error(`<ERROR> ${util.getTimestamp()}  RT/IMDB Rating not found for title "${titles[responseIdx]}", Error: ${inspect(response.error)}`);
 			return;
 		}
 
@@ -251,7 +254,7 @@ function updateThirdPartyRatingsForCategory(site, responses, category) {
 		if (!score) { return; }
 
 		if (!category[title]) {
-			util.logger.error(`<ERROR> ${util.getTimestamp()}  RT/IMDB rating found, but no matching title for: ${title}`);
+			util.logger.error(`<ERROR> ${util.getTimestamp()}  RT/IMDB rating found, but expected title of ${titles[responseIdx]} does not match result: ${title}`);
 		} else {
 			category[title][`${site}Rating`] = score;
 			util.logger.info(`<INFO> ${util.getTimestamp()} ${site} Rating for ${title} = ${score}`);
@@ -268,7 +271,7 @@ function updateThirdPartyRatingsForCategory(site, responses, category) {
  * @param {String} site - site to get ratings from
  */
 function getThirdPartyRatingsForCategory(category, site) {
-	var titles = Object.keys(category);
+	var titles = Reflect.ownKeys(category);
 	var promises = [];
 
 	titles.forEach((title) => {
