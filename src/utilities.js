@@ -251,12 +251,13 @@ function compareFieldValues(a,b) {
  * @param {String} userID - id of sending user
  * @param {Object} footer - the footer for the message
  */
-function sendEmbedFieldsMessage(title, fields, userID, footer) {
+function sendEmbedFieldsMessage(title, fields, userID, footer, channelID) {
 	if (fields.length === 1 && fields[0].name === '') {
 		return;
 	}
 
-	return bot.getBotSpam().send(new Discord.RichEmbed({
+	const channel = channelID ? bot.getClient().channels.find('id', channelID) : bot.getBotSpam();
+	return channel.send(new Discord.RichEmbed({
 		color: getUserColor(userID),
 		title: title,
 		fields: fields,
@@ -267,7 +268,7 @@ function sendEmbedFieldsMessage(title, fields, userID, footer) {
 /**
  * Sends an embed message to bot-spam with an optional title, description, image, thumbnail(true/false), and footer.
  */
-function sendEmbedMessage(title, description, userID, image, thumbnail, footer) {
+function sendEmbedMessage(title, description, userID, image, thumbnail, footer, channelID) {
 	//these are all optional parameters
 	title = title || '';
 	description = description || '';
@@ -280,7 +281,8 @@ function sendEmbedMessage(title, description, userID, image, thumbnail, footer) 
 		footer: footer
 	};
 	message[picType] = { url: image };
-	return bot.getBotSpam().send(new Discord.RichEmbed(message))
+	const channel = channelID ? bot.getClient().channels.find('id', channelID) : bot.getBotSpam();
+	return channel.send(new Discord.RichEmbed(message))
 	.then((msgSent) => msgSent);
 };
 
@@ -749,7 +751,7 @@ function playSoundByte(channel, target, userID) {
 			});
 		})
 		.catch((err) => {
-			logger.error(`<ERROR> ${getTimestamp()}  Add Role Error: ${err}`);
+			logger.error(`<ERROR> ${getTimestamp()}  Soundbyte Error: ${err}`);
 		});
 	}
 }
@@ -763,7 +765,7 @@ var downloadAttachment = co.wrap(function *(msg, userID) {
 	var fileName = 'none';
 	try {
 		if (msg.attachments.length == 0) return;
-		const nameData = msg.attachments.array()[0].name.split('.');
+		const nameData = msg.attachments.array()[0].filename.split('.');
 		if (nameData[1] !== 'mp3') {
 			sendEmbedMessage('🎶 Invalid File', 'You must attach a .mp3 file with the description set to `*add-sb`', userID);
 			return;
@@ -772,7 +774,7 @@ var downloadAttachment = co.wrap(function *(msg, userID) {
 		yield Promise.all(msg.attachments.map(co.wrap(function *(file) {
 			yield retry(() => new Promise((finish, error) => {
 				request(file.url)
-				.pipe(fs.createWriteStream(`./resources/audio/${file.name.toLowerCase()}`))
+				.pipe(fs.createWriteStream(`./resources/audio/${file.filename.toLowerCase()}`))
 				.on('finish', finish)
 				.on('error', error)
 			}), 3)

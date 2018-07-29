@@ -104,6 +104,11 @@ function determineRatingsOutput(titles, targetRatings, targetCategory, rating) {
 			if (i !== titles.length - 1 && extraRating !== '') {
 				extraRating += '\n';
 			}
+			if ('⠀⠀' === extraRating) {
+				util.logger.info(`<INFO> ${util.getTimestamp()}  No IMDB or RT match for "${title}"`);
+				return;
+			}
+
 			output += extraRating;
 		}
 	});
@@ -235,14 +240,18 @@ function maybeExportAndRefreshRatings(channel) {
  */
 function updateThirdPartyRatingsForCategory(site, responses, category) {
 	responses.forEach((response) => {
-		if (!response.success) { return; }
+		if (!response.success) {
+			util.logger.error(`<ERROR> ${util.getTimestamp()}  RT/IMDB Rating not found for the title, Error: ${response.error}`);
+			return;
+		}
+
 		const review = response.result;
 		const title = site === 'rt' ? review.name : review.title;
 		const score = site === 'rt' ? get(review, 'aggregateRating.ratingValue') : review.rating;
 		if (!score) { return; }
 
 		if (!category[title]) {
-			util.logger.error(`<ERROR> ${util.getTimestamp()}  RT rating found, but no matching title for: ${title}`);
+			util.logger.error(`<ERROR> ${util.getTimestamp()}  RT/IMDB rating found, but no matching title for: ${title}`);
 		} else {
 			category[title][`${site}Rating`] = score;
 			util.logger.info(`<INFO> ${util.getTimestamp()} ${site} Rating for ${title} = ${score}`);

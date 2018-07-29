@@ -1,6 +1,6 @@
 /**
  * Discord BlackJack Bot
- * 
+ *
  * @author Alec Fox
  */
 
@@ -17,18 +17,18 @@ var cardSuit = '';
 var cardNumber = 0;
 
 /** Adds Scrubbing Bubbles winnings to user's army
- * 
+ *
  * @param {number} userID - user ID of player
  * @param {number} amount - amount of Scrubbing Bubbles won
- * 
+ *
  */
 function addToArmy(userID, amount) {
     g.getLedger()[userID].armySize += amount;
 }
 /** resets game of Blackjack
- * 
+ *
  * @param {number} userID - user ID of player
- * 
+ *
  */
 function resetGame(userID) {
     g.getLedger()[userID].gameOver = true;
@@ -60,10 +60,10 @@ function shuffle() {
     }
 }
 /**creats new instance of the player (resets ledger)
- * 
- * @param {number} userID - User's ID of player 
- * @param {string} userName - Username of player 
- * 
+ *
+ * @param {number} userID - User's ID of player
+ * @param {string} userName - Username of player
+ *
  **/
 function createPlayers(userID) {
     if (!g.getLedger()[userID]) {
@@ -73,8 +73,8 @@ function createPlayers(userID) {
         g.getLedger()[userID].dealer = {};
     }
     g.getLedger()[userID].gameOver = false;
-    g.getLedger()[userID].player.hand = new Array();
-    g.getLedger()[userID].dealer.hand = new Array();
+    g.getLedger()[userID].player.hand = [];
+    g.getLedger()[userID].dealer.hand = [];
     g.getLedger()[userID].player.points = 0;
     g.getLedger()[userID].dealer.points = 0;
     g.getLedger()[userID].player.aces = 0;
@@ -85,10 +85,10 @@ function createPlayers(userID) {
 }
 /**
  * Checks to see if Aces should be worth 11 points or 1 point
- * 
- * @param {number} userID - User's ID of player 
+ *
+ * @param {number} userID - User's ID of player
  * @param {string} player - player or dealer identifier
- * 
+ *
  */
 function checkAces(userID, player) {
     if (g.getLedger()[userID][player].points > 21) {
@@ -97,7 +97,7 @@ function checkAces(userID, player) {
                 g.getLedger()[userID][player].aces += 1;
             }
         }
-        while (g.getLedger()[userID][player].aces > 0 && g.getLedger()[userID][player].points > 21 
+        while (g.getLedger()[userID][player].aces > 0 && g.getLedger()[userID][player].points > 21
             && g.getLedger()[userID][player].aces > g.getLedger()[userID][player].acesCount) {
             g.getLedger()[userID][player].points -= 10;
             g.getLedger()[userID][player].aces = 0;
@@ -105,12 +105,12 @@ function checkAces(userID, player) {
         }
     }
 }
-/** 
+/**
  * Deals cards from the deck to the player's hand
- * 
- * @param {number} userID - User's ID of player 
+ *
+ * @param {number} userID - User's ID of player
  * @param {string} player - player or dealer identifier
- * 
+ *
 **/
 function dealCards(userID, player, userName) {
     var card = deck.pop();
@@ -132,12 +132,12 @@ function endGame(userID, payout) {
     resetGame(userID);
 }
 
-/** 
+/**
  * Checks for outcome of blackjack game
- * 
- * @param {number} userID - User's ID of player 
- * @param {string} userName - Username of player 
- * 
+ *
+ * @param {number} userID - User's ID of player
+ * @param {string} userName - Username of player
+ *
 **/
 function checkOutcome(userID, userName) {
     var bet = g.getLedger()[userID].bjBet;
@@ -166,12 +166,12 @@ function checkOutcome(userID, userName) {
         }
     }
 }
-/** 
+/**
  * Deals starting hands for blackjack and creates array for new player
- * 
- * @param {number} userID - User's ID of player 
- * @param {string} userName - Username of player 
- * 
+ *
+ * @param {number} userID - User's ID of player
+ * @param {string} userName - Username of player
+ *
 **/
 function dealHands(userID, userName, bet) {
     if (bet > g.getLedger()[userID].armySize) {
@@ -196,9 +196,9 @@ function dealHands(userID, userName, bet) {
 }
 
 /**
- * Populates the blackjack fields for the provided user in the ledger 
+ * Populates the blackjack fields for the provided user in the ledger
  * iff they don't already exist.
- * 
+ *
  * @param {String} userID  - the id of the user
  * @param {String} userName - the name of the user
  */
@@ -210,8 +210,8 @@ function maybePopulateBlackjackUserFields(userID, userName) {
 
 /**
  * Restores the old deck if a game was ongoing.
- * 
- * @param {number} userID - User's ID of player 
+ *
+ * @param {number} userID - User's ID of player
  */
 function maybeRestoreOldDeck(userID) {
     if (deck.length !== 0) { return; }
@@ -222,12 +222,12 @@ function maybeRestoreOldDeck(userID) {
     });
 }
 
-/** 
+/**
  * Adds card from top of deck to player's hand
- * 
- * @param {number} userID - User's ID of player 
- * @param {string} userName - Username of player 
- * 
+ *
+ * @param {number} userID - User's ID of player
+ * @param {string} userName - Username of player
+ *
 **/
 exports.hitMe = function (userID, userName) {
     maybePopulateBlackjackUserFields(userID, userName);
@@ -240,12 +240,12 @@ exports.hitMe = function (userID, userName) {
     }
 };
 
-/** 
+/**
  * Finalizes Player's hand and intitiates dealer's turn
- * 
- * @param {number} userID - User's ID of player 
- * @param {string} userName - Username of player 
- * 
+ *
+ * @param {number} userID - User's ID of player
+ * @param {string} userName - Username of player
+ *
 **/
 exports.stay = function (userID, userName) {
     maybePopulateBlackjackUserFields(userID, userName);
@@ -262,11 +262,11 @@ exports.stay = function (userID, userName) {
 };
 
 /**Checks to see if the bet is a valid number
- * 
+ *
  * @param {number} userID -user ID of player
  * @param {string} userName -username of player
  * @param {array} args -array of user's message after command
- * 
+ *
  */
 exports.checkUserData = function (userID, userName, args) {
     maybePopulateBlackjackUserFields(userID, userName);
