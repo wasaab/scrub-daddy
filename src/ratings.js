@@ -460,8 +460,9 @@ exports.rate = function(targetCategory, rating, args, channel, userID) {
  */
 exports.ratingInfo = function(args, userID) {
 	const channel = bot.getClient().channels.find('id', c.RATINGS_CHANNEL_ID);
-	const { title, rating, category, isVerified } = getRating(util.getTargetFromArgs(args, 1));
-	if (!title) { return titleNotFound(title, channel, userID); }
+	const targetTitle = util.getTargetFromArgs(args, 1);
+	const { title, rating, category, isVerified } = getRating(targetTitle);
+	if (!title) { return titleNotFound(targetTitle, channel, userID); }
 
 	const verification = isVerified ? '' : 'Unverified ';
 	var info = `***${verification}${util.capitalizeFirstLetter(category)}***\n\n`;
@@ -502,7 +503,7 @@ exports.rename = function(args, userID, channel) {
 	const newTitle = titles[1];
 
 	const { title, rating, category, isVerified } = getRating(oldTitle);
-	if (!title) { return titleNotFound(title, channel, userID); }
+	if (!title) { return titleNotFound(oldTitle, channel, userID); }
 
 	if (isVerified) {
 		ratings[category][newTitle] = ratings[category][title];
@@ -616,8 +617,9 @@ exports.changeCategory = function(args, channel, userID) {
  * @param {String} userID - id of calling user
  */
 exports.delete = function(args, channel, userID) {
-	const { title, rating, category, isVerified } = getRating(util.getTargetFromArgs(args, 1));
-	if (!title) { return titleNotFound(title, channel, userID); }
+	const targetTitle = util.getTargetFromArgs(args, 1);
+	const { title, rating, category, isVerified } = getRating(targetTitle);
+	if (!title) { return titleNotFound(targetTitle, channel, userID); }
 
 	//If not admin and the user is not the only reviewer of the title
 	if (!util.isAdmin(userID) && (!rating.reviews[userID] || Object.keys(rating.reviews).length !== 1)) {
