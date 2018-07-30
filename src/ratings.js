@@ -241,7 +241,7 @@ function maybeExportAndRefreshRatings(channel, titleToPartialTitleMatch, missing
  * @param {Object} category - category to get titles of
  */
 function getTitlesWithFlagEmojiRemoved(category) {
-	return Reflect.ownKeys(category).map((ket) => key.replace(' 🎌', ''));
+	return Reflect.ownKeys(category).map((key) => key.replace(' 🎌', ''));
 }
 
 /**
