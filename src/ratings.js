@@ -9,6 +9,7 @@ var rt = require('lw5');
 var c = require('./const.js');
 var bot = require('./bot.js');
 var util = require('./utilities.js');
+var private = require('../../private.json');
 var ratings = require('../resources/data/ratings.json');
 var ratingsResponses = 0;
 
@@ -229,9 +230,18 @@ function maybeExportAndRefreshRatings(channel, titleToPartialTitleMatch, missing
 		util.exportJson(ratings, 'ratings');
 		ratingsResponses = 0
 		refreshRatings(channel);
-		util.logger.error(`<ERROR> ${util.getTimestamp()}  3rd Party Ratings Partial Matches: ${inspect(titleToPartialTitleMatch)}`);
-		util.logger.error(`<ERROR> ${util.getTimestamp()}  3rd Party Ratings Not Matched: ${inspect(missingTitles)}`);
+		util.logger.error(`\n\n<ERROR> ${util.getTimestamp()}  3rd Party Ratings Partial Matches: ${inspect(titleToPartialTitleMatch)}`);
+		util.logger.error(`\n\n<ERROR> ${util.getTimestamp()}  3rd Party Ratings Not Matched: ${inspect(missingTitles)}`);
 	}
+}
+
+/**
+ * Gets the titles of the category with the flag emoji removed frome each.
+ *
+ * @param {Object} category - category to get titles of
+ */
+function getTitlesWithFlagEmojiRemoved(category) {
+	return Reflect.ownKeys(category).map((ket) => key.replace(' 🎌', ''));
 }
 
 /**
@@ -242,7 +252,7 @@ function maybeExportAndRefreshRatings(channel, titleToPartialTitleMatch, missing
  * @param {String} site - site ratings are from
  */
 function updateThirdPartyRatingsForCategory(site, responses, category) {
-	var titles = Reflect.ownKeys(category);
+	var titles = getTitlesWithFlagEmojiRemoved(category);
 	var titleToPartialMatch = {};
 	var titlesNotFound = [];
 
@@ -278,14 +288,14 @@ function updateThirdPartyRatingsForCategory(site, responses, category) {
  * @param {String} site - site to get ratings from
  */
 function getThirdPartyRatingsForCategory(category, site) {
-	var titles = Reflect.ownKeys(category);
+	var titles = getTitlesWithFlagEmojiRemoved(category);
 	var promises = [];
 
 	titles.forEach((title) => {
 		if (site === 'rt') {
 			promises.push(rt(title, 0, 3000))
 		} else {
-			promises.push(imdb.get(title, {apiKey: 'fa354300', timeout: 10000}));
+			promises.push(imdb.get(title, {apiKey: private.imdbApiKey, timeout: 10000}));
 		}
 	});
 
@@ -518,12 +528,28 @@ exports.rename = function(args, userID, channel) {
 exports.updateThirdPartyRatings = function() {
 	const channel = bot.getClient().channels.find('id', c.RATINGS_CHANNEL_ID);
 	const categories =  ['tv', 'movies'];
-	var titleToPartialTitleMatch = {};
-	var missingTitles = [];
+	var titleToPartialTitleMatch = {
+		movies: {
+			rt: {},
+			imdb: {}
+		},
+		tv: {
+			imdb: {}
+		}
+	};
+	var missingTitles = {
+		movies: {
+			rt: [],
+			imdb: []
+		},
+		tv: {
+			imdb: []
+		}
+	};
 
-	function sumRatingErrors(titleToPartialMatch, titlesNotFound) {
-		Object.assign(titleToPartialTitleMatch, titleToPartialMatch);
-		missingTitles.concat(titlesNotFound);
+	function sumRatingErrors(titleToPartialMatch, titlesNotFound, category, site) {
+		Object.assign(titleToPartialTitleMatch[category][site], titleToPartialMatch);
+		missingTitles[category][site] = missingTitles[category][site].concat(titlesNotFound);
 	}
 
 	categories.forEach((category) => {
@@ -532,7 +558,7 @@ exports.updateThirdPartyRatings = function() {
 			getThirdPartyRatingsForCategory(ratings[category], site)
 				.then((responses) => {
 					const { updatedCategory, titleToPartialMatch, titlesNotFound } = updateThirdPartyRatingsForCategory(site, responses, ratings[category]);
-					sumRatingErrors(titleToPartialMatch, titlesNotFound);
+					sumRatingErrors(titleToPartialMatch, titlesNotFound, category, site);
 					ratings[category] = updatedCategory;
 					maybeExportAndRefreshRatings(channel, titleToPartialTitleMatch, missingTitles);
 				});
@@ -540,7 +566,7 @@ exports.updateThirdPartyRatings = function() {
 			getThirdPartyRatingsForCategory(ratings.unverified[category], site)
 				.then((responses) => {
 					const { updatedCategory, titleToPartialMatch, titlesNotFound } = updateThirdPartyRatingsForCategory(site, responses, ratings.unverified[category]);
-					sumRatingErrors(titleToPartialMatch, titlesNotFound);
+					sumRatingErrors(titleToPartialMatch, titlesNotFound, category, site);
 					ratings.unverified[category] = updatedCategory;
 					maybeExportAndRefreshRatings(channel, titleToPartialTitleMatch, missingTitles);
 				});
