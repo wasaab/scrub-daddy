@@ -265,14 +265,15 @@ function updateThirdPartyRatingsForCategory(site, responses, category) {
 		}
 
 		const review = response.result;
-		const title = site === 'rt' ? review.name : review.title;
+		var title = site === 'rt' ? review.name : review.title;
 		const score = site === 'rt' ? get(review, 'aggregateRating.ratingValue') : review.rating;
 		if (!score) { return; }
 
-		if (!category[title]) {
+		if (!category[title] && !category[`${title} 🎌`]) {
 			titleToPartialMatch[targetTitle] = title;
 			util.logger.error(`<ERROR> ${util.getTimestamp()}  RT/IMDB rating found, but expected title of ${targetTitle} does not match result: ${title}`);
 		} else {
+			title = category[title] ? title : `${title} 🎌`;
 			category[title][`${site}Rating`] = score;
 			util.logger.info(`<INFO> ${util.getTimestamp()} ${site} Rating for ${title} = ${score}`);
 		}
