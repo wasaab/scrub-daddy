@@ -178,7 +178,7 @@ module.exports = {
 				{ name: '.issue <`issue-title`> <`msg detailing issue`>', value: '`to submit bot issues.`', inline: 'false'},
 				{ name: '.feature <`feature-title`> <`msg detailing feature`>', value: '`to submit bot feature requests.`', inline: 'false'},
 				{ name: '.implement <`task-title`>', value: '`to vote for the next task to complete.\ntask-title is the channel title of the issue or feature.`', inline: 'false'},
-				{ name: '.help, .info, or .h', value: '`to show this message again.`', inline: 'false'}
+				{ name: '.help or .h', value: '`to show this message again.`', inline: 'false'}
 			]
 		},
 		{
@@ -317,7 +317,7 @@ module.exports = {
 		'fortnite-leaderboard', 'fortnite-stats',
 		'gen-heatmap', 'give',
 		'h', 'heatmap', 'help', 'hit',
-		'implement', 'info', 'issue',
+		'implement', 'issue',
 		'join-review-team',
 		'list', 'leave-temp', 'leave-review-team', 'lets-play', 'list-backups', 'log', 'lotto',
 		'opt-in',

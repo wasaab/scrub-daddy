@@ -428,7 +428,6 @@ function handleCommand(message) {
 		'help': helpCalled,
         'hit':hitCalled,
 		'implement': implementCalled,
-		'info': helpCalled,
 		'issue': issueOrFeatureCalled,
 		'join-review-team': joinReviewTeamCalled,
 		'leave-temp': leaveTempCalled,
