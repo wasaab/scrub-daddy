@@ -4,6 +4,7 @@ var moment = require('moment');
 var Fuse = require('fuse.js');
 var imdb = require('imdb-api');
 var get = require('lodash.get');
+var rp = require('request-promise');
 var rt = require('lw5');
 
 var c = require('./const.js');
@@ -103,12 +104,9 @@ function determineRatingsOutput(titles, targetRatings, targetCategory, rating) {
 			if (currRating.rating % 1 !== 0) {
 				extraRating += `${getStars(1)} **${currRating.rating.toPrecision(2)}**`;
 			}
-			if (i !== titles.length - 1 && extraRating !== '⠀⠀') {
+			if ('⠀⠀' === extraRating) { return; }
+			if (i !== titles.length - 1) {
 				extraRating += '\n';
-			}
-			if ('⠀⠀' === extraRating) {
-				util.logger.info(`<INFO> ${util.getTimestamp()}  No IMDB or RT match for "${title}"`);
-				return;
 			}
 
 			output += extraRating;
@@ -162,6 +160,7 @@ function updateRatingAndDetermineAvg(category, title, userID, rating, channel) {
 		exports.outputRatings(Math.floor(avgRating), category, true, channel);
 	}
 	util.exportJson(ratings, 'ratings');
+	updateExternalRatingsJson();
 
 	return avgRating;
 }
@@ -228,6 +227,7 @@ function maybeExportAndRefreshRatings(channel, titleToPartialTitleMatch, missing
 		ratingsResponses++;
 	} else {
 		util.exportJson(ratings, 'ratings');
+		updateExternalRatingsJson();
 		ratingsResponses = 0
 		refreshRatings(channel);
 		util.logger.error(`\n\n<ERROR> ${util.getTimestamp()}  3rd Party Ratings Partial Matches: ${inspect(titleToPartialTitleMatch)}`);
@@ -522,6 +522,7 @@ exports.rename = function(args, userID, channel) {
 	}));
 
 	util.exportJson(ratings, 'ratings');
+	updateExternalRatingsJson();
 }
 
 /**
@@ -607,6 +608,7 @@ exports.changeCategory = function(args, channel, userID) {
 		description: `"${title}" has been moved from ${category} to ${newCategory}`
 	}));
 	util.exportJson(ratings, 'ratings');
+	updateExternalRatingsJson();
 }
 
 /**
@@ -645,4 +647,53 @@ exports.delete = function(args, channel, userID) {
 		description: `"${title}" has been deleted`
 	}));
 	util.exportJson(ratings, 'ratings');
+	updateExternalRatingsJson();
+}
+
+function convertRatingsToTableData() {
+	const categories = ['tv', 'movies'];
+	var tableData = [];
+
+	categories.forEach((category) => {
+		tableData = tableData.concat(convertRatingsCategoryToTableData(category, true))
+			.concat(convertRatingsCategoryToTableData(category, false));
+	});
+
+	return tableData;
+}
+
+function convertRatingsCategoryToTableData(category, isVerified) {
+	const reviewsInCategory = isVerified ? ratings[category] : ratings.unverified[category];
+	var tableData = [];
+
+	for (var title in reviewsInCategory) {
+		var rating = reviewsInCategory[title];
+		var reviewers = '';
+		for (var reviewerID in rating.reviews) {
+			reviewers += `${util.getNick(reviewerID)} (${rating.reviews[reviewerID]}), `;
+		}
+
+		rating.reviews = reviewers.slice(0, -2);
+		const reviewData = Object.assign({ title: title, category: category, verified: isVerified.toString()}, rating);
+		tableData.push(reviewData);
+	}
+
+	return tableData;
+}
+
+function updateExternalRatingsJson() {
+	const tableData = convertRatingsToTableData();
+	var options= {
+		uri: `https://api.myjson.com/bins/${private.externalJsonID}`,
+		method: 'PUT',
+		headers: {
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({ total: tableData.length, rows: tableData})
+	}
+	rp(options)
+		.then(function (response) {
+			util.logger.info(`<INFO> ${util.getTimestamp()} Reviews external json updated`);
+		})
+		.catch(util.log);
 }
