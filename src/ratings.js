@@ -675,6 +675,9 @@ function convertRatingsCategoryToTableData(category, isVerified) {
 
 		rating.reviews = reviewers.slice(0, -2);
 		const reviewData = Object.assign({ title: title, category: category, verified: isVerified.toString()}, rating);
+		if (rating.time) {
+			reviewData.time = moment(rating.time).format('M/D/YY');
+		}
 		tableData.push(reviewData);
 	}
 
@@ -689,7 +692,7 @@ function updateExternalRatingsJson() {
 		headers: {
 			'Content-Type': 'application/json'
 		},
-		body: JSON.stringify({ total: tableData.length, rows: tableData})
+		body: JSON.stringify(tableData)
 	}
 	rp(options)
 		.then(function (response) {
@@ -697,3 +700,5 @@ function updateExternalRatingsJson() {
 		})
 		.catch(util.log);
 }
+
+exports.testing = updateExternalRatingsJson;
