@@ -331,10 +331,15 @@ function getRating(title) {
 		const fuzzyResults = fuse.search(title);
 		if (fuzzyResults.length === 0) { return false; }
 
-		rating.title = ratingsKeys[fuzzyResults[0]];
+		const matchingTitle = ratingsKeys[fuzzyResults[0]];
+		const lastChar = title[title.length -1];
+		if (!isNaN(lastChar) && !matchingTitle.endsWith(lastChar)) { return false; }
+
+		rating.title = matchingTitle;
 		rating.isVerified = !category.includes('.');
 		rating.category =  rating.isVerified ? category : category.split('.')[1];
 		rating.rating = ratingsInCategory[rating.title];
+
 
 		return true;
 	});
