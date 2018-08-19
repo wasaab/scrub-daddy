@@ -18,6 +18,7 @@ module.exports = {
 	SCRUBS_ROLE_ID: '370671041644724226',			//main role ID
 	PLEB_ROLE_ID: '370671263473074177',				//newly joined member role ID
 	SCRUB_DADDY_ID: '370688149971795982',			//ID of this bot
+	BOTS_ROLE_ID: '370694212162945025',
 	GAME_NAME_TO_IMG: {
 		'World of Warcraft' : 'http://i.imgur.com/US59X7X.jpg',
 		'Overwatch' : 'http://i.imgur.com/WRQsSYp.png',
@@ -308,7 +309,7 @@ module.exports = {
 	],
 	COMMANDS: [
 		'@', '1-more','21', '2e',
-		'add-sb', 'alias', 'army',
+		'add-emoji', 'add-sb', 'alias', 'army',
 		'backup',
 		'catfacts', 'change-category', 'clean', 'color', 'create-group', 'create-list',
 		'delete', 'delete-rating', 'discharge',
@@ -320,15 +321,17 @@ module.exports = {
 		'implement', 'issue',
 		'join-review-team',
 		'list', 'leave-temp', 'leave-review-team', 'lets-play', 'list-backups', 'log', 'lotto',
+		'magic-word', 'move-user',
 		'opt-in',
 		'p', 'playing',
 		'quote', 'quotes',
-		'rank', 'ranks', 'rate', 'refresh-ratings', 'ratings', 'rating-info', 'rename', 'restart', 'restore', 'review-messages', 'revive',
-		'sb', 'sb-add', 'set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'start-lotto', 'stats', 'stay', 'steal', 'steal-all', 'sunken-sailor',
+		'rainbow-role', 'rank', 'ranks', 'rate', 'ratings', 'rating-info', 'refresh-ratings', 'rename', 'rename-channel', 'rename-hank', 'rename-role', 'rename-user', 'restart', 'restore', 'review-messages', 'revive',
+		'sb', 'sb-add', 'scrub-box', 'set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'start-lotto', 'stats', 'stay', 'steal', 'steal-all', 'stop-lotto', 'sunken-sailor',
 		'temp', 'time', 'tips', 'toggle-streaming',
 		'unalias', 'update-readme',
 		'vote', 'voteban', 'voteinfo', 'votekick',
-		'who-plays', 'who-said'
+		'who-plays', 'who-said',
+		'test'
 	],
 	GLOBAL_COMMANDS: ['@', 'quote', 'delete', 'leave-temp', 'rate', 'rename', 'refresh-ratings', 'rating-info', 'change-category', 'delete-rating'],
 	WHO_PLAYS_FUZZY_OPTIONS: {

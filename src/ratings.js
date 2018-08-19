@@ -90,7 +90,8 @@ function determineRatingsOutput(titles, targetRatings, targetCategory, rating) {
 	titles.forEach((title, i) => {
 		const currRating = targetRatings[targetCategory][title];
 		var extraRating = '⠀⠀';
-		if (Math.floor(currRating.rating) === rating) {
+		var ratingNum = Number(currRating.rating);
+		if (Math.floor(ratingNum) === rating) {
 			if (currRating.time && moment().diff(moment(currRating.time), 'weeks') < 2) {
 				title += ' 🆕'
 			}
@@ -101,8 +102,8 @@ function determineRatingsOutput(titles, targetRatings, targetCategory, rating) {
 			if (currRating.imdbRating && currRating.imdbRating !== 'N/A') {
 				extraRating += `**\`IMDB\`** **${currRating.imdbRating}**	`;
 			}
-			if (currRating.rating % 1 !== 0) {
-				extraRating += `${getStars(1)} **${currRating.rating.toPrecision(2)}**`;
+			if (ratingNum % 1 !== 0) {
+				extraRating += `${getStars(1)} **${ratingNum.toPrecision(2)}**`;
 			}
 			if ('⠀⠀' === extraRating) { return; }
 			if (i !== titles.length - 1) {
@@ -192,7 +193,7 @@ function updateUnverifiedReview(category, title, rating, userID) {
 	ratings.unverified[category][title] = {
 		reviews: {},
 		rating: rating,
-		time: moment()
+		time: moment().toJSON()
 	};
 	ratings.unverified[category][title].reviews[userID] = rating;
 }
@@ -667,17 +668,25 @@ function convertRatingsCategoryToTableData(category, isVerified) {
 	var tableData = [];
 
 	for (var title in reviewsInCategory) {
-		var rating = reviewsInCategory[title];
+		var rating = Object.assign({}, reviewsInCategory[title]);
 		var reviewers = '';
 		for (var reviewerID in rating.reviews) {
-			reviewers += `${util.getNick(reviewerID)} (${rating.reviews[reviewerID]}), `;
+			const nickname = util.getNick(reviewerID);
+			const ratingNum = rating.reviews[reviewerID];
+
+			if (!nickname || isNaN(ratingNum)) { return; }
+
+			reviewers += `${nickname} (${ratingNum}), `;
 		}
 
 		rating.reviews = reviewers.slice(0, -2);
-		const reviewData = Object.assign({ title: title, category: category, verified: isVerified.toString()}, rating);
-		if (rating.time) {
-			reviewData.time = moment(rating.time).format('M/D/YY');
+		if (rating.rating) {
+			rating.rating = rating.rating.toString();
 		}
+		if (rating.time) {
+			rating.time = moment(rating.time).format('M/D/YY');
+		}
+		const reviewData = Object.assign({ title: title, category: category, verified: isVerified.toString()}, rating);
 		tableData.push(reviewData);
 	}
 
@@ -700,5 +709,3 @@ function updateExternalRatingsJson() {
 		})
 		.catch(util.log);
 }
-
-exports.testing = updateExternalRatingsJson;

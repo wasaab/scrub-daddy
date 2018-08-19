@@ -46,7 +46,7 @@ var reviewQueue = [];
  * @param {String} command - command called
  * @param {String} channelType - type of channel to create 'voice' or 'text'
  * @param {String} channelName - name of channel to create
- * @param {String} message - full message object
+ * @param {Object} message - full message object
  * @param {String} createdByMsg - msg to send to channel upon creation
  * @param {String} feedback - optional feedback provided if an issue/feature
  */
@@ -58,10 +58,24 @@ function createChannelInCategory(command, channelType, channelName, message, cre
 		}
 		const description = feedback || ' ';
 		const channelCategoryName = capitalizeFirstLetter(command);
-		const overwrites = [{
-			allow: ['MANAGE_CHANNELS', 'MANAGE_ROLES'],
-			id: userID
-		}];
+		var overwrites = [
+			{
+				allow: ['MANAGE_CHANNELS', 'MANAGE_ROLES'],
+				id: userID
+			},
+			{
+				allow: ['MANAGE_CHANNELS', 'MANAGE_ROLES', 'MANAGE_MESSAGES', 'VIEW_CHANNEL'],
+				id: c.SCRUB_DADDY_ID
+			}
+		];
+
+		if (c.BOTS_ROLE_ID) {
+			overwrites.push({
+				deny: ['VIEW_CHANNEL'],
+				id: c.BOTS_ROLE_ID
+			});
+		}
+
 		message.guild.createChannel(channelName, channelType, overwrites)
 		.then((channel) => {
 			channel.setParent(c.CATEGORY_ID[channelCategoryName]);
@@ -680,6 +694,47 @@ function exportBanned() {
 	exportJson(bannedUserIDToBans, 'banned');
 }
 
+exports.testing = function (targetUser) {
+
+}
+
+function replaceOrAddColorRole(guild, color, hex, targetUser) {
+	var roleEdited = false;
+
+	targetUser.roles.array().forEach((role) => {
+		const roleColor = tinycolor(role.name);
+		if (!roleColor.isValid() || getHexFromTinyColor(roleColor) !== role.color) { return; }
+
+		//If an old color role has already been edited, delete remaining color roles.
+		if (roleEdited) {
+			role.delete();
+		}
+
+		roleEdited = true;
+		role.edit({
+			name: color,
+			color: hex
+		})
+		.catch((err) => {
+			logger.error(`<ERROR> ${getTimestamp()}  Edit Role Error: ${err}`);
+		});
+	});
+
+	if (roleEdited) { return; }
+
+	guild.createRole({
+		name: color,
+		color: hex,
+		position: guild.roles.array().length - 3
+	})
+	.then((role) => {
+		target.addRole(role);
+	})
+	.catch((err) => {
+		logger.error(`<ERROR> ${getTimestamp()}  Add Role Error: ${err}`);
+	});
+}
+
 /**
  * exports the user color preferences to a json file.
  */
@@ -688,23 +743,17 @@ function exportColors(title, description, userID, guild, hex, color) {
 	//If color not taken, write to colors.json
 	if (title.substring(0, 1) !== 'C') {
 		exportJson(userIDToColor, 'colors');
-		const target = guild.members.find('id', userID);
+		const targetUser = guild.members.find('id', userID);
 
-		if (target.roles.find('id', c.BEYOND_ROLE_ID)) {
-			guild.createRole({
-				name: color,
-				color: hex,
-				position: guild.roles.array().length - 3
-			})
-			.then((role) => {
-				target.addRole(role);
-			})
-			.catch((err) => {
-				logger.error(`<ERROR> ${getTimestamp()}  Add Role Error: ${err}`);
-			});
+		if (targetUser.roles.find('id', c.BEYOND_ROLE_ID)) {
+			replaceOrAddColorRole(guild, color, hex, targetUser);
 		}
 	}
 };
+
+function getHexFromTinyColor(color) {
+	return parseInt(color.toHexString().replace(/^#/, ''), 16)
+}
 
 /**
  * Sets the user's message response color to the provided color.
@@ -715,8 +764,8 @@ function setUserColor(targetColor, userID, guild) {
 	var description = 'If the color on the left is not what you chose, then you typed something wrong or did not choose from the provided colors.\n' +
 	'You may use any of the colors on this list: http://www.w3.org/TR/css3-color/#svg-color';
 
-	if (color) {
-		var hex = parseInt(color.toHexString().replace(/^#/, ''), 16);
+	if (color.isValid()) {
+		var hex = getHexFromTinyColor(color);
 		if (Object.values(userIDToColor).includes(hex)) {
 			title = 'Color already taken 😛'
 			description = description.split('\n')[1];
