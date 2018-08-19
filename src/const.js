@@ -20,7 +20,7 @@ module.exports = {
 	SCRUB_DADDY_ID: '370688149971795982',			//ID of this bot
 	BOTS_ROLE_ID: '370694212162945025',
 	GAME_NAME_TO_IMG: {
-		'World of Warcraft' : 'http://i.imgur.com/US59X7X.jpg',
+		'World of Warcraft' : 'https://i.imgur.com/0qTPYEw.jpg',
 		'Overwatch' : 'http://i.imgur.com/WRQsSYp.png',
 		'PUBG' : 'https://i.imgur.com/nT2CNCs.png',
 		'Fortnite' : 'https://i.imgur.com/S0CN7n9.jpg'
