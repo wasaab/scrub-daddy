@@ -51,48 +51,50 @@ var reviewQueue = [];
  * @param {String} feedback - optional feedback provided if an issue/feature
  */
 function createChannelInCategory(command, channelType, channelName, message, createdByMsg, userID, feedback) {
-	if (channelName) {
-		if (channelName.includes(' ')) {
-			//remove the leading/trailing whitespace and replace other spaces with '-'
-			channelName = channelName.trim().split(' ').join('-');
-		}
-		const description = feedback || ' ';
-		const channelCategoryName = capitalizeFirstLetter(command);
-		var overwrites = [
-			{
-				allow: ['MANAGE_CHANNELS', 'MANAGE_ROLES'],
-				id: userID
-			},
-			{
-				allow: ['MANAGE_CHANNELS', 'MANAGE_ROLES', 'MANAGE_MESSAGES', 'VIEW_CHANNEL', 'SEND_MESSAGES'],
-				id: c.SCRUB_DADDY_ID
-			}
-		];
+	if (!channelName) { return; }
 
-		if (c.BOTS_ROLE_ID) {
-			overwrites.push({
-				deny: ['VIEW_CHANNEL', 'SEND_MESSAGES'],
-				id: c.BOTS_ROLE_ID
-			});
-		}
-
-		message.guild.createChannel(channelName, channelType, overwrites)
-		.then((channel) => {
-			channel.setParent(c.CATEGORY_ID[channelCategoryName]);
-			channel.send(new Discord.RichEmbed({
-				color: getUserColor(userID),
-				title: channelCategoryName + createdByMsg,
-				description: description,
-				image: {
-					url: c.SETTINGS_IMG
-				}
-			}));
-
-			sendEmbedMessage(`➕ ${channelCategoryName} Channel Created`,
-				`You can find your channel, ${mentionChannel(channel.id)}, under the \`${channelCategoryName}\` category.`, userID);
-			logger.info(`<INFO> ${getTimestamp()}  ${channelCategoryName}${createdByMsg}  ${description}`);
-		})
+	if (channelName.includes(' ')) {
+		//remove the leading/trailing whitespace and replace other spaces with '-'
+		channelName = channelName.trim().split(' ').join('-');
 	}
+
+	const description = feedback || ' ';
+	const channelCategoryName = capitalizeFirstLetter(command);
+	var overwrites = [
+		{
+			allow: ['MANAGE_CHANNELS', 'MANAGE_ROLES'],
+			id: userID
+		},
+		{
+			allow: ['MANAGE_CHANNELS', 'MANAGE_ROLES', 'MANAGE_MESSAGES', 'VIEW_CHANNEL', 'SEND_MESSAGES'],
+			id: c.SCRUB_DADDY_ID
+		}
+	];
+
+	logger.info(`<INFO> ${getTimestamp()}  Bots role ID: ${c.BOTS_ROLE_ID}`);
+	if (c.BOTS_ROLE_ID) {
+		overwrites.push({
+			deny: ['VIEW_CHANNEL', 'SEND_MESSAGES'],
+			id: c.BOTS_ROLE_ID
+		});
+	}
+
+	message.guild.createChannel(channelName, channelType, overwrites)
+	.then((channel) => {
+		channel.setParent(c.CATEGORY_ID[channelCategoryName]);
+		channel.send(new Discord.RichEmbed({
+			color: getUserColor(userID),
+			title: channelCategoryName + createdByMsg,
+			description: description,
+			image: {
+				url: c.SETTINGS_IMG
+			}
+		}));
+
+		sendEmbedMessage(`➕ ${channelCategoryName} Channel Created`,
+			`You can find your channel, ${mentionChannel(channel.id)}, under the \`${channelCategoryName}\` category.`, userID);
+		logger.info(`<INFO> ${getTimestamp()}  ${channelCategoryName}${createdByMsg}  ${description}`);
+	})
 };
 
 /**
