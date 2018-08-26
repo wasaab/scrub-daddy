@@ -71,7 +71,6 @@ function createChannelInCategory(command, channelType, channelName, message, cre
 		}
 	];
 
-	logger.info(`<INFO> ${getTimestamp()}  Bots role ID: ${c.BOTS_ROLE_ID}`);
 	if (c.BOTS_ROLE_ID) {
 		overwrites.push({
 			deny: ['VIEW_CHANNEL', 'SEND_MESSAGES'],
@@ -79,6 +78,7 @@ function createChannelInCategory(command, channelType, channelName, message, cre
 		});
 	}
 
+	logger.info(`<INFO> ${getTimestamp()}  Perm Overwrites: ${inspect(overwrites)}`);
 	message.guild.createChannel(channelName, channelType, overwrites)
 	.then((channel) => {
 		channel.setParent(c.CATEGORY_ID[channelCategoryName]);
@@ -94,6 +94,9 @@ function createChannelInCategory(command, channelType, channelName, message, cre
 		sendEmbedMessage(`➕ ${channelCategoryName} Channel Created`,
 			`You can find your channel, ${mentionChannel(channel.id)}, under the \`${channelCategoryName}\` category.`, userID);
 		logger.info(`<INFO> ${getTimestamp()}  ${channelCategoryName}${createdByMsg}  ${description}`);
+	})
+	.catch((error) => {
+		logger.error(`<ERROR> ${getTimestamp()}  Create Channel Error: ${error}`);
 	})
 };
 
