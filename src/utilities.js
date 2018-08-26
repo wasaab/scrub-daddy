@@ -64,14 +64,14 @@ function createChannelInCategory(command, channelType, channelName, message, cre
 				id: userID
 			},
 			{
-				allow: ['MANAGE_CHANNELS', 'MANAGE_ROLES', 'MANAGE_MESSAGES', 'VIEW_CHANNEL'],
+				allow: ['MANAGE_CHANNELS', 'MANAGE_ROLES', 'MANAGE_MESSAGES', 'VIEW_CHANNEL', 'SEND_MESSAGES'],
 				id: c.SCRUB_DADDY_ID
 			}
 		];
 
 		if (c.BOTS_ROLE_ID) {
 			overwrites.push({
-				deny: ['VIEW_CHANNEL'],
+				deny: ['VIEW_CHANNEL', 'SEND_MESSAGES'],
 				id: c.BOTS_ROLE_ID
 			});
 		}
@@ -1352,8 +1352,9 @@ function getTrueDisplayName(nickname) {
  *
  * @param {Object} user - the user to ban
  * @param {Object} channel - the channel to ban the user from posting in
+ * @param {Number} [days = 2] - number of days to ban the user for
  */
-function banSpammer(user, channel) {
+function banSpammer(user, channel, days = 2) {
 	var usersBans = bannedUserIDToBans[user.id] || [];
 	channel.overwritePermissions(user, {
 		SEND_MESSAGES: false
@@ -1364,11 +1365,12 @@ function banSpammer(user, channel) {
 	});
 	usersBans.push({
 		channelID: channel.id,
-		time: moment()
+		time: moment(),
+		days: days
 	})
 	bannedUserIDToBans[user.id] = usersBans;
 	exportBanned();
-	channel.send(`🔨 ${mentionUser(user.id)} Enjoy the 2 day ban from ${mentionChannel(channel.id)}, you filthy spammer!`);
+	channel.send(`🔨 ${mentionUser(user.id)} Enjoy the ${days} day ban from ${mentionChannel(channel.id)}, you filthy spammer!`);
 }
 
 /**
@@ -1419,7 +1421,7 @@ function maybeUnbanSpammers() {
 		const bans = bannedUserIDToBans[userID];
 		const now = moment();
 		bans.forEach((ban) => {
-			if (now.diff(ban.time, 'days') >= 2) {
+			if (now.diff(ban.time, 'days') >= ban.days) {
 				unBanSpammer(userID, ban.channelID);
 			}
 		});
@@ -1763,6 +1765,7 @@ exports.addToList = addToList;
 exports.addToReviewRole = addToReviewRole;
 exports.awaitAndHandleReaction = awaitAndHandleReaction;
 exports.backupJson = backupJson;
+exports.banSpammer = banSpammer;
 exports.buildField = buildField;
 exports.capitalizeFirstLetter = capitalizeFirstLetter;
 exports.compareFieldValues = compareFieldValues;
