@@ -1507,7 +1507,7 @@ function getGroup(targetGroupName) {
 
 	const fuse = new Fuse(groupNames, groupFuzzyOptions);
 	const fuzzyResults = fuse.search(targetGroupName);
-	if (fuzzyResults.length === 0) { return; }
+	if (fuzzyResults.length === 0) { return { group: null, name: null }; }
 
 	const groupName = groupNames[fuzzyResults[0]];
 	return { group: groups[groupName], name: groupName };
