@@ -1,3 +1,4 @@
+var schedule = require('node-schedule');
 var Discord = require('discord.js');
 var inspect = require('util-inspect');
 var txtgen = require('txtgen');
@@ -691,7 +692,7 @@ exports.maybeChangeAudioQuality = function(channels) {
 			const memberCount = get(channel, 'members.size');
 			if (memberCount) {
 				const beyondCount = channel.members.array().filter((member) => {
-					return member.hoistRole.id === c.BEYOND_ROLE_ID || member.selfDeaf;
+					return get(member, 'hoistRole.id') === c.BEYOND_ROLE_ID || member.selfDeaf;
 				}).length;
 				if (memberCount === beyondCount && channel.bitrate !== c.MAX_BITRATE) {
 					channel.setBitrate(c.MAX_BITRATE)
@@ -794,6 +795,8 @@ exports.maybeUpdateNickname = function(member, game) {
 exports.getFortniteStats = function(gameMode, stat, callingUserID, fortniteUserName) {
 	function requestStats(userID) {
 		options.uri += fortniteUserName || userIDToFortniteUserName[userID];
+		options.uri = encodeUri(options.uri);
+
 		rp(options)
 		.then(function (response) {
 			const player = JSON.parse(response);
