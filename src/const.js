@@ -91,6 +91,13 @@ module.exports = {
 		'https://media.giphy.com/media/3oEjHZmJLsBqZWKlFK/giphy.gif',
 		'https://media.giphy.com/media/jUwpNzg9IcyrK/giphy.gif',
 		'https://media.giphy.com/media/PrGNf7O36heCs/giphy.gif'],
+	REJOIN_IMAGES: [ 'https://media.giphy.com/media/l41YcwXNqeoQcEnYs/giphy.gif',
+		'https://media.giphy.com/media/55o51RBAxpbjWVIY0K/giphy.gif',
+		'https://media.giphy.com/media/l0MYyv6UK0Bd4DE76/giphy.gif',
+		'https://media.giphy.com/media/NUesM2Iybd2Gpxmyhw/giphy.gif',
+		'https://media.giphy.com/media/9D1vFuUNdhB50rys9P/giphy.gif',
+		'https://media.giphy.com/media/6ielGX780cN5C/giphy.gif'
+	],
 	SETTINGS_IMG: 'https://i.imgur.com/T2ABKgC.png',
 	BUBBLE_IMAGES: ['https://i.imgur.com/rddtZR6.png','https://i.imgur.com/MdKfKVG.png','https://i.imgur.com/ZAyLJSJ.png','https://i.imgur.com/K6k4b3q.png','https://i.imgur.com/m7V6BEa.png',
 						 'https://i.imgur.com/Q7JO7Fn.png','https://i.imgur.com/lXZNXoz.png','https://i.imgur.com/xdwTSuG.png','https://i.imgur.com/PE99BJ8.png','https://i.imgur.com/VhFgbRQ.png',

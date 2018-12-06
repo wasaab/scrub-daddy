@@ -153,6 +153,14 @@ function rejoinTempChannel(userID, channelName) {
 			`${mentionUser(userID)}, you have not left that channel, so there is no need to rejoin.`, userID);
 	} else {
 		targetChannel.permissionOverwrites.find('id', userID).delete();
+		targetChannel.send(new Discord.RichEmbed({
+			color: getUserColor(userID),
+			title: `${getNick(userID)} is back in town!` ,
+			image: {
+				url: c.REJOIN_IMAGES[getRand(0, c.REJOIN_IMAGES.length)]
+			}
+		}));
+		logger.info(`<INFO> ${getTimestamp()} ${getNick(userID)} has rejoined ${channelName}`);
 	}
 }
 
