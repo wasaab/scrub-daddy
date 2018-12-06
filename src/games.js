@@ -487,27 +487,35 @@ exports.maybeCallLetsPlay = function(message) {
 	exports.letsPlay(['', '-ss', game], message.member.id, util.getNick(message.member.id), message);
 }
 
-/**
- * Updates the games played for the provided user.
- */
-function updateWhoPlays(userID, user, role, game) {
-	if (!game) {return;}
-	const gameUserData = getGameUserData(game, 0);
-	var usersWhoPlay = gameUserData.users;
-
+function determineUpdatedUsersWhoPlay(usersWhoPlay, userID, role, isRemoval) {
 	if (!usersWhoPlay) {
 		usersWhoPlay = [{ id: userID, time: moment().valueOf(), role: role.name }];
 	} else {
 		const userEntryIdx = usersWhoPlay.map((player) => player.id).indexOf(userID);
 		const newEntry = { id: userID, time: moment().valueOf(), role: role.name };
+
 		if (userEntryIdx === -1) {
 			usersWhoPlay.push(newEntry);
+		} else if (isRemoval) {
+			usersWhoPlay.splice(userEntryIdx, 1);
 		} else {
 			usersWhoPlay.splice(userEntryIdx, 1, newEntry);
 		}
 	}
 
+	return usersWhoPlay;
+}
+
+/**
+ * Updates the games played for the provided user.
+ */
+function updateWhoPlays(userID, role, game, isRemoval) {
+	if (!game) { return; }
+
 	const gameIdx = gamesPlayed.map((game) => game.title.toLowerCase()).indexOf(game.toLowerCase());
+	const gameUserData = getGameUserData(game, 0);
+	var usersWhoPlay = determineUpdatedUsersWhoPlay(gameUserData.users, userID, role, isRemoval);
+
 	if (gameIdx === -1) {
 		gamesPlayed.push({
 			title: game,
@@ -518,6 +526,11 @@ function updateWhoPlays(userID, user, role, game) {
 	}
 
 }
+
+exports.removePlayer = function (args) {
+	updateWhoPlays(util.getIdFromMention(args[1]), { name: 'Temp Role' }, util.getTargetFromArgs(args, 2), true);
+}
+
 
 /**
  * Updates the time played for a game when the user finishes playing it.
@@ -568,7 +581,7 @@ exports.updateTimesheet = function(user, userID, highestRole, oldGame, newGame) 
 	}
 
 	timeSheet[userID] = gameToTime;
-	updateWhoPlays(userID, user, highestRole, oldGame);
+	updateWhoPlays(userID, highestRole, oldGame);
 };
 
 /**

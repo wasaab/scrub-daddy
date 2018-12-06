@@ -325,7 +325,7 @@ module.exports = {
 		'opt-in',
 		'p', 'playing',
 		'quote', 'quotes',
-		'rainbow-role', 'rank', 'ranks', 'rate', 'ratings', 'rating-info', 'refresh-ratings', 'rename', 'rename-channel', 'rename-hank', 'rename-role', 'rename-user', 'restart', 'restore', 'review-messages', 'revive',
+		'rainbow-role', 'rank', 'ranks', 'rate', 'ratings', 'rating-info', 'refresh-ratings', 'remove-player', 'rename', 'rename-channel', 'rename-hank', 'rename-role', 'rename-user', 'restart', 'restore', 'review-messages', 'revive',
 		'sb', 'sb-add', 'scrub-box', 'set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'start-lotto', 'stats', 'stay', 'steal', 'steal-all', 'stop-lotto', 'sunken-sailor',
 		'temp', 'time', 'tips', 'toggle-streaming',
 		'unalias', 'update-readme',
@@ -396,6 +396,7 @@ module.exports = {
 		'+ log - `toggles server output redirection to discord channel #server-log.`\n' +
 		'+ revive - `revives a fallen Scrubbing Bubble.`\n' +
 		'+ update-readme - `updates the readme to include new commands.`\n' +
+		'+ remove-player - `remove a player from gamesPlayed.`\n' +
 		'+ gen-heatmap - `generates the player count heatmap.`'
 };
 

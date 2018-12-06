@@ -286,6 +286,10 @@ function handleCommand(message) {
 		if (!util.isAdmin(userID)) { return; }
 		ratings.updateThirdPartyRatings();
 	}
+	function removePlayerCalled() {
+		if (!util.isAdmin(userID)) { return; }
+		games.removePlayer(args);
+	}
 	function renameCalled() {
 		if (!args[1]) { return; }
 		ratings.rename(args, userID, message.channel);
@@ -448,6 +452,7 @@ function handleCommand(message) {
 		'ratings': ratingsCalled,
 		'rating-info': ratingInfoCalled,
 		'refresh-ratings': refreshRatingsCalled,
+		'remove-player': removePlayerCalled,
 		'rename': renameCalled,
 		'restore': restoreCalled,
 		'restart': restartCalled,
