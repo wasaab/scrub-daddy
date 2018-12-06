@@ -107,10 +107,11 @@ function createChannelInCategory(command, channelType, channelName, message, cre
  * @param {String} userID - user to remove
  */
 function leaveTempChannel(channel, userID) {
-	if (channel.parentID !== c.CATEGORY_ID.Temp) { return; }
+	if (channel.parentID !== c.CATEGORY_ID.Temp && channel.parentID !== c.CATEGORY_ID.Topics) { return; }
 
 	channel.overwritePermissions(userID, {
-		VIEW_CHANNEL: false
+		VIEW_CHANNEL: false,
+		VIEW_AUDIT_LOG: false
 	})
 	.then(() => {
 		channel.send(new Discord.RichEmbed({
@@ -125,6 +126,34 @@ function leaveTempChannel(channel, userID) {
 	.catch((err) => {
 		logger.error(`<ERROR> ${getTimestamp()}  Leave ${channel.name} - Overwrite Permissions Error: ${err}`);
 	});
+}
+
+function determineChannelsLeftByUser(userID) {
+	return channelsLeft = bot.getClient().channels.filter((channel) => {
+		const permissionOverwrites = channel.permissionOverwrites.find('id', userID);
+
+		return c.LEFT_CHANNEL_PERMISSION === get(permissionOverwrites, 'deny');
+	});
+}
+
+function outputTempChannelsLeftByUser(userID) {
+	const channelsLeft = determineChannelsLeftByUser(userID).map((channel) => channel.name);
+	const channelsLeftMsg = 0 !== channelsLeft.length
+		? channelsLeft.toString().split(',').join('\n')
+		: `You have not left any channels by calling \`${config.prefix}leave-temp\``;
+
+	sendEmbedMessage(`Channels Left by ${getNick(userID)}`, channelsLeftMsg, userID);
+}
+
+function rejoinTempChannel(userID, channelName) {
+	const targetChannel = determineChannelsLeftByUser(userID).find('name', channelName);
+
+	if (!targetChannel) {
+		sendEmbedMessage('Unable to Rejoin Channel',
+			`${mentionUser(userID)}, you have not left that channel, so there is no need to rejoin.`, userID);
+	} else {
+		targetChannel.permissionOverwrites.find('id', userID).delete();
+	}
 }
 
 /**
@@ -1685,6 +1714,7 @@ function deleteMessages(message) {
  */
 function isChannelOwner(channel, user) {
 	const permissionOverwrites = channel.permissionOverwrites.find('id', user.id);
+
 	return permissionOverwrites
 		&& permissionOverwrites.allow !== 0
 		&& permissionOverwrites.deny === 0;
@@ -1816,10 +1846,12 @@ exports.mentionRole = mentionRole;
 exports.mentionUser = mentionUser;
 exports.outputAliases = outputAliases;
 exports.outputCatFact = outputCatFact;
+exports.outputTempChannelsLeftByUser = outputTempChannelsLeftByUser;
 exports.outputHelpForCommand = outputHelpForCommand;
 exports.playSoundByte = playSoundByte;
 exports.deleteQuoteTipMsg = deleteQuoteTipMsg;
 exports.quoteUser = quoteUser;
+exports.rejoinTempChannel = rejoinTempChannel;
 exports.removeFromReviewRole = removeFromReviewRole;
 exports.restartBot = restartBot;
 exports.restoreJsonFromBackup = restoreJsonFromBackup;

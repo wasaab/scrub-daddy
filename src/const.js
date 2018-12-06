@@ -11,6 +11,7 @@ module.exports = {
 		'Issue': '372143355070644255',				//category for bot issues
 		'Feature': '374009714213781504',			//category for bot feature requests
 		'Temp': '374246719648694282',				//category for temporary channels
+		'Topics': '370623193528008704',				//category for topics channels
 		'In Progress': '374702344316780567'			//category for bot features/issues actively being worked on
 	},
 	BEYOND_ROLE_ID: '370670924992610305',			//elevated role ID
@@ -311,7 +312,7 @@ module.exports = {
 		'@', '1-more','21', '2e',
 		'add-emoji', 'add-sb', 'alias', 'army',
 		'backup',
-		'catfacts', 'change-category', 'clean', 'color', 'create-group', 'create-list',
+		'catfacts', 'channels-left', 'change-category', 'clean', 'color', 'create-group', 'create-list',
 		'delete', 'delete-rating', 'discharge',
 		'enlist', 'export',
 		'feature',
@@ -325,7 +326,7 @@ module.exports = {
 		'opt-in',
 		'p', 'playing',
 		'quote', 'quotes',
-		'rainbow-role', 'rank', 'ranks', 'rate', 'ratings', 'rating-info', 'refresh-ratings', 'remove-player', 'rename', 'rename-channel', 'rename-hank', 'rename-role', 'rename-user', 'restart', 'restore', 'review-messages', 'revive',
+		'rainbow-role', 'rank', 'ranks', 'rate', 'ratings', 'rating-info', 'refresh-ratings', 'rejoin-temp', 'remove-player', 'rename', 'rename-channel', 'rename-hank', 'rename-role', 'rename-user', 'restart', 'restore', 'review-messages', 'revive',
 		'sb', 'sb-add', 'scrub-box', 'set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'start-lotto', 'stats', 'stay', 'steal', 'steal-all', 'stop-lotto', 'sunken-sailor',
 		'temp', 'time', 'tips', 'toggle-streaming',
 		'unalias', 'update-readme',
@@ -358,6 +359,7 @@ module.exports = {
 		maxPatternLength: 32,
 		minMatchCharLength: 1
 	},
+	LEFT_CHANNEL_PERMISSION: 1152,
 	ALPHABET:  'ABCDEFGHIJKLMNOPQURSTUVWXYZ',
 	ENCLOSED_CHARS: {
 		'A': '🄰', 'B': '🄱', 'C': '🄲', 'D': '🄳', 'E': '🄴', 'F': '🄵', 'G': '🄶', 'H': '🄷',
@@ -396,7 +398,7 @@ module.exports = {
 		'+ log - `toggles server output redirection to discord channel #server-log.`\n' +
 		'+ revive - `revives a fallen Scrubbing Bubble.`\n' +
 		'+ update-readme - `updates the readme to include new commands.`\n' +
-		'+ remove-player - `remove a player from gamesPlayed.`\n' +
+		'+ remove-player <`@user`> <`game name`>- `remove a player from gamesPlayed.`\n' +
 		'+ gen-heatmap - `generates the player count heatmap.`'
 };
 

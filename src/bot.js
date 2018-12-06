@@ -105,6 +105,9 @@ function handleCommand(message) {
 		util.outputCatFact(userID);
 		message.delete();
 	}
+	function channelsLeftCalled() {
+		util.outputTempChannelsLeftByUser(userID);
+	}
 	function changeCategoryCalled() {
 		if (!args[1] || channelID !== c.RATINGS_CHANNEL_ID) { return; }
 		ratings.changeCategory(args, message.channel, userID);
@@ -286,6 +289,10 @@ function handleCommand(message) {
 		if (!util.isAdmin(userID)) { return; }
 		ratings.updateThirdPartyRatings();
 	}
+	function rejoinTempCalled() {
+		if (!args[1]) { return; }
+		util.rejoinTempChannel(userID, args[1]);
+	}
 	function removePlayerCalled() {
 		if (!util.isAdmin(userID)) { return; }
 		games.removePlayer(args);
@@ -412,6 +419,7 @@ function handleCommand(message) {
 		'army': armyCalled,
 		'backup': backupCalled,
 		'catfacts': catfactsCalled,
+		'channels-left': channelsLeftCalled,
 		'change-category': changeCategoryCalled,
 		'clean': cleanCalled,
 		'color': colorCalled,
@@ -452,6 +460,7 @@ function handleCommand(message) {
 		'ratings': ratingsCalled,
 		'rating-info': ratingInfoCalled,
 		'refresh-ratings': refreshRatingsCalled,
+		'rejoin-temp': rejoinTempCalled,
 		'remove-player': removePlayerCalled,
 		'rename': renameCalled,
 		'restore': restoreCalled,
@@ -570,7 +579,10 @@ client.on('ready', () => {
 	games.setDynamicGameChannels(client.channels);
 
 	util.logger.info(`<INFO> ${util.getTimestamp()}  Connected`);
+
 	if (util.isDevEnv()) { return; }
+
+	ratings.updateThirdPartyRatings();
 	games.updatePlayingStatus();
 	util.updateLottoCountdown();
 	util.sendEmbedMessage('B A C K⠀O N L I N E !', null, null, c.ONLINE_IMG);
