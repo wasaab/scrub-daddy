@@ -89,8 +89,8 @@ function getGamesBeingPlayedData(players) {
 	var total = 0;
 
 	players.forEach((player) => {
-		const game = get (player, 'presence.game.name');
-		const status = get (player, 'presence.status');
+		const game = get(player, 'presence.game.name');
+		const status = get(player, 'presence.status');
 
 		if(game && !player.user.bot && player.highestRole.name !== 'Pleb' && status !== 'idle') {
 			games[game] = games[game] ? games[game] + 1 : 1;
@@ -105,6 +105,30 @@ function getGamesBeingPlayedData(players) {
     return { games: games, winner: winner, total: total, max: max };
 }
 
+function determinePlayingFieldsAndUpdateHistory(time, total, games) {
+	var fields = [];
+	var gamesLog = {
+		time: time,
+		playerCount: total,
+		gameData: []
+	};
+
+	for (var gameID in games) {
+		const gameData = {
+			game: gameID,
+			count: games[gameID],
+			time: time
+		};
+
+		fields.push(util.buildField(gameID, games[gameID]));
+		gamesLog.gameData.push(gameData); //log timestamp and player count for each game
+	}
+
+	gameHistory.push(gamesLog);
+
+	return fields;
+}
+
 /**
  * Gets and outputs the player count of every game currently being played,
  * unless called from recurring job, in which case it stores the result without outputting it.
@@ -112,25 +136,8 @@ function getGamesBeingPlayedData(players) {
 exports.maybeOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
     const { games, winner, total } = getGamesBeingPlayedData(scrubs);
 
-	var fields = [];
 	var time = moment();
-	var gamesLog = {
-		time: time,
-		playerCount: total,
-		gameData: []
-	};
-	for (var gameID in games) {
-		fields.push(util.buildField(gameID, games[gameID]));
-
-		//log timestamp and player count for each game
-		const gameData = {
-			game : gameID,
-			count : games[gameID],
-			time : time
-		};
-		gamesLog.gameData.push(gameData);
-	}
-	gameHistory.push(gamesLog);
+	var fields = determinePlayingFieldsAndUpdateHistory(time, total, games);
 
 	var imageUrl = c.THUMBS_UP_GIF;
 	if (c.GAME_NAME_TO_IMG[winner]) {
@@ -524,10 +531,9 @@ function updateWhoPlays(userID, role, game, isRemoval) {
 	} else {
 		gamesPlayed[gameIdx].users = usersWhoPlay;
 	}
-
 }
 
-exports.removePlayer = function (args) {
+exports.removePlayer = function(args) {
 	updateWhoPlays(util.getIdFromMention(args[1]), { name: 'Temp Role' }, util.getTargetFromArgs(args, 2), true);
 }
 

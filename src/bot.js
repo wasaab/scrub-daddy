@@ -7,8 +7,9 @@ var fs = require('fs');
 var c = require('./const.js');
 var util = require('./utilities.js');
 var ratings = require('./ratings.js');
-var heatmap = require('./heatmap.js');
 var gambling = require('./gambling.js');
+var heatmap = require('./heatmap.js');
+var trends = require('./trends.js');
 var games = require('./games.js');
 var vote = require('./vote.js');
 var blackjack = require("./blackjack.js")
@@ -373,6 +374,12 @@ function handleCommand(message) {
 	function toggleStreamingCalled() {
 		games.toggleStreaming(message.member)
 	}
+	function trendsCalled() {
+		trends.outputGameTrendsGraph(args);
+	}
+	function trendsTotalCalled() {
+		trends.ouputTotalPlayerCountGraph(args);
+	}
 	function unaliasCalled() {
 		if (args[1]) {
 			util.unalias(args[1], userID);
@@ -482,6 +489,8 @@ function handleCommand(message) {
 		'time': timeCalled,
 		'tips': tipsCalled,
 		'toggle-streaming': toggleStreamingCalled,
+		'trends': trendsCalled,
+		'trends-total': trendsTotalCalled,
 		'unalias': unaliasCalled,
 		'update-readme': updateReadmeCalled,
 		'vote': voteCalled,

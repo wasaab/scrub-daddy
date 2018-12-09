@@ -1,25 +1,17 @@
-var xmlserializer = require('xmlserializer');
-var svgToPng = require('svg-to-png');
 var imgur = require('imgur');
 var path = require('path');
 var fs = require('fs');
 var d3 = require('d3');
 var c = require('./const.js');
 var util = require('./utilities.js');
+var imgUtils = require('./imageUtils.js');
 
 var jsdom = require("jsdom");
 const { JSDOM } = jsdom;
-const { window } = new JSDOM(`<!DOCTYPE html><html><body></body></html>`);
 const { document } = new JSDOM(`<!DOCTYPE html><html><body></body></html>`).window;
 const imageDir = path.join(__dirname.slice(0, -4), 'resources', 'images');
 var imgUrl = '';
 
-function XMLSerializer() {
-}
-
-XMLSerializer.prototype.serializeToString = function (node) {
-    return xmlserializer.serializeToString(node);
-};
 
 var margin = {
         top: 50,
@@ -86,35 +78,6 @@ exports.uploadToImgur = function() {
             util.logger.error(`<ERROR> ${util.getTimestamp()} uploading to imgur failed - ${err.message}`);
         });
 };
-
-function convertSvgToPng() {
-    svgToPng.convert(path.join(imageDir, 'heatMap.svg'), imageDir);
-}
-
-function getSVGString(svgNode) {
-    svgNode.setAttribute('xlink', 'http://www.w3.org/1999/xlink');
-
-    var serializer = new XMLSerializer();
-    var svgString = serializer.serializeToString(svgNode);
-    svgString = svgString.replace(/(\w+)?:?xlink=/g, 'xmlns:xlink='); // Fix root xlink without namespace
-    svgString = svgString.replace(/NS\d+:href/g, 'xlink:href'); // Safari NS namespace fix
-    svgString = svgString.replace('xlink">', 'xlink"> <style type="text/css"></style>');
-
-    return svgString;
-}
-
-function writeSvgToFile() {
-    var svgString = getSVGString(svg.node());
-    svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="960" height="430" style="background: rgba(54, 57, 62, 0.74);" xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml" type="text/css"/>    <g transform="translate(30,50)"> ${svgString.split('type="text/css"></style>')[1]} </svg>`;
-    fs.writeFile('./resources/images/heatMap.svg', svgString, 'utf8', function(error, response) {
-        if (error) {
-            util.logger.error(`<API ERROR> ${util.getTimestamp()}  ERROR: ${error}`);
-        } else if (response) {
-            util.logger.info(`<API RESPONSE> ${util.getTimestamp()}  ${response}`);
-        }
-    });
-    setTimeout(convertSvgToPng, 1000);
-}
 
 function heatmapChart (tsvFile) {
     const filePath = path.join(__dirname.slice(3, -4), 'resources', 'data', tsvFile);
@@ -203,7 +166,7 @@ function heatmapChart (tsvFile) {
 
             legend.exit().remove();
         });
-    setTimeout(writeSvgToFile, 100);
+    setTimeout(() => imgUtils.writeSvgToFile(960, 430, 'rgba(54, 57, 62, 0.74)', 'heatMap', svg), 100);
 }
 
 exports.generateHeatMap = function() {
