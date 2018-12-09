@@ -8,7 +8,7 @@
     "backup": "^1.1.0",
     "co": "^4.6.0",
     "d3-node": "^1.1.1",
-    "discord.js": "^11.3.2",
+    "discord.js": "~11.3.2",
     "ffmpeg-binaries": "^3.2.2-3",
     "fuse.js": "^3.2.0",
     "google-url": "0.0.4",
