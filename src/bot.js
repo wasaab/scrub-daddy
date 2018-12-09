@@ -490,7 +490,7 @@ function handleCommand(message) {
 		'tips': tipsCalled,
 		'toggle-streaming': toggleStreamingCalled,
 		'trends': trendsCalled,
-		'trends-total': trendsTotalCalled,
+		'total-trends': trendsTotalCalled,
 		'unalias': unaliasCalled,
 		'update-readme': updateReadmeCalled,
 		'vote': voteCalled,

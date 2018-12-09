@@ -339,7 +339,7 @@ module.exports = {
 		'unalias', 'update-readme',
 		'vote', 'voteban', 'voteinfo', 'votekick',
 		'who-plays', 'who-said',
-		'test', 'trends', 'trends-total'
+		'test', 'trends', 'total-trends'
 	],
 	GLOBAL_COMMANDS: ['@', 'quote', 'delete', 'leave-temp', 'rate', 'rename', 'refresh-ratings', 'rating-info', 'change-category', 'delete-rating'],
 	WHO_PLAYS_FUZZY_OPTIONS: {
