@@ -10,7 +10,7 @@ var imgUtils = require('./imageUtils.js');
 
 const { JSDOM } = jsdom;
 const { document } = new JSDOM(`<!DOCTYPE html><html><body></body></html>`).window;
-const fullSvgWidth = 1400;
+const fullSvgWidth = 1500;
 const fullSvgHeight = fullSvgWidth / 2;
 const margin = {top: 30, right: 20, bottom: 70, left: 50},
     width = fullSvgWidth - margin.left - margin.right,
@@ -61,7 +61,7 @@ function generateGraph(userID, countKey, targetGames) {
     });
 
     setTimeout(() => {
-        imgUtils.writeSvgToFile(fullSvgWidth, fullSvgHeight, 'darkgray', 'trend', svg)
+        imgUtils.writeSvgToFile(fullSvgWidth, fullSvgHeight + 30, 'darkgray', 'trend', svg)
             .then(() => {
                 util.sendEmbedMessage('Player Count Trends', null, userID, 'attachment://trend.png',
                     null, null, null, './resources/images/trend.png');
