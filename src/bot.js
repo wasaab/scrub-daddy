@@ -7,8 +7,8 @@ var fs = require('fs');
 var c = require('./const.js');
 var util = require('./utilities.js');
 var ratings = require('./ratings.js');
-var gambling = require('./gambling.js');
 var heatmap = require('./heatmap.js');
+var gambling = require('./gambling.js');
 var trends = require('./trends.js');
 var games = require('./games.js');
 var vote = require('./vote.js');
@@ -173,20 +173,13 @@ function handleCommand(message) {
 				+ `stat options: ${possibleStats}`);
 		}
 	}
-	function genHeatMapCalled() {
-		if (!util.isAdmin(userID)) { return; }
-		games.generateHeatMap();
-		setTimeout(() => {
-			heatmap.uploadToImgur();
-		}, 10000);
-	}
 	function giveCalled() {
 		if (args.length === 3) {
 			gambling.giveScrubBubbles(userID, user, args[2], args[1]);
 		}
 	}
 	function heatmapCalled() {
-		games.maybeOutputHeatMap(userID);
+		heatmap.generateHeatMap(userID);
 	}
 	function helpCalled() {
 		if (args[1]) {
@@ -375,10 +368,10 @@ function handleCommand(message) {
 		games.toggleStreaming(message.member)
 	}
 	function trendsCalled() {
-		trends.outputGameTrendsGraph(args);
+		trends.outputGameTrendsGraph(args, userID);
 	}
 	function trendsTotalCalled() {
-		trends.ouputTotalPlayerCountGraph(args);
+		trends.ouputTotalPlayerCountGraph(args, userID);
 	}
 	function unaliasCalled() {
 		if (args[1]) {
@@ -440,7 +433,6 @@ function handleCommand(message) {
 		'feature': issueOrFeatureCalled,
 		'fortnite-leaderboard': fortniteLeaderboardCalled,
 		'fortnite-stats': fortniteStatsCalled,
-		'gen-heatmap': genHeatMapCalled,
 		'give': giveCalled,
         'h': helpCalled,
 		'heatmap': heatmapCalled,
@@ -591,7 +583,7 @@ client.on('ready', () => {
 
 	if (util.isDevEnv()) { return; }
 
-	ratings.updateThirdPartyRatings();
+	ratings.updateThirdPartyRatings(true);
 	games.updatePlayingStatus();
 	util.updateLottoCountdown();
 	util.sendEmbedMessage('B A C K⠀O N L I N E !', null, null, c.ONLINE_IMG);

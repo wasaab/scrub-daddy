@@ -82,15 +82,8 @@ function createChannelInCategory(command, channelType, channelName, message, cre
 	message.guild.createChannel(channelName, channelType, overwrites)
 	.then((channel) => {
 		channel.setParent(c.CATEGORY_ID[channelCategoryName]);
-		channel.send(new Discord.RichEmbed({
-			color: getUserColor(userID),
-			title: channelCategoryName + createdByMsg,
-			description: description,
-			image: {
-				url: c.SETTINGS_IMG
-			}
-		}));
-
+		sendEmbedMessage(channelCategoryName + createdByMsg, description,
+			userID, c.SETTINGS_IMG, null, null, channel.id);
 		sendEmbedMessage(`➕ ${channelCategoryName} Channel Created`,
 			`You can find your channel, ${mentionChannel(channel.id)}, under the \`${channelCategoryName}\` category.`, userID);
 		logger.info(`<INFO> ${getTimestamp()}  ${channelCategoryName}${createdByMsg}  ${description}`);
@@ -114,13 +107,8 @@ function leaveTempChannel(channel, userID) {
 		VIEW_AUDIT_LOG: false
 	})
 	.then(() => {
-		channel.send(new Discord.RichEmbed({
-			color: getUserColor(userID),
-			title: `${scrubIdToNick[userID]} has left the channel` ,
-			image: {
-				url: c.LEAVE_IMAGES[getRand(0, c.LEAVE_IMAGES.length)]
-			}
-		}));
+		sendEmbedMessage(`${scrubIdToNick[userID]} has left the channel`, null,
+			userID, c.LEAVE_IMAGES[getRand(0, c.LEAVE_IMAGES.length)], null, null, channel.id);
 		logger.info(`<INFO> ${getTimestamp()} ${scrubIdToNick[userID]} has left ${channel.name}`);
 	})
 	.catch((err) => {
@@ -153,13 +141,8 @@ function rejoinTempChannel(userID, channelName) {
 			`${mentionUser(userID)}, you have not left that channel, so there is no need to rejoin.`, userID);
 	} else {
 		targetChannel.permissionOverwrites.find('id', userID).delete();
-		targetChannel.send(new Discord.RichEmbed({
-			color: getUserColor(userID),
-			title: `${getNick(userID)} is back in town!` ,
-			image: {
-				url: c.REJOIN_IMAGES[getRand(0, c.REJOIN_IMAGES.length)]
-			}
-		}));
+		sendEmbedMessage(`${getNick(userID)} is back in town!`, null,
+			userID, c.REJOIN_IMAGES[getRand(0, c.REJOIN_IMAGES.length)], null, null, targetChannel.id);
 		logger.info(`<INFO> ${getTimestamp()} ${getNick(userID)} has rejoined ${channelName}`);
 	}
 }
@@ -324,17 +307,20 @@ function sendEmbedFieldsMessage(title, fields, userID, footer, channelID) {
 /**
  * Sends an embed message to bot-spam with an optional title, description, image, thumbnail(true/false), and footer.
  */
-function sendEmbedMessage(title, description, userID, image, thumbnail, footer, channelID) {
+function sendEmbedMessage(title, description, userID, image, thumbnail, footer, channelID, file) {
 	//these are all optional parameters
 	title = title || '';
 	description = description || '';
 	image = image || '';
+	file = file || '';
+
 	const picType = thumbnail ? 'thumbnail' : 'image';
 	var message = {
 		color: getUserColor(userID),
 		title: title,
 		description: description,
-		footer: footer
+		footer: footer,
+		file: file
 	};
 	message[picType] = { url: image };
 	const channel = channelID ? bot.getClient().channels.find('id', channelID) : bot.getBotSpam();
@@ -647,14 +633,6 @@ function scheduleRecurringJobs() {
 		updateMembers();
 		messageCatFactsSubscribers();
 		games.maybeOutputCountOfGamesBeingPlayed(members, c.SCRUB_DADDY_ID);
-	});
-
-	var uploadHeatMapToImgurRule = new schedule.RecurrenceRule();
-	uploadHeatMapToImgurRule.hour = 0;
-	uploadHeatMapToImgurRule.minute = 0;
-
-	schedule.scheduleJob(uploadHeatMapToImgurRule, function(){
-		heatmap.uploadToImgur();
 	});
 
 	var updatePlayingStatusRule = new schedule.RecurrenceRule();

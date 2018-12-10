@@ -1,17 +1,15 @@
-var imgur = require('imgur');
+var Discord = require('discord.js');
 var path = require('path');
 var fs = require('fs');
 var d3 = require('d3');
 var c = require('./const.js');
 var util = require('./utilities.js');
+var bot = require('./bot.js');
 var imgUtils = require('./imageUtils.js');
 
 var jsdom = require("jsdom");
 const { JSDOM } = jsdom;
 const { document } = new JSDOM(`<!DOCTYPE html><html><body></body></html>`).window;
-const imageDir = path.join(__dirname.slice(0, -4), 'resources', 'images');
-var imgUrl = '';
-
 
 var margin = {
         top: 50,
@@ -66,113 +64,119 @@ var timeLabels = svg.selectAll(".timeLabel")
         return ((i >= 7 && i <= 16) ? "timeLabel mono axis" : "timeLabel mono axis");
     });
 
-exports.uploadToImgur = function() {
-    const imgPath = path.join(imageDir, 'heatMap.png');
-    util.logger.info(`<INFO> ${util.getTimestamp()} png created: ${fs.existsSync(imgPath)}`);
-    imgur.uploadFile(imgPath)
-        .then(function (json) {
-            util.logger.info(`<INFO> ${util.getTimestamp()} heat map url: ${json.data.link}`);
-            imgUrl = json.data.link;
-        })
-        .catch(function (err) {
-            util.logger.error(`<ERROR> ${util.getTimestamp()} uploading to imgur failed - ${err.message}`);
+function heatmapChart(dataFileName, userID) {
+    const filePath = path.join(__dirname.slice(3, -4), 'resources', 'data', dataFileName);
+    d3.json(`file:///${filePath}`, (data) => {
+        data = data.reduce((formattedData, day, dayIdx) => {
+            var combinedEntries = 1 === dayIdx ? formatDay(formattedData, 0) : formattedData;
+            return combinedEntries.concat(formatDay(day, dayIdx));
         });
-};
 
-function heatmapChart (tsvFile) {
-    const filePath = path.join(__dirname.slice(3, -4), 'resources', 'data', tsvFile);
-    d3.tsv(`file:///${filePath}`,
-        function (d) {
-            return {
-                day: +d.day,
-                hour: +d.hour,
-                value: +d.value
-            };
-        },
-        function (error, data) {
-            var colorScale = d3.scaleQuantile()
-                .domain([0, buckets - 1, d3.max(data, function (d) {
-                    return d.value;
-                })])
-                .range(colors);
-
-            var uniqueQuantiles = [];
-            var previousQuantile = -1;
-            colorScale.quantiles().forEach((q) => {
-                if (Math.round(q) !== Math.round(previousQuantile)) {
-                    uniqueQuantiles.push(q);
-                    previousQuantile = q;
-                }
-            });
-
-            var cards = svg.selectAll(".hour")
-                .data(data, function (d) {
-                    return d.day + ':' + d.hour;
-                });
-
-            cards.append("title");
-
-            cards.enter().append("rect")
-                .attr("x", function (d) {
-                    return (d.hour) * gridSize;
-                })
-                .attr("y", function (d) {
-                    return (d.day - 1) * gridSize;
-                })
-                .attr("rx", 4)
-                .attr("ry", 4)
-                .attr("style", function (d) {
-                    if (d.value === 5)
-                        return `stroke: #36393e; stroke-width: 2px; fill: ${colorScale(6)};`;
-                    return `stroke: #36393e; stroke-width: 2px; fill: ${colorScale(d.value)};`;
-                })
-                .attr("width", gridSize)
-                .attr("height", gridSize);
-
-            cards.select("title").text(function (d) {
+        var colorScale = d3.scaleQuantile()
+            .domain([0, buckets - 1, d3.max(data, function (d) {
                 return d.value;
+            })])
+            .range(colors);
+
+        var uniqueQuantiles = [];
+        var previousQuantile = -1;
+        colorScale.quantiles().forEach((q) => {
+            if (Math.round(q) !== Math.round(previousQuantile)) {
+                uniqueQuantiles.push(q);
+                previousQuantile = q;
+            }
+        });
+
+        var cards = svg.selectAll(".hour")
+            .data(data, function (d) {
+                return d.day + ':' + d.hour;
             });
 
-            cards.exit().remove();
+        cards.append("title");
 
-            var legend = svg.selectAll(".legend")
-                .data([0].concat(uniqueQuantiles), function (d) {
-                    return d;
-                });
+        cards.enter().append("rect")
+            .attr("x", function (d) {
+                return (d.hour) * gridSize;
+            })
+            .attr("y", function (d) {
+                return (d.day - 1) * gridSize;
+            })
+            .attr("rx", 4)
+            .attr("ry", 4)
+            .attr("style", function (d) {
+                if (d.value === 5)
+                    return `stroke: #36393e; stroke-width: 2px; fill: ${colorScale(6)};`;
+                return `stroke: #36393e; stroke-width: 2px; fill: ${colorScale(d.value)};`;
+            })
+            .attr("width", gridSize)
+            .attr("height", gridSize);
 
-            legend.enter().append("g")
-                .attr("class", "legend");
-
-            legend.enter().append("rect")
-                .attr("x", function (d, i) {
-                    return legendElementWidth * i;
-                })
-                .attr("y", height)
-                .attr("width", legendElementWidth)
-                .attr("height", (gridSize / 2) + 11)
-                .attr("style", function (d, i) {
-                    return `fill: ${colors[i]};`;
-                });
-
-            legend.enter().append("text")
-                .attr("style", 'font-size: 22pt; font-family: Consolas, courier; fill: white;')
-                .text(function (d) {
-                    return "≥ " + Math.round(d);
-                })
-                .attr("x", function (d, i) {
-                    return (legendElementWidth * i) + 10;
-                })
-                .attr("y", height + gridSize + 32);
-
-            legend.exit().remove();
+        cards.select("title").text(function (d) {
+            return d.value;
         });
-    setTimeout(() => imgUtils.writeSvgToFile(960, 430, 'rgba(54, 57, 62, 0.74)', 'heatMap', svg), 100);
+
+        cards.exit().remove();
+
+        var legend = svg.selectAll(".legend")
+            .data([0].concat(uniqueQuantiles), function (d) {
+                return d;
+            });
+
+        legend.enter().append("g")
+            .attr("class", "legend");
+
+        legend.enter().append("rect")
+            .attr("x", function (d, i) {
+                return legendElementWidth * i;
+            })
+            .attr("y", height)
+            .attr("width", legendElementWidth)
+            .attr("height", (gridSize / 2) + 11)
+            .attr("style", function (d, i) {
+                return `fill: ${colors[i]};`;
+            });
+
+        legend.enter().append("text")
+            .attr("style", 'font-size: 22pt; font-family: Consolas, courier; fill: white;')
+            .text(function (d) {
+                return "≥ " + Math.round(d);
+            })
+            .attr("x", function (d, i) {
+                return (legendElementWidth * i) + 10;
+            })
+            .attr("y", height + gridSize + 32);
+
+        legend.exit().remove();
+    });
+
+    setTimeout(() => {
+        imgUtils.writeSvgToFile(960, 430, 'rgba(54, 57, 62, 0.74)', 'heatMap', svg)
+            .then(() => {
+                util.sendEmbedMessage('🔥 Player Count Heat Map', null, userID, 'attachment://heatMap.png',
+                    null, null, null, './resources/images/heatMap.png');
+            });
+    }, 100);
 }
 
-exports.generateHeatMap = function() {
-    heatmapChart('avgHeatMapData.tsv');
+exports.generateHeatMap = function(userID) {
+    heatmapChart('rawHeatMapData.json', userID);
 };
 
-exports.getUpdatedHeatMapUrl = function() {
-    return imgUrl;
-};
+function formatDay(day, dayIdx) {
+    return day.map((hour, hourIdx) => {
+        const avgCount = Math.round(hour.playerCount / hour.sampleSize);
+        //convert from moment's day format to graph's day format
+        var formattedHour = hourIdx - 1;
+        if (dayIdx === 0) {
+            dayIdx = 7;
+        }
+        if (formattedHour === -1) {
+            formattedHour = 23;
+        }
+        return {
+            day: dayIdx,
+            hour: formattedHour,
+            value: avgCount
+        };
+    });
+}

@@ -324,7 +324,7 @@ module.exports = {
 		'enlist', 'export',
 		'feature',
 		'fortnite-leaderboard', 'fortnite-stats',
-		'gen-heatmap', 'give',
+		'give',
 		'h', 'heatmap', 'help', 'hit',
 		'implement', 'issue',
 		'join-review-team',
@@ -405,8 +405,7 @@ module.exports = {
 		'+ log - `toggles server output redirection to discord channel #server-log.`\n' +
 		'+ revive - `revives a fallen Scrubbing Bubble.`\n' +
 		'+ update-readme - `updates the readme to include new commands.`\n' +
-		'+ remove-player <`@user`> <`game name`>- `remove a player from gamesPlayed.`\n' +
-		'+ gen-heatmap - `generates the player count heatmap.`'
+		'+ remove-player <`@user`> <`game name`>- `remove a player from gamesPlayed.`'
 };
 
 function deepFreeze(constants) {

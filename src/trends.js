@@ -31,7 +31,7 @@ function createSvgCanvas() {
 }
 
 
-function generateGraph(countKey, targetGames) {
+function generateGraph(userID, countKey, targetGames) {
     svg = createSvgCanvas();
     const filePath = path.join(__dirname.slice(3, -4), 'resources', 'data', 'gameHistory.json');
 
@@ -63,11 +63,8 @@ function generateGraph(countKey, targetGames) {
     setTimeout(() => {
         imgUtils.writeSvgToFile(fullSvgWidth, fullSvgHeight, 'darkgray', 'trend', svg)
             .then(() => {
-                var embed = new Discord.RichEmbed({ title: 'Player Count Trends' })
-                    .attachFile(new Discord.Attachment('./resources/images/trend.png', 'trend.png'))
-                    .setImage("attachment://trend.png")
-
-                bot.getBotSpam().send({embed: embed});
+                util.sendEmbedMessage('Player Count Trends', null, userID, 'attachment://trend.png',
+                    null, null, null, './resources/images/trend.png');
             });
     }, 100);
 }
@@ -146,7 +143,7 @@ function isGamePlayerCountGraph(countKey) {
 function formatLogsAndDetermineMaxY(logs, countKey, targetGames) {
     if (isGamePlayerCountGraph(countKey)) {
         logs = logs.reduce((entries, currEntry) => {
-            combinedEntries = entries.gameData || entries;
+            var combinedEntries = entries.gameData || entries;
             return combinedEntries.concat(currEntry.gameData);
         });
 
@@ -213,11 +210,11 @@ function appendLine(dataNest, color, countline) {
         .attr('d', countline(dataNest.values));
 }
 
-exports.outputGameTrendsGraph = function(args) {
+exports.outputGameTrendsGraph = function(args, userID) {
     const targetGames = args.length === 1 ? null : util.getTargetFromArgs(args, 1).toLowerCase().split(/(?:, |,)+/);
-    generateGraph('count', targetGames);
+    generateGraph(userID, 'count', targetGames);
 };
 
-exports.ouputTotalPlayerCountGraph = function() {
-    generateGraph('playerCount');
+exports.ouputTotalPlayerCountGraph = function(userID) {
+    generateGraph(userID, 'playerCount');
 };

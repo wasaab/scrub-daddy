@@ -203,7 +203,7 @@ function updateUnverifiedReview(category, title, rating, userID) {
  *
  * @param {Object} channel - channel to refresh ratings in
  */
-function refreshRatings(channel) {
+function refreshRatings(channel, isCalledByStartup) {
 	const categories = ['tv', 'movies'];
 	categories.forEach((category) => {
 		for (var i=1; i < 5; i++) {
@@ -211,11 +211,11 @@ function refreshRatings(channel) {
 			exports.outputRatings(i, category, false, channel);
 		}
 	});
-	channel.send(new Discord.RichEmbed({
-		color: util.getUserColor(),
-		title: `Ratings Refreshed`,
-		description: `All rating info is now up to date with user ratings, IMDB, and RT.`
-	}));
+
+	if (isCalledByStartup) { return; }
+
+	util.sendEmbedMessage(`Ratings Refreshed`, `All rating info is now up to date with user ratings, IMDB, and RT.`,
+		null, null, null, null, channel.id);
 }
 
 /**
@@ -223,14 +223,14 @@ function refreshRatings(channel) {
  *
  * @param {Object} channel - channel to refresh ratings in
  */
-function maybeExportAndRefreshRatings(channel, titleToPartialTitleMatch, missingTitles) {
+function maybeExportAndRefreshRatings(channel, titleToPartialTitleMatch, missingTitles, isCalledByStartup) {
 	if (ratingsResponses < 5) {
 		ratingsResponses++;
 	} else {
 		util.exportJson(ratings, 'ratings');
 		updateExternalRatingsJson();
 		ratingsResponses = 0
-		refreshRatings(channel);
+		refreshRatings(channel, isCalledByStartup);
 		util.logger.error(`\n\n<ERROR> ${util.getTimestamp()}  3rd Party Ratings Partial Matches: ${inspect(titleToPartialTitleMatch)}`);
 		util.logger.error(`\n\n<ERROR> ${util.getTimestamp()}  3rd Party Ratings Not Matched: ${inspect(missingTitles)}`);
 	}
@@ -355,11 +355,8 @@ function getRating(title) {
  * @param {String} userID - id of the user calling the command
  */
 function titleNotFound(title, channel, userID) {
-	channel.send(new Discord.RichEmbed({
-		color: util.getUserColor(userID),
-		title: `Title not Found`,
-		description: `There is no title matching "${title}" in any category`
-	}));
+	util.sendEmbedMessage(`Title not Found`, `There is no title matching "${title}" in any category`,
+		userID, null, null, null, channel.id);
 }
 
 /**
@@ -439,11 +436,9 @@ exports.rate = function(targetCategory, rating, args, channel, userID) {
 
 
 	if (category && targetCategory && category !== targetCategory) {
-		return channel.send(new Discord.RichEmbed({
-			color: util.getUserColor(userID),
-			title: `Duplicate Titles Not Allowed`,
-			description: `Try adding the year released, to make the title unique, e.g. \`${title} (${(new Date()).getFullYear()})\``
-		}));
+		return util.sendEmbedMessage(`Duplicate Titles Not Allowed`,
+			`Try adding the year released, to make the title unique, e.g. \`${title} (${(new Date()).getFullYear()})\``,
+			userID, null, null, null, channel.id);
 	}
 
 	targetCategory = targetCategory || category;
@@ -451,11 +446,8 @@ exports.rate = function(targetCategory, rating, args, channel, userID) {
 	var avgRating = updateRatingAndDetermineAvg(targetCategory, title, userID, Number(rating), channel);
 	const categoryEmoji = c[`${targetCategory.toUpperCase()}_EMOJI`];
 
-	channel.send(new Discord.RichEmbed({
-		color: util.getUserColor(userID),
-		title: `${categoryEmoji} ${title} - Rated ${getStars(rating)} by ${util.getNick(userID)}`,
-		description: `Average Rating: ${getStars(avgRating)}`
-	}));
+	util.sendEmbedMessage(`${categoryEmoji} ${title} - Rated ${getStars(rating)} by ${util.getNick(userID)}`,
+		`Average Rating: ${getStars(avgRating)}`, userID, null, null, null, channel.id);
 }
 
 /**
@@ -486,11 +478,7 @@ exports.ratingInfo = function(args, userID) {
 		info += `\n${util.getNick(reviewer)}	${getStars(rating.reviews[reviewer])}`
 	}
 
-	channel.send(new Discord.RichEmbed({
-		color: util.getUserColor(userID),
-		title: title,
-		description: info
-	}));
+	util.sendEmbedMessage(title, info, userID, null, null, null, channel.id);
 }
 
 /**
@@ -521,12 +509,8 @@ exports.rename = function(args, userID, channel) {
 
 	exports.outputRatings(Math.floor(rating.rating), category, isVerified, channel);
 
-	channel.send(new Discord.RichEmbed({
-		color: util.getUserColor(userID),
-		title: `${title} - Renamed by ${util.getNick(userID)}`,
-		description: `New Title: ${newTitle}`
-	}));
-
+	util.sendEmbedMessage(`${title} - Renamed by ${util.getNick(userID)}`,
+		`New Title: ${newTitle}`, userID, null, null, null, channel.id);
 	util.exportJson(ratings, 'ratings');
 	updateExternalRatingsJson();
 }
@@ -534,7 +518,7 @@ exports.rename = function(args, userID, channel) {
 /**
  * Updates the 3rd party ratings for all titles.
  */
-exports.updateThirdPartyRatings = function() {
+exports.updateThirdPartyRatings = function(isCalledByStartup) {
 	const channel = bot.getClient().channels.find('id', c.RATINGS_CHANNEL_ID);
 	const categories =  ['tv', 'movies'];
 	var titleToPartialTitleMatch = {
@@ -569,7 +553,7 @@ exports.updateThirdPartyRatings = function() {
 					const { updatedCategory, titleToPartialMatch, titlesNotFound } = updateThirdPartyRatingsForCategory(site, responses, ratings[category]);
 					sumRatingErrors(titleToPartialMatch, titlesNotFound, category, site);
 					ratings[category] = updatedCategory;
-					maybeExportAndRefreshRatings(channel, titleToPartialTitleMatch, missingTitles);
+					maybeExportAndRefreshRatings(channel, titleToPartialTitleMatch, missingTitles, isCalledByStartup);
 				});
 
 			getThirdPartyRatingsForCategory(ratings.unverified[category], site)
@@ -577,7 +561,7 @@ exports.updateThirdPartyRatings = function() {
 					const { updatedCategory, titleToPartialMatch, titlesNotFound } = updateThirdPartyRatingsForCategory(site, responses, ratings.unverified[category]);
 					sumRatingErrors(titleToPartialMatch, titlesNotFound, category, site);
 					ratings.unverified[category] = updatedCategory;
-					maybeExportAndRefreshRatings(channel, titleToPartialTitleMatch, missingTitles);
+					maybeExportAndRefreshRatings(channel, titleToPartialTitleMatch, missingTitles, isCalledByStartup);
 				});
 		});
 	});
@@ -608,11 +592,8 @@ exports.changeCategory = function(args, channel, userID) {
 	exports.outputRatings(flooredRating, category, isVerified, channel);
 	exports.outputRatings(flooredRating, newCategory, isVerified, channel);
 
-	channel.send(new Discord.RichEmbed({
-		color: util.getUserColor(userID),
-		title: `Category Changed`,
-		description: `"${title}" has been moved from ${category} to ${newCategory}`
-	}));
+	util.sendEmbedMessage(`Category Changed`, `"${title}" has been moved from ${category} to ${newCategory}`,
+		userID, null, null, null, channel.id);
 	util.exportJson(ratings, 'ratings');
 	updateExternalRatingsJson();
 }
@@ -631,12 +612,8 @@ exports.delete = function(args, channel, userID) {
 
 	//If not admin and the user is not the only reviewer of the title
 	if (!util.isAdmin(userID) && (!rating.reviews[userID] || Object.keys(rating.reviews).length !== 1)) {
-		return channel.send(new Discord.RichEmbed({
-			color: util.getUserColor(userID),
-			title: `Deletion Not Authorized`,
-			description: `"${title}" can not be deleted, except by ${util.mentionUser(c.K_ID)},` +
-				' as you are not the sole reviewer of this title.'
-		}));
+		return util.sendEmbedMessage(`Deletion Not Authorized`, `"${title}" can not be deleted, except by ${util.mentionUser(c.K_ID)},` +
+				' as you are not the sole reviewer of this title.', userID, null, null, null, channel.id);
 	}
 
 	util.logger.info(`<INFO> ${util.getTimestamp()} Deleting rating for "${title}" in ${category}`);
@@ -647,11 +624,8 @@ exports.delete = function(args, channel, userID) {
 	}
 
 	exports.outputRatings(Math.floor(rating.rating), category, isVerified, channel);
-	channel.send(new Discord.RichEmbed({
-		color: util.getUserColor(userID),
-		title: `Rating Deleted`,
-		description: `"${title}" has been deleted`
-	}));
+	util.sendEmbedMessage(`Rating Deleted`, `"${title}" has been deleted`,
+		userID, null, null, null, channel.id);
 	util.exportJson(ratings, 'ratings');
 	updateExternalRatingsJson();
 }

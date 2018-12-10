@@ -20,7 +20,6 @@ var gamesPlayed = require('../resources/data/gamesPlayed.json');	//map of game n
 var gameHistory = require('../resources/data/gameHistory.json');	//timestamped log of player counts for each game
 var timeSheet = require('../resources/data/timeSheet.json');		//map of userID to gameToTimePlayed map for that user
 var heatMapData = require('../resources/data/rawHeatMapData.json');	//Heat map data for every day-hour combo.
-var heatMapImgUrl = '';		//url for the newest player count heat map image
 var gameChannels = [];		//voice channels that change name based upon what the users are playing
 var whoSaidScore = {};
 
@@ -67,20 +66,13 @@ function updateHeatMap(logTime, playerCount) {
 	const dayHourData = heatMapData[logTime.day()][logTime.hour()] || {};
 	const count = dayHourData.playerCount || 0;
 	const size = dayHourData.sampleSize || 0;
+
 	heatMapData[logTime.day()][logTime.hour()] = {
 		playerCount: count + playerCount,
 		sampleSize: size + 1
 	};
-	exports.generateHeatMap();
-};
-
-/**
- * Generates the player count heat map.
- */
-exports.generateHeatMap = function() {
-	writeHeatMapDataToTsvFile();
 	util.exportJson(heatMapData, 'rawHeatMapData');
-}
+};
 
 function getGamesBeingPlayedData(players) {
 	var games = [];
@@ -307,41 +299,6 @@ exports.maybeOutputTimePlayed = function(args, userID) {
 		util.sendEmbedFieldsMessage('🕒 Hours Played', fields, userID);
 		util.logger.info(`<INFO> ${util.getTimestamp()}  Hours Played: ${inspect(fields)}`);
     }
-};
-
-/**
- * Writes the heat map data to a tsv file.
- */
-function writeHeatMapDataToTsvFile() {
-	const firstLine = 'day	hour	value\n';
-	formattedHistory = firstLine;
-
-	heatMapData.forEach((day, dayIdx) => {
-		day.forEach((hour, hourIdx) => {
-			const avgCount = Math.round(hour.playerCount / hour.sampleSize);
-			//convert from moment's day format to graph's day format
-			hourIdx--;
-			if (dayIdx === 0) {
-				dayIdx = 7;
-			}
-			if (hourIdx === -1) {
-				hourIdx = 23;
-			}
-			formattedHistory += `${dayIdx}	${hourIdx}	${avgCount}\n`;
-		});
-	});
-
-	if (formattedHistory !== firstLine) {
-		fs.writeFile('./resources/data/avgHeatMapData.tsv', formattedHistory, 'utf8', util.log);
-		heatmap.generateHeatMap();
-	}
-}
-
-/**
- * Outputs heatmap of game's player counts throughout the day if such a log exists.
- */
-exports.maybeOutputHeatMap = function(userID) {
-	util.sendEmbedMessage('🔥 Player Count Heat Map', null, null, heatmap.getUpdatedHeatMapUrl());
 };
 
 /**
