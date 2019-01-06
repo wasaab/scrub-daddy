@@ -38,6 +38,7 @@ var members = [];
 var scrubIdToNick = {};
 var scrubIdToAvatar = {};
 var reviewQueue = [];
+var inviterToUses = {};
 
 /**
  * Creates a channel in a category, specified by the command provided.
@@ -361,6 +362,16 @@ function updateReadme() {
 	fs.writeFile('README.md', result, 'utf8', log);
 };
 
+function outputCmdsMissingHelpDocs() {
+	const cmdsMissingDocs = c.COMMANDS.filter((cmd) => {
+		return !c.HELP_CATEGORIES.some((category) => {
+			return category.fields.some((command) => command.name.substring(1).startsWith(cmd));
+		});
+	});
+
+	sendEmbedMessage('Top Secret Commands', `I actually just need to document these ${cmdsMissingDocs.length} commands...\n\n${cmdsMissingDocs.toString().split(',').join(', ')}`);
+}
+
 /**
  * Outputs the help message for the provided command.
  *
@@ -593,25 +604,27 @@ function scheduleRecurringExport() {
  * Schedules a recurring job.
  */
 function scheduleRecurringJobs() {
-	const job = private.job;
-	if (!job) { return; }
-	var reviewRule = new schedule.RecurrenceRule();
+	const reviewJob = private.job;
 
-	reviewRule[job.key1] = job.val1;
-	reviewRule[job.key2] = job.val2;
-	reviewRule[job.key3] = job.val3;
+	if (reviewJob) {
+		var reviewRule = new schedule.RecurrenceRule();
 
-	schedule.scheduleJob(reviewRule, function(){
-		if (isDevEnv()) { return; }
-		bot.getBotSpam().send(c.REVIEW_ROLE);
-		sendEmbedMessage(null, null, null, job.img);
-	});
+		reviewRule[reviewJob.key1] = reviewJob.val1;
+		reviewRule[reviewJob.key2] = reviewJob.val2;
+		reviewRule[reviewJob.key3] = reviewJob.val3;
 
-	reviewRule[job.key3] = job.val3 - 3;
-	schedule.scheduleJob(reviewRule, function(){
-		if (isDevEnv()) { return; }
-		bot.getBotSpam().send(`${c.REVIEW_ROLE} Upcoming Review. Reserve the room and fire up that projector.`);
-	});
+		schedule.scheduleJob(reviewRule, function(){
+			if (isDevEnv()) { return; }
+			bot.getBotSpam().send(c.REVIEW_ROLE);
+			sendEmbedMessage(null, null, null, reviewJob.img);
+		});
+
+		reviewRule[reviewJob.key3] = reviewJob.val3 - 3;
+		schedule.scheduleJob(reviewRule, function(){
+			if (isDevEnv()) { return; }
+			bot.getBotSpam().send(`${c.REVIEW_ROLE} Upcoming Review. Reserve the room and fire up that projector.`);
+		});
+	}
 
 	var clearTimeSheetRule = new schedule.RecurrenceRule();
 	clearTimeSheetRule.hour = 5;
@@ -642,11 +655,13 @@ function scheduleRecurringJobs() {
 		games.updatePlayingStatus();
 	});
 
-	var tipRule = new schedule.RecurrenceRule();
-	tipRule.hour = [10, 17, 23];
-	tipRule.minute = 0;
+	var tipAndInvitesRule = new schedule.RecurrenceRule();
+	tipAndInvitesRule.hour = [10, 17, 23];
+	tipAndInvitesRule.minute = 0;
 	var firstRun = true;
-	var outputTip = schedule.scheduleJob(tipRule, function(){
+	var outputTip = schedule.scheduleJob(tipAndInvitesRule, function(){
+		updateServerInvites();
+
 		if (isDevEnv()) { return; }
 		if (!firstRun) {
 			previousTip.delete();
@@ -658,6 +673,8 @@ function scheduleRecurringJobs() {
 			previousTip = message;
 		});
 	});
+
+	updateServerInvites();
 
 	if (config.lottoTime) {
 		const lottoTime = config.lottoTime;
@@ -1651,6 +1668,61 @@ function showLists(userID) {
 	sendDynamicMessage(userID, 'list', results, homePage);
 }
 
+function getCurrServerInvites() {
+	const server = bot.getClient().guilds.find('id', private.serverID);
+
+	return server.fetchInvites();
+}
+
+function updateServerInvites() {
+	getCurrServerInvites()
+		.then((currInvites) => {
+			currInvites.array().forEach((invite) => {
+				inviterToUses[invite.inviter.id] = invite.uses;
+			});
+		})
+		.catch((err) => {
+			console.log(err);
+		})
+}
+
+function addInvitedByRole(newMember) {
+	getCurrServerInvites()
+		.then((currInvites) => {
+			var inviter;
+			var updatedInviterToUses = {};
+
+			currInvites.array().forEach((invite) => {
+				var currInviterID = invite.inviter.id;
+				updatedInviterToUses[currInviterID] = invite.uses;
+
+				if (inviter) { return; }
+
+				const prevUses = inviterToUses[currInviterID];
+
+				if ((prevUses && prevUses < invite.uses) || (!prevUses && invite.uses > 0)) {
+					inviter = getNick(currInviterID);
+				}
+			});
+
+			inviterToUses = updatedInviterToUses;
+
+			const server = bot.getClient().guilds.find('id', private.serverID);
+			var invitedByRole = server.roles.find('name', inviter);
+
+			if (!invitedByRole) {
+				server.createRole({
+					name: `${inviter}'s Pleb`
+				})
+				.then((role) => {
+					newMember.addRole(role);
+				})
+			} else {
+				newMember.addRole(invitedByRole);
+			}
+		});
+}
+
 /**
  * Deletes a message.
  *
@@ -1781,6 +1853,7 @@ function getUserColor(userID) {
 
 //-------------------- Public Functions --------------------
 exports.addInitialNumberReactions = addInitialNumberReactions;
+exports.addInvitedByRole = addInvitedByRole;
 exports.addMessageToReviewQueue = addMessageToReviewQueue;
 exports.addToList = addToList;
 exports.addToReviewRole = addToReviewRole;
@@ -1832,6 +1905,7 @@ exports.mentionRole = mentionRole;
 exports.mentionUser = mentionUser;
 exports.outputAliases = outputAliases;
 exports.outputCatFact = outputCatFact;
+exports.outputCmdsMissingHelpDocs = outputCmdsMissingHelpDocs;
 exports.outputTempChannelsLeftByUser = outputTempChannelsLeftByUser;
 exports.outputHelpForCommand = outputHelpForCommand;
 exports.playSoundByte = playSoundByte;

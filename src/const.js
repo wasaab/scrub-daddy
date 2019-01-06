@@ -329,7 +329,7 @@ module.exports = {
 		'implement', 'issue',
 		'join-review-team',
 		'list', 'leave-temp', 'leave-review-team', 'lets-play', 'list-backups', 'log', 'lotto',
-		'magic-word', 'move-user',
+		'magic-word', 'missing-help', 'move-user',
 		'opt-in',
 		'p', 'playing',
 		'quote', 'quotes',
