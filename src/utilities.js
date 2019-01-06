@@ -1708,7 +1708,7 @@ function addInvitedByRole(newMember) {
 			inviterToUses = updatedInviterToUses;
 
 			const server = bot.getClient().guilds.find('id', private.serverID);
-			var invitedByRole = server.roles.find('name', inviter);
+			var invitedByRole = server.roles.find('name', `${inviter}'s Pleb`);
 
 			if (!invitedByRole) {
 				server.createRole({
