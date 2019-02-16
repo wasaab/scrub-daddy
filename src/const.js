@@ -7,6 +7,7 @@ module.exports = {
 	PURGATORY_CHANNEL_ID: '370626266786824192',	    //sends kicked user's to this channel
 	LOG_CHANNEL_ID: '410258655322308608',			//channel ID of the text channel used for redirecting the console
 	RATINGS_CHANNEL_ID: '415305610179903492',		//channel used for rating tv and movies
+	CAR_PARTS_CHANNEL_ID: '544229507767468054',
 	CATEGORY_ID: {
 		'Issue': '372143355070644255',				//category for bot issues
 		'Feature': '374009714213781504',			//category for bot feature requests
@@ -319,7 +320,7 @@ module.exports = {
 		'@', '1-more','21', '2e',
 		'add-emoji', 'add-sb', 'alias', 'army',
 		'backup',
-		'catfacts', 'channels-left', 'change-category', 'clean', 'color', 'create-group', 'create-list',
+		'cars', 'catfacts', 'channels-left', 'change-category', 'clean', 'color', 'create-group', 'create-list',
 		'delete', 'delete-rating', 'discharge',
 		'enlist', 'export',
 		'feature',
@@ -333,7 +334,7 @@ module.exports = {
 		'opt-in',
 		'p', 'playing',
 		'quote', 'quotes',
-		'rainbow-role', 'rank', 'ranks', 'rate', 'ratings', 'rating-info', 'refresh-ratings', 'rejoin-temp', 'remove-player', 'rename', 'rename-channel', 'rename-hank', 'rename-role', 'rename-user', 'restart', 'restore', 'review-messages', 'revive',
+		'rainbow-role', 'rank', 'ranks', 'rate', 'ratings', 'rating-info', 'refresh-ratings', 'rejoin-temp', 'remove-player', 'rename', 'rename-channel', 'rename-hank', 'rename-role', 'rename-user', 'reserve', 'restart', 'restore', 'review-messages', 'revive',
 		'sb', 'sb-add', 'scrub-box', 'set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'start-lotto', 'stats', 'stay', 'steal', 'steal-all', 'stop-lotto', 'sunken-sailor',
 		'temp', 'time', 'tips', 'toggle-streaming',
 		'unalias', 'update-readme',
@@ -379,6 +380,13 @@ module.exports = {
 	TV_EMOJI: '📺',
 	MOVIES_EMOJI: '📀',
 	TRASH_REACTION: 'trashcan:427231130241204224',
+	TAG_TO_TEXT = {
+        '🔵' : ['estoril', 'blue', 'ebii', ' eb ', ' eb2 '],
+        '🔴': ['melbourne', ' red ', ' mr '],
+        '🚬': ['exhaust', 'downpipe', ' dp ', ' mpe ', 'catback', 'axleback'],
+        '👄': [' lip ', 'spoiler'],
+        '🍔': ['grill', 'kidney']
+    },
 	STATS: ['trnRating','score' ,'top1','top3','top5','top6','top10','top12','top25','kd','winRatio',
 		'matches','kills','minutesPlayed','kpm','kpg','avgTimePlayed','scorePerMatch','scorePerMin'],
 	GAME_MODE_TO_KEY: {

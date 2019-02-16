@@ -12,6 +12,7 @@ var gambling = require('./gambling.js');
 var trends = require('./trends.js');
 var games = require('./games.js');
 var vote = require('./vote.js');
+var cars = require('./cars.js');
 var blackjack = require("./blackjack.js")
 
 var config = require('../resources/data/config.json');
@@ -101,7 +102,10 @@ function handleCommand(message) {
 	function backupCalled() {
 		if (!util.isAdmin(userID)) { return; }
 		util.backupJson(args[1]);
-    }
+	}
+	function carsCalled() {
+		cars.crawlCarForum();
+	}
 	function catfactsCalled() {
 		util.outputCatFact(userID);
 		message.delete();
@@ -418,6 +422,7 @@ function handleCommand(message) {
 		'alias': aliasCalled,
 		'army': armyCalled,
 		'backup': backupCalled,
+		'cars': carsCalled,
 		'catfacts': catfactsCalled,
 		'channels-left': channelsLeftCalled,
 		'change-category': changeCategoryCalled,

@@ -16,6 +16,7 @@ const co = require('co')
 var gambling = require('./gambling.js');
 var heatmap = require('./heatmap.js');
 var games = require('./games.js');
+var cars = require('./cars.js');
 var bot = require('./bot.js');
 var c = require('./const.js');
 var config = require('../resources/data/config.json');
@@ -308,7 +309,7 @@ function sendEmbedFieldsMessage(title, fields, userID, footer, channelID) {
 /**
  * Sends an embed message to bot-spam with an optional title, description, image, thumbnail(true/false), and footer.
  */
-function sendEmbedMessage(title, description, userID, image, thumbnail, footer, channelID, file) {
+function sendEmbedMessage(title, description, userID, image, thumbnail, footer, channelID, file, url, timestamp) {
 	//these are all optional parameters
 	title = title || '';
 	description = description || '';
@@ -321,12 +322,19 @@ function sendEmbedMessage(title, description, userID, image, thumbnail, footer, 
 		title: title,
 		description: description,
 		footer: footer,
-		file: file
+		file: file,
+		url: url,
+		timestamp: timestamp
 	};
-	message[picType] = { url: image };
+
+	if (image) {
+		message[picType] = { url: image };
+	}
+
 	const channel = channelID ? bot.getClient().channels.find('id', channelID) : bot.getBotSpam();
 	return channel.send(new Discord.RichEmbed(message))
-	.then((msgSent) => msgSent);
+		.then((msgSent) => msgSent)
+		.catch(log);
 };
 
 /**
@@ -628,6 +636,7 @@ function scheduleRecurringJobs() {
 
 	var clearTimeSheetRule = new schedule.RecurrenceRule();
 	clearTimeSheetRule.hour = 5;
+	clearTimeSheetRule.minute = 0;
 
 	schedule.scheduleJob(clearTimeSheetRule, function(){
 	  games.clearTimeSheet();
@@ -635,9 +644,15 @@ function scheduleRecurringJobs() {
 
 	var updateBansRule = new schedule.RecurrenceRule();
 	updateBansRule.hour = [8, 20]; // 8am and 8pm
+	updateBansRule.minute = 0;
 	schedule.scheduleJob(updateBansRule, function(){
 		maybeUnbanSpammers();
 	});
+
+	var crawlCarForumRule = new schedule.RecurrenceRule();
+	crawlCarForumRule.hour = [17, 23]; // 5pm and 11pm
+	crawlCarForumRule.minute = 0;
+	schedule.scheduleJob(crawlCarForumRule, cars.crawlCarForum);
 
 	var updateMembersHeatMapAndCatFactsSubsRule = new schedule.RecurrenceRule();
 	updateMembersHeatMapAndCatFactsSubsRule.minute = 0;
