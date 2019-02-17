@@ -380,7 +380,7 @@ module.exports = {
 	TV_EMOJI: '📺',
 	MOVIES_EMOJI: '📀',
 	TRASH_REACTION: 'trashcan:427231130241204224',
-	TAG_TO_TEXT = {
+	TAG_TO_TEXT: {
         '🔵' : ['estoril', 'blue', 'ebii', ' eb ', ' eb2 '],
         '🔴': ['melbourne', ' red ', ' mr '],
         '🚬': ['exhaust', 'downpipe', ' dp ', ' mpe ', 'catback', 'axleback'],
