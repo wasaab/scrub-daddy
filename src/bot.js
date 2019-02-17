@@ -104,6 +104,7 @@ function handleCommand(message) {
 		util.backupJson(args[1]);
 	}
 	function carsCalled() {
+		if (!util.isAdmin(userID)) { return; }
 		cars.crawlCarForum();
 	}
 	function catfactsCalled() {
