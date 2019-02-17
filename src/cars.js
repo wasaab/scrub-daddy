@@ -2,7 +2,6 @@ var rp = require('request-promise');
 var moment = require('moment');
 const fs = require('fs');
 const c = require('./const.js');
-const bot = require('./bot.js');
 const util = require('./utilities.js');
 const mergeImg = require('merge-img');
 const Jimp = require('jimp');
@@ -20,7 +19,7 @@ const forumIdToName = {
     '550': 'Interior Parts',
     '548': 'Suspension / Brakes / Chassis / Spacers'
 };
-var channel = bot.getClient().channels.find('id', c.CAR_PARTS_CHANNEL_ID);
+var channel;
 
 function handleAllPromises(promises) {
     const toResultObject = (promise) => {
@@ -230,4 +229,8 @@ function getPostsInForums(forumIds) {
 exports.crawlCarForum = () => {
     channel.send(`**${moment().format('ddd MMM Do   hh:mm A')}** \`\`\` \`\`\``);
     getPostsInForums(Object.keys(forumIdToName));
+};
+
+exports.setCarPartsChannel = (carPartsChannel) => {
+    channel = carPartsChannel;
 };

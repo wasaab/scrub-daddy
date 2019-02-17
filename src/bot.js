@@ -581,6 +581,7 @@ client.on('ready', () => {
 	scrubsChannel = client.channels.find('id', c.SCRUBS_CHANNEL_ID);
 	purgatory = client.channels.find('id', c.PURGATORY_CHANNEL_ID);
 	logChannel = client.channels.find('id', c.LOG_CHANNEL_ID);
+	cars.setCarPartsChannel(client.channels.find('id', c.CAR_PARTS_CHANNEL_ID));
 
 	util.enableServerLogRedirect();
 	util.scheduleRecurringJobs();
