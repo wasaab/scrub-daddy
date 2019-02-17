@@ -1453,6 +1453,8 @@ function maybeBanSpammer(message) {
  */
 function unBanSpammer(userID, channelID) {
 	const channel = bot.getClient().channels.find('id', channelID);
+	if (!channel) { return; }
+
 	channel.overwritePermissions(userID, {
 		SEND_MESSAGES: true
 	})
