@@ -614,6 +614,8 @@ function scheduleRecurringExport() {
 function scheduleRecurringJobs() {
 	const reviewJob = private.job;
 
+	if (Object.keys(schedule.scheduledJobs).length !== 0) { return; }
+
 	if (reviewJob) {
 		var reviewRule = new schedule.RecurrenceRule();
 
