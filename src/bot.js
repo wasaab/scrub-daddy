@@ -518,6 +518,7 @@ client.on('message', (message) => {
     if (firstChar === config.prefix) {
 		handleCommand(message);
 	} else {
+		util.maybeReplicateLol(message);
 		games.maybeCallLetsPlay(message);
 		util.maybeInsertQuotes(message);
 		util.maybeBanSpammer(message);

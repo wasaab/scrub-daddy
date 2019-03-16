@@ -306,6 +306,16 @@ function sendEmbedFieldsMessage(title, fields, userID, footer, channelID) {
 	}));
 };
 
+function sendAuthoredMessage(description, userID, channelID) {
+	var message = {
+		color: getUserColor(userID),
+		description: description,
+		author: getAuthor(userID)
+	}
+
+	return sendMessageToChannel(message, channelID);
+}
+
 /**
  * Sends an embed message to bot-spam with an optional title, description, image, thumbnail(true/false), and footer.
  */
@@ -331,11 +341,16 @@ function sendEmbedMessage(title, description, userID, image, thumbnail, footer, 
 		message[picType] = { url: image };
 	}
 
+	return sendMessageToChannel(message, channelID);
+};
+
+function sendMessageToChannel(message, channelID) {
 	const channel = channelID ? bot.getClient().channels.find('id', channelID) : bot.getBotSpam();
+
 	return channel.send(new Discord.RichEmbed(message))
 		.then((msgSent) => msgSent)
 		.catch(log);
-};
+}
 
 /**
  * Gets an author object for the provided userID.
@@ -1141,6 +1156,12 @@ function quoteUser(ogMessage, quotedUserID, quotingUserID, channelID) {
 	});
 };
 
+function maybeReplicateLol(message) {
+	if (!(/^l(ol)+$/i).test(message.content) || message.channel.id === c.LOL_CHANNEL_ID) { return; }
+
+	sendAuthoredMessage(message.content, message.author.id, c.LOL_CHANNEL_ID);
+}
+
 /**
  * Outputs quotes.
  *
@@ -1917,6 +1938,7 @@ exports.maybeBanSpammer = maybeBanSpammer;
 exports.maybeGetAlias = maybeGetAlias;
 exports.maybeInsertQuotes = maybeInsertQuotes;
 exports.maybeRemoveFromArray = maybeRemoveFromArray;
+exports.maybeReplicateLol = maybeReplicateLol;
 exports.maybeUpdateDynamicMessage = maybeUpdateDynamicMessage;
 exports.mentionChannel = mentionChannel;
 exports.mentionGroup = mentionGroup;
@@ -1936,6 +1958,7 @@ exports.restartBot = restartBot;
 exports.restoreJsonFromBackup = restoreJsonFromBackup;
 exports.reviewMessages = reviewMessages;
 exports.scheduleRecurringJobs = scheduleRecurringJobs;
+exports.sendAuthoredMessage = sendAuthoredMessage;
 exports.sendDynamicMessage = sendDynamicMessage;
 exports.sendEmbedFieldsMessage = sendEmbedFieldsMessage;
 exports.sendEmbedMessage = sendEmbedMessage;

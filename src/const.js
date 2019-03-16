@@ -8,6 +8,7 @@ module.exports = {
 	LOG_CHANNEL_ID: '410258655322308608',			//channel ID of the text channel used for redirecting the console
 	RATINGS_CHANNEL_ID: '415305610179903492',		//channel used for rating tv and movies
 	CAR_PARTS_CHANNEL_ID: '544229507767468054',
+	LOL_CHANNEL_ID: '509761663814336532',
 	CATEGORY_ID: {
 		'Issue': '372143355070644255',				//category for bot issues
 		'Feature': '374009714213781504',			//category for bot feature requests
@@ -137,6 +138,7 @@ module.exports = {
 				{ name: '.discharge <`numBubbles`>', value: '`honorably discharges numBubbles Scrubbing Bubble from your army.`', inline: 'false'},
 				{ name: '.give <`@user`>', value: '`transfers a Scrubbing Bubble from your army to user\'s army.`', inline: 'false'},
 				{ name: '.give <`numBubbles`> <`@user`>', value: '`transfers numBubbles from your army to user\'s army.`', inline: 'false'},
+				{ name: '.reserve', value: '`to get Scrubbing Bubble reinforcements from your reserve army.`', inline: 'false'},
 				{ name: '.clean <`numBubbles`>', value: '`send numBubbles to clean the toilet.`', inline: 'false'},
 				{ name: '.21 <`numBubbles`>', value: '`to start a game of blackjack with a bet of numBubbles.`', inline: 'false'},
 				{ name: '.hit', value: '`to hit in blackjack.`', inline: 'false'},
@@ -174,6 +176,9 @@ module.exports = {
 				{ name: '.lets-play -r <`Game Name|Game Emoji`>', value: '`.lets-play without @mentioning Super ͡Scrubs and inactive players.`', inline: 'false'},
 				{ name: '.1-more', value: '`to request 1 more player for the game you are playing via mentions.`', inline: 'false'},
 				{ name: '.p', value: '`to ask @Scrubs to play PUBG in scrubs text channel.`', inline: 'false'},
+				{ name: '.split-group', value: '`to generate a random group splitting for users in your voice channel.`', inline: 'false'},
+				{ name: '.trends <`Game Name | Game, Game2, etc`>', value: '`to see player count trends for the provided game(s).`', inline: 'false'},
+				{ name: '.total-trends', value: '`To see total player count trends across all games.`', inline: 'false'},
 				{ name: '.fortnite-stats <`fortniteUserName|@user`> <`gameMode`> <`stat`>', value: '`to lookup fortnite stats for the provided player.`', inline: 'false'},
 				{ name: '.fortnite-leaderboard <`gameMode`> <`stat`>', value: '`to show the leaderboard for the provided game mode + stat.`', inline: 'false'},
 				{ name: '.set-fortnite-name <`fortniteUserName`>', value: '`to link your Fortnite account to Scrub Daddy for stat lookup.`', inline: 'false'}
@@ -236,10 +241,27 @@ module.exports = {
 				{ name: '.@<`groupName`> <`message to send`>', value: '`To mention all members of a custom group in a message.`', inline: 'false'},
 				{ name: '.@<`gameName`> <`message to send`>', value: '`To mention all users who play gameName in a message.`', inline: 'false'},
 				{ name: '.@power <`message to send`>', value: '`If not called from #bot-spam or #scrubs will mention the channel\'s power users in a message.`', inline: 'false'},
+				{ name: '.subscribe-catfacts', value: '`Subscribe to have the latest catfacts DMed hourly!`', inline: 'false'},
+				{ name: '.catfacts', value: '`to get a cat fact.`', inline: 'false'},
+				{ name: '.channels-left', value: '`to see the temp channels you have left.`', inline: 'false'},
+				{ name: '.rejoin-temp <`channel-name`>', value: '`to rejoin a temp channel.`', inline: 'false'},
 				{ name: '.delete', value: '`call this after adding both :trashcan: and :black_circle: reactions to first and last messages to delete.\n' +
 					'All messages between the two you reacted to will be deleted, including those two.\nThis will only work if you are in a temp channel you created.`', inline: 'false'}
 			]
 		}
+	],
+	//TODO: finish updated the help for these commands and place them in relevant categories
+	UNCATEGORIZED_HELP: [
+		{ name: '.add-emoji', value: '`🏆`', inline: 'false'},
+		{ name: '.magic-word <`TBD`>', value: '`🏆`', inline: 'false'},
+		{ name: '.move-user <`TBD`>', value: '`🏆`', inline: 'false'},
+		{ name: '.rainbow-role <`TBD`>', value: '`🏆`', inline: 'false'},
+		{ name: '.rename-channel <`TBD`>', value: '`🏆`', inline: 'false'},
+		{ name: '.rename-hank', value: '`🏆`', inline: 'false'},
+		{ name: '.rename-role <`TBD`>', value: '`🏆`', inline: 'false'},
+		{ name: '.rename-user <`TBD`>', value: '`🏆`', inline: 'false'},
+		{ name: '.scrub-box <`TBD`>', value: '`to open a Scrub Box.`', inline: 'false'},
+		{ name: '.stop-lotto <`TBD`>', value: '`🏆`', inline: 'false'},
 	],
 	NEW_LEDGER_ENTRY: {
 		armySize: 0,
@@ -317,7 +339,7 @@ module.exports = {
 		}
 	],
 	COMMANDS: [
-		'@', '1-more','21', '2e',
+		'@', '1-more','21',
 		'add-emoji', 'add-sb', 'alias', 'army',
 		'backup',
 		'cars', 'catfacts', 'channels-left', 'change-category', 'clean', 'color', 'create-group', 'create-list',
@@ -327,7 +349,7 @@ module.exports = {
 		'fortnite-leaderboard', 'fortnite-stats',
 		'give',
 		'h', 'heatmap', 'help', 'hit',
-		'implement', 'issue',
+		'ignore-posts', 'implement', 'issue',
 		'join-review-team',
 		'list', 'leave-temp', 'leave-review-team', 'lets-play', 'list-backups', 'log', 'lotto',
 		'magic-word', 'missing-help', 'move-user',
@@ -335,14 +357,14 @@ module.exports = {
 		'p', 'playing',
 		'quote', 'quotes',
 		'rainbow-role', 'rank', 'ranks', 'rate', 'ratings', 'rating-info', 'refresh-ratings', 'rejoin-temp', 'remove-player', 'rename', 'rename-channel', 'rename-hank', 'rename-role', 'rename-user', 'reserve', 'restart', 'restore', 'review-messages', 'revive',
-		'sb', 'sb-add', 'scrub-box', 'set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'start-lotto', 'stats', 'stay', 'steal', 'steal-all', 'stop-lotto', 'sunken-sailor',
+		'sb', 'sb-add', 'scrub-box', 'set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'split-group', 'start-lotto', 'stats', 'stay', 'steal', 'steal-all', 'stop-lotto', 'subscribe-catfacts', 'sunken-sailor',
 		'temp', 'time', 'tips', 'toggle-streaming',
 		'unalias', 'update-readme',
 		'vote', 'voteban', 'voteinfo', 'votekick',
 		'who-plays', 'who-said',
 		'test', 'trends', 'total-trends'
 	],
-	GLOBAL_COMMANDS: ['@', 'quote', 'delete', 'leave-temp', 'rate', 'rename', 'refresh-ratings', 'rating-info', 'change-category', 'delete-rating'],
+	GLOBAL_COMMANDS: ['@', 'cars', 'change-category', 'delete', 'delete-rating', 'ignore-posts','leave-temp', 'quote', 'rate', 'rename', 'refresh-ratings', 'rating-info'],
 	WHO_PLAYS_FUZZY_OPTIONS: {
 		shouldSort: true,
 		threshold: 0.3,
@@ -381,7 +403,7 @@ module.exports = {
 	MOVIES_EMOJI: '📀',
 	TRASH_REACTION: 'trashcan:427231130241204224',
 	TAG_TO_TEXT: {
-        '🔵' : ['estoril', 'blue', 'ebii', ' eb ', ' eb2 '],
+        '🔵' : ['estoril', ' blue ', 'ebii', ' eb ', ' eb2 '],
         '🔴': ['melbourne', ' red ', ' mr '],
         '🚬': ['exhaust', 'downpipe', ' dp ', ' mpe ', 'catback', 'axleback'],
         '👄': [' lip ', 'spoiler'],
@@ -413,7 +435,10 @@ module.exports = {
 		'+ log - `toggles server output redirection to discord channel #server-log.`\n' +
 		'+ revive - `revives a fallen Scrubbing Bubble.`\n' +
 		'+ update-readme - `updates the readme to include new commands.`\n' +
-		'+ remove-player <`@user`> <`game name`>- `remove a player from gamesPlayed.`'
+		'+ remove-player <`@user`> <`game name`>- `remove a player from gamesPlayed.`\n' +
+		'+ cars\n' +
+		'+ missing-help\n' +
+		'+ review-messages\n'
 };
 
 function deepFreeze(constants) {
