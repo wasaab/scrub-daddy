@@ -395,6 +395,25 @@ function outputCmdsMissingHelpDocs() {
 	sendEmbedMessage('Top Secret Commands', `I actually just need to document these ${cmdsMissingDocs.length} commands...\n\n${cmdsMissingDocs.toString().split(',').join(', ')}`);
 }
 
+function outputUpdatedHelpCategoriesPrompt() {
+	var result = '';
+
+	c.HELP_CATEGORIES_PROMPT.forEach((category, i) => {
+		var cmds = [];
+		category.fields.forEach((cmd) => {
+			if (!cmd.name.startsWith('.')) { return; }
+			const cmdName = cmd.name.match('[A-z0-9]+(-[A-z0-9]*)?')[0];
+			if (cmds[cmds.length-1] === cmdName) { return; }
+			cmds.push(cmdName);
+		});
+
+		const cmdsList = cmds.join('`	`');
+		result += `{ name: '${i+1}) ${category.name}', value: '\`${cmdsList}\`', inline: 'false'},\n`;
+	});
+
+	console.log(result);
+}
+
 /**
  * Outputs the help message for the provided command.
  *
@@ -763,10 +782,6 @@ function exportBanned() {
 	exportJson(bannedUserIDToBans, 'banned');
 }
 
-exports.testing = function (targetUser) {
-
-}
-
 function replaceOrAddColorRole(guild, color, hex, targetUser) {
 	var roleEdited = false;
 
@@ -879,35 +894,41 @@ const retry = (f, n) => f().catch(err => {
 	else throw err
 })
 
-var downloadAttachment = co.wrap(function *(msg, userID) {
-	var fileName = 'none';
-	try {
-		if (msg.attachments.length == 0) return;
-		const nameData = msg.attachments.array()[0].filename.split('.');
-		if (nameData[1] !== 'mp3') {
-			sendEmbedMessage('🎶 Invalid File', 'You must attach a .mp3 file with the description set to `*add-sb`', userID);
-			return;
+function downloadAttachment(message, userID) {
+	if (message.attachments.length == 0) { return; }
+
+	const nameData = message.attachments.array()[0].filename.split('.');
+	const fileName = nameData[0].toLowerCase();
+	const ext = 'mp3'
+
+	const download = co.wrap(function *() {
+		try {
+			if (nameData[1] !== ext) {
+				return sendEmbedMessage('🎶 Invalid File',
+					`You must attach a .${ext} file with the description set to \`${config.prefix}add-sb\``, userID);
+			}
+
+			yield Promise.all(message.attachments.map(co.wrap(function *(file) {
+				yield retry(() => new Promise((finish, error) => {
+					request(file.url)
+					.pipe(fs.createWriteStream(`./resources/audio/${file.filename.toLowerCase()}`))
+					.on('finish', finish)
+					.on('error', error)
+				}), 3)
+
+				sendEmbedMessage('🎶 Sound Byte Successfully Added',
+					`You may now hear the sound byte by calling \`${config.prefix}sb ${fileName}\` from within a voice channel.`, userID);
+				soundBytes.push(fileName);
+				exportJson(soundBytes, 'soundbytes');
+			})));
+		} catch (err) {
+			return sendEmbedMessage('🎶 Invalid File',
+				`You must attach a .${ext} file with the description set to \`${config.prefix}add-sb\``, userID);
 		}
+	});
 
-		yield Promise.all(msg.attachments.map(co.wrap(function *(file) {
-			yield retry(() => new Promise((finish, error) => {
-				request(file.url)
-				.pipe(fs.createWriteStream(`./resources/audio/${file.filename.toLowerCase()}`))
-				.on('finish', finish)
-				.on('error', error)
-			}), 3)
-			fileName = nameData[0].toLowerCase();
-		}.bind(this))))
-	}
-	catch (err) {
-		sendEmbedMessage('🎶 Invalid File', 'You must attach a .mp3 file with the description set to `*add-sb`', userID);
-		return;
-	}
-
-	sendEmbedMessage('🎶 Sound Byte Successfully Added', `You may now hear the sound byte by calling \`*sb ${fileName}\` from within a voice channel.`, userID);
-	soundBytes.push(fileName);
-	exportJson(soundBytes, 'soundbytes');
-}.bind(this));
+	download();
+}
 
 /**
  * Adds the attached soundbyte iff the attachment exists and is an mp3 file.
@@ -1111,6 +1132,15 @@ function deleteQuoteTipMsg() {
  * @param {String} channelID - id of the channel quote was found in
  */
 function quoteUser(ogMessage, quotedUserID, quotingUserID, channelID) {
+	if (isLocked()) { return; }
+
+	lock();
+	setTimeout(() => {
+		deleteQuoteTipMsg();
+		unLock('quoteUser');
+		exportQuotes();
+	}, 15500);
+
 	const numMessagesToCheck = quotedUserID ? 50 : 20;
 	const channel = bot.getClient().channels.find('id', channelID);
 	const quoteableMessages = channel.messages.last(numMessagesToCheck);
@@ -1429,7 +1459,7 @@ function getTrueDisplayName(nickname) {
  * @param {Object} channel - the channel to ban the user from posting in
  * @param {Number} [days = 2] - number of days to ban the user for
  */
-function banSpammer(user, channel, days = 2) {
+function banSpammer(user, channel, days = 2, isMagicWord) {
 	var usersBans = bannedUserIDToBans[user.id] || [];
 	channel.overwritePermissions(user, {
 		SEND_MESSAGES: false
@@ -1445,7 +1475,13 @@ function banSpammer(user, channel, days = 2) {
 	})
 	bannedUserIDToBans[user.id] = usersBans;
 	exportBanned();
-	channel.send(`🔨 ${mentionUser(user.id)} Enjoy the ${days} day ban from ${mentionChannel(channel.id)}, you filthy spammer!`);
+	var msg = `Enjoy the ${days} day ban from ${mentionChannel(channel.id)}, you filthy spammer!`;
+
+	if (isMagicWord) {
+		msg = `You said the magic word! ${msg.split(',')[0]}.`;
+	}
+
+	channel.send(`🔨 ${mentionUser(user.id)} ${msg}`);
 }
 
 /**
@@ -1947,8 +1983,9 @@ exports.mentionUser = mentionUser;
 exports.outputAliases = outputAliases;
 exports.outputCatFact = outputCatFact;
 exports.outputCmdsMissingHelpDocs = outputCmdsMissingHelpDocs;
-exports.outputTempChannelsLeftByUser = outputTempChannelsLeftByUser;
 exports.outputHelpForCommand = outputHelpForCommand;
+exports.outputTempChannelsLeftByUser = outputTempChannelsLeftByUser;
+exports.outputUpdatedHelpCategoriesPrompt = outputUpdatedHelpCategoriesPrompt;
 exports.playSoundByte = playSoundByte;
 exports.deleteQuoteTipMsg = deleteQuoteTipMsg;
 exports.quoteUser = quoteUser;
