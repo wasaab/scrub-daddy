@@ -84,7 +84,7 @@ function getGamesBeingPlayedData(players) {
 		const game = get(player, 'presence.game.name');
 		const status = get(player, 'presence.status');
 
-		if(game && !player.user.bot && player.highestRole.name !== 'Pleb' && status !== 'idle') {
+		if(game && !player.user.bot && player.highestRole.id !== c.PLEB_ROLE_ID && status !== 'idle') {
 			games[game] = games[game] ? games[game] + 1 : 1;
 			if(games[game] > max) {
 				max = games[game];
@@ -327,7 +327,7 @@ function buildWhoPlaysFields(usersWhoPlay) {
 
 	const scrubIDToNick = util.getScrubIdToNick();
 	usersWhoPlay.forEach((user) => {
-		const lastPlayed = isNaN(user.time)?'N/A': moment(user.time).format('M/DD/YY hh:mm A');
+		const lastPlayed = isNaN(user.time) ? 'N/A': moment(user.time).format('M/DD/YY hh:mm A');
 		const name = scrubIDToNick[user.id];
 		if (name) {
 			fields.push(util.buildField(name, `\`${lastPlayed}\``));
@@ -408,7 +408,7 @@ exports.letsPlay = function(args, userID, userName, message, oneMore, customMess
 	const emojis = message.guild.emojis;
 	args = maybeAddCurrPlayingToArgs(args, message);
 	if (!args) {
-		util.outputHelpForCommand('lets-play', userID);
+		return util.outputHelpForCommand('lets-play', userID);
 	}
 	const gameIdx = args[1] === '-ss' || args[1] === '-r' ? 2 : 1;
 	var game = util.getTargetFromArgs(args, gameIdx);
@@ -432,8 +432,8 @@ exports.letsPlay = function(args, userID, userName, message, oneMore, customMess
 		}
 
 		usersWhoPlay.forEach((user) => {
-			if ((gameIdx === 2 && user.role === '(ᵔᴥᵔ) ͡Super ͡Scrubs ™') ||
-				(args[1] === '-r' && moment().diff(moment(user.time), 'days') > 5)) {
+			if ((gameIdx === 2 && user.role === c.SUPER_SCRUBS_ROLE_ID) ||
+				(args[1] === '-r' && (!user.time || moment().diff(moment(user.time), 'days') > 5))) {
 					 return;
 			}
 			msg += ` ${util.mentionUser(user.id)}`;
@@ -453,10 +453,10 @@ exports.maybeCallLetsPlay = function(message) {
 
 function determineUpdatedUsersWhoPlay(usersWhoPlay, userID, role, isRemoval) {
 	if (!usersWhoPlay) {
-		usersWhoPlay = [{ id: userID, time: moment().valueOf(), role: role.name }];
+		usersWhoPlay = [{ id: userID, time: moment().valueOf(), role: role.id }];
 	} else {
 		const userEntryIdx = usersWhoPlay.map((player) => player.id).indexOf(userID);
-		const newEntry = { id: userID, time: moment().valueOf(), role: role.name };
+		const newEntry = { id: userID, time: moment().valueOf(), role: role.id };
 
 		if (userEntryIdx === -1) {
 			usersWhoPlay.push(newEntry);
@@ -491,7 +491,7 @@ function updateWhoPlays(userID, role, game, isRemoval) {
 }
 
 exports.removePlayer = function(args) {
-	updateWhoPlays(util.getIdFromMention(args[1]), { name: 'Temp Role' }, util.getTargetFromArgs(args, 2), true);
+	updateWhoPlays(util.getIdFromMention(args[1]), { id: 'Temp Role' }, util.getTargetFromArgs(args, 2), true);
 }
 
 
@@ -590,7 +590,7 @@ exports.optIn = function(user, userID) {
  * Asks Scrubs if they want to play pubg.
  */
 exports.askToPlayPUBG = function() {
-	bot.getScrubsChannel().send(`${c.SCRUBS_ROLE}  ${c.GREETINGS[util.getRand(0, c.GREETINGS.length)]} tryna play some ${c.PUBG_ALIASES[util.getRand(0, c.PUBG_ALIASES.length)]}?`);
+	bot.getScrubsChannel().send(`${util.mentionRole(c.SCRUBS_ROLE_ID)}  ${c.GREETINGS[util.getRand(0, c.GREETINGS.length)]} tryna play some ${c.PUBG_ALIASES[util.getRand(0, c.PUBG_ALIASES.length)]}?`);
 };
 
 /**
@@ -765,6 +765,17 @@ exports.maybeUpdateNickname = function(member, game) {
 	}
 };
 
+exports.outputFortniteHelp = function () {
+	var possibleStats = '';
+	c.STATS.forEach((stat) => {
+		possibleStats += `${stat}       `;
+	});
+	util.sendEmbedMessage('Fortnite Stats Help', 'Usage: fortnite-stats <userName> <gameMode> <stat>\n'
+		+ 'e.g. fortnite-stats wasaab squad kills\n\n'
+		+ 'gameMode options: solo, duo, squad, all\n\n'
+		+ `stat options: ${possibleStats}`);
+}
+
 /**
  * Retrieves Fortnite stats for the provided player or shows leaderboard in stat/mode for all players
  */
@@ -927,6 +938,20 @@ function maybeGetImageFromContent(content) {
 	const images = content.match(/\bhttps?:\/\/\S+\.(png|jpeg|jpg|gif)(\s|$)/gi);
 	if (!images) { return null; }
 	return images[util.getRand(0, images.length)];
+}
+
+exports.splitGroup = function(callingMember) {
+	if (!callingMember.voiceChannel) { return; }
+
+	var players = callingMember.voiceChannel.members.array();
+	if (players.length < 2) { return; }
+
+	shuffleArray(players);
+	var turnOrderMsg = '';
+	players.forEach((player, index) => {
+		turnOrderMsg += `\`${index + 1}.\`  **${util.getNick(player.id)}**\n`;
+	});
+	util.sendEmbedMessage('Randomized Group Split', turnOrderMsg);
 }
 
 function endWhoSaidGame() {
