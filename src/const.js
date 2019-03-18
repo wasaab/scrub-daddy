@@ -17,8 +17,8 @@ module.exports = {
 		'In Progress': '374702344316780567'			//category for bot features/issues actively being worked on
 	},
 	BEYOND_ROLE_ID: '370670924992610305',			//elevated role ID
-	SCRUBS_ROLE: '<@&370671041644724226>',			//main role
 	SCRUBS_ROLE_ID: '370671041644724226',			//main role ID
+	SUPER_SCRUBS_ROLE_ID: '370671068282617866',		//lowered permission role ID
 	PLEB_ROLE_ID: '370671263473074177',				//newly joined member role ID
 	SCRUB_DADDY_ID: '370688149971795982',			//ID of this bot
 	BOTS_ROLE_ID: '370694212162945025',
@@ -68,6 +68,7 @@ module.exports = {
 	K_ID: '132944096347160576',
 	R_ID: '208790727197589504',
 	AF_ID: '162434234357645312',
+	H_ID: '126528082919161856',
 	REVIEW_ROLE: '<@&376391242105225216>',
 	REVIEW_ROLE_ID: '376391242105225216',
 	DAYS: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
@@ -108,16 +109,16 @@ module.exports = {
 						 'https://i.imgur.com/ASgP6i6.png'],
 	STEAL_IMG: 'https://i.imgur.com/L1ZYgZE.png',
 	INFO_IMG: 'https://i.imgur.com/WLWBbQ9.png',
-	HELP_CATEGORIES_PROMPT: [{ name: '.help <`command`>', value: '`to get help for a specific command`', inline: 'false'},
-						  { name: '1) Voting', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
-						  { name: '2) Scrubbing Bubbles', value: '`enlist`	`discharge`		`give`	`clean`	`army`	`ranks`	`stats`	`21`	`hit`	`stay`	`who-said`	`sunken-sailor`', inline: 'false'},
-						  { name: '3) Time Played', value: '`time`	`opt-in`	`heatmap`', inline: 'false'},
-						  { name: '4) Gaming', value: '`playing`	`who-plays`	`lets-play`	`p`	`fortnite-stats`	`fortnite-leaderboard`	`set-fortnite-name`', inline: 'false'},
-						  { name: '5) Bot Issues, Feature Requests, and Help', value: '`tips`	`issue`	`feature`	`implement`	`help`', inline: 'false'},
-						  { name: '6) Roles & User Settings', value: '`join-review-team`	`leave-review-team`	`color`	`shuffle-scrubs`	`set-stream`	`toggle-streaming`	`alias`', inline: 'false'},
-						  { name: '7) Soundbytes', value: '`*sb`	`*add-sb`	`*fav-sb`	`*volume`', inline: 'false'},
-						  { name: '8) Utilities', value: '`temp`	`leave-temp`	`start-lotto`	`lotto`	`quote`	`quotes`	`list`	`create-list`	`delete`', inline: 'false'},
-						  { name: '⠀', value: '[Click here to see all 80 commands w/ descriptions](https://github.com/wasaab/scrub-daddy/blob/master/README.md)', inline: 'false'}],
+	HELP_CATEGORIES_PROMPT: [
+		{ name: '1) `Voting`', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
+		{ name: '2) `Scrubbing Bubbles`', value: '`enlist`	`discharge`	`give`	`reserve`	`clean`	`21`	`hit`	`stay`	`army`	`ranks`	`stats`	`who-said`	`sunken-sailor`	`add-emoji`	`magic-word`	`rename-hank`	`rename-channel`	`rename-role`	`rename-user`	`scrub-box`		`inventory`	`start-lotto`	`stop-lotto`', inline: 'false'},
+		{ name: '3) `Time Played`', value: '`time`	`opt-in`	`heatmap`', inline: 'false'},
+		{ name: '4) `Gaming`', value: '`playing`	`who-plays`	`lets-play`	`1-more`	`p`	`split-group`	`trends`	`total-trends`	`fortnite-stats`	`fortnite-leaderboard`	`set-fortnite`', inline: 'false'},
+		{ name: '5) `Bot Issues, Feature Requests, and Help`', value: '`tips`	`issue`	`feature`	`implement`	`help`', inline: 'false'},
+		{ name: '6) `Roles & User Settings`', value: '`join-review`	`leave-review`	`color`	`shuffle-scrubs`	`set-stream`	`toggle-streaming`	`alias`	`unalias`', inline: 'false'},
+		{ name: '7) `Soundbytes`', value: '`sb`	`add-sb`	`fav-sb`	`volume`', inline: 'false'},
+		{ name: '8) `Utilities`', value: '`temp`	`leave-temp`	`lotto`	`quote`	`quotes`	`create-list`	`list`	`create-group`	``groupName``	``gameName``	`power`	`subscribe-catfacts`	`catfacts`	`channels-left`	`rejoin-temp`	`ignore-posts`	`delete`', inline: 'false'},
+	],
 	HELP_CATEGORIES: [
 		{
 			name: '`Voting`',
@@ -134,9 +135,7 @@ module.exports = {
 			name: '`Scrubbing Bubbles`',
 			fields:[
 				{ name: '.enlist', value: '`enlists the discharged Scrubbing Bubbles to your army.`', inline: 'false'},
-				{ name: '.discharge', value: '`honorably discharges a Scrubbing Bubble from your army.`', inline: 'false'},
 				{ name: '.discharge <`numBubbles`>', value: '`honorably discharges numBubbles Scrubbing Bubble from your army.`', inline: 'false'},
-				{ name: '.give <`@user`>', value: '`transfers a Scrubbing Bubble from your army to user\'s army.`', inline: 'false'},
 				{ name: '.give <`numBubbles`> <`@user`>', value: '`transfers numBubbles from your army to user\'s army.`', inline: 'false'},
 				{ name: '.reserve', value: '`to get Scrubbing Bubble reinforcements from your reserve army.`', inline: 'false'},
 				{ name: '.clean <`numBubbles`>', value: '`send numBubbles to clean the toilet.`', inline: 'false'},
@@ -150,7 +149,18 @@ module.exports = {
 				{ name: '.stats <`@user`>', value: '`outputs the user\'s clean stats.`', inline: 'false'},
 				{ name: '.who-said <`channel-name`> <`minMsgLength`> <`minMsgReactions`> <`sampleSize`>',
 					value: '`Starts a quote guessing game using 5 random quotes pulled from sampleSize messages, matching the provided criteria.`', inline: 'false'},
-				{ name: '.sunken-sailor', value: '`to start a game of Sunken Sailor with the users in your current voice channel.`', inline: 'false'}
+				{ name: '.sunken-sailor', value: '`to start a game of Sunken Sailor with the users in your current voice channel.`', inline: 'false'},
+				{ name: '.add-emoji <`tier`> <`name`> + `ATTACH PNG IN SAME MESSAGE`', value: '`🏆 to add the emoji to the server with the provided name.`', inline: 'false'},
+				{ name: '.add-emoji <`tier`> + `ATTACH PNG IN SAME MESSAGE`', value: '`🏆 to add the emoji to the server using the image\'s filename.`', inline: 'false'},
+				{ name: '.magic-word <`tier`> <`word`>', value: '`🏆 to set a magic word that when typed will ban that user from the channel cmd was called from.`', inline: 'false'},
+				{ name: '.rename-hank <`tier`>', value: '`🏆 to rename hank to hang`', inline: 'false'},
+				{ name: '.rename-channel <`tier`> <`#channel`> <`New Name`>', value: '`🏆 to rename a channel`', inline: 'false'},
+				{ name: '.rename-role <`tier`> <`@role`> <`New Name`>', value: '`🏆 to rename a role`', inline: 'false'},
+				{ name: '.rename-user <`tier`> <`@user`> <`New Name`>', value: '`🏆 to rename a user`', inline: 'false'},
+				{ name: '.scrub-box <`tier`>', value: '`to open a Scrub Box.`', inline: 'false'},
+				{ name: '.inventory', value: '`to see your scrub box prize inventory.`', inline: 'false'},
+				{ name: '.start-lotto <`MM/DD`> <`HH`>', value: '`🏆 to start a Beyond lotto that will end at the specified time (`HH` can be 0-23).`', inline: 'false'},
+				{ name: '.stop-lotto', value: '`🏆 to stop the current Beyond Lotto without choosing a winner.`', inline: 'false'}
 			],
 		},
 		{
@@ -213,11 +223,11 @@ module.exports = {
 		{
 			name: '`Soundbytes`',
 			fields: [
-				{ name: '*sb', value: '`to get the list of available soundbytes.`', inline: 'false'},
-				{ name: '*sb <`name`>', value: '`to play the sound byte of the given name in your voice channel.`', inline: 'false'},
-				{ name: '*add-sb + `ATTACHMENT IN SAME MESSAGE`', value: '`to add a sound byte.`', inline: 'false'},
-				{ name: '*fav-sb', value: '`to get the list of your most frequently used soundbytes.`', inline: 'false'},
-				{ name: '*volume + `ATTACHMENT IN SAME MESSAGE`', value: '`to add a sound byte.`', inline: 'false'}
+				{ name: '.sb', value: '`to get the list of available soundbytes.`', inline: 'false'},
+				{ name: '.sb <`name`>', value: '`to play the sound byte of the given name in your voice channel.`', inline: 'false'},
+				{ name: '.add-sb + `ATTACHMENT IN SAME MESSAGE`', value: '`to add a sound byte.`', inline: 'false'},
+				{ name: '.fav-sb', value: '`to get the list of your most frequently used soundbytes.`', inline: 'false'},
+				{ name: '.volume + `ATTACHMENT IN SAME MESSAGE`', value: '`to add a sound byte.`', inline: 'false'}
 			]
 		},
 		{
@@ -227,7 +237,6 @@ module.exports = {
 				{ name: '.temp <`text|voice`>', value: '`Creates a temp text/voice channel.`', inline: 'false'},
 				{ name: '.temp <`text|voice`> <`channel-title`>', value: '`Creates a voice/text channel with the provided title.`', inline: 'false'},
 				{ name: '.leave-temp', value: '`to leave the temp channel the command is called in.`', inline: 'false'},
-				{ name: '.start-lotto <`MM/DD`> <`HH`>', value: '`to start a Beyond lotto that will end at the specified time (`HH` can be 0-23).`', inline: 'false'},
 				{ name: '.lotto', value: '`to join the currently running Beyond lotto or get the time remaining.`', inline: 'false'},
 				{ name: '.quote', value: '`to quote and reply or save the quote, depending on which reaction you use (:quoteReply: or :quoteSave:).`', inline: 'false'},
 				{ name: '.quote <`@user`>', value: '`to quote and reply or save the quote from @user, depending on which reaction you use (:quoteReply: or :quoteSave:).`', inline: 'false'},
@@ -245,6 +254,7 @@ module.exports = {
 				{ name: '.catfacts', value: '`to get a cat fact.`', inline: 'false'},
 				{ name: '.channels-left', value: '`to see the temp channels you have left.`', inline: 'false'},
 				{ name: '.rejoin-temp <`channel-name`>', value: '`to rejoin a temp channel.`', inline: 'false'},
+				{ name: '.ignore-posts', value: '`after adding :trashcan: reaction to posts, to stop them from appearing in #car-parts.`', inline: 'false'},
 				{ name: '.delete', value: '`call this after adding both :trashcan: and :black_circle: reactions to first and last messages to delete.\n' +
 					'All messages between the two you reacted to will be deleted, including those two.\nThis will only work if you are in a temp channel you created.`', inline: 'false'}
 			]
@@ -252,16 +262,8 @@ module.exports = {
 	],
 	//TODO: finish updated the help for these commands and place them in relevant categories
 	UNCATEGORIZED_HELP: [
-		{ name: '.add-emoji', value: '`🏆`', inline: 'false'},
-		{ name: '.magic-word <`TBD`>', value: '`🏆`', inline: 'false'},
 		{ name: '.move-user <`TBD`>', value: '`🏆`', inline: 'false'},
 		{ name: '.rainbow-role <`TBD`>', value: '`🏆`', inline: 'false'},
-		{ name: '.rename-channel <`TBD`>', value: '`🏆`', inline: 'false'},
-		{ name: '.rename-hank', value: '`🏆`', inline: 'false'},
-		{ name: '.rename-role <`TBD`>', value: '`🏆`', inline: 'false'},
-		{ name: '.rename-user <`TBD`>', value: '`🏆`', inline: 'false'},
-		{ name: '.scrub-box <`TBD`>', value: '`to open a Scrub Box.`', inline: 'false'},
-		{ name: '.stop-lotto <`TBD`>', value: '`🏆`', inline: 'false'},
 	],
 	NEW_LEDGER_ENTRY: {
 		armySize: 0,
@@ -349,7 +351,7 @@ module.exports = {
 		'fortnite-leaderboard', 'fortnite-stats',
 		'give',
 		'h', 'heatmap', 'help', 'hit',
-		'ignore-posts', 'implement', 'issue',
+		'ignore-posts', 'implement', 'inventory', 'issue',
 		'join-review-team',
 		'list', 'leave-temp', 'leave-review-team', 'lets-play', 'list-backups', 'log', 'lotto',
 		'magic-word', 'missing-help', 'move-user',
@@ -364,7 +366,7 @@ module.exports = {
 		'who-plays', 'who-said',
 		'test', 'trends', 'total-trends'
 	],
-	GLOBAL_COMMANDS: ['@', 'cars', 'change-category', 'delete', 'delete-rating', 'ignore-posts','leave-temp', 'quote', 'rate', 'rename', 'refresh-ratings', 'rating-info'],
+	GLOBAL_COMMANDS: ['@', 'cars', 'change-category', 'delete', 'delete-rating', 'ignore-posts','leave-temp', 'magic-word', 'quote', 'rate', 'rename', 'refresh-ratings', 'rating-info'],
 	WHO_PLAYS_FUZZY_OPTIONS: {
 		shouldSort: true,
 		threshold: 0.3,
@@ -438,7 +440,64 @@ module.exports = {
 		'+ remove-player <`@user`> <`game name`>- `remove a player from gamesPlayed.`\n' +
 		'+ cars\n' +
 		'+ missing-help\n' +
-		'+ review-messages\n'
+		'+ review-messages\n',
+	PRIZE_TO_DESCRIPTION: {
+		'rename-hank': 'Automatically change hanks name to hang for ``.',
+		'rename-user': 'Rename a user for ``.',
+		'rename-channel': 'Rename a channel for ``.',
+		'rename-role': 'Rename a role for ``.',
+		'annoy': 'Random chance to have scrub daddy enter a user’s channel while they are speaking to say stfu for ``.',
+		'magic-word': 'Set a magic word, that when typed by someone, will ban them from that text channel for a day. The magic word will be in effect for ``.',
+		'rainbow-role': 'Give yourself a constantly changing role color (Rainbow Role) for ``.',
+		'move-user': 'Randomly moves a user through the voice channels for ``.',
+		'add-emoji': 'Add `` to the server.',
+		'add-bubbles': '`` Scrubbing Bubbles.',
+		'subtract-bubbles': '`` Scrubbing Bubbles.',
+		'start-lotto': 'Start a Beyond lottery.',
+		'stop-lotto': 'Stop a Beyond lottery.'
+	},
+	PRIZE_TIERS: {
+		tier1: {
+			'rename-hank': '2 days',
+			'rename-user': '2 days',
+			'rename-channel': '2 days',
+			'rename-role': '2 days',
+			'annoy': '1 day',
+			'magic-word': '2 days',
+			'rainbow-role': '1 day',
+			'move-user': '.5 days',
+			'add-emoji': '1 emoji',
+			'add-bubbles': 300,
+			'subtract-bubbles': -100
+		},
+		tier2: {
+			'rename-hank': '6 days',
+			'rename-user': '6 days',
+			'rename-channel': '1 week',
+			'rename-role': '1 week',
+			'annoy': '4 days',
+			'magic-word': '6 days',
+			'rainbow-role': '1 week',
+			'move-user': '1 day',
+			'add-bubbles': 550,
+			'subtract-bubbles': -200
+		},
+		tier3: {
+			'rename-hank': '10 days',
+			'rename-user': '10 days',
+			'rename-channel': '2 weeks',
+			'rename-role': '2 weeks',
+			'magic-word': '2 weeks',
+			'rainbow-role': '2 weeks',
+			'move-user': '3 days',
+			'add-emoji': '3 emojis',
+			'add-bubbles': 800,
+			'subtract-bubbles': -400,
+			'start-lotto': '',
+			'stop-lotto': ''
+		}
+	},
+	TIER_COST: [200, 400, 600]
 };
 
 function deepFreeze(constants) {
