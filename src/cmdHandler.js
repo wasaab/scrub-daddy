@@ -1,6 +1,4 @@
 var Fuse = require('fuse.js');
-var fuse = new Fuse(c.COMMANDS, {verbose: false});
-
 var c = require('./const.js');
 var util = require('./utilities.js');
 var ratings = require('./ratings.js');
@@ -11,6 +9,7 @@ var games = require('./games.js');
 var vote = require('./vote.js');
 var cars = require('./cars.js');
 var blackjack = require("./blackjack.js");
+var fuse = new Fuse(c.COMMANDS, {verbose: false});
 
 /**
  * Returns the closest matching command to what was provided.

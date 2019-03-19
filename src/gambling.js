@@ -1,3 +1,4 @@
+var Discord = require('discord.js');
 var moment = require('moment');
 var get = require('lodash.get');
 var fs = require('fs');
@@ -5,6 +6,8 @@ var fs = require('fs');
 var c = require('./const.js');
 var bot = require('./bot.js');
 var util = require('./utilities.js');
+
+var loot = require('../resources/data/loot.json');
 var ledger = require('../resources/data/ledger.json');   //keeps track of how big of an army each member has as well as bet amounts
 var config = require('../resources/data/config.json');
 const private = require('../../private.json');
@@ -28,18 +31,23 @@ exports.exportLedger = function() {
  * @param {String} userName - the name of the user giving bubbles
  * @param {String} targetMention - a mention of the user to give bubbles to
  * @param {Number} numBubbles - the number of bubbles to give
+ * @param {String=} title - the title for the message embed
  */
-exports.giveScrubBubbles = function (userID, userName, targetMention, numBubbles) {
+exports.giveScrubBubbles = function (userID, userName, targetMention, numBubbles, title) {
     if (isNaN(numBubbles)) { return; }
     numBubbles = Number(numBubbles);
     if (numBubbles < 1 || !(ledger[userID] && ledger[userID].armySize >= numBubbles)) { return; }
 
     const targetID = util.getIdFromMention(targetMention);
     if (util.getNick(targetID)) {
-        removeFromArmy(userID, numBubbles);
+        if (!title) {
+            title = `Scrubbing Bubbles Gifted By ${userName}`;
+            removeFromArmy(userID, numBubbles);
+        }
+
         addToArmy(targetID, numBubbles);
         const msg = `${targetMention}  Your Scrubbing Bubbles army has grown by ${numBubbles}! You now have an army of ${ledger[targetID].armySize}.`;
-        util.sendEmbedMessage(`Scrubbing Bubbles Gifted By ${userName}`, msg, targetID);
+        util.sendEmbedMessage(title, msg, targetID);
     }
 };
 
@@ -50,7 +58,7 @@ exports.giveScrubBubbles = function (userID, userName, targetMention, numBubbles
  * @param {String} userID - the id of the user discharging a bubble
  * @param {Number} numBubbles - the number of bubbles to discharge
  */
-exports.dischargeScrubBubble = function (userID, numBubbles) {
+exports.dischargeScrubBubble = function(userID, numBubbles) {
     numBubbles = numBubbles && !isNaN(numBubbles) ? Number(numBubbles) : 1;
     if (userID) {
         if (numBubbles < 1 || !(ledger[userID] && ledger[userID].armySize >= numBubbles)) { return; }
@@ -71,16 +79,31 @@ exports.dischargeScrubBubble = function (userID, numBubbles) {
 };
 
 /**
- * drops a scrub bubble in bot-spam with a 20% chance.
- * CONSIDER CHANGING THIS TO BE BASED ON MESSAGES NOT PRESENCE
+ * drops a scrub bubble in bot-spam with a 30% chance.
  */
 exports.maybeDischargeScrubBubble = function() {
     if (util.isDevEnv()) { return; }
+
     var num = util.getRand(1,11);
-    if (num > 8) {
+    if (num > 7) {
         exports.dischargeScrubBubble(null);
     }
 };
+
+exports.reserve = function(userID, userName) {
+    const baseTitle = 'Request for Reserve Scrubbing Bubbles';
+    const lastReserveTime = ledger[userID].lastReserveTime;
+
+    if (lastReserveTime && moment().diff(moment(lastReserveTime), 'days') < 1) {
+        util.sendEmbedMessage(`${baseTitle} Denied`,
+            `${util.mentionUser(userID)}, you have to wait a day to request more soldiers.`);
+    } else {
+        ledger[userID].lastReserveTime = moment().valueOf();
+        exports.exportLedger();
+        exports.giveScrubBubbles(userID, userName, util.mentionUser(userID),
+            5, `${baseTitle} Approved`);
+    }
+}
 
 /**
  * Removes the given number of Scrubbing Bubbles from the provided user's army.
@@ -374,12 +397,8 @@ function isValidTime(monthDayTokens, hour) {
         hour > -1 && hour < 24
 }
 
-function exportConfig() {
-    util.exportJson(config, 'config');
-}
-
 exports.startLotto = function(user, userID, monthDay, hour) {
-    if (config.lottoTime && util.isAdmin(userID)) { return; }
+    if (config.lottoTime) { return; }
 
     const monthDayTokens = monthDay.split("/");
     if (isValidTime(monthDayTokens, hour)) {
@@ -388,10 +407,21 @@ exports.startLotto = function(user, userID, monthDay, hour) {
             day: monthDayTokens[1],
             hour: hour
         }
-        exportConfig();
+        util.exportJson(config, 'config');
     }
     util.sendEmbedMessage('Beyond Lotto Started', `The lotto will end on ${monthDay} @ ${hour}:00 EST(24-hour format)`)
+
+    if (!util.isAdmin(userID)) {
+        removePrizeFromInventory(userID, 'start-lotto', 3);
+    }
 };
+
+exports.stopLotto = function (userID, tierNumber, cmd) {
+    delete config.lottoTime;
+    util.exportJson(config, 'config');
+    util.sendEmbedMessage('Beyond Lotto Stopped', `The lottery was stopped by ${util.mentionUser(userID)} with a Scrub Box prize.`)
+    removePrizeFromInventory(userID, cmd, tierNumber);
+}
 
 exports.joinLotto = function(user, userID) {
     var entries = config.lottoEntries || [];
@@ -401,7 +431,7 @@ exports.joinLotto = function(user, userID) {
     } else {
         entries.push(userID);
         config.lottoEntries = entries;
-        exportConfig();
+        util.exportJson(config, 'config');
         util.sendEmbedMessage(`${user} has entered the Beyond Lotto`, `There are now ${entries.length} participants.`, userID);
     }
 };
@@ -516,4 +546,241 @@ exports.fakeStealAll = function() {
             util.unLock();
         }
     }, 60000);
+}
+
+exports.scrubBox = function(userID, tierNumber) {
+    if (tierNumber > 3 || tierNumber < 1) { return; }
+
+    const cost = c.TIER_COST[tierNumber - 1];
+
+    if (!ledger[userID] || ledger[userID].armySize < cost) {
+        return util.sendEmbedMessage('Insufficient Funds',
+            `${util.mentionUser(userID)} You are too poor to afford a tier ${tierNumber} Scrub Box.`, userID);
+    }
+
+    removeFromArmy(userID, cost);
+
+    var { title, prizeDescription, extraInfo } = addRandomPrizeAndGetInfo(tierNumber, userID);
+
+	util.sendEmbedMessage(title, null, userID, 'https://i.imgur.com/mKwsQGi.gif')
+	.then((msgSent) => {
+		const updatedMsg = new Discord.RichEmbed({
+			color: 0xffff00,
+			title: title,
+			description: `${util.mentionUser(userID)}, the Scrubbing Bubble gods have blessed you with:` +
+				`\n\n${prizeDescription}\n\n${extraInfo}.`
+		});
+		setTimeout(() => {
+			msgSent.edit('', updatedMsg);
+		}, 6200);
+	});
+}
+
+function addRandomPrizeAndGetInfo(tierNumber, userID) {
+    const prizesInTier = c.PRIZE_TIERS[`tier${tierNumber}`];
+    const prizes = Object.keys(prizesInTier);
+    const prize = prizes[util.getRand(0, prizes.length)];
+    const prizeDescription = c.PRIZE_TO_DESCRIPTION[prize].replace('``', `\`${prizesInTier[prize]}\``);
+    const title = `Scrubbing Bubble Loot Box - Tier ${tierNumber}`;
+    var extraInfo = `Call \`.help ${prize}\` for usage info`;
+
+    if (prize.endsWith('bubbles')) {
+        if (prize.startsWith('add')) {
+            addToArmy(userID, prizesInTier[prize]);
+        } else {
+            removeFromArmy(userID, prizesInTier[prize] * -1);
+        }
+
+        const armySize = ledger[userID].armySize;
+        extraInfo = `You now have an army of ${armySize} Scrubbing Bubble${maybeGetPlural(armySize)}`;
+    } else {
+        addPrizeToInventory(userID, prize, tierNumber);
+    }
+
+    return { title, prizeDescription, extraInfo };
+}
+
+function addPrizeToInventory(userID, prize, tierNumber) {
+    if (!ledger[userID]) {
+        ledger[userID] = Object.assign({}, c.NEW_LEDGER_ENTRY);
+    }
+    if (!ledger[userID].inventory) {
+        ledger[userID].inventory = {};
+    }
+    if (!ledger[userID].inventory[tierNumber]) {
+        ledger[userID].inventory[tierNumber] = {};
+    }
+
+    if (!ledger[userID].inventory[tierNumber][prize]) {
+        ledger[userID].inventory[tierNumber][prize] = 1;
+    } else {
+        ledger[userID].inventory[tierNumber][prize]++;
+    }
+
+    if (prize === 'add-emoji' && tierNumber === 3) {
+        ledger[userID].inventory[tierNumber][prize] += 2;
+    }
+}
+
+function removePrizeFromInventory(userID, prize, tierNumber) {
+    ledger[userID].inventory[tierNumber][prize]--;
+}
+
+exports.outputInventory = function(userID) {
+    if (!ledger[userID] || !ledger[userID].inventory) { return; }
+
+    const inventory = ledger[userID].inventory;
+    var fields = [];
+    var results = [];
+    for (var tier in inventory) {
+        var tierFields = [];
+        for (var action in inventory[tier]) {
+            const actionCount = inventory[tier][action];
+            if (actionCount === 0) { continue; }
+
+            tierFields.push(util.buildField(action, actionCount));
+        }
+
+        if (tierFields.length < 1) { return; }
+
+        fields = fields.concat(tierFields);
+        results.push({
+            name: `Tier ${tier}`,
+            fields: tierFields
+        });
+    }
+
+    if (fields.length < 1) { return; }
+
+    fields.sort(util.compareFieldValues);
+    const homePage = {
+		name: `${util.getNick(userID)}'s Inventory`,
+		fields: fields
+    };
+
+    util.sendDynamicMessage(userID, 'tier', results, homePage);
+}
+
+function getPrizeCount(userID, prize, tierNumber) {
+    return get(ledger, `[${userID}].inventory[${tierNumber}][${prize}]`) || 0;
+}
+
+exports.hasPrize = function(userID, prize, tierNumber) {
+    if (isNaN(tierNumber)) { return false; }
+
+    if (0 === getPrizeCount(userID, prize, tierNumber)) {
+        util.sendEmbedMessage('Prize not in inventory', `To gain access to the \`${prize}\` command, win it in a Scrub Box.`, userID);
+        return false;
+    }
+
+    return true;
+}
+
+exports.renameUserRoleOrChannel = function(type, targetID, args, tierNumber, userID, cmd, mentions) {
+    const timePeriodTokens = c.PRIZE_TIERS[`tier${tierNumber}`][`rename-${type}`].split(' ');
+    const name = util.getTargetFromArgs(args, 3);
+    var unlockTime = moment(loot.lockedIdToUnlockTime[targetID]);
+
+    if (moment().isBefore(unlockTime)) {
+        return util.sendEmbedMessage('Target Locked', `You may not rename the target until \`${unlockTime.format('M/DD/YY hh:mm A')}\``)
+    }
+
+    maybeRename(type, mentions, name)
+        .then(() => {
+            const formattedType = util.capitalizeFirstLetter(type);
+            const mentionType = type === 'hank' ? 'user' : formattedType;
+
+            unlockTime = moment().add(timePeriodTokens[0], timePeriodTokens[1]);
+            loot.lockedIdToUnlockTime[targetID] = unlockTime.valueOf();
+            removePrizeFromInventory(userID, cmd, tierNumber);
+            util.exportJson(loot, 'loot');
+            util.sendEmbedMessage(`${formattedType} Renamed`,
+                `Thou shalt be called ${util[`mention${mentionType}`](targetID)} until \`${unlockTime.format('M/DD/YY hh:mm A')}\``, userID);
+        })
+        .catch((err) => {
+            util.logger.error(`<ERROR> ${util.getTimestamp()}  Edit Name Error: ${err}`);
+        })
+}
+
+exports.addEmoji = function(message, name, tierNumber, userID, cmd) {
+    if (message.attachments.length == 0) { return; }
+
+    const attachment = message.attachments.array()[0];
+    name = name || attachment.filename.split('.')[0].toLowerCase();
+
+    message.guild.createEmoji(attachment.url, name)
+        .then((emoji) => {
+            removePrizeFromInventory(userID, cmd, tierNumber);
+            util.sendEmbedMessage('Emoji Added', `${new Array(9).fill(emoji).join('')}`);
+        });
+};
+
+function maybeRename(type, mentions, name) {
+    switch (type) {
+        case 'hank':
+            return mentions.setNickname(name);
+        case 'user':
+            return mentions.members.values().next().value.setNickname(name);
+        case 'channel':
+            return mentions.channels.values().next().value.setName(name);
+        case 'role':
+            return mentions.roles.values().next().value.edit({ name: name });
+    }
+}
+
+function addRainbowRole(userID, targetUser, tierNumber, cmd) {
+    var rainbowRole = guild.roles.find('name', 'rainbow');
+
+	if (!rainbowRole) {
+		guild.createRole({
+			name: 'rainbow',
+			position: guild.roles.array().length - 3
+		})
+		.then((role) => {
+			targetUser.addRole(role);
+		})
+	} else {
+		targetUser.addRole(rainbowRole);
+    }
+
+    removePrizeFromInventory(userID, cmd, tierNumber);
+}
+
+exports.checkForMagicWords = function(message) {
+    const magicWordsToBanDuration = loot.magicWords[message.channel.id];
+    if (!magicWordsToBanDuration) { return; }
+
+    const magicWordsPattern = Object.keys(magicWordsToBanDuration).join("|");
+    const magicWordMatches = message.content.match(magicWordsPattern);
+    if (!magicWordMatches) { return; }
+
+    var maxBanDays = 0;
+    magicWordMatches.forEach((word) => {
+        const banDays = magicWordsToBanDuration[word];
+
+        if (banDays > maxBanDays) {
+            maxBanDays = banDays;
+        }
+    });
+
+    util.banSpammer(message.author, message.channel, maxBanDays, true);
+}
+
+exports.addMagicWord = function(word, tierNumber, channelID, userID, cmd) {
+    const minLength = tierNumber + 3;
+
+    // word must meet min length req for tier
+    if (word.length < minLength) {
+        return util.sendEmbedMessage('Insufficient Word Length', `Word must be at least ${minLength} letters for tier ${tierNumber}.`)
+    }
+
+    if (!loot.magicWords[channelID]) {
+        loot.magicWords[channelID] = {};
+    }
+
+    const banDays = c.PRIZE_TIERS[`tier${tierNumber}`][cmd].replace(/\D/g,'');
+    loot.magicWords[channelID][word] = banDays;
+    util.sendEmbedMessage('Magic Word Set', `When a user types \`${word}\` in ${util.mentionChannel(channelID)}, they will receive a ${banDays} day ban.`)
+    util.exportJson(loot, 'loot');
+    removePrizeFromInventory(userID, cmd, tierNumber);
 }
