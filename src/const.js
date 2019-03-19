@@ -117,7 +117,7 @@ module.exports = {
 		{ name: '5) `Bot Issues, Feature Requests, and Help`', value: '`tips`	`issue`	`feature`	`implement`	`help`', inline: 'false'},
 		{ name: '6) `Roles & User Settings`', value: '`join-review`	`leave-review`	`color`	`shuffle-scrubs`	`set-stream`	`toggle-streaming`	`alias`	`unalias`', inline: 'false'},
 		{ name: '7) `Soundbytes`', value: '`sb`	`add-sb`	`fav-sb`	`volume`', inline: 'false'},
-		{ name: '8) `Utilities`', value: '`temp`	`leave-temp`	`lotto`	`quote`	`quotes`	`create-list`	`list`	`create-group`	``groupName``	``gameName``	`power`	`subscribe-catfacts`	`catfacts`	`channels-left`	`rejoin-temp`	`ignore-posts`	`delete`', inline: 'false'},
+		{ name: '8) `Utilities`', value: '`temp`	`leave-temp`	`lotto`	`quote`	`quotes`	`create-list`	`list`	`create-group`	`@`	`power`	`subscribe-catfacts`	`catfacts`	`channels-left`	`rejoin-temp`	`ignore-posts`	`delete`', inline: 'false'},
 	],
 	HELP_CATEGORIES: [
 		{
