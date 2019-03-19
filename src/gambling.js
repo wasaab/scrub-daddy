@@ -676,22 +676,54 @@ exports.hasPrize = function(userID, prize, tierNumber) {
     return true;
 }
 
+exports.maybeResetNames = function(client) {
+    const lockedIdToLockInfo = loot.lockedIdToLockInfo;
+    if (lockedIdToLockInfo === {}) { return; }
+
+    const guild = client.guilds.find('id', private.serverID);
+
+    for (var targetID in lockedIdToLockInfo) {
+        const lockInfo = lockedIdToLockInfo[targetID];
+        const target = guild[`${lockInfo.type}s`].find('id', targetID);
+
+        if (!target || moment().isAfter(moment(lockInfo.unlockTime))) {
+            delete loot.lockedIdToLockInfo[targetID];
+            return;
+        }
+
+        if (target.name === lockInfo.name || target.name === lockInfo.name.split(' ').join('-')) { return; }
+
+        maybeRename(lockInfo.type, target, lockInfo.name);
+    }
+}
+
 exports.renameUserRoleOrChannel = function(type, targetID, args, tierNumber, userID, cmd, mentions) {
     const timePeriodTokens = c.PRIZE_TIERS[`tier${tierNumber}`][`rename-${type}`].split(' ');
     const name = util.getTargetFromArgs(args, 3);
-    var unlockTime = moment(loot.lockedIdToUnlockTime[targetID]);
+    var lockInfo = loot.lockedIdToLockInfo[targetID];
+    var unlockTime;
 
-    if (moment().isBefore(unlockTime)) {
-        return util.sendEmbedMessage('Target Locked', `You may not rename the target until \`${unlockTime.format('M/DD/YY hh:mm A')}\``)
+    if (lockInfo) {
+        unlockTime = moment(lockInfo.unlockTime);
+
+        if (moment().isBefore(unlockTime)) {
+            return util.sendEmbedMessage('Target Locked', `You may not rename the target until \`${unlockTime.format('M/DD/YY hh:mm A')}\``)
+        }
     }
 
-    maybeRename(type, mentions, name)
-        .then(() => {
-            const formattedType = util.capitalizeFirstLetter(type);
-            const mentionType = type === 'hank' ? 'user' : formattedType;
+    const formattedType = util.capitalizeFirstLetter(type);
+    const mentionType = type === 'hank' ? 'User' : formattedType;
+    const group = mentionType === 'User' ? 'member' : mentionType.toLowerCase();
+    const target = mentions.id ? mentions : mentions[`${group}s`].values().next().value;
 
+    maybeRename(type, target, name)
+        .then(() => {
             unlockTime = moment().add(timePeriodTokens[0], timePeriodTokens[1]);
-            loot.lockedIdToUnlockTime[targetID] = unlockTime.valueOf();
+            loot.lockedIdToLockInfo[targetID] = {
+                unlockTime: unlockTime.valueOf(),
+                name: name,
+                type: group,
+            };
             removePrizeFromInventory(userID, cmd, tierNumber);
             util.exportJson(loot, 'loot');
             util.sendEmbedMessage(`${formattedType} Renamed`,
@@ -715,16 +747,16 @@ exports.addEmoji = function(message, name, tierNumber, userID, cmd) {
         });
 };
 
-function maybeRename(type, mentions, name) {
+function maybeRename(type, target, name) {
     switch (type) {
         case 'hank':
-            return mentions.setNickname(name);
+        case 'member':
         case 'user':
-            return mentions.members.values().next().value.setNickname(name);
+            return target.setNickname(name);
         case 'channel':
-            return mentions.channels.values().next().value.setName(name);
+            return target.setName(name);
         case 'role':
-            return mentions.roles.values().next().value.edit({ name: name });
+            return target.edit({ name: name });
     }
 }
 

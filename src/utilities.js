@@ -398,11 +398,11 @@ function outputCmdsMissingHelpDocs() {
 function outputUpdatedHelpCategoriesPrompt() {
 	var result = '';
 
-	c.HELP_CATEGORIES_PROMPT.forEach((category, i) => {
+	c.HELP_CATEGORIES.forEach((category, i) => {
 		var cmds = [];
 		category.fields.forEach((cmd) => {
 			if (!cmd.name.startsWith('.')) { return; }
-			const cmdName = cmd.name.match('[A-z0-9]+(-[A-z0-9]*)?')[0];
+			const cmdName = cmd.name.match('(@|[A-z0-9]+(-[A-z0-9]*)?)')[0];
 			if (cmds[cmds.length-1] === cmdName) { return; }
 			cmds.push(cmdName);
 		});
@@ -624,6 +624,7 @@ function subscribeToCatFacts(userID) {
 function scheduleRecurringVoiceChannelScan() {
 	(function(){
 		var client = bot.getClient();
+		gambling.maybeResetNames(client);
 		games.maybeUpdateChannelNames();
 		games.maybeChangeAudioQuality(client.channels);
 		handleMuteAndDeaf(client.channels);
