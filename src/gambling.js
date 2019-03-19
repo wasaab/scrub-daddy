@@ -31,23 +31,18 @@ exports.exportLedger = function() {
  * @param {String} userName - the name of the user giving bubbles
  * @param {String} targetMention - a mention of the user to give bubbles to
  * @param {Number} numBubbles - the number of bubbles to give
- * @param {String=} title - the title for the message embed
  */
-exports.giveScrubBubbles = function (userID, userName, targetMention, numBubbles, title) {
+exports.giveScrubBubbles = function (userID, userName, targetMention, numBubbles) {
     if (isNaN(numBubbles)) { return; }
     numBubbles = Number(numBubbles);
     if (numBubbles < 1 || !(ledger[userID] && ledger[userID].armySize >= numBubbles)) { return; }
 
     const targetID = util.getIdFromMention(targetMention);
     if (util.getNick(targetID)) {
-        if (!title) {
-            title = `Scrubbing Bubbles Gifted By ${userName}`;
-            removeFromArmy(userID, numBubbles);
-        }
-
+        removeFromArmy(userID, numBubbles);
         addToArmy(targetID, numBubbles);
         const msg = `${targetMention}  Your Scrubbing Bubbles army has grown by ${numBubbles}! You now have an army of ${ledger[targetID].armySize}.`;
-        util.sendEmbedMessage(title, msg, targetID);
+        util.sendEmbedMessage(`Scrubbing Bubbles Gifted By ${userName}`, msg, targetID);
     }
 };
 
@@ -90,7 +85,7 @@ exports.maybeDischargeScrubBubble = function() {
     }
 };
 
-exports.reserve = function(userID, userName) {
+exports.reserve = function(userID) {
     const baseTitle = 'Request for Reserve Scrubbing Bubbles';
     const lastReserveTime = ledger[userID].lastReserveTime;
 
@@ -98,10 +93,11 @@ exports.reserve = function(userID, userName) {
         util.sendEmbedMessage(`${baseTitle} Denied`,
             `${util.mentionUser(userID)}, you have to wait a day to request more soldiers.`);
     } else {
+        addToArmy(userID, 5);
+        const msg = `${util.mentionUser(userID)} 5 Scrubbing Bubbles have been called to active duty! You now have an army of ${ledger[userID].armySize}.`;
+        util.sendEmbedMessage(`${baseTitle} Approved`, msg, userID);
         ledger[userID].lastReserveTime = moment().valueOf();
         exports.exportLedger();
-        exports.giveScrubBubbles(userID, userName, util.mentionUser(userID),
-            5, `${baseTitle} Approved`);
     }
 }
 
@@ -687,14 +683,20 @@ exports.maybeResetNames = function(client) {
         const target = guild[`${lockInfo.type}s`].find('id', targetID);
 
         if (!target || moment().isAfter(moment(lockInfo.unlockTime))) {
+            if (target) {
+                maybeRename(lockInfo.type, target, lockInfo.oldName);
+            }
+
             delete loot.lockedIdToLockInfo[targetID];
             util.exportJson(loot, 'loot');
             continue;
         }
 
-        if (target.name === lockInfo.name || target.name === lockInfo.name.split(' ').join('-')) { continue; }
+        const targetName = target.nickname || target.name;
 
-        maybeRename(lockInfo.type, target, lockInfo.name);
+        if (targetName === lockInfo.newName || targetName === lockInfo.newName.split(' ').join('-')) { continue; }
+
+        maybeRename(lockInfo.type, target, lockInfo.newName);
     }
 }
 
@@ -716,13 +718,15 @@ exports.renameUserRoleOrChannel = function(type, targetID, args, tierNumber, use
     const mentionType = type === 'hank' ? 'User' : formattedType;
     const group = mentionType === 'User' ? 'member' : mentionType.toLowerCase();
     const target = mentions.id ? mentions : mentions[`${group}s`].values().next().value;
+    const oldName = target.nickname || target.name;
 
     maybeRename(type, target, name)
         .then(() => {
             unlockTime = moment().add(timePeriodTokens[0], timePeriodTokens[1]);
             loot.lockedIdToLockInfo[targetID] = {
                 unlockTime: unlockTime.valueOf(),
-                name: name,
+                oldName: oldName,
+                newName: name,
                 type: group,
             };
             removePrizeFromInventory(userID, cmd, tierNumber);
