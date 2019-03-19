@@ -688,10 +688,11 @@ exports.maybeResetNames = function(client) {
 
         if (!target || moment().isAfter(moment(lockInfo.unlockTime))) {
             delete loot.lockedIdToLockInfo[targetID];
-            return;
+            util.exportJson(loot, 'loot');
+            continue;
         }
 
-        if (target.name === lockInfo.name || target.name === lockInfo.name.split(' ').join('-')) { return; }
+        if (target.name === lockInfo.name || target.name === lockInfo.name.split(' ').join('-')) { continue; }
 
         maybeRename(lockInfo.type, target, lockInfo.name);
     }
