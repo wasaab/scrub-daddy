@@ -793,7 +793,7 @@ exports.checkForMagicWords = function(message) {
 }
 
 exports.addMagicWord = function(word, tierNumber, channelID, userID, cmd) {
-    const minLength = tierNumber + 3;
+    const minLength = tierNumber + 2;
 
     // word must meet min length req for tier
     if (word.length < minLength) {
