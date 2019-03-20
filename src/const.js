@@ -468,7 +468,7 @@ module.exports = {
 			'move-user': '.5 days',
 			'add-emoji': '1 emoji',
 			'add-bubbles': 300,
-			'subtract-bubbles': -100
+			'subtract-bubbles': 100
 		},
 		tier2: {
 			'rename-hank': '6 days',
@@ -480,7 +480,7 @@ module.exports = {
 			'rainbow-role': '1 week',
 			'move-user': '1 day',
 			'add-bubbles': 550,
-			'subtract-bubbles': -200
+			'subtract-bubbles': 200
 		},
 		tier3: {
 			'rename-hank': '10 days',
@@ -492,7 +492,7 @@ module.exports = {
 			'move-user': '3 days',
 			'add-emoji': '3 emojis',
 			'add-bubbles': 800,
-			'subtract-bubbles': -400,
+			'subtract-bubbles': 400,
 			'start-lotto': '',
 			'stop-lotto': ''
 		}

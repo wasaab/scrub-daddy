@@ -570,11 +570,7 @@ function addRandomPrizeAndGetInfo(tierNumber, userID) {
     var extraInfo = `Call \`.help ${prize}\` for usage info`;
 
     if (prize.endsWith('bubbles')) {
-        if (prize.startsWith('add')) {
-            addToArmy(userID, prizesInTier[prize]);
-        } else {
-            removeFromArmy(userID, prizesInTier[prize] * -1);
-        }
+        addToArmy(userID, prizesInTier[prize]);
 
         const armySize = ledger[userID].armySize;
         extraInfo = `You now have an army of ${armySize} Scrubbing Bubble${util.maybeGetPlural(armySize)}`;
