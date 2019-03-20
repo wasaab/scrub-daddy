@@ -669,7 +669,10 @@ exports.maybeResetNames = function(client) {
 
         if (!target || moment().isAfter(moment(lockInfo.unlockTime))) {
             if (target) {
-                maybeRename(lockInfo.type, target, lockInfo.oldName);
+                maybeRename(lockInfo.type, target, lockInfo.oldName)
+                    .then(() => {
+                        updateRenamedList(lockInfo.oldName);
+                    });
             }
 
             delete loot.lockedIdToLockInfo[targetID];
@@ -683,6 +686,37 @@ exports.maybeResetNames = function(client) {
 
         maybeRename(lockInfo.type, target, lockInfo.newName);
     }
+}
+
+function updateRenamedList(oldName, newName, endTime) {
+    bot.getBotSpam().fetchMessage(c.RENAMED_LIST_MSG_ID)
+        .then((message) => {
+            const oldEmbed = message.embeds[0];
+            var description;
+
+            if (!newName) { // remove renaming
+                const oldRenameRegex = new RegExp(`${oldName} =.*$`, 'gm');
+                description = oldEmbed.description.replace(oldRenameRegex, '');
+
+                if (description === '') {
+                    description = 'No active renames';
+                }
+            } else { // Add renaming
+                const baseDesc = oldEmbed.description.includes('=') ? oldEmbed.description : '';
+                description = `${baseDesc}${oldName} = ${newName} \`${endTime}\`\n`;
+            }
+
+            const updatedMsg = new Discord.RichEmbed({
+                color: 0xffff00,
+                title: 'Renaming - End Time',
+                description: description
+            });
+
+            message.edit('', updatedMsg);
+        })
+        .catch((err) => {
+            util.logger.error(`<ERROR> ${util.getTimestamp()}  Edit Renamed List Msg Error: ${err}`);
+        });
 }
 
 exports.renameUserRoleOrChannel = function(type, targetID, args, tierNumber, userID, cmd, mentions) {
@@ -708,6 +742,8 @@ exports.renameUserRoleOrChannel = function(type, targetID, args, tierNumber, use
     maybeRename(type, target, name)
         .then(() => {
             unlockTime = moment().add(timePeriodTokens[0], timePeriodTokens[1]);
+            const formattedUnlockTime = unlockTime.format('M/DD/YY hh:mm A');
+
             loot.lockedIdToLockInfo[targetID] = {
                 unlockTime: unlockTime.valueOf(),
                 oldName: oldName,
@@ -717,7 +753,8 @@ exports.renameUserRoleOrChannel = function(type, targetID, args, tierNumber, use
             removePrizeFromInventory(userID, cmd, tierNumber);
             util.exportJson(loot, 'loot');
             util.sendEmbedMessage(`${formattedType} Renamed`,
-                `Thou shalt be called ${util[`mention${mentionType}`](targetID)} until \`${unlockTime.format('M/DD/YY hh:mm A')}\``, userID);
+                `Thou shalt be called ${util[`mention${mentionType}`](targetID)} until \`${formattedUnlockTime}\``, userID);
+            updateRenamedList(oldName, name, formattedUnlockTime);
         })
         .catch((err) => {
             util.logger.error(`<ERROR> ${util.getTimestamp()}  Edit Name Error: ${err}`);

@@ -322,7 +322,7 @@ exports.handle = function(message) {
 		gambling.renameUserRoleOrChannel('user', util.getIdFromMention(args[2]), args, tierNumber, userID, cmd, message.mentions);
 	}
 	function reserveCalled() {
-		gambling.reserve(userID, user)
+		gambling.reserve(userID)
 	}
 	function restartCalled() {
 		if (!util.isAdmin(userID)) { return; }
