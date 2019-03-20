@@ -198,17 +198,6 @@ function getTypeNum(typeString) {
 }
 
 /**
- * returns an 's' iff count > 1.
- *
- * @param {number} count
- */
-function maybeGetPlural(count) {
-    if (count > 1)
-        return 's';
-    return '';
-}
-
-/**
  * Adds to the given user's gaming streak stats.
  *
  * @param {String} currentStreak - current win/loss streak
@@ -267,7 +256,7 @@ function betClean(userID, bet, type, side) {
     if (!wallet || wallet.armySize < bet ) {
         msg = 'Your army is nonexistent.';
         if (wallet && wallet.armySize > 0) {
-            msg = `Your ${wallet.armySize} soldier${maybeGetPlural(wallet.armySize)} would surely perish.`;
+            msg = `Your ${wallet.armySize} soldier${util.maybeGetPlural(wallet.armySize)} would surely perish.`;
         }
         const description = `${util.mentionUser(userID)}  You do not have enough Scrubbing Bubbles to clean the bathroom. ${msg}`;
         util.sendEmbedMessage(null, description, userID);
@@ -283,7 +272,7 @@ function betClean(userID, bet, type, side) {
             //addToGamblingStats('Wins', 'Won', payout, userID);
         } else {
             img = c.CLEAN_LOSE_IMG;
-            msg = `Sorry bud, you lost ${bet} Scrubbing Bubble${maybeGetPlural(bet)} in the battle.`;
+            msg = `Sorry bud, you lost ${bet} Scrubbing Bubble${util.maybeGetPlural(bet)} in the battle.`;
             //addToGamblingStats('Losses', 'Lost', bet, userID);
         }
         util.sendEmbedMessage(null, `${util.mentionUser(userID)}  ${msg}`, userID, img);
@@ -321,7 +310,7 @@ function outputUserGamblingData(userID, args) {
     if (wallet) {
         var description = '';
         if (args[0] === 'army') {
-            description = `${util.mentionUser(userID)}${msg} army is ${wallet.armySize} Scrubbing Bubble${maybeGetPlural(wallet.armySize)} strong!`;
+            description = `${util.mentionUser(userID)}${msg} army is ${wallet.armySize} Scrubbing Bubble${util.maybeGetPlural(wallet.armySize)} strong!`;
         } else {
             description = `${util.mentionUser(userID)}${msg} Stats (starting from 10/31/17):\n` +
                 `Current Army Size: ${wallet.armySize} Scrubs\n` +
@@ -588,7 +577,7 @@ function addRandomPrizeAndGetInfo(tierNumber, userID) {
         }
 
         const armySize = ledger[userID].armySize;
-        extraInfo = `You now have an army of ${armySize} Scrubbing Bubble${maybeGetPlural(armySize)}`;
+        extraInfo = `You now have an army of ${armySize} Scrubbing Bubble${util.maybeGetPlural(armySize)}`;
     } else {
         addPrizeToInventory(userID, prize, tierNumber);
     }
@@ -784,23 +773,27 @@ function addRainbowRole(userID, targetUser, tierNumber, cmd) {
 }
 
 exports.checkForMagicWords = function(message) {
-    const magicWordsToBanDuration = loot.magicWords[message.channel.id];
-    if (!magicWordsToBanDuration) { return; }
+    const magicWordsToEndTime = loot.magicWords[message.channel.id];
+    if (!magicWordsToEndTime) { return; }
 
-    const magicWordsPattern = Object.keys(magicWordsToBanDuration).join("|");
-    const magicWordMatches = message.content.match(magicWordsPattern);
+    const magicWordsPattern = `\\b(${Object.keys(magicWordsToEndTime).join("|")})\\b`;
+    const magicWordsRegex = new RegExp(magicWordsPattern, 'gi');
+    const magicWordMatches = message.content.match(magicWordsRegex);
+
     if (!magicWordMatches) { return; }
 
-    var maxBanDays = 0;
-    magicWordMatches.forEach((word) => {
-        const banDays = magicWordsToBanDuration[word];
+    var banDays = magicWordMatches.length;
+    magicWordMatches.forEach((magicWord) => {
+        if (moment().isBefore(magicWordsToEndTime[magicWord])) { return; }
 
-        if (banDays > maxBanDays) {
-            maxBanDays = banDays;
-        }
-    });
+        delete magicWordsToEndTime[magicWord];
+        util.exportJson(loot, 'loot');
+        banDays--;
+    })
 
-    util.banSpammer(message.author, message.channel, maxBanDays, true);
+    if (banDays === 0) { return; }
+
+    util.banSpammer(message.author, message.channel, banDays, true);
 }
 
 exports.addMagicWord = function(word, tierNumber, channelID, userID, cmd) {
@@ -816,8 +809,11 @@ exports.addMagicWord = function(word, tierNumber, channelID, userID, cmd) {
     }
 
     const banDays = c.PRIZE_TIERS[`tier${tierNumber}`][cmd].replace(/\D/g,'');
-    loot.magicWords[channelID][word] = banDays;
-    util.sendEmbedMessage('Magic Word Set', `When a user types \`${word}\` in ${util.mentionChannel(channelID)}, they will receive a ${banDays} day ban.`)
+    const magicWordEndTime = moment().add(banDays, 'days');
+    loot.magicWords[channelID][word] = magicWordEndTime.valueOf();
+    util.sendEmbedMessage('Magic Word Set',
+        `When a user types \`${word}\` in ${util.mentionChannel(channelID)}, they will receive a one day ban. `
+        + `The magic word is in effect until \`${magicWordEndTime.format('M/DD/YY hh:mm A')}\``);
     util.exportJson(loot, 'loot');
     removePrizeFromInventory(userID, cmd, tierNumber);
 }

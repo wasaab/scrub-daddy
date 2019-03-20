@@ -1479,7 +1479,7 @@ function banSpammer(user, channel, days = 2, isMagicWord) {
 	var msg = `Enjoy the ${days} day ban from ${mentionChannel(channel.id)}, you filthy spammer!`;
 
 	if (isMagicWord) {
-		msg = `You said the magic word! ${msg.split(',')[0]}.`;
+		msg = `You said the magic word${maybeGetPlural(days)}! ${msg.split(',')[0]}.`;
 	}
 
 	channel.send(`🔨 ${mentionUser(user.id)} ${msg}`);
@@ -1920,6 +1920,17 @@ function reviewMessages(reviewer) {
 }
 
 /**
+ * returns an 's' iff count > 1.
+ *
+ * @param {number} count
+ */
+function maybeGetPlural(count) {
+    if (count > 1)
+        return 's';
+    return '';
+}
+
+/**
  * Gets the preferred color of the provided user.
  *
  * @param {String} userID - userid to get color preference of
@@ -1973,6 +1984,7 @@ exports.logger = logger;
 exports.maybeAddSoundByte = maybeAddSoundByte;
 exports.maybeBanSpammer = maybeBanSpammer;
 exports.maybeGetAlias = maybeGetAlias;
+exports.maybeGetPlural = maybeGetPlural;
 exports.maybeInsertQuotes = maybeInsertQuotes;
 exports.maybeRemoveFromArray = maybeRemoveFromArray;
 exports.maybeReplicateLol = maybeReplicateLol;
