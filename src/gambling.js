@@ -784,7 +784,7 @@ exports.checkForMagicWords = function(message) {
 
     var banDays = magicWordMatches.length;
     magicWordMatches.forEach((magicWord) => {
-        if (moment().isBefore(magicWordsToEndTime[magicWord])) { return; }
+        if (moment().isBefore(moment(magicWordsToEndTime[magicWord]))) { return; }
 
         delete magicWordsToEndTime[magicWord];
         util.exportJson(loot, 'loot');
