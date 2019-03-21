@@ -89,7 +89,7 @@ exports.reserve = function(userID) {
     const baseTitle = 'Request for Reserve Scrubbing Bubbles';
     const lastReserveTime = ledger[userID].lastReserveTime;
 
-    if (lastReserveTime && moment().diff(moment(lastReserveTime), 'days') < 1) {
+    if (lastReserveTime && moment().isSame(moment(lastReserveTime), 'day')) {
         util.sendEmbedMessage(`${baseTitle} Denied`,
             `${util.mentionUser(userID)}, you have to wait a day to request more soldiers.`);
     } else {
@@ -702,8 +702,8 @@ function updateRenamedList(oldName, newName, endTime) {
                     description = 'No active renames';
                 }
             } else { // Add renaming
-                const baseDesc = oldEmbed.description.includes('=') ? oldEmbed.description : '';
-                description = `${baseDesc}${oldName} = ${newName} \`${endTime}\`\n`;
+                const baseDesc = oldEmbed.description || '';
+                description = `${baseDesc}\n${oldName} = ${newName} \`${endTime}\`\n`;
             }
 
             const updatedMsg = new Discord.RichEmbed({
