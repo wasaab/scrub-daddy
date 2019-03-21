@@ -44,7 +44,7 @@ function generateGraph(userID, countKey, targetGames) {
 
         // Nest the entries by game
         var dataNest = d3.nest()
-            .key((entry) => isGamePlayerCountGraph(countKey) ? entry.game : moment(entry.time).format('MM/DD/YY'))
+            .key((entry) => isGamePlayerCountGraph(countKey) ? entry.game : moment(entry.time).format(c.MDY_DATE_FORMAT))
             .entries(logs);
 
         if (!isGamePlayerCountGraph(countKey)) {
@@ -79,7 +79,7 @@ function appendLinesAndLegend(dataNest, countKey) {
     if (isGamePlayerCountGraph(countKey)) {
         dataNest.forEach((groupedByGame, i) => {
             var groupedByDate = d3.nest()
-                .key((entry) => moment(entry.time).format('MM/DD/YY'))
+                .key((entry) => moment(entry.time).format(c.MDY_DATE_FORMAT))
                 .entries(groupedByGame.values);
 
             appendLineAndTitle(dataNest, countKey, countline, color, legend, i, groupedByDate, groupedByGame)
@@ -115,7 +115,7 @@ function padGroupWithZeroEntries(groupedByDate, countKey) {
                 const zeroEntryTime = prevEntryTime.add(1, 'days');
 
                 groupedByDate.splice(idx, 0, {
-                    key: zeroEntryTime.format('MM/DD/YY'),
+                    key: zeroEntryTime.format(c.MDY_DATE_FORMAT),
                     values: [Object.assign({ time: zeroEntryTime.toDate() }, baseZeroEntry)]
                 });
             }

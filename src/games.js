@@ -327,7 +327,7 @@ function buildWhoPlaysFields(usersWhoPlay) {
 
 	const scrubIDToNick = util.getScrubIdToNick();
 	usersWhoPlay.forEach((user) => {
-		const lastPlayed = isNaN(user.time) ? 'N/A': moment(user.time).format('M/DD/YY hh:mm A');
+		const lastPlayed = isNaN(user.time) ? 'N/A': moment(user.time).format(c.MDY_HM_DATE_TIME_FORMAT);
 		const name = scrubIDToNick[user.id];
 		if (name) {
 			fields.push(util.buildField(name, `\`${lastPlayed}\``));
@@ -986,7 +986,7 @@ function whoSaidGameLoop(randomQuotes, round) {
     .then((answers) => {
 		const roundWinner = answers.array()[0].member;
 		util.sendEmbedMessage(`Congrats ${util.getNick(roundWinner.id)}`,
-		`You're correct! **${util.getNick(selectedQuote.author.id)}**\nsaid that on \`${moment(selectedQuote.createdTimestamp).format('LLLL')}\``);
+		`You're correct! **${util.getNick(selectedQuote.author.id)}**\nsaid that on \`${moment(selectedQuote.createdTimestamp).format(c.FULL_DATE_TIME_FORMAT)}\``);
 		whoSaidScore[roundWinner.id] = whoSaidScore[roundWinner.id] ? whoSaidScore[roundWinner.id] + 1 : 1;
 		whoSaidGameLoop(randomQuotes, round + 1);
 	})

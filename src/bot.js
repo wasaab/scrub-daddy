@@ -13,13 +13,14 @@ var cars = require('./cars.js');
 var config = require('../resources/data/config.json');
 var private = require('../../private.json');
 var client = new Discord.Client();
-client.login(private.token);
 
-var botSpam = {};
-var scrubsChannel = {};
-var logChannel = {};
-var purgatory = {};
-var feedbackCategory = {};
+var server;
+var botSpam;
+var scrubsChannel;
+var logChannel;
+var purgatory;
+
+client.login(private.token);
 
 /**
  * Listen's for messages in Discord.
@@ -97,6 +98,7 @@ client.on('error', (error) => {
  */
 client.on('ready', () => {
 	util.updateMembers();
+	server = client.guilds.find('id', private.serverID);
 	botSpam = client.channels.find('id', c.BOT_SPAM_CHANNEL_ID);
 	scrubsChannel = client.channels.find('id', c.SCRUBS_CHANNEL_ID);
 	purgatory = client.channels.find('id', c.PURGATORY_CHANNEL_ID);
@@ -122,6 +124,7 @@ exports.getScrubsChannel = () => scrubsChannel;
 exports.getLogChannel = () => logChannel;
 exports.getPurgatory = () => purgatory;
 exports.getClient = () => client;
+exports.getServer = () => server;
 
 //return the elements of the array that match your conditional
 // var userEntry = usersWhoPlay.filter((player) => {return player.id === userID;});

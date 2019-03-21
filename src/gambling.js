@@ -427,7 +427,7 @@ exports.getTimeUntilLottoEnd = function() {
     endTime.year = present.year();
     endTime.month--;
     const endMoment = moment(endTime);
-    const endDate = endMoment.format('LLLL');
+    const endDate = endMoment.format(c.FULL_DATE_TIME_FORMAT);
     const timeUntil = endMoment.fromNow();
 
     return { timeUntil: timeUntil, endDate: endDate };
@@ -469,7 +469,7 @@ exports.endLotto = function() {
     util.sendEmbedMessage('The Beyond Lotto Has Concluded', winningMsg, null, c.BEYOND_LOTTO_IMG);
     util.logger.info(`<INFO> ${util.getTimestamp()}  Beyond lotto winner = ${winner}`);
 
-    const server = bot.getClient().guilds.find('id', private.serverID);
+    const server = bot.getServer();
     const winningUser = server.members.find('id', winnerID);
     winningUser.addRole(server.roles.find('id', c.BEYOND_ROLE_ID));
 
@@ -657,15 +657,15 @@ exports.hasPrize = function(userID, prize, tierNumber) {
     return true;
 }
 
-exports.maybeResetNames = function(client) {
+exports.maybeResetNames = function() {
     const lockedIdToLockInfo = loot.lockedIdToLockInfo;
     if (lockedIdToLockInfo === {}) { return; }
 
-    const guild = client.guilds.find('id', private.serverID);
+    const server = bot.getServer();
 
     for (var targetID in lockedIdToLockInfo) {
         const lockInfo = lockedIdToLockInfo[targetID];
-        const target = guild[`${lockInfo.type}s`].find('id', targetID);
+        const target = server[`${lockInfo.type}s`].find('id', targetID);
 
         if (!target || moment().isAfter(moment(lockInfo.unlockTime))) {
             if (target) {
@@ -729,7 +729,7 @@ exports.renameUserRoleOrChannel = function(type, targetID, args, tierNumber, use
         unlockTime = moment(lockInfo.unlockTime);
 
         if (moment().isBefore(unlockTime)) {
-            return util.sendEmbedMessage('Target Locked', `You may not rename the target until \`${unlockTime.format('M/DD/YY hh:mm A')}\``)
+            return util.sendEmbedMessage('Target Locked', `You may not rename the target until \`${unlockTime.format(c.MDY_HM_DATE_TIME_FORMAT)}\``)
         }
     }
 
@@ -742,7 +742,7 @@ exports.renameUserRoleOrChannel = function(type, targetID, args, tierNumber, use
     maybeRename(type, target, name)
         .then(() => {
             unlockTime = moment().add(timePeriodTokens[0], timePeriodTokens[1]);
-            const formattedUnlockTime = unlockTime.format('M/DD/YY hh:mm A');
+            const formattedUnlockTime = unlockTime.format(c.MDY_HM_DATE_TIME_FORMAT);
 
             loot.lockedIdToLockInfo[targetID] = {
                 unlockTime: unlockTime.valueOf(),
@@ -846,7 +846,7 @@ exports.addMagicWord = function(word, tierNumber, channelID, userID, cmd) {
     loot.magicWords[channelID][word] = magicWordEndTime.valueOf();
     util.sendEmbedMessage('Magic Word Set',
         `When a user types \`${word}\` in ${util.mentionChannel(channelID)}, they will receive a one day ban. `
-        + `The magic word is in effect until \`${magicWordEndTime.format('M/DD/YY hh:mm A')}\``);
+        + `The magic word is in effect until \`${magicWordEndTime.format(c.MDY_HM_DATE_TIME_FORMAT)}\``);
     util.exportJson(loot, 'loot');
     removePrizeFromInventory(userID, cmd, tierNumber);
 }

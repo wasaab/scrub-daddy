@@ -624,7 +624,7 @@ function subscribeToCatFacts(userID) {
 function scheduleRecurringVoiceChannelScan() {
 	(function(){
 		var client = bot.getClient();
-		gambling.maybeResetNames(client);
+		gambling.maybeResetNames();
 		games.maybeUpdateChannelNames();
 		games.maybeChangeAudioQuality(client.channels);
 		handleMuteAndDeaf(client.channels);
@@ -1027,7 +1027,7 @@ function listBackups() {
 	})
 	timestamps.sort((a,b) => b - a);
 	timestamps.forEach((timestamp) => {
-		const time = moment(timestamp).format('M[-]D[-]YY[@]h[-]mm[-]a');
+		const time = moment(timestamp).format(c.BACKUP_DATE_FORMAT);
 		filesMsg += `\`${time.toString()}\`\n`;
 	});
 	sendEmbedMessage('Available Backups', filesMsg, c.K_ID)
@@ -1065,7 +1065,7 @@ function waitForFileToExist(time, path, timeout, restart) {
  * @param {Boolean} restart - whether or not the bot should restart on success
  */
 function backupJson(restart) {
-	const time = moment().format('M[-]D[-]YY[@]h[-]mm[-]a');
+	const time = moment().format(c.BACKUP_DATE_FORMAT);
 	config.lastBackup = time;
 	exportJson(config, 'config');
 	backup.backup('./resources/data', `../jsonBackups/${time}.backup`);
@@ -1208,11 +1208,11 @@ function getQuotes(quoteTarget, userID) {
 		targetName = scrubIdToNick[targetID];
 		targetQuotes = quotes.filter((quote) => { return quote.quotedUserID === targetID; });
 		targetQuotes.forEach((quote) => {
-			fields.push(buildField(moment(quote.time).format('l'), quote.message, 'false'));
+			fields.push(buildField(moment(quote.time).format(c.SHORT_DATE_FORMAT), quote.message, 'false'));
 		});
 	} else {
 		targetQuotes.forEach((quote) => {
-			fields.push(buildField(scrubIdToNick[quote.quotedUserID], `${quote.message}\n	— ${moment(quote.time).format('l')}`, 'false'));
+			fields.push(buildField(scrubIdToNick[quote.quotedUserID], `${quote.message}\n	— ${moment(quote.time).format(c.SHORT_DATE_FORMAT)}`, 'false'));
 		});
 	}
 	if (fields.length > 0) {
@@ -1234,7 +1234,7 @@ function maybeInsertQuotes(message) {
 	var quoteBlocks = '';
 	replyQuotes.forEach((quote) => {
 		const author = scrubIdToNick[quote.quotedUserID];
-		const time = moment(quote.time).format('l');
+		const time = moment(quote.time).format(c.SHORT_DATE_FORMAT);
 		const userMentions = quote.message.match(/<@![0-9]*>/g);
 		if (userMentions) {
 			userMentions.forEach((mention) => {
@@ -1746,9 +1746,7 @@ function showLists(userID) {
 }
 
 function getCurrServerInvites() {
-	const server = bot.getClient().guilds.find('id', private.serverID);
-
-	return server.fetchInvites();
+	return bot.getServer().fetchInvites();
 }
 
 function updateServerInvites() {
@@ -1784,7 +1782,7 @@ function addInvitedByRole(newMember) {
 
 			inviterToUses = updatedInviterToUses;
 
-			const server = bot.getClient().guilds.find('id', private.serverID);
+			const server = bot.getServer();
 			var invitedByRole = server.roles.find('name', `${inviter}'s Pleb`);
 
 			if (!invitedByRole) {
@@ -1878,7 +1876,7 @@ function exportJson(content, fileName) {
  * Updates the member list and scrubIDtoNick.
  */
 function updateMembers() {
-	members = bot.getClient().guilds.find('id', private.serverID).members;
+	members = bot.getServer().members;
 	members.forEach((member) => {
 		scrubIdToNick[member.id] = member.displayName.split(' ▫ ')[0];
 		scrubIdToAvatar[member.id] = member.user.displayAvatarURL.split('?')[0];

@@ -498,7 +498,12 @@ module.exports = {
 			'stop-lotto': ''
 		}
 	},
-	TIER_COST: [200, 400, 600]
+	TIER_COST: [200, 400, 600],
+	MDY_HM_DATE_TIME_FORMAT: 'M/DD/YY hh:mm A',
+	MDY_DATE_FORMAT: 'MM/DD/YY',
+	FULL_DATE_TIME_FORMAT: 'LLLL',
+	SHORT_DATE_FORMAT: 'l',
+	BACKUP_DATE_FORMAT: 'M[-]D[-]YY[@]h[-]mm[-]a'
 };
 
 function deepFreeze(constants) {
