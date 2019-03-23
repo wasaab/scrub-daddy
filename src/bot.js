@@ -97,13 +97,13 @@ client.on('error', (error) => {
  * Logs the bot into Discord, stores id to nick map, and retrieves 3 crucial channels.
  */
 client.on('ready', () => {
-	util.updateMembers();
 	server = client.guilds.find('id', private.serverID);
 	botSpam = client.channels.find('id', c.BOT_SPAM_CHANNEL_ID);
 	scrubsChannel = client.channels.find('id', c.SCRUBS_CHANNEL_ID);
 	purgatory = client.channels.find('id', c.PURGATORY_CHANNEL_ID);
 	logChannel = client.channels.find('id', c.LOG_CHANNEL_ID);
 	cars.setCarPartsChannel(client.channels.find('id', c.CAR_PARTS_CHANNEL_ID));
+	util.updateMembers();
 
 	util.enableServerLogRedirect();
 	util.scheduleRecurringJobs();
