@@ -80,12 +80,12 @@ exports.dischargeScrubBubble = function(userID, numBubbles) {
 exports.maybeDischargeScrubBubble = function() {
     if (util.isDevEnv()) { return; }
 
-    var num = util.getRand(1,11);
+    var num = util.getRand(1, 11);
     if (num > 6) {
         if (num !== prevDropNum) {
             exports.dischargeScrubBubble(null);
         } else {
-            exports.dischargeScrubBubble(null, 20);
+            exports.dischargeScrubBubble(null, util.getRand(1, 61));
         }
 
         prevDropNum = num;
