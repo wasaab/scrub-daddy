@@ -58,19 +58,24 @@ exports.dischargeScrubBubble = function(userID, numBubbles) {
     numBubbles = numBubbles && !isNaN(numBubbles) ? Number(numBubbles) : 1;
     if (userID) {
         if (numBubbles < 1 || !(ledger[userID] && ledger[userID].armySize >= numBubbles)) { return; }
+
         removeFromArmy(userID, numBubbles);
     }
+
     dropped += numBubbles;
     var droppedImg = dropped;
     var msg = 'Bubble\nhas';
+
     if (dropped > 1) {
         msg = 'Bubbles\nhave';
         if (dropped > 21) {
             droppedImg = 21;
         }
     }
+
     const title = `**${dropped} Scrubbing ${msg} arrived for duty!**`;
     const thisMessage = util.sendEmbedMessage(null, title, userID, c.BUBBLE_IMAGES[droppedImg-1], true);
+
     exports.maybeDeletePreviousMessage(thisMessage);
 };
 
@@ -116,7 +121,7 @@ exports.reserve = function(userID) {
  */
 function removeFromArmy(userID, amount) {
     ledger[userID].armySize -= amount;
-    ledger[userID].totalDischarged += amount;
+    ledger[userID].scrubsDischared += amount;
 }
 
 /**
@@ -129,10 +134,14 @@ function addToArmy(userID, amount) {
     if (!ledger[userID]) {
         ledger[userID] = Object.assign({}, c.NEW_LEDGER_ENTRY);
     }
-    ledger[userID].armySize += amount;
-    ledger[userID].totalEnlisted += amount;
-    if (ledger[userID].armySize > ledger[userID].recordArmy) {
-        ledger[userID].recordArmy = ledger[userID].armySize;
+
+    const userEntry = ledger[userID];
+
+    userEntry.armySize += amount;
+    userEntry.scrubsEnlisted += amount;
+
+    if (userEntry.armySize > userEntry.recordArmy) {
+        userEntry.recordArmy = userEntry.armySize;
     }
 }
 
@@ -151,100 +160,62 @@ exports.enlist = function(userID, message) {
 };
 
 /**
- * returns true iff the side provided is valid.
- *
- * @param {String} side - the side to battle
- */
-function isValidSide(side) {
-    return (side === 'b' || side === 't')
-}
-
-/**
  * Takes the user's bet from the ledger.
  *
  * @param {String} userID - the id of the user betting
  * @param {number} bet - the bet amount
  * @param {String} type - the type of bet
  */
-function takeBetFromUser(userID, bet, type) {
-    if (type === 'clean') {
-        ledger[userID].armySize -= bet;
-        ledger[userID].scrubsBet += bet;
-        ledger[userID].cleanBet = bet;
-    } else if (type === 'race') {
-        ledger[userID].armySize -= bet;
-        ledger[userID].scrubsBet += bet;
-        ledger[userID].raceBet = bet;
-    }
-}
-
-/**
- * Resets the ledger's bets to 0.
- *
- * @param {String} userID - the id of the user betting
- * @param {String} type - the type of bet
- */
-function resetLedgerAfterBet(userID, type) {
-    if (type === 'clean') {
-        ledger[userID].cleanBet = 0;
-    } else if (type === 'race') {
-        ledger[userID].raceBet = 0;
-    }
-}
-
-/**
- * Gets 0 for t and 1 for b.
- *
- * @param {String} typeString - type of battle
- */
-function getTypeNum(typeString) {
-    if (typeString === 't')
-        return 0;
-    if (typeString === 'b')
-        return 1;
+function updateUsersBet(userID, bet, type) {
+    ledger[userID][`${type}Bet`] = bet;
 }
 
 /**
  * Adds to the given user's gaming streak stats.
  *
- * @param {String} currentStreak - current win/loss streak
- * @param {String} highestStreak - highest win/loss streak
- * @param {String} oppositeStreak - opposite of current streak
- * @param {String} user - gambling user
+ * @param {Object} userStats - stats of the user
+ * @param {Boolean} isWin - true iff bet was won
  */
-function addToGamblingStreaks(currentStreak, highestStreak, oppositeStreak, user) {
-    ledger[user][currentStreak]++;
-    ledger[user][oppositeStreak] = 0;
+function addToGamblingStreaks(userStats, isWin) {
+    const outcome = isWin ? 'Win' : 'Loss';
+    const highestStreakStat = `highest${outcome}Streak`;
+    const currentStreakStat = `${outcome.toLocaleLowerCase()}Streak`;
+    const oppositeStreakStat = isWin ? 'lossStreak' : 'winStreak';
 
-    if (ledger[user][currentStreak] > ledger[user][highestStreak]){
-        ledger[user][highestStreak] = ledger[user][currentStreak];
+    userStats[currentStreakStat]++;
+    userStats[oppositeStreakStat] = 0;
+
+    if (userStats[currentStreakStat] > userStats[highestStreakStat]){
+        userStats[highestStreakStat] = userStats[currentStreakStat];
     }
 }
 
 /**
  * Adds to to the user's gambling stats.
  *
- * @param {String} outcome - outcome of the battle 'Won' or 'Lost'
+ * @param {number} bet - the bet made
  * @param {number} amount - amount the user won or lost
- * @param {String} user - the user to add stats to
+ * @param {String} userID - the user to add stats to
+ * @param {Boolean} isWin - true iff bet was won
  */
-function addToGamblingStats(outcome, amount, user) {
-    var plural = 'Losses';
-    var opposite = 'Won';
+function addToGamblingStats(bet, amount, userID, isWin) {
+    const outcome = isWin ? 'Won' : 'Lost';
+    const userStats = ledger[userID].stats;
+    const mostStat = `most${outcome}`;
 
-    if (outcome === 'Won') {
-        plural = 'Wins';
-        opposite = 'Lost';
+    userStats.scrubsBet += bet;
+    userStats[`bets${outcome}`]++;
+    userStats[`scrubs${outcome}`] += amount;
+
+    if (amount > userStats[mostStat]) {
+        userStats[mostStat] = amount;
     }
 
-    const stat = `highest${outcome}`;
-    if (amount > ledger[user][stat]) {
-        ledger[user][stat] = amount;
+    if (userStats.mostBet < bet) {
+        userStats.mostBet = bet;
     }
 
-    addToGamblingStreaks(`streak${plural}`, `maxStreak${plural}`, `streak${opposite}`, user);
-    ledger[user][`scrubs${outcome}`] += amount;
-    ledger[user][`total${plural}`]++;
+    addToGamblingStreaks(userStats, isWin);
 }
 
 /**
@@ -254,9 +225,8 @@ function addToGamblingStats(outcome, amount, user) {
  * @param {String} userID - the id of the user betting
  * @param {number} bet - the bet amount
  * @param {String} type - the type of bet
- * @param {String} side - the side to battle
  */
-function betClean(userID, bet, type, side) {
+function betClean(userID, bet, type) {
     var wallet = ledger[userID];
     var msg = '';
 
@@ -269,21 +239,21 @@ function betClean(userID, bet, type, side) {
         util.sendEmbedMessage(null, description, userID);
     } else {
         var img = '';
-        takeBetFromUser(userID, bet, type);
+        updateUsersBet(userID, bet, type);
 
-        if (util.getRand(0,2) === getTypeNum(side)) {
+        if (util.getRand(0,2)) {
             const payout = bet*2;
             img = c.CLEAN_WIN_IMG;
             msg = `Congrats, your auxiliary army gained ${payout} Scrubbing Bubbles after cleaning the bathroom and conquering the land!`;
             addToArmy(userID, payout);
-            //addToGamblingStats('Wins', 'Won', payout, userID);
+            addToGamblingStats(bet, payout, userID, true);
         } else {
             img = c.CLEAN_LOSE_IMG;
             msg = `Sorry bud, you lost ${bet} Scrubbing Bubble${util.maybeGetPlural(bet)} in the battle.`;
-            //addToGamblingStats('Losses', 'Lost', bet, userID);
+            addToGamblingStats(bet, bet, userID, false);
         }
         util.sendEmbedMessage(null, `${util.mentionUser(userID)}  ${msg}`, userID, img);
-        resetLedgerAfterBet(userID, bet, type);
+        updateUsersBet(userID, 0, type);
     }
 }
 
@@ -292,13 +262,10 @@ function betClean(userID, bet, type, side) {
  */
 exports.maybeBetClean = function(userID, args, message) {
     const bet = Number(args[1]);
-    const side = 't';
 
-    if (!bet || !side || !isValidSide(side) || bet < 1) {
-        return;
-    }
+    if (!bet || bet < 1) { return; }
 
-    betClean(userID, bet, 'clean', side);
+    betClean(userID, bet, args[0]);
     message.delete();
 };
 
@@ -313,26 +280,41 @@ function outputUserGamblingData(userID, args) {
             msg = '\'s';
         }
     }
-    const wallet = ledger[userID];
-    if (wallet) {
-        var description = '';
-        if (args[0] === 'army') {
-            description = `${util.mentionUser(userID)}${msg} army is ${wallet.armySize} Scrubbing Bubble${util.maybeGetPlural(wallet.armySize)} strong!`;
-        } else {
-            description = `${util.mentionUser(userID)}${msg} Stats (starting from 10/31/17):\n` +
-                `Current Army Size: ${wallet.armySize} Scrubs\n` +
-                `Record Army Size: ${wallet.recordArmy} Scrubs\n` +
-                `Lifetime Scrubs Won: ${wallet.scrubsWon} Scrubs\n` +
-                `Lifetime Scrubs Lost: ${wallet.scrubsLost} Scrubs\n` +
-                `Biggest Bet Won: ${wallet.highestWon} Scrubs\n` +
-                `Biggest Bet Lost: ${wallet.highestLost} Scrubs\n` +
-                `Total Bets Won: ${wallet.totalWins} Wins\n` +
-                `Total Bets Lost: ${wallet.totalLosses} Losses\n` +
-                `Total Scrubs Discharged: ${wallet.totalDischarged} Scrubs\n` +
-                `Total Scrubs Enlisted: ${wallet.totalEnlisted} Scrubs`;
-        }
-        util.sendEmbedMessage(null, description, userID);
+
+    const userEntry = ledger[userID];
+
+    if (!userEntry) { return; }
+
+    const armySize = userEntry.armySize;
+    var title;
+    var description = '';
+
+    if (args[0] === 'army') {
+        description = `${util.mentionUser(userID)}${msg} army is ${armySize} Scrubbing Bubble${util.maybeGetPlural(armySize)} strong!`;
+    } else {
+        const userStats = userEntry.stats;
+
+        title = 'Gambling Stats';
+        description = `${util.mentionUser(userID)}${msg} Stats (starting from 10/31/17):\n` +
+            `Current Army Size: \`${armySize}\`\n` +
+            `Record Army Size: \`${userStats.recordArmy}\`\n` +
+            `Total Scrubbles Bet: \`${userStats.scrubsBet}\`\n` +
+            `Total Scrubbles Won: \`${userStats.scrubsWon}\`\n` +
+            `Total Scrubbles Lost: \`${userStats.scrubsLost}\`\n` +
+            `Total Bets Won: \`${userStats.betsWon}\`\n` +
+            `Total Bets Lost: \`${userStats.betsLost}\`\n` +
+            `Total Scrubbles Enlisted: \`${userStats.scrubsEnlisted}\`\n` +
+            `Total Scrubbles Discharged: \`${userStats.scrubsDischared}\`\n` +
+            `Most Scrubbles Bet: \`${userStats.mostBet}\`\n` +
+            `Most Scrubbles Won: \`${userStats.mostWon}\`\n` +
+            `Most Scrubbles Lost: \`${userStats.mostLost}\`\n` +
+            `Longest Win Streak: \`${userStats.highestWinStreak}\`\n` +
+            `Longest Loss Streak: \`${userStats.highestLossStreak}\`\n` +
+            `Current Win Streak: \`${userStats.winStreak}\`\n` +
+            `Current Loss Streak: \`${userStats.lossStreak}\``;
     }
+
+    util.sendEmbedMessage(title, description, userID);
 }
 
 

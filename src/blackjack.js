@@ -31,8 +31,8 @@ function addToArmy(userID, amount) {
  *
  */
 function resetGame(userID) {
-    g.getLedger()[userID].gameOver = true;
-    g.getLedger()[userID].gameStarted = false;
+    g.getLedger()[userID].bjGameOver = true;
+    g.getLedger()[userID].bjGameStarted = false;
     g.exportLedger();
 }
 //creats deck of 52 standard playing cards
@@ -72,7 +72,7 @@ function createPlayers(userID) {
         g.getLedger()[userID].player = {};
         g.getLedger()[userID].dealer = {};
     }
-    g.getLedger()[userID].gameOver = false;
+    g.getLedger()[userID].bjGameOver = false;
     g.getLedger()[userID].player.hand = [];
     g.getLedger()[userID].dealer.hand = [];
     g.getLedger()[userID].player.points = 0;
@@ -176,13 +176,13 @@ function checkOutcome(userID, userName) {
 function dealHands(userID, userName, bet) {
     if (bet > g.getLedger()[userID].armySize) {
         util.sendEmbedMessage(userName + ' your army is not big enough!', null, userID, null);
-        g.getLedger()[userID].gameStarted = false;
+        g.getLedger()[userID].bjGameStarted = false;
         return;
     }
     g.getLedger()[userID].bjBet = bet;
     g.getLedger()[userID].armySize -= bet;
-    if (!g.getLedger()[userID].gameStarted) {
-        g.getLedger()[userID].gameStarted = true;
+    if (!g.getLedger()[userID].bjGameStarted) {
+        g.getLedger()[userID].bjGameStarted = true;
         shuffle();
         createPlayers(userID);
         for (var i = 1; i <= 2; i++) {
@@ -231,7 +231,7 @@ function maybeRestoreOldDeck(userID) {
 **/
 exports.hitMe = function (userID, userName) {
     maybePopulateBlackjackUserFields(userID, userName);
-    if (g.getLedger()[userID].player.points < 21 && !g.getLedger()[userID].gameOver) {
+    if (g.getLedger()[userID].player.points < 21 && !g.getLedger()[userID].bjGameOver) {
         maybeRestoreOldDeck(userID);
         dealCards(userID, "player", userName);
         checkOutcome(userID, userName);
@@ -249,7 +249,7 @@ exports.hitMe = function (userID, userName) {
 **/
 exports.stay = function (userID, userName) {
     maybePopulateBlackjackUserFields(userID, userName);
-    if (g.getLedger()[userID].player.points > 0 && !g.getLedger()[userID].gameOver) {
+    if (g.getLedger()[userID].player.points > 0 && !g.getLedger()[userID].bjGameOver) {
         maybeRestoreOldDeck(userID);
         dealCards(userID, "dealer");
         while (dealerShouldHit(userID)) {
@@ -275,7 +275,7 @@ exports.checkUserData = function (userID, userName, args) {
         util.sendEmbedMessage(userName + " that's an invalid bet.", null, userID, null);
         return;
     }
-    if (!g.getLedger()[userID].gameStarted) {
+    if (!g.getLedger()[userID].bjGameStarted) {
         dealHands(userID, userName, bet);
     } else {
         util.sendEmbedMessage(userName + " you already have a game in progress!", null, userID, null);
