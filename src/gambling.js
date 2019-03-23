@@ -74,13 +74,13 @@ exports.dischargeScrubBubble = function(userID, numBubbles) {
 };
 
 /**
- * drops a scrub bubble in bot-spam with a 30% chance.
+ * drops a scrub bubble in bot-spam with a 40% chance.
  */
 exports.maybeDischargeScrubBubble = function() {
     if (util.isDevEnv()) { return; }
 
     var num = util.getRand(1,11);
-    if (num > 7) {
+    if (num > 6) {
         exports.dischargeScrubBubble(null);
     }
 };
@@ -93,8 +93,8 @@ exports.reserve = function(userID) {
         util.sendEmbedMessage(`${baseTitle} Denied`,
             `${util.mentionUser(userID)}, you have to wait a day to request more soldiers.`);
     } else {
-        addToArmy(userID, 5);
-        const msg = `${util.mentionUser(userID)} 5 Scrubbing Bubbles have been called to active duty! You now have an army of ${ledger[userID].armySize}.`;
+        addToArmy(userID, 10);
+        const msg = `${util.mentionUser(userID)} 10 Scrubbing Bubbles have been called to active duty! You now have an army of ${ledger[userID].armySize}.`;
         util.sendEmbedMessage(`${baseTitle} Approved`, msg, userID);
         ledger[userID].lastReserveTime = moment().valueOf();
         exports.exportLedger();
@@ -843,10 +843,17 @@ exports.addMagicWord = function(word, tierNumber, channelID, userID, cmd) {
 
     const banDays = c.PRIZE_TIERS[`tier${tierNumber}`][cmd].replace(/\D/g,'');
     const magicWordEndTime = moment().add(banDays, 'days');
+    const endTimeMsg = `magic word is in effect until \`${magicWordEndTime.format(c.MDY_HM_DATE_TIME_FORMAT)}\``;
+    const magicWordsToEndTime = loot.magicWords[channelID];
+    const totalWordsMsg = magicWordEndTime ? `. There are now ${Object.keys(magicWordEndTime).length} magic words for this channel.` : '';
+
     loot.magicWords[channelID][word] = magicWordEndTime.valueOf();
-    util.sendEmbedMessage('Magic Word Set',
-        `When a user types \`${word}\` in ${util.mentionChannel(channelID)}, they will receive a one day ban. `
-        + `The magic word is in effect until \`${magicWordEndTime.format(c.MDY_HM_DATE_TIME_FORMAT)}\``);
-    util.exportJson(loot, 'loot');
+    util.sendEmbedMessage('Magic Word Set', `A new ${endTimeMsg}${totalWordsMsg}`, userID, null, null, null, channelID);
+    util.getMembers().find('id', userID).createDM()
+        .then((dm) => {
+            dm.send(`When a user types \`${word}\` in ${util.mentionChannel(channelID)}, `
+            + `they will receive a one day ban. The ${endTimeMsg}`);
+        });
     removePrizeFromInventory(userID, cmd, tierNumber);
+    util.exportJson(loot, 'loot');
 }

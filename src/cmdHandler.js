@@ -230,6 +230,7 @@ exports.handle = function(message) {
 	function magicWordCalled() {
 		const tierNumber = Number(args[1]);
 		if (!gambling.hasPrize(userID, cmd, tierNumber)) { return; }
+		message.delete();
 		gambling.addMagicWord(args[2], tierNumber, channelID, userID, cmd);
 	}
 	function missingHelpCalled() {
