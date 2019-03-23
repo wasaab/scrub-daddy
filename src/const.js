@@ -158,7 +158,7 @@ module.exports = {
 				{ name: '.rename-channel <`tier`> <`#channel`> <`New Name`>', value: '`🏆 to rename a channel`', inline: 'false'},
 				{ name: '.rename-role <`tier`> <`@role`> <`New Name`>', value: '`🏆 to rename a role`', inline: 'false'},
 				{ name: '.rename-user <`tier`> <`@user`> <`New Name`>', value: '`🏆 to rename a user`', inline: 'false'},
-				{ name: '.scrub-box <`tier`>', value: '`to open a Scrub Box.`', inline: 'false'},
+				{ name: '.scrub-box <`tier`>', value: '`to open a Scrub Box. Tier cost = tier * 200. Better and longer lasting prizes as tier increases.`', inline: 'false'},
 				{ name: '.inventory', value: '`to see your scrub box prize inventory.`', inline: 'false'},
 				{ name: '.start-lotto <`MM/DD`> <`HH`>', value: '`🏆 to start a Beyond lotto that will end at the specified time (`HH` can be 0-23).`', inline: 'false'},
 				{ name: '.stop-lotto', value: '`🏆 to stop the current Beyond Lotto without choosing a winner.`', inline: 'false'}
