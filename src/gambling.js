@@ -14,7 +14,8 @@ const private = require('../../private.json');
 
 var dropped = 0;
 var previousMessage;
-const idToAmountStolen = {};
+var idToAmountStolen = {};
+var prevDropNum;
 
 /**
  * exports the ledger to a json file.
@@ -81,7 +82,13 @@ exports.maybeDischargeScrubBubble = function() {
 
     var num = util.getRand(1,11);
     if (num > 6) {
-        exports.dischargeScrubBubble(null);
+        if (num !== prevDropNum) {
+            exports.dischargeScrubBubble(null);
+        } else {
+            exports.dischargeScrubBubble(null, 20);
+        }
+
+        prevDropNum = num;
     }
 };
 
