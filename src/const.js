@@ -510,7 +510,8 @@ module.exports = {
 	MDY_DATE_FORMAT: 'MM/DD/YY',
 	FULL_DATE_TIME_FORMAT: 'LLLL',
 	SHORT_DATE_FORMAT: 'l',
-	BACKUP_DATE_FORMAT: 'M[-]D[-]YY[@]h[-]mm[-]a'
+	BACKUP_DATE_FORMAT: 'M[-]D[-]YY[@]h[-]mm[-]a',
+	NO_RENAMES_MSG: 'No active renames'
 };
 
 function deepFreeze(constants) {

@@ -688,10 +688,15 @@ function updateRenamedList(oldName, newName, endTime) {
                 description = oldEmbed.description.replace(oldRenameRegex, '');
 
                 if (description === '') {
-                    description = 'No active renames';
+                    description = c.NO_RENAMES_MSG;
                 }
             } else { // Add renaming
-                const baseDesc = oldEmbed.description || '';
+                var baseDesc = oldEmbed.description || '';
+
+                if (baseDesc.includes(c.NO_RENAMES_MSG)) {
+                    baseDesc = '';
+                }
+
                 description = `${baseDesc}\n${oldName} = ${newName} \`${endTime}\`\n`;
             }
 
