@@ -264,7 +264,7 @@ function betClean(userID, bet, type) {
         if (util.getRand(0,2)) {
             const payout = bet*2;
             img = c.CLEAN_WIN_IMG;
-            msg = `Congrats, your auxiliary army gained ${util.formatAsBoldCodeBlock(payout)} Scrubbing Bubbles after cleaning the bathroom and conquering the land!`;
+            msg = `Congrats, your auxiliary army gained ${util.formatAsBoldCodeBlock(bet)} Scrubbing Bubbles after cleaning the bathroom and conquering the land!`;
             addToArmy(userID, payout);
             addToGamblingStats(payout, userID, true);
         } else {
@@ -316,22 +316,22 @@ function outputUserGamblingData(userID, args) {
 
         title = 'Gambling Stats';
         description = `${util.mentionUser(userID)}${msg} Stats (starting from 10/31/17):\n` +
-            `Current Army Size: ${util.formatAsBoldCodeBlock(armySize)}\`\n` +
-            `Record Army Size: ${util.formatAsBoldCodeBlock(userStats.recordArmy)}\`\n` +
-            `Total Scrubbles Bet: ${util.formatAsBoldCodeBlock(userStats.scrubsBet)}\`\n` +
-            `Total Scrubbles Won: ${util.formatAsBoldCodeBlock(userStats.scrubsWon)}\`\n` +
-            `Total Scrubbles Lost: ${util.formatAsBoldCodeBlock(userStats.scrubsLost)}\`\n` +
-            `Total Bets Won: ${util.formatAsBoldCodeBlock(userStats.betsWon)}\`\n` +
-            `Total Bets Lost: ${util.formatAsBoldCodeBlock(userStats.betsLost)}\`\n` +
-            `Total Scrubbles Enlisted: ${util.formatAsBoldCodeBlock(userStats.scrubsEnlisted)}\`\n` +
-            `Total Scrubbles Discharged: ${util.formatAsBoldCodeBlock(userStats.scrubsDischared)}\`\n` +
-            `Most Scrubbles Bet: ${util.formatAsBoldCodeBlock(userStats.mostBet)}\`\n` +
-            `Most Scrubbles Won: ${util.formatAsBoldCodeBlock(userStats.mostWon)}\`\n` +
-            `Most Scrubbles Lost: ${util.formatAsBoldCodeBlock(userStats.mostLost)}\`\n` +
-            `Longest Win Streak: ${util.formatAsBoldCodeBlock(userStats.highestWinStreak)}\`\n` +
-            `Longest Loss Streak: ${util.formatAsBoldCodeBlock(userStats.highestLossStreak)}\`\n` +
-            `Current Win Streak: ${util.formatAsBoldCodeBlock(userStats.winStreak)}\`\n` +
-            `Current Loss Streak: ${util.formatAsBoldCodeBlock(userStats.lossStreak)}\``;
+            `Current Army Size: ${util.formatAsBoldCodeBlock(armySize)}\n` +
+            `Record Army Size: ${util.formatAsBoldCodeBlock(userStats.recordArmy)}\n` +
+            `Total Scrubbles Bet: ${util.formatAsBoldCodeBlock(userStats.scrubsBet)}\n` +
+            `Total Scrubbles Won: ${util.formatAsBoldCodeBlock(userStats.scrubsWon)}\n` +
+            `Total Scrubbles Lost: ${util.formatAsBoldCodeBlock(userStats.scrubsLost)}\n` +
+            `Total Bets Won: ${util.formatAsBoldCodeBlock(userStats.betsWon)}\n` +
+            `Total Bets Lost: ${util.formatAsBoldCodeBlock(userStats.betsLost)}\n` +
+            `Total Scrubbles Enlisted: ${util.formatAsBoldCodeBlock(userStats.scrubsEnlisted)}\n` +
+            `Total Scrubbles Discharged: ${util.formatAsBoldCodeBlock(userStats.scrubsDischared)}\n` +
+            `Most Scrubbles Bet: ${util.formatAsBoldCodeBlock(userStats.mostBet)}\n` +
+            `Most Scrubbles Won: ${util.formatAsBoldCodeBlock(userStats.mostWon)}\n` +
+            `Most Scrubbles Lost: ${util.formatAsBoldCodeBlock(userStats.mostLost)}\n` +
+            `Longest Win Streak: ${util.formatAsBoldCodeBlock(userStats.highestWinStreak)}\n` +
+            `Longest Loss Streak: ${util.formatAsBoldCodeBlock(userStats.highestLossStreak)}\n` +
+            `Current Win Streak: ${util.formatAsBoldCodeBlock(userStats.winStreak)}\n` +
+            `Current Loss Streak: ${util.formatAsBoldCodeBlock(userStats.lossStreak)}`;
     }
 
     util.sendEmbedMessage(title, description, userID);
