@@ -10,8 +10,8 @@ var fs = require('fs');
 
 const winston = require('winston');
 const Transport = require('winston-transport');
-const request = require('request')
-const co = require('co')
+const request = require('request');
+const co = require('co');
 
 var gambling = require('./gambling.js');
 var heatmap = require('./heatmap.js');
@@ -1878,7 +1878,7 @@ function exportJson(content, fileName) {
 function updateMembers() {
 	members = bot.getServer().members;
 	members.forEach((member) => {
-		scrubIdToNick[member.id] = member.displayName.split(' ▫ ')[0];
+		scrubIdToNick[member.id] = getTrueDisplayName(member.displayName);
 		scrubIdToAvatar[member.id] = member.user.displayAvatarURL.split('?')[0];
 	});
 }
@@ -1937,60 +1937,65 @@ function getUserColor(userID) {
 	return userIDToColor[userID] || 0xffff00;
 }
 
+function formatAsBoldCodeBlock(text) {
+	return `**\`${text}\`**`;
+}
+
 //-------------------- Public Functions --------------------
-exports.addInitialNumberReactions = addInitialNumberReactions;
-exports.addInvitedByRole = addInvitedByRole;
-exports.addMessageToReviewQueue = addMessageToReviewQueue;
+exports.addInitialNumberReactions = addInitialNumberReactions;//messaging util
+exports.addInvitedByRole = addInvitedByRole;//user util
+exports.addMessageToReviewQueue = addMessageToReviewQueue;//messaging util
 exports.addToList = addToList;
-exports.addToReviewRole = addToReviewRole;
-exports.awaitAndHandleReaction = awaitAndHandleReaction;
+exports.addToReviewRole = addToReviewRole;//user util or messaging util
+exports.awaitAndHandleReaction = awaitAndHandleReaction;//messaging util
 exports.backupJson = backupJson;
-exports.banSpammer = banSpammer;
-exports.buildField = buildField;
-exports.capitalizeFirstLetter = capitalizeFirstLetter;
-exports.compareFieldValues = compareFieldValues;
+exports.banSpammer = banSpammer;//messaging util
+exports.buildField = buildField;//true util
+exports.capitalizeFirstLetter = capitalizeFirstLetter;//true util
+exports.compareFieldValues = compareFieldValues;//true util
 exports.createAlias = createAlias;
 exports.createChannelInCategory = createChannelInCategory;
 exports.createGroup = createGroup;
 exports.createList = createList;
-exports.deleteMessages = deleteMessages;
-exports.enableServerLogRedirect = enableServerLogRedirect;
-exports.exportJson = exportJson;
-exports.exportQuotes = exportQuotes;
-exports.getIdFromMention = getIdFromMention;
-exports.getMembers = () => members;
-exports.getNick = getNick;
-exports.getQuotes = getQuotes;
-exports.getRand = getRand;
-exports.getScrubIdToAvatar = () => scrubIdToAvatar;
-exports.getScrubIdToNick = () => scrubIdToNick;
-exports.getTargetFromArgs = getTargetFromArgs;
-exports.getTimestamp = getTimestamp;
-exports.getTrueDisplayName = getTrueDisplayName;
-exports.getUserColor = getUserColor;
+exports.deleteMessages = deleteMessages;//messaging util
+exports.enableServerLogRedirect = enableServerLogRedirect;//messaging util
+exports.exportJson = exportJson;//true util
+exports.exportQuotes = exportQuotes;//messaging util
+exports.formatAsBoldCodeBlock = formatAsBoldCodeBlock;
+exports.getIdFromMention = getIdFromMention;//true util
+exports.getMembers = () => members;//true util
+exports.getNick = getNick;//true util
+exports.getQuotes = getQuotes;//messaging util
+exports.getRand = getRand;//true util
+exports.getScrubIdToAvatar = () => scrubIdToAvatar;//true util
+exports.getScrubIdToNick = () => scrubIdToNick;//true util
+exports.getTargetFromArgs = getTargetFromArgs;//true util
+exports.getTimestamp = getTimestamp;//true util
+exports.getTrueDisplayName = getTrueDisplayName;//true util
+exports.getUserColor = getUserColor;//true util
 exports.handleMuteAndDeaf = handleMuteAndDeaf;
 exports.help = help;
-exports.isAdmin = isAdmin;
-exports.isChannelOwner =isChannelOwner;
-exports.isDevEnv = isDevEnv;
-exports.isLocked = isLocked;
+exports.isAdmin = isAdmin;//true util
+exports.isChannelOwner = isChannelOwner;//true util
+exports.isDevEnv = isDevEnv;//true util
+exports.isLocked = isLocked;//true util
 exports.listBackups = listBackups;
 exports.leaveTempChannel = leaveTempChannel;
-exports.lock = lock;
-exports.log = log;
-exports.logger = logger;
+exports.lock = lock;//true util
+exports.log = log;//messaging util
+exports.logger = logger;//messaging util
 exports.maybeAddSoundByte = maybeAddSoundByte;
-exports.maybeBanSpammer = maybeBanSpammer;
-exports.maybeGetAlias = maybeGetAlias;
-exports.maybeGetPlural = maybeGetPlural;
-exports.maybeInsertQuotes = maybeInsertQuotes;
-exports.maybeRemoveFromArray = maybeRemoveFromArray;
-exports.maybeReplicateLol = maybeReplicateLol;
-exports.maybeUpdateDynamicMessage = maybeUpdateDynamicMessage;
-exports.mentionChannel = mentionChannel;
-exports.mentionGroup = mentionGroup;
-exports.mentionRole = mentionRole;
-exports.mentionUser = mentionUser;
+exports.maybeBanSpammer = maybeBanSpammer;//messaging util
+exports.maybeGetAlias = maybeGetAlias;//cmd handler
+exports.maybeGetPlural = maybeGetPlural;//true util
+exports.maybeInsertQuotes = maybeInsertQuotes;//messaging util
+exports.maybeRemoveFromArray = maybeRemoveFromArray;//true util
+exports.maybeReplicateLol = maybeReplicateLol;//messaging util?
+exports.maybeUpdateDynamicMessage = maybeUpdateDynamicMessage;//messaging util
+exports.mentionChannel = mentionChannel;//true util
+exports.mentionGroup = mentionGroup;//true util
+exports.mentionRole = mentionRole;//true util
+exports.mentionUser = mentionUser;//true util
 exports.outputAliases = outputAliases;
 exports.outputCatFact = outputCatFact;
 exports.outputCmdsMissingHelpDocs = outputCmdsMissingHelpDocs;
@@ -1998,27 +2003,27 @@ exports.outputHelpForCommand = outputHelpForCommand;
 exports.outputTempChannelsLeftByUser = outputTempChannelsLeftByUser;
 exports.outputUpdatedHelpCategoriesPrompt = outputUpdatedHelpCategoriesPrompt;
 exports.playSoundByte = playSoundByte;
-exports.deleteQuoteTipMsg = deleteQuoteTipMsg;
-exports.quoteUser = quoteUser;
+exports.deleteQuoteTipMsg = deleteQuoteTipMsg;//messaging util
+exports.quoteUser = quoteUser;//messaging util
 exports.rejoinTempChannel = rejoinTempChannel;
-exports.removeFromReviewRole = removeFromReviewRole;
+exports.removeFromReviewRole = removeFromReviewRole;//user util
 exports.restartBot = restartBot;
 exports.restoreJsonFromBackup = restoreJsonFromBackup;
-exports.reviewMessages = reviewMessages;
+exports.reviewMessages = reviewMessages;//messaging util
 exports.scheduleRecurringJobs = scheduleRecurringJobs;
-exports.sendAuthoredMessage = sendAuthoredMessage;
-exports.sendDynamicMessage = sendDynamicMessage;
-exports.sendEmbedFieldsMessage = sendEmbedFieldsMessage;
-exports.sendEmbedMessage = sendEmbedMessage;
-exports.setUserColor = setUserColor;
+exports.sendAuthoredMessage = sendAuthoredMessage;//messaging util
+exports.sendDynamicMessage = sendDynamicMessage;//messaging util
+exports.sendEmbedFieldsMessage = sendEmbedFieldsMessage;//messaging util
+exports.sendEmbedMessage = sendEmbedMessage;//messaging util
+exports.setUserColor = setUserColor;//user util
 exports.showLists = showLists;
 exports.showTips = showTips;
-exports.shuffleScrubs = shuffleScrubs;
+exports.shuffleScrubs = shuffleScrubs;//user util
 exports.subscribeToCatFacts = subscribeToCatFacts;
-exports.toggleServerLogRedirect = toggleServerLogRedirect;
+exports.toggleServerLogRedirect = toggleServerLogRedirect;//messaging util
 exports.unalias = unalias;
-exports.unLock = unLock;
+exports.unLock = unLock;//true util
 exports.updateLottoCountdown = updateLottoCountdown;
-exports.updateMembers = updateMembers;
+exports.updateMembers = updateMembers;//true util
 exports.updateReadme = updateReadme;
 //----------------------------------------------------------

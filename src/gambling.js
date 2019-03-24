@@ -42,7 +42,7 @@ exports.giveScrubBubbles = function (userID, userName, targetMention, numBubbles
     if (util.getNick(targetID)) {
         removeFromArmy(userID, numBubbles);
         addToArmy(targetID, numBubbles);
-        const msg = `${targetMention}  Your Scrubbing Bubbles army has grown by ${numBubbles}! You now have an army of ${ledger[targetID].armySize}.`;
+        const msg = `${targetMention}  ${getArmyGrownMessage(numBubbles)} ${getArmySizeMsg(userID)}`;
         util.sendEmbedMessage(`Scrubbing Bubbles Gifted By ${userName}`, msg, targetID);
     }
 };
@@ -106,7 +106,7 @@ exports.reserve = function(userID) {
             `${util.mentionUser(userID)}, you have to wait a day to request more soldiers.`);
     } else {
         addToArmy(userID, 10);
-        const msg = `${util.mentionUser(userID)} 10 Scrubbing Bubbles have been called to active duty! You now have an army of ${ledger[userID].armySize}.`;
+        const msg = `${util.mentionUser(userID)} 10 Scrubbing Bubbles have been called to active duty! ${getArmySizeMsg(userID)}`;
         util.sendEmbedMessage(`${baseTitle} Approved`, msg, userID);
         ledger[userID].lastReserveTime = moment().valueOf();
         exports.exportLedger();
@@ -145,13 +145,21 @@ function addToArmy(userID, amount) {
     }
 }
 
+function getArmyGrownMessage(amount) {
+    return `Your Scrubbing Bubbles army has grown by ${util.formatAsBoldCodeBlock(amount)}!`;
+}
+
+function getArmySizeMsg(userID) {
+    return `You now have an army of ${util.formatAsBoldCodeBlock(ledger[userID].armySize)}.`;
+}
+
 /**
  * enlists a scrubbing bubble in userID's army.
  */
 exports.enlist = function(userID, message) {
     if (dropped > 0) {
         addToArmy(userID, dropped);
-        const msg = `${util.mentionUser(userID)}  Your Scrubbing Bubbles army has grown by ${dropped}! You now have an army of ${ledger[userID].armySize}.`;
+        const msg = `${util.mentionUser(userID)}  ${getArmyGrownMessage(dropped)} ${getArmySizeMsg(userID)}`;
         util.sendEmbedMessage(null, msg, userID);
         exports.maybeDeletePreviousMessage();
         message.delete();
@@ -166,8 +174,26 @@ exports.enlist = function(userID, message) {
  * @param {number} bet - the bet amount
  * @param {String} type - the type of bet
  */
-function updateUsersBet(userID, bet, type) {
-    ledger[userID][`${type}Bet`] = bet;
+function takeBetFromUser(userID, bet, type) {
+    var userEntry = ledger[userID];
+
+    userEntry[`${type}Bet`] = bet;
+    userEntry.armySize -= bet;
+    userEntry.stats.scrubsBet += bet;
+
+    if (userEntry.stats.mostBet < bet) {
+        userEntry.stats.mostBet = bet;
+    }
+}
+
+/**
+ * Resets the ledger's bets to 0.
+ *
+ * @param {String} userID - the id of the user betting
+ * @param {String} type - the type of bet
+ */
+function resetLedgerAfterBet(userID, type) {
+    ledger[userID][`${type}Bet`] = 0;
 }
 
 /**
@@ -193,26 +219,20 @@ function addToGamblingStreaks(userStats, isWin) {
 /**
  * Adds to to the user's gambling stats.
  *
- * @param {number} bet - the bet made
  * @param {number} amount - amount the user won or lost
  * @param {String} userID - the user to add stats to
  * @param {Boolean} isWin - true iff bet was won
  */
-function addToGamblingStats(bet, amount, userID, isWin) {
+function addToGamblingStats(amount, userID, isWin) {
     const outcome = isWin ? 'Won' : 'Lost';
     const userStats = ledger[userID].stats;
     const mostStat = `most${outcome}`;
 
-    userStats.scrubsBet += bet;
     userStats[`bets${outcome}`]++;
     userStats[`scrubs${outcome}`] += amount;
 
     if (amount > userStats[mostStat]) {
         userStats[mostStat] = amount;
-    }
-
-    if (userStats.mostBet < bet) {
-        userStats.mostBet = bet;
     }
 
     addToGamblingStreaks(userStats, isWin);
@@ -239,21 +259,21 @@ function betClean(userID, bet, type) {
         util.sendEmbedMessage(null, description, userID);
     } else {
         var img = '';
-        updateUsersBet(userID, bet, type);
+        takeBetFromUser(userID, bet, type);
 
         if (util.getRand(0,2)) {
             const payout = bet*2;
             img = c.CLEAN_WIN_IMG;
-            msg = `Congrats, your auxiliary army gained ${payout} Scrubbing Bubbles after cleaning the bathroom and conquering the land!`;
+            msg = `Congrats, your auxiliary army gained ${util.formatAsBoldCodeBlock(payout)} Scrubbing Bubbles after cleaning the bathroom and conquering the land!`;
             addToArmy(userID, payout);
-            addToGamblingStats(bet, payout, userID, true);
+            addToGamblingStats(payout, userID, true);
         } else {
             img = c.CLEAN_LOSE_IMG;
-            msg = `Sorry bud, you lost ${bet} Scrubbing Bubble${util.maybeGetPlural(bet)} in the battle.`;
-            addToGamblingStats(bet, bet, userID, false);
+            msg = `Sorry bud, you lost ${util.formatAsBoldCodeBlock(bet)} Scrubbing Bubble${util.maybeGetPlural(bet)} in the battle.`;
+            addToGamblingStats(bet, userID, false);
         }
-        util.sendEmbedMessage(null, `${util.mentionUser(userID)}  ${msg}`, userID, img);
-        updateUsersBet(userID, 0, type);
+        util.sendEmbedMessage(null, `${util.mentionUser(userID)}  ${msg}\n${getArmySizeMsg(userID)}`, userID, img);
+        resetLedgerAfterBet(userID, type);
     }
 }
 
@@ -290,28 +310,28 @@ function outputUserGamblingData(userID, args) {
     var description = '';
 
     if (args[0] === 'army') {
-        description = `${util.mentionUser(userID)}${msg} army is ${armySize} Scrubbing Bubble${util.maybeGetPlural(armySize)} strong!`;
+        description = `${util.mentionUser(userID)}${msg} army is ${util.formatAsBoldCodeBlock(armySize)} Scrubbing Bubble${util.maybeGetPlural(armySize)} strong!`;
     } else {
         const userStats = userEntry.stats;
 
         title = 'Gambling Stats';
         description = `${util.mentionUser(userID)}${msg} Stats (starting from 10/31/17):\n` +
-            `Current Army Size: \`${armySize}\`\n` +
-            `Record Army Size: \`${userStats.recordArmy}\`\n` +
-            `Total Scrubbles Bet: \`${userStats.scrubsBet}\`\n` +
-            `Total Scrubbles Won: \`${userStats.scrubsWon}\`\n` +
-            `Total Scrubbles Lost: \`${userStats.scrubsLost}\`\n` +
-            `Total Bets Won: \`${userStats.betsWon}\`\n` +
-            `Total Bets Lost: \`${userStats.betsLost}\`\n` +
-            `Total Scrubbles Enlisted: \`${userStats.scrubsEnlisted}\`\n` +
-            `Total Scrubbles Discharged: \`${userStats.scrubsDischared}\`\n` +
-            `Most Scrubbles Bet: \`${userStats.mostBet}\`\n` +
-            `Most Scrubbles Won: \`${userStats.mostWon}\`\n` +
-            `Most Scrubbles Lost: \`${userStats.mostLost}\`\n` +
-            `Longest Win Streak: \`${userStats.highestWinStreak}\`\n` +
-            `Longest Loss Streak: \`${userStats.highestLossStreak}\`\n` +
-            `Current Win Streak: \`${userStats.winStreak}\`\n` +
-            `Current Loss Streak: \`${userStats.lossStreak}\``;
+            `Current Army Size: ${util.formatAsBoldCodeBlock(armySize)}\`\n` +
+            `Record Army Size: ${util.formatAsBoldCodeBlock(userStats.recordArmy)}\`\n` +
+            `Total Scrubbles Bet: ${util.formatAsBoldCodeBlock(userStats.scrubsBet)}\`\n` +
+            `Total Scrubbles Won: ${util.formatAsBoldCodeBlock(userStats.scrubsWon)}\`\n` +
+            `Total Scrubbles Lost: ${util.formatAsBoldCodeBlock(userStats.scrubsLost)}\`\n` +
+            `Total Bets Won: ${util.formatAsBoldCodeBlock(userStats.betsWon)}\`\n` +
+            `Total Bets Lost: ${util.formatAsBoldCodeBlock(userStats.betsLost)}\`\n` +
+            `Total Scrubbles Enlisted: ${util.formatAsBoldCodeBlock(userStats.scrubsEnlisted)}\`\n` +
+            `Total Scrubbles Discharged: ${util.formatAsBoldCodeBlock(userStats.scrubsDischared)}\`\n` +
+            `Most Scrubbles Bet: ${util.formatAsBoldCodeBlock(userStats.mostBet)}\`\n` +
+            `Most Scrubbles Won: ${util.formatAsBoldCodeBlock(userStats.mostWon)}\`\n` +
+            `Most Scrubbles Lost: ${util.formatAsBoldCodeBlock(userStats.mostLost)}\`\n` +
+            `Longest Win Streak: ${util.formatAsBoldCodeBlock(userStats.highestWinStreak)}\`\n` +
+            `Longest Loss Streak: ${util.formatAsBoldCodeBlock(userStats.highestLossStreak)}\`\n` +
+            `Current Win Streak: ${util.formatAsBoldCodeBlock(userStats.winStreak)}\`\n` +
+            `Current Loss Streak: ${util.formatAsBoldCodeBlock(userStats.lossStreak)}\``;
     }
 
     util.sendEmbedMessage(title, description, userID);
@@ -440,7 +460,7 @@ exports.checkLotto = function(userID) {
 
     const { timeUntil, endDate } = exports.getTimeUntilLottoEnd();
     util.sendEmbedMessage('Beyond Lotto Information',
-        `The lotto will end \`${timeUntil}\` on ${endDate} EST\n\n` +
+        `The lotto will end ${util.formatAsBoldCodeBlock(timeUntil)} on ${endDate} EST\n\n` +
         `**The following ${config.lottoEntries.length} users have entered:**\n${entries}`, userID);
 };
 
@@ -560,9 +580,7 @@ function addRandomPrizeAndGetInfo(tierNumber, userID) {
 
     if (prize.endsWith('bubbles')) {
         addToArmy(userID, prizesInTier[prize]);
-
-        const armySize = ledger[userID].armySize;
-        extraInfo = `You now have an army of ${armySize} Scrubbing Bubble${util.maybeGetPlural(armySize)}`;
+        extraInfo = getArmySizeMsg(userID);
     } else {
         addPrizeToInventory(userID, prize, tierNumber);
     }
