@@ -1026,6 +1026,7 @@ function listBackups() {
 		timestamps.push(time.valueOf());
 	})
 	timestamps.sort((a,b) => b - a);
+	timestamps = timestamps.slice(0, 5);
 	timestamps.forEach((timestamp) => {
 		const time = moment(timestamp).format(c.BACKUP_DATE_FORMAT);
 		filesMsg += `\`${time.toString()}\`\n`;
