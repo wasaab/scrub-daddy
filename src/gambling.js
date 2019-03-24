@@ -593,7 +593,17 @@ function addPrizeToInventory(userID, prize, tierNumber) {
 }
 
 function removePrizeFromInventory(userID, prize, tierNumber) {
-    ledger[userID].inventory[tierNumber][prize]--;
+    const userInventory = ledger[userID].inventory;
+    const tierData = userInventory[tierNumber];
+
+    if (tierData[prize] > 1) {
+        tierData[prize]--;
+    } else {
+        delete tierData[prize];
+        if (Object.keys(tierData).length === 0) {
+            delete userInventory[tierNumber];
+        }
+    }
 }
 
 exports.outputInventory = function(userID) {
@@ -605,13 +615,10 @@ exports.outputInventory = function(userID) {
     for (var tier in inventory) {
         var tierFields = [];
         for (var action in inventory[tier]) {
-            const actionCount = inventory[tier][action];
-            if (actionCount === 0) { continue; }
-
-            tierFields.push(util.buildField(action, actionCount));
+            tierFields.push(util.buildField(action, inventory[tier][action]));
         }
 
-        if (tierFields.length < 1) { return; }
+        if (tierFields.length < 1) { continue; }
 
         fields = fields.concat(tierFields);
         results.push({
