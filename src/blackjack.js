@@ -140,16 +140,18 @@ function endGame(userID, payout) {
  *
 **/
 function checkOutcome(userID, userName) {
-    var bet = g.getLedger()[userID].bjBet;
-    const dealerPoints = g.getLedger()[userID].dealer.points;
-    const playerPoints = g.getLedger()[userID].player.points;
+    const userEntry = g.getLedger()[userID];
+    const bet = userEntry.bjBet;
+    const dealerPoints = userEntry.dealer.points;
+    const playerPoints = userEntry.player.points;
 
     if (playerPoints > 21) {
         util.sendEmbedMessage(userName + ' Busted! You lost ' + bet + ' Scrubbing Bubbles!', 'The Dealer Wins!', userID, null);
         endGame(userID, 0);
     } else if (playerPoints === 21) {
-        util.sendEmbedMessage(userName + ' got BlackJack!', 'You win ' + bet*3 + ' Scrubbing Bubbles!', userID, null);
-        endGame(userID, bet*3);
+        const payout = userEntry.player.hand.length === 2 ? bet * 3 : bet * 2;
+        util.sendEmbedMessage(userName + ' got BlackJack!', 'You win ' + payout + ' Scrubbing Bubbles!', userID, null);
+        endGame(userID, payout);
     } else if (dealerPoints > 21) {
         util.sendEmbedMessage(userName + ' you win ' + bet*2 + ' Scrubbing Bubbles!', 'The Dealer busted!', userID, null);
         endGame(userID, bet*2);
@@ -166,6 +168,7 @@ function checkOutcome(userID, userName) {
         }
     }
 }
+
 /**
  * Deals starting hands for blackjack and creates array for new player
  *

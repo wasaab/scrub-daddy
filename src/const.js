@@ -88,6 +88,7 @@ module.exports = {
 	CLEAN_LOSE_IMG: 'https://i.imgur.com/gynZE1j.png',
 	SCRUB_DADDY_FACT: 'https://i.imgur.com/FbAwRTj.jpg',
 	BEYOND_LOTTO_IMG: 'https://i.imgur.com/viDJZi3.png',
+	ROCK_IMG: 'https://i.imgur.com/DtQPHcn.png',
 	ONLINE_IMG: 'https://i.imgur.com/w4ey7v0.gif?2',
 	LEAVE_IMAGES: ['https://media.giphy.com/media/48FhEMYGWji8/giphy.gif',
 		'https://media.giphy.com/media/l0K42RIaNOZcK7CNy/giphy.gif',
@@ -273,6 +274,7 @@ module.exports = {
 		bjBet: 0,
 		bjGameStarted: false,
 		bjGameOver: true,
+		rocksDropped: 0,
 		stats: {
 			recordArmy: 0,
 			mostBet: 0,
@@ -366,7 +368,7 @@ module.exports = {
 		'opt-in',
 		'p', 'playing',
 		'quote', 'quotes',
-		'rainbow-role', 'rank', 'ranks', 'rate', 'ratings', 'rating-info', 'refresh-ratings', 'rejoin-temp', 'remove-player', 'rename', 'rename-channel', 'rename-hank', 'rename-role', 'rename-user', 'reserve', 'restart', 'restore', 'review-messages', 'revive',
+		'rainbow-role', 'rank', 'ranks', 'rate', 'ratings', 'rating-info', 'refresh-ratings', 'rejoin-temp', 'remove-player', 'rename', 'rename-channel', 'rename-hank', 'rename-role', 'rename-user', 'reserve', 'restart', 'restore', 'review-messages', 'revive', 'rock',
 		'sb', 'sb-add', 'scrub-box', 'set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'split-group', 'start-lotto', 'stats', 'stay', 'steal', 'steal-all', 'stop-lotto', 'subscribe-catfacts', 'sunken-sailor',
 		'temp', 'time', 'tips', 'toggle-streaming',
 		'unalias', 'update-readme',
@@ -406,6 +408,11 @@ module.exports = {
 		'I': '🄸', 'J': '🄹', 'K': '🄺', 'L': '🄻', 'M': '🄼', 'N': '🄽', 'O': '🄾', 'P': '🄿', 'Q': '🅀',
 		'R': '🅁', 'S': '🅂', 'T': '🅃', 'U': '🅄', 'V': '🅅', 'W': '🅆', 'X': '🅇', 'Y': '🅈', 'Z': '🅉',
 		'0': '⓪', '1': '①', '2': '②', '3': '③', '4': '④', '5': '⑤', '6': '⑥', '7': '⑦', '8': '⑧', '9': '⑨'
+	},
+	NEG_ENCLOSED_LETTERS: {
+		'A': '🅰', 'B': '🅱', 'C': '🅲', 'D': '🅳', 'E': '🅴', 'F': '🅵', 'G': '🅶', 'H': '🅷',
+		'I': '🅸', 'J': '🅹', 'K': '🅺', 'L': '🅻', 'M': '🅼', 'N': '🅽', 'O': '🅾', 'P': '🅿', 'Q': '🆀',
+		'R': '🆁', 'S': '🆂', 'T': '🆃', 'U': '🆄', 'V': '🆅', 'W': '🆆', 'X': '🆇', 'Y': '🆈', 'Z': '🆉'
 	},
 	REACTION_NUMBERS: ['0⃣', '1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣', '8⃣','9⃣'],
 	PPL_EMOJIS: ['😢', '🕺', '👬', '👨‍👨‍👧', '👨‍👨‍👧‍👦⠀', '🧙👩‍👩‍👧‍👦⠀'],
@@ -464,8 +471,8 @@ module.exports = {
 		'start-lotto': 'Start a Beyond lottery.',
 		'stop-lotto': 'Stop a Beyond lottery.'
 	},
-	PRIZE_TIERS: {
-		tier1: {
+	PRIZE_TIERS: [
+		{
 			'rename-hank': '2 days',
 			'rename-user': '2 days',
 			'rename-channel': '2 days',
@@ -478,7 +485,7 @@ module.exports = {
 			'add-bubbles': 300,
 			'subtract-bubbles': 100
 		},
-		tier2: {
+		{
 			'rename-hank': '6 days',
 			'rename-user': '6 days',
 			'rename-channel': '1 week',
@@ -490,7 +497,7 @@ module.exports = {
 			'add-bubbles': 550,
 			'subtract-bubbles': 200
 		},
-		tier3: {
+		{
 			'rename-hank': '10 days',
 			'rename-user': '10 days',
 			'rename-channel': '2 weeks',
@@ -504,14 +511,15 @@ module.exports = {
 			'start-lotto': '',
 			'stop-lotto': ''
 		}
-	},
+	],
 	TIER_COST: [200, 400, 600],
 	MDY_HM_DATE_TIME_FORMAT: 'M/DD/YY hh:mm A',
 	MDY_DATE_FORMAT: 'MM/DD/YY',
 	FULL_DATE_TIME_FORMAT: 'LLLL',
 	SHORT_DATE_FORMAT: 'l',
 	BACKUP_DATE_FORMAT: 'M[-]D[-]YY[@]h[-]mm[-]a',
-	NO_RENAMES_MSG: 'No active renames'
+	NO_RENAMES_MSG: 'No active renames',
+	DAILY_RESERVE_AMOUNT: 10
 };
 
 function deepFreeze(constants) {

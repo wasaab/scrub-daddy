@@ -340,6 +340,9 @@ exports.handle = function(message) {
 		if (!util.isAdmin(userID)) { return; }
 		gambling.dischargeScrubBubble(null, args[1]);
 	}
+	function rockCalled() {
+		gambling.rock(userID);
+	}
 	function sbCalled() {
 		if (config.soundBytesEnabled) {
 			util.playSoundByte(message.member.voiceChannel, args[1], userID);
@@ -523,6 +526,7 @@ exports.handle = function(message) {
 		'restart': restartCalled,
 		'review-messages': reviewMessagesCalled,
 		'revive': reviveCalled,
+		'rock': rockCalled,
 		'sb': sbCalled,
 		'sb-add': addSBCalled,
 		'scrub-box': scrubBoxCalled,

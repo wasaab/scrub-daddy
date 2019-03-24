@@ -105,8 +105,8 @@ exports.reserve = function(userID) {
         util.sendEmbedMessage(`${baseTitle} Denied`,
             `${util.mentionUser(userID)}, you have to wait a day to request more soldiers.`);
     } else {
-        addToArmy(userID, 10);
-        const msg = `${util.mentionUser(userID)} 10 Scrubbing Bubbles have been called to active duty! ${getArmySizeMsg(userID)}`;
+        addToArmy(userID, c.DAILY_RESERVE_AMOUNT);
+        const msg = `${util.mentionUser(userID)} ${util.formatAsBoldCodeBlock(c.DAILY_RESERVE_AMOUNT)} Scrubbing Bubbles have been called to active duty! ${getArmySizeMsg(userID)}`;
         util.sendEmbedMessage(`${baseTitle} Approved`, msg, userID);
         ledger[userID].lastReserveTime = moment().valueOf();
         exports.exportLedger();
@@ -124,6 +124,12 @@ function removeFromArmy(userID, amount) {
     ledger[userID].scrubsDischared += amount;
 }
 
+function maybeCreateLedgerEntry(userID) {
+    if (ledger[userID]) { return; }
+
+    ledger[userID] = Object.assign({}, c.NEW_LEDGER_ENTRY);
+}
+
 /**
  * Adds the given number of Scrubbing Bubbles to the provided user's army.
  *
@@ -131,9 +137,7 @@ function removeFromArmy(userID, amount) {
  * @param {Number} amount - amount to add
  */
 function addToArmy(userID, amount) {
-    if (!ledger[userID]) {
-        ledger[userID] = Object.assign({}, c.NEW_LEDGER_ENTRY);
-    }
+    maybeCreateLedgerEntry(userID);
 
     const userEntry = ledger[userID];
 
@@ -332,6 +336,10 @@ function outputUserGamblingData(userID, args) {
             `Longest Loss Streak: ${util.formatAsBoldCodeBlock(userStats.highestLossStreak)}\n` +
             `Current Win Streak: ${util.formatAsBoldCodeBlock(userStats.winStreak)}\n` +
             `Current Loss Streak: ${util.formatAsBoldCodeBlock(userStats.lossStreak)}`;
+
+        if (userStats.rocksDropped) {
+            description += `\nRocks Dropped: ${util.formatAsBoldCodeBlock(userStats.rocksDropped)}`;
+        }
     }
 
     util.sendEmbedMessage(title, description, userID);
@@ -571,7 +579,7 @@ exports.scrubBox = function(userID, tierNumber) {
 }
 
 function addRandomPrizeAndGetInfo(tierNumber, userID) {
-    const prizesInTier = c.PRIZE_TIERS[`tier${tierNumber}`];
+    const prizesInTier = c.PRIZE_TIERS[tierNumber - 1];
     const prizes = Object.keys(prizesInTier);
     const prize = prizes[util.getRand(0, prizes.length)];
     const prizeDescription = c.PRIZE_TO_DESCRIPTION[prize].replace('``', `\`${prizesInTier[prize]}\``);
@@ -625,7 +633,9 @@ function removePrizeFromInventory(userID, prize, tierNumber) {
 }
 
 exports.outputInventory = function(userID) {
-    if (!ledger[userID] || !ledger[userID].inventory) { return; }
+    if (!ledger[userID] || !ledger[userID].inventory) {
+        return util.sendEmbedMessage('No Inventory', `${util.mentionUser(userID)}, all you have is a rock.`, userID);
+    }
 
     const inventory = ledger[userID].inventory;
     var fields = [];
@@ -739,7 +749,7 @@ function updateRenamedList(oldName, newName, endTime) {
 }
 
 exports.renameUserRoleOrChannel = function(type, targetID, args, tierNumber, userID, cmd, mentions) {
-    const timePeriodTokens = c.PRIZE_TIERS[`tier${tierNumber}`][`rename-${type}`].split(' ');
+    const timePeriodTokens = c.PRIZE_TIERS[tierNumber - 1][`rename-${type}`].split(' ');
     const name = util.getTargetFromArgs(args, 3);
     var lockInfo = loot.lockedIdToLockInfo[targetID];
     var unlockTime;
@@ -860,7 +870,7 @@ exports.addMagicWord = function(word, tierNumber, channelID, userID, cmd) {
         loot.magicWords[channelID] = {};
     }
 
-    const banDays = c.PRIZE_TIERS[`tier${tierNumber}`][cmd].replace(/\D/g,'');
+    const banDays = c.PRIZE_TIERS[tierNumber - 1][cmd].replace(/\D/g,'');
     const magicWordEndTime = moment().add(banDays, 'days');
     const endTimeMsg = `magic word is in effect until \`${magicWordEndTime.format(c.MDY_HM_DATE_TIME_FORMAT)}\``;
     const magicWordsToEndTime = loot.magicWords[channelID];
@@ -875,4 +885,13 @@ exports.addMagicWord = function(word, tierNumber, channelID, userID, cmd) {
         });
     removePrizeFromInventory(userID, cmd, tierNumber);
     util.exportJson(loot, 'loot');
+}
+
+exports.rock = function(userID) {
+    util.sendEmbedMessage(null, null, userID, c.ROCK_IMG);
+    maybeCreateLedgerEntry(userID);
+
+    const userEntry = ledger[userID];
+
+    userEntry.rocksDropped = userEntry.rocksDropped !== undefined ? userEntry.rocksDropped + 1 : 1;
 }
