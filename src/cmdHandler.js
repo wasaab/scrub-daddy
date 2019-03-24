@@ -342,6 +342,7 @@ exports.handle = function(message) {
 	}
 	function rockCalled() {
 		gambling.rock(userID);
+		message.delete();
 	}
 	function sbCalled() {
 		if (config.soundBytesEnabled) {
