@@ -36,4 +36,4 @@ exports.writeSvgToFile = function(width, height, bgColor, fileName, svg) {
     fs.writeFileSync(`./resources/images/${fileName}.svg`, svgString, 'utf8');
 
     return convertSvgToPng(fileName);
-}
+};

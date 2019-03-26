@@ -91,7 +91,7 @@ function createChannelInCategory(command, channelType, channelName, message, cre
 	})
 	.catch((error) => {
 		logger.error(`<ERROR> ${getTimestamp()}  Create Channel Error: ${error}`);
-	})
+	});
 }
 
 /**
@@ -172,7 +172,7 @@ const logger = new winston.createLogger({
 		return `${info.message}`;
 	}),
 	transports: [ new winston.transports.Console() ]
-})
+});
 
 /**
  * Enables the server log redirect.
@@ -191,10 +191,10 @@ function toggleServerLogRedirect(userID) {
 			return transport.constructor.name === 'DiscordServerTransport';
 		});
 		logger.remove(discordTransport);
-		sendEmbedMessage('Server Log Redirection Disabled', 'Server logs will stay where they belong!', userID)
+		sendEmbedMessage('Server Log Redirection Disabled', 'Server logs will stay where they belong!', userID);
 	} else {
 		enableServerLogRedirect();
-		sendEmbedMessage('Server Log Redirection Enabled', `The server log will now be redirected to ${mentionChannel(c.LOG_CHANNEL_ID)}`, userID)
+		sendEmbedMessage('Server Log Redirection Enabled', `The server log will now be redirected to ${mentionChannel(c.LOG_CHANNEL_ID)}`, userID);
 	}
 }
 
@@ -258,7 +258,7 @@ function log(error, response) {
  * @param {Number} value - the value
  */
 function buildField(name, value, inline) {
-	inline = inline || 'true'
+	inline = inline || 'true';
 	return {
 		name: name,
 		value: value,
@@ -314,7 +314,7 @@ function sendAuthoredMessage(description, userID, channelID) {
 		color: getUserColor(userID),
 		description: description,
 		author: getAuthor(userID)
-	}
+	};
 
 	return sendMessageToChannel(message, channelID);
 }
@@ -366,7 +366,7 @@ function getAuthor(userID) {
 	return {
 		name: scrubIdToNick[userID],
 		icon_url: scrubIdToAvatar[userID]
-	}
+	};
 }
 
 /**
@@ -379,7 +379,7 @@ function updateReadme() {
 	c.HELP_CATEGORIES.forEach((category) => {
 		result += `\n1. ${category.name.split('`').join('')}\n`;
 		category.fields.forEach((field) => {
-			result += `      + ${field.name} - ${field.value}\n`
+			result += `      + ${field.name} - ${field.value}\n`;
 			cmdCount++;
 		});
 	});
@@ -509,7 +509,7 @@ function maybeUpdateDynamicMessage(selectedReactions, msg, userID, results, sele
 		newMsg.footer = {
 			icon_url: footer.iconURL,
 			text: footer.text
-		}
+		};
 	}
 
 	msg.edit('', newMsg)
@@ -527,9 +527,9 @@ function maybeUpdateDynamicMessage(selectedReactions, msg, userID, results, sele
  */
 function addInitialNumberReactions(msg, number, max) {
 	setTimeout(() => {
-		msg.react(c.REACTION_NUMBERS[number])
+		msg.react(c.REACTION_NUMBERS[number]);
 		if (number < max) {
-			addInitialNumberReactions(msg, number + 1, max)
+			addInitialNumberReactions(msg, number + 1, max);
 		}
 	}, 350);
 }
@@ -841,7 +841,7 @@ function exportColors(title, description, userID, guild, hex, color) {
 }
 
 function getHexFromTinyColor(color) {
-	return parseInt(color.toHexString().replace(/^#/, ''), 16)
+	return parseInt(color.toHexString().replace(/^#/, ''), 16);
 }
 
 /**
@@ -856,7 +856,7 @@ function setUserColor(targetColor, userID, guild) {
 	if (color.isValid()) {
 		var hex = getHexFromTinyColor(color);
 		if (Object.values(userIDToColor).includes(hex)) {
-			title = 'Color already taken 😛'
+			title = 'Color already taken 😛';
 			description = description.split('\n')[1];
 		}
 		else {
@@ -895,16 +895,16 @@ function playSoundByte(channel, target, userID) {
 }
 
 const retry = (f, n) => f().catch(err => {
-	if (n > 0) return retry(f, n - 1)
-	else throw err
-})
+	if (n > 0) return retry(f, n - 1);
+	else throw err;
+});
 
 function downloadAttachment(message, userID) {
-	if (message.attachments.length == 0) { return; }
+	if (message.attachments.length === 0) { return; }
 
 	const nameData = message.attachments.array()[0].filename.split('.');
 	const fileName = nameData[0].toLowerCase();
-	const ext = 'mp3'
+	const ext = 'mp3';
 
 	const download = co.wrap(function *() {
 		try {
@@ -918,8 +918,8 @@ function downloadAttachment(message, userID) {
 					request(file.url)
 					.pipe(fs.createWriteStream(`./resources/audio/${file.filename.toLowerCase()}`))
 					.on('finish', finish)
-					.on('error', error)
-				}), 3)
+					.on('error', error);
+				}), 3);
 
 				sendEmbedMessage('🎶 Sound Byte Successfully Added',
 					`You may now hear the sound byte by calling \`${config.prefix}sb ${fileName}\` from within a voice channel.`, userID);
@@ -969,7 +969,7 @@ function createAlias(userID, user, args) {
 	aliases[command] = getTargetFromArgs(args, 2).replace('.', '');
 	userIDToAliases[userID] = aliases;
 	const msg = `Calling \`.${command}\` will now trigger a call to \`.${aliases[command]}\``;
-	sendEmbedMessage(`Alias Created for ${user}`, msg, userID)
+	sendEmbedMessage(`Alias Created for ${user}`, msg, userID);
 	exportJson(userIDToAliases, 'aliases');
 }
 
@@ -1002,7 +1002,7 @@ function outputAliases(userID, user) {
 			msg += `**.${alias}** = \`.${aliases[alias]}\`\n`;
 		});
 	}
-	sendEmbedMessage(`Aliases Created by ${user}`, msg, userID)
+	sendEmbedMessage(`Aliases Created by ${user}`, msg, userID);
 }
 
 /**
@@ -1026,16 +1026,16 @@ function listBackups() {
 	var timestamps = [];
 	var filesMsg = '';
 	fs.readdirSync('../jsonBackups/').forEach(file => {
-		const time = moment(file.split('.')[0],'M[-]D[-]YY[@]h[-]mm[-]a')
+		const time = moment(file.split('.')[0],'M[-]D[-]YY[@]h[-]mm[-]a');
 		timestamps.push(time.valueOf());
-	})
+	});
 	timestamps.sort((a,b) => b - a);
 	timestamps = timestamps.slice(0, 5);
 	timestamps.forEach((timestamp) => {
 		const time = moment(timestamp).format(c.BACKUP_DATE_FORMAT);
 		filesMsg += `\`${time.toString()}\`\n`;
 	});
-	sendEmbedMessage('Available Backups', filesMsg, c.K_ID)
+	sendEmbedMessage('Available Backups', filesMsg, c.K_ID);
 }
 
 /**
@@ -1075,7 +1075,7 @@ function backupJson(restart) {
 	exportJson(config, 'config');
 	backup.backup('./resources/data', `../jsonBackups/${time}.backup`);
 
-	const backupPath = `../jsonBackups/${time}.backup`
+	const backupPath = `../jsonBackups/${time}.backup`;
 	waitForFileToExist(time, backupPath, 2000, restart);
 }
 
@@ -1086,10 +1086,10 @@ function backupJson(restart) {
  */
 function restoreJsonFromBackup(backupTarget) {
 	if (!backupTarget && config.lastBackup) {
-		backupTarget = config.lastBackup
+		backupTarget = config.lastBackup;
 	}
 
-	const backupPath = `../jsonBackups/${backupTarget}.backup`
+	const backupPath = `../jsonBackups/${backupTarget}.backup`;
 	if (fs.existsSync(backupPath)) {
 		const tempDir = './resources/resources';
 		backup.restore(backupPath, './resources/');
@@ -1483,7 +1483,7 @@ function banSpammer(user, channel, days = 2, isMagicWord) {
 		channelID: channel.id,
 		time: moment(),
 		days: days
-	})
+	});
 	bannedUserIDToBans[user.id] = usersBans;
 	exportBanned();
 	var msg = `Enjoy the ${days} day ban from ${mentionChannel(channel.id)}, you filthy spammer!`;
@@ -1534,7 +1534,7 @@ function unBanSpammer(userID, channelID) {
 	});
 	delete bannedUserIDToBans[userID];
 	exportBanned();
-	channel.send(`${mentionUser(userID)} Your ban has been lifted, and may now post in ${mentionChannel(channel.id)} again.`)
+	channel.send(`${mentionUser(userID)} Your ban has been lifted, and may now post in ${mentionChannel(channel.id)} again.`);
 }
 
 /**
@@ -1577,7 +1577,7 @@ function determinePowerUsers(messages) {
 		} else {
 			userIDToPostCount[message.author.id]++;
 		}
-	})
+	});
 
 	return getKeysSortedByValues(userIDToPostCount);
 }
@@ -1799,7 +1799,7 @@ function addInvitedByRole(newMember) {
 				})
 				.then((role) => {
 					newMember.addRole(role);
-				})
+				});
 			} else {
 				newMember.addRole(invitedByRole);
 			}

@@ -80,7 +80,7 @@ function appendLinesAndLegend(dataNest, countKey) {
                 .key((entry) => moment(entry.time).format(c.MDY_DATE_FORMAT))
                 .entries(groupedByGame.values);
 
-            appendLineAndTitle(dataNest, countKey, countline, color, legend, i, groupedByDate, groupedByGame)
+            appendLineAndTitle(dataNest, countKey, countline, color, legend, i, groupedByDate, groupedByGame);
         });
     } else {
         appendLineAndTitle(dataNest, countKey, countline, color, legend, 0);

@@ -324,7 +324,7 @@ exports.handle = function(message) {
 		gambling.renameUserRoleOrChannel('user', util.getIdFromMention(args[2]), args, tierNumber, userID, cmd, message.mentions);
 	}
 	function reserveCalled() {
-		gambling.reserve(userID)
+		gambling.reserve(userID);
 	}
 	function restartCalled() {
 		if (!util.isAdmin(userID)) { return; }
@@ -388,7 +388,7 @@ exports.handle = function(message) {
 	}
 	function stealCalled() {
 		if (args.length === 3 && (userID === c.AF_ID || util.isAdmin(userID))) {
-			gambling.fakeSteal(Number(args[1]), args[2], userID)
+			gambling.fakeSteal(Number(args[1]), args[2], userID);
 		}
 	}
 	function stealAllCalled() {
@@ -414,7 +414,7 @@ exports.handle = function(message) {
 		util.showTips(args[1]);
 	}
 	function toggleStreamingCalled() {
-		games.toggleStreaming(message.member)
+		games.toggleStreaming(message.member);
 	}
 	function trendsCalled() {
 		trends.outputGameTrendsGraph(args, userID);
@@ -568,4 +568,4 @@ exports.handle = function(message) {
 		util.logger.info(`<CMD> ${util.getTimestamp()}  ${cmd} called`);
 		return commandToHandler[cmd]();
 	}
-}
+};

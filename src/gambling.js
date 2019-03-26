@@ -109,7 +109,7 @@ exports.reserve = function(userID) {
         ledger[userID].lastReserveTime = moment().valueOf();
         exports.exportLedger();
     }
-}
+};
 
 /**
  * Removes the given number of Scrubbing Bubbles from the provided user's army.
@@ -394,7 +394,7 @@ function isValidTime(monthDayTokens, hour) {
     return !isNaN(month) && !isNaN(day) && !isNaN(hour) &&
         month > 0 && month < 13 &&
         day > 0 && day < 32 &&
-        hour > -1 && hour < 24
+        hour > -1 && hour < 24;
 }
 
 exports.startLotto = function(user, userID, monthDay, hour) {
@@ -406,10 +406,10 @@ exports.startLotto = function(user, userID, monthDay, hour) {
             month: monthDayTokens[0],
             day: monthDayTokens[1],
             hour: hour
-        }
+        };
         util.exportJson(config, 'config');
     }
-    util.sendEmbedMessage('Beyond Lotto Started', `The lotto will end on ${monthDay} @ ${hour}:00 EST(24-hour format)`)
+    util.sendEmbedMessage('Beyond Lotto Started', `The lotto will end on ${monthDay} @ ${hour}:00 EST(24-hour format)`);
 
     if (!util.isAdmin(userID)) {
         removePrizeFromInventory(userID, 'start-lotto', 3);
@@ -419,9 +419,9 @@ exports.startLotto = function(user, userID, monthDay, hour) {
 exports.stopLotto = function (userID, tierNumber, cmd) {
     delete config.lottoTime;
     util.exportJson(config, 'config');
-    util.sendEmbedMessage('Beyond Lotto Stopped', `The lottery was stopped by ${util.mentionUser(userID)} with a Scrub Box prize.`)
+    util.sendEmbedMessage('Beyond Lotto Stopped', `The lottery was stopped by ${util.mentionUser(userID)} with a Scrub Box prize.`);
     removePrizeFromInventory(userID, cmd, tierNumber);
-}
+};
 
 exports.joinLotto = function(user, userID) {
     var entries = config.lottoEntries || [];
@@ -446,7 +446,7 @@ exports.getTimeUntilLottoEnd = function() {
     const timeUntil = endMoment.fromNow();
 
     return { timeUntil: timeUntil, endDate: endDate };
-}
+};
 
 exports.checkLotto = function(userID) {
     if (!config.lottoEntries) {
@@ -461,8 +461,8 @@ exports.checkLotto = function(userID) {
     var entries = '';
     const scrubIDToNick = util.getScrubIdToNick();
     config.lottoEntries.forEach((entry) => {
-        entries += `${scrubIDToNick[entry]}\n`
-    })
+        entries += `${scrubIDToNick[entry]}\n`;
+    });
 
     const { timeUntil, endDate } = exports.getTimeUntilLottoEnd();
     util.sendEmbedMessage('Beyond Lotto Information',
@@ -522,9 +522,9 @@ exports.fakeSteal = function(amount, target, userID) {
             ledger[targetID].armySize += amount;
             ledger[userID].armySize -= amount;
             util.unLock();
-        }, 45000)
+        }, 45000);
     }
-}
+};
 
 exports.fakeStealAll = function() {
     if (util.isLocked()) { return; }
@@ -546,7 +546,7 @@ exports.fakeStealAll = function() {
             util.unLock();
         }
     }, 60000);
-}
+};
 
 exports.scrubBox = function(userID, tierNumber) {
     if (tierNumber > 3 || tierNumber < 1) { return; }
@@ -574,7 +574,7 @@ exports.scrubBox = function(userID, tierNumber) {
 			msgSent.edit('', updatedMsg);
 		}, 6200);
 	});
-}
+};
 
 function addRandomPrizeAndGetInfo(tierNumber, userID) {
     const prizesInTier = c.PRIZE_TIERS[tierNumber - 1];
@@ -662,7 +662,7 @@ exports.outputInventory = function(userID) {
     };
 
     util.sendDynamicMessage(userID, 'tier', results, homePage);
-}
+};
 
 function getPrizeCount(userID, prize, tierNumber) {
     return get(ledger, `[${userID}].inventory[${tierNumber}][${prize}]`) || 0;
@@ -677,7 +677,7 @@ exports.hasPrize = function(userID, prize, tierNumber) {
     }
 
     return true;
-}
+};
 
 exports.maybeResetNames = function() {
     const lockedIdToLockInfo = loot.lockedIdToLockInfo;
@@ -708,7 +708,7 @@ exports.maybeResetNames = function() {
 
         maybeRename(lockInfo.type, target, lockInfo.newName);
     }
-}
+};
 
 function updateRenamedList(oldName, newName, endTime) {
     bot.getBotSpam().fetchMessage(c.RENAMED_LIST_MSG_ID)
@@ -756,7 +756,7 @@ exports.renameUserRoleOrChannel = function(type, targetID, args, tierNumber, use
         unlockTime = moment(lockInfo.unlockTime);
 
         if (moment().isBefore(unlockTime)) {
-            return util.sendEmbedMessage('Target Locked', `You may not rename the target until \`${unlockTime.format(c.MDY_HM_DATE_TIME_FORMAT)}\``)
+            return util.sendEmbedMessage('Target Locked', `You may not rename the target until \`${unlockTime.format(c.MDY_HM_DATE_TIME_FORMAT)}\``);
         }
     }
 
@@ -785,11 +785,11 @@ exports.renameUserRoleOrChannel = function(type, targetID, args, tierNumber, use
         })
         .catch((err) => {
             util.logger.error(`<ERROR> ${util.getTimestamp()}  Edit Name Error: ${err}`);
-        })
-}
+        });
+};
 
 exports.addEmoji = function(message, name, tierNumber, userID, cmd) {
-    if (message.attachments.length == 0) { return; }
+    if (message.attachments.length === 0) { return; }
 
     const attachment = message.attachments.array()[0];
     name = name || attachment.filename.split('.')[0].toLowerCase();
@@ -825,7 +825,7 @@ function addRainbowRole(userID, targetUser, tierNumber, cmd) {
 		})
 		.then((role) => {
 			targetUser.addRole(role);
-		})
+		});
 	} else {
 		targetUser.addRole(rainbowRole);
     }
@@ -870,21 +870,21 @@ exports.checkForMagicWords = function(message) {
         delete magicWordsToEndTime[magicWord];
         util.exportJson(loot, 'loot');
         banDays--;
-    })
+    });
 
     updateChannelTopicWithMagicWordCount(channelID);
 
     if (banDays === 0) { return; }
 
     util.banSpammer(message.author, message.channel, banDays, true);
-}
+};
 
 exports.addMagicWord = function(word, tierNumber, channelID, userID, cmd) {
     const minLength = tierNumber + 2;
 
     // word must meet min length req for tier
     if (word.length < minLength) {
-        return util.sendEmbedMessage('Insufficient Word Length', `Word must be at least ${minLength} letters for tier ${tierNumber}.`)
+        return util.sendEmbedMessage('Insufficient Word Length', `Word must be at least ${minLength} letters for tier ${tierNumber}.`);
     }
 
     if (!loot.magicWords[channelID]) {
@@ -909,7 +909,7 @@ exports.addMagicWord = function(word, tierNumber, channelID, userID, cmd) {
         });
     removePrizeFromInventory(userID, cmd, tierNumber);
     util.exportJson(loot, 'loot');
-}
+};
 
 exports.rock = function(userID) {
     util.sendEmbedMessage(null, null, userID, c.ROCK_IMG);
@@ -918,4 +918,4 @@ exports.rock = function(userID) {
     const userEntry = ledger[userID];
 
     userEntry.rocksDropped = userEntry.rocksDropped !== undefined ? userEntry.rocksDropped + 1 : 1;
-}
+};

@@ -57,7 +57,7 @@ function getStars(count) {
 	}
 
 	if (count % 1 !== 0) {
-		result += '★'
+		result += '★';
 	}
 
 	return result;
@@ -93,7 +93,7 @@ function determineRatingsOutput(titles, targetRatings, targetCategory, rating) {
 		var ratingNum = Number(currRating.rating);
 		if (Math.floor(ratingNum) === rating) {
 			if (currRating.time && moment().diff(moment(currRating.time), 'weeks') < 2) {
-				title += ' 🆕'
+				title += ' 🆕';
 			}
 			output += `**${title}**\n`;
 			if (targetCategory === 'movies' && currRating.rtRating) {
@@ -229,7 +229,7 @@ function maybeExportAndRefreshRatings(channel, titleToPartialTitleMatch, missing
 	} else {
 		util.exportJson(ratings, 'ratings');
 		updateExternalRatingsJson();
-		ratingsResponses = 0
+		ratingsResponses = 0;
 		refreshRatings(channel, isCalledByStartup);
 		util.logger.error(`\n\n<ERROR> ${util.getTimestamp()}  3rd Party Ratings Partial Matches: ${inspect(titleToPartialTitleMatch)}`);
 		util.logger.error(`\n\n<ERROR> ${util.getTimestamp()}  3rd Party Ratings Not Matched: ${inspect(missingTitles)}`);
@@ -278,7 +278,7 @@ function updateThirdPartyRatingsForCategory(site, responses, category) {
 			category[title][`${site}Rating`] = score;
 			//util.logger.info(`<INFO> ${util.getTimestamp()} ${site} Rating for ${title} = ${score}`);
 		}
-	})
+	});
 
 	return { updatedCategory: category, titleToPartialMatch: titleToPartialMatch, titlesNotFound: titlesNotFound };
 }
@@ -295,7 +295,7 @@ function getThirdPartyRatingsForCategory(category, site) {
 
 	titles.forEach((title) => {
 		if (site === 'rt') {
-			promises.push(rt(title, 0, 3000))
+			promises.push(rt(title, 0, 3000));
 		} else {
 			promises.push(imdb.get(title, {apiKey: private.imdbApiKey, timeout: 10000}));
 		}
@@ -395,7 +395,7 @@ exports.outputRatings = function(rating, category, isVerified, channel) {
 		const categoryEmoji = c[`${category.toUpperCase()}_EMOJI`];
 		util.sendEmbedMessage(`${categoryEmoji}	${getStars(rating)}`, output);
 	}
-}
+};
 
 /**
  * Updates the rating for a tv show or movie.
@@ -437,7 +437,7 @@ exports.rate = function(targetCategory, rating, args, channel, userID) {
 
 	util.sendEmbedMessage(`${categoryEmoji} ${title} - Rated ${getStars(rating)} by ${util.getNick(userID)}`,
 		`Average Rating: ${getStars(avgRating)}`, userID, null, null, null, channel.id);
-}
+};
 
 /**
  * Displays the reviewers and ratings for the provided title.
@@ -464,11 +464,11 @@ exports.ratingInfo = function(args, userID) {
 	}
 	info += '\n\n**Reviews**';
 	for (var reviewer in rating.reviews) {
-		info += `\n${util.getNick(reviewer)}	${getStars(rating.reviews[reviewer])}`
+		info += `\n${util.getNick(reviewer)}	${getStars(rating.reviews[reviewer])}`;
 	}
 
 	util.sendEmbedMessage(title, info, userID, null, null, null, channel.id);
-}
+};
 
 /**
  * Renames a title.
@@ -502,7 +502,7 @@ exports.rename = function(args, userID, channel) {
 		`New Title: ${newTitle}`, userID, null, null, null, channel.id);
 	util.exportJson(ratings, 'ratings');
 	updateExternalRatingsJson();
-}
+};
 
 /**
  * Updates the 3rd party ratings for all titles.
@@ -554,7 +554,7 @@ exports.updateThirdPartyRatings = function(isCalledByStartup) {
 				});
 		});
 	});
-}
+};
 
 /**
  * Changes the category of a title.
@@ -585,7 +585,7 @@ exports.changeCategory = function(args, channel, userID) {
 		userID, null, null, null, channel.id);
 	util.exportJson(ratings, 'ratings');
 	updateExternalRatingsJson();
-}
+};
 
 /**
  * Deletes a title from the review list.
@@ -617,7 +617,7 @@ exports.delete = function(args, channel, userID) {
 		userID, null, null, null, channel.id);
 	util.exportJson(ratings, 'ratings');
 	updateExternalRatingsJson();
-}
+};
 
 function convertRatingsToTableData() {
 	const categories = ['tv', 'movies'];
@@ -670,7 +670,7 @@ function updateExternalRatingsJson() {
 			'Content-Type': 'application/json'
 		},
 		body: JSON.stringify(tableData)
-	}
+	};
 	rp(options)
 		.then(() => {
 			util.logger.info(`<INFO> ${util.getTimestamp()} Reviews external json updated`);

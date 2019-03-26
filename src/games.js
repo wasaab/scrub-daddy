@@ -12,7 +12,7 @@ var util = require('./utilities.js');
 var private = require('../../private.json');
 var optedInUsers = require('../resources/data/optedIn.json');		//users that have opted in to playtime tracking
 var userIDToFortniteUserName = require('../resources/data/fortniteUserData.json'); //map of Discord userID to Fortnite username
-var userIDToStreamingUrl = require('../resources/data/streaming.json') //map of user id to the url of their stream
+var userIDToStreamingUrl = require('../resources/data/streaming.json'); //map of user id to the url of their stream
 var gamesPlayed = require('../resources/data/gamesPlayed.json');	//map of game name to users that play that game
 var gameHistory = require('../resources/data/gameHistory.json');	//timestamped log of player counts for each game
 var timeSheet = require('../resources/data/timeSheet.json');		//map of userID to gameToTimePlayed map for that user
@@ -150,7 +150,7 @@ exports.updatePlayingStatus = function() {
 	const pplEmojiIdx = max > 5 ? 5 : max;
 	const newStatus = `${winner} - ${max} ${c.PPL_EMOJIS[pplEmojiIdx]}`;
 	bot.getClient().user.setPresence({ game: { name: newStatus } });
-}
+};
 
 /**
  * Gets the play time of the game provided.
@@ -435,7 +435,7 @@ exports.letsPlay = function(args, userID, userName, message, oneMore, customMess
 		} else {
 			const oneMoreMsg = oneMore ? 'We need **1** more for ' : '';
 			const punctuation = oneMore ? '!' : '?';
-			msg += `${oneMoreMsg}${game}${punctuation}`
+			msg += `${oneMoreMsg}${game}${punctuation}`;
 		}
 
 		usersWhoPlay.forEach((user) => {
@@ -457,7 +457,7 @@ exports.maybeCallLetsPlay = function(message) {
 	if (message.author.bot || message.content !== "" || message.attachments.size !== 0
 		|| message.type !== 'DEFAULT' || !game) { return; }
 	exports.letsPlay(['', '-ss', game], message.member.id, util.getNick(message.member.id), message);
-}
+};
 
 function determineUpdatedUsersWhoPlay(usersWhoPlay, userID, role, isRemoval) {
 	if (!usersWhoPlay) {
@@ -500,7 +500,7 @@ function updateWhoPlays(userID, role, game, isRemoval) {
 
 exports.removePlayer = function(args) {
 	updateWhoPlays(util.getIdFromMention(args[1]), { id: 'Temp Role' }, util.getTargetFromArgs(args, 2), true);
-}
+};
 
 
 /**
@@ -620,7 +620,7 @@ function determineMajorityGame(voiceChannel) {
 				gameToCount[game]++;
 			}
 			if (gameToCount[game] > majority) {
-				game.indexOf( 'B' ) == 0 ? result = game.replace( 'B', '🅱️' ) : result = game;
+				game.indexOf( 'B' ) === 0 ? result = game.replace( 'B', '🅱️' ) : result = game;
 				return true;
 			}
 		}
@@ -663,7 +663,7 @@ exports.maybeUpdateChannelNames = function() {
 			resetChannelName(channel);
 		}
 	});
-}
+};
 
 /**
 * Raises audio quality for channels with only beyond members. Vice versa for all others.
@@ -694,7 +694,7 @@ exports.maybeChangeAudioQuality = function(channels) {
 			}
 		}
 	});
-}
+};
 
 /**
  * Populates the array of dynamic voice channels.
@@ -716,18 +716,18 @@ exports.setStreamingUrl = function(member, url) {
 		if (shortUrl) {
 			userIDToStreamingUrl[member.id] = shortUrl;
 			util.exportJson(userIDToStreamingUrl, 'streaming');
-			util.sendEmbedMessage(`Stream Url Set For ${util.getNick(member.id)}`, `Your stream can be watched at ${shortUrl}`)
+			util.sendEmbedMessage(`Stream Url Set For ${util.getNick(member.id)}`, `Your stream can be watched at ${shortUrl}`);
 		}
 	});
 
-}
+};
 
 /**
  * Toggles nickname streaming icon.
  */
 exports.toggleStreaming = function(member) {
 	if (member.displayName.includes('📺')) {
-		member.setNickname(member.displayName.split('📺')[0].slice(0,-1))
+		member.setNickname(member.displayName.split('📺')[0].slice(0,-1));
 	} else {
 		const url = userIDToStreamingUrl[member.id] || '?';
 		var name = member.displayName;
@@ -736,7 +736,7 @@ exports.toggleStreaming = function(member) {
 		}
 		member.setNickname(`${name} 📺@${url.split('//')[1]}`);
 	}
-}
+};
 
 /**
  * Updates the provided users nickname to contain the game they
@@ -782,7 +782,7 @@ exports.outputFortniteHelp = function () {
 		+ 'e.g. fortnite-stats wasaab squad kills\n\n'
 		+ 'gameMode options: solo, duo, squad, all\n\n'
 		+ `stat options: ${possibleStats}`);
-}
+};
 
 /**
  * Retrieves Fortnite stats for the provided player or shows leaderboard in stat/mode for all players
@@ -829,7 +829,7 @@ exports.getFortniteStats = function(gameMode, stat, callingUserID, fortniteUserN
 				requestStats(userIDs.pop());
 			} else if (fields.length > 0) {
 				fields.sort(util.compareFieldValues);
-				util.sendEmbedFieldsMessage(`Fortnite ${gameModeTitle} ${statTitleLabel} Leaderboard`, fields, callingUserID)
+				util.sendEmbedFieldsMessage(`Fortnite ${gameModeTitle} ${statTitleLabel} Leaderboard`, fields, callingUserID);
 			}
 		});
 	}
@@ -846,7 +846,7 @@ exports.getFortniteStats = function(gameMode, stat, callingUserID, fortniteUserN
 		headers: {
 			'TRN-Api-Key': private.trnApiKey
 		}
-	}
+	};
 
 	//get stats of @mentioned user
 	if (fortniteUserName && fortniteUserName.match(/\d/g) !== null) {
@@ -960,7 +960,7 @@ exports.splitGroup = function(callingMember) {
 		turnOrderMsg += `\`${index + 1}.\`  **${util.getNick(player.id)}**\n`;
 	});
 	util.sendEmbedMessage('Randomized Group Split', turnOrderMsg);
-}
+};
 
 function endWhoSaidGame() {
 	var fields =[];
@@ -975,7 +975,7 @@ function endWhoSaidGame() {
 
 function startWhoSaidRound(quote, round) {
 	if (!quote.content) { return; }
-	util.sendEmbedMessage(`Who Said - Round ${round}`, `Who said "${quote.content}"?`, null, maybeGetImageFromContent(quote.content))
+	util.sendEmbedMessage(`Who Said - Round ${round}`, `Who said "${quote.content}"?`, null, maybeGetImageFromContent(quote.content));
 
 	const filter = (m) => {
 		if (m.content === util.mentionUser(quote.author.id) || m.content === util.getNick(quote.member.id)) { return m; }
@@ -1023,4 +1023,4 @@ exports.startWhoSaidGame = function(channel, minLength, minReactions, sampleSize
 		if (!randomQuotes || randomQuotes.length === 0) { return; }
 		whoSaidGameLoop(randomQuotes, 1);
 	});
-}
+};
