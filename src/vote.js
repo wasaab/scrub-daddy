@@ -1,5 +1,3 @@
-var get = require('lodash.get');
-
 var c = require('./const.js');
 var bot = require('./bot.js');
 var util = require('./utilities.js');
@@ -16,7 +14,6 @@ var voteChannelMembers = {
 };
 var votes = {};										//map of targetConcat to number of votes
 var alreadyVoted = {};								//map of targetConcat to array of people who have voted for them
-var kickChannel = {};								//channel the kick is being initiated in (name, id)
 
 /**
  * Moves the channel associated with the provided task name to the

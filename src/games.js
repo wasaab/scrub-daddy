@@ -1,5 +1,3 @@
-var schedule = require('node-schedule');
-var Discord = require('discord.js');
 var inspect = require('util-inspect');
 var txtgen = require('txtgen');
 var moment = require('moment');
@@ -11,7 +9,6 @@ var rp = require('request-promise');
 var c = require('./const.js');
 var bot = require('./bot.js');
 var util = require('./utilities.js');
-var heatmap = require('./heatmap.js');
 var private = require('../../private.json');
 var optedInUsers = require('../resources/data/optedIn.json');		//users that have opted in to playtime tracking
 var userIDToFortniteUserName = require('../resources/data/fortniteUserData.json'); //map of Discord userID to Fortnite username
@@ -72,7 +69,7 @@ function updateHeatMap(logTime, playerCount) {
 		sampleSize: size + 1
 	};
 	util.exportJson(heatMapData, 'rawHeatMapData');
-};
+}
 
 function getGamesBeingPlayedData(players) {
 	var games = [];
@@ -150,7 +147,7 @@ exports.updatePlayingStatus = function() {
 		winner = 'nothing';
 	}
 
-	const pplEmojiIdx = max > 5 ? 5 : max;;
+	const pplEmojiIdx = max > 5 ? 5 : max;
 	const newStatus = `${winner} - ${max} ${c.PPL_EMOJIS[pplEmojiIdx]}`;
 	bot.getClient().user.setPresence({ game: { name: newStatus } });
 }
@@ -317,12 +314,13 @@ function getGameUserData(gameName, fuzzyThreshold) {
 }
 
 function buildWhoPlaysFields(usersWhoPlay) {
-	fields = [];
+	var fields = [];
     usersWhoPlay.sort((a, b) => {
-    	if(isNaN(b.time - a.time)) {
-    		return isNaN(a.time) ? 1 : -1;
+		if(isNaN(b.time - a.time)) {
+			return isNaN(a.time) ? 1 : -1;
 		}
-    	return b.time - a.time;
+
+		return b.time - a.time;
 	});
 
 	const scrubIDToNick = util.getScrubIdToNick();
@@ -335,7 +333,7 @@ function buildWhoPlaysFields(usersWhoPlay) {
 	});
 
     if(fields.length !== 2 && fields.length % 3 === 2) {
-    	fields.push(util.buildField('\u200B', '\u200B'));
+		fields.push(util.buildField('\u200B', '\u200B'));
 	}
 
 	return fields;
@@ -352,8 +350,10 @@ function whoPlaysUsersGames(userID) {
 
 	//sort sharedGames by length of users array within each game.
 	sharedGames.sort((a, b) => b.users.length - a.users.length);
+
 	var legendMsg = '';
-	gamesOutput = [];
+	var gamesOutput = [];
+
 	sharedGames.slice(0, 10).forEach((game, index) => {
 		var fields = buildWhoPlaysFields(game.users);
 		gamesOutput.push({
@@ -390,14 +390,17 @@ exports.whoPlays = function(args, userID) {
 
 function maybeAddCurrPlayingToArgs(args, message) {
 	const currPlaying = get(message.member, 'presence.game.name');
+
     if(args.length === 1) {
 		if (!currPlaying) { return null; }
-    	args[1] = currPlaying;
-	}
-	else if(args.length === 2 && args[1] === '-ss') {
+
+		args[1] = currPlaying;
+	} else if(args.length === 2 && args[1] === '-ss') {
 		if (!currPlaying) { return null; }
+
 		args[2] = currPlaying;
 	}
+
     return args;
 }
 
@@ -406,20 +409,24 @@ function maybeAddCurrPlayingToArgs(args, message) {
  */
 exports.letsPlay = function(args, userID, userName, message, oneMore, customMessage) {
 	const emojis = message.guild.emojis;
+
 	args = maybeAddCurrPlayingToArgs(args, message);
-	if (!args) {
-		return util.outputHelpForCommand('lets-play', userID);
-	}
+
+	if (!args) { return util.outputHelpForCommand('lets-play', userID); }
+
 	const gameIdx = args[1] === '-ss' || args[1] === '-r' ? 2 : 1;
 	var game = util.getTargetFromArgs(args, gameIdx);
 	const gameTokens = game.split(':');
+
 	if (gameTokens && gameTokens.length === 3) {
 		game = gameTokens[1];
 	}
+
 	const gameUserData = getGameUserData(game, 0.3);
 	util.logger.info(`<INFO> ${util.getTimestamp()}  Lets Play ${game} - ${inspect(gameUserData)}`);
 
 	var usersWhoPlay = gameUserData.users;
+
 	if (usersWhoPlay) {
 		game = emojis.find('name',  util.capitalizeFirstLetter(game)) || game;
 		var msg = `↪️ **${userName}**: `;
@@ -434,8 +441,9 @@ exports.letsPlay = function(args, userID, userName, message, oneMore, customMess
 		usersWhoPlay.forEach((user) => {
 			if ((gameIdx === 2 && user.role === c.SUPER_SCRUBS_ROLE_ID) ||
 				(args[1] === '-r' && (!user.time || moment().diff(moment(user.time), 'days') > 5))) {
-					 return;
+					return;
 			}
+
 			msg += ` ${util.mentionUser(user.id)}`;
 		});
 		bot.getScrubsChannel().send(msg);
@@ -782,7 +790,7 @@ exports.outputFortniteHelp = function () {
 exports.getFortniteStats = function(gameMode, stat, callingUserID, fortniteUserName) {
 	function requestStats(userID) {
 		options.uri += fortniteUserName || userIDToFortniteUserName[userID];
-		options.uri = encodeUri(options.uri);
+		options.uri = encodeURI(options.uri);
 
 		rp(options)
 		.then(function (response) {
@@ -894,7 +902,7 @@ exports.sunkenSailor = function(callingMember) {
 	const secretWord = nouns[util.getRand(0, 585)];
 	txtgen.generateSunkenSailerSentenceTemplates(secretWord);
 
-	for (i = 0; i < players.length - 1; i++) {
+	for (var i = 0; i < players.length - 1; i++) {
 		sendSunkenSailorMessage(players[i], false);
 	}
 	sendSunkenSailorMessage(players[players.length - 1], true);
@@ -956,7 +964,7 @@ exports.splitGroup = function(callingMember) {
 
 function endWhoSaidGame() {
 	var fields =[];
-	for(userID in whoSaidScore) {
+	for(var userID in whoSaidScore) {
 		fields.push(util.buildField(util.getNick(userID), whoSaidScore[userID]));
 	}
 
@@ -990,7 +998,7 @@ function whoSaidGameLoop(randomQuotes, round) {
 		whoSaidScore[roundWinner.id] = whoSaidScore[roundWinner.id] ? whoSaidScore[roundWinner.id] + 1 : 1;
 		whoSaidGameLoop(randomQuotes, round + 1);
 	})
-    .catch((answers) => {
+    .catch(() => {
 		util.logger.info((`<INFO> ${util.getTimestamp() }  After 30 seconds, there were no responses for Who Said.`));
 		util.sendEmbedMessage('Reponse Timed Out', 'Nobody wins this round! 😛');
 		whoSaidGameLoop(randomQuotes, round + 1);

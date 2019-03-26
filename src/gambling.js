@@ -1,7 +1,6 @@
 var Discord = require('discord.js');
 var moment = require('moment');
 var get = require('lodash.get');
-var fs = require('fs');
 
 var c = require('./const.js');
 var bot = require('./bot.js');
@@ -10,7 +9,6 @@ var util = require('./utilities.js');
 var loot = require('../resources/data/loot.json');
 var ledger = require('../resources/data/ledger.json');   //keeps track of how big of an army each member has as well as bet amounts
 var config = require('../resources/data/config.json');
-const private = require('../../private.json');
 
 var dropped = 0;
 var previousMessage;
@@ -817,12 +815,13 @@ function maybeRename(type, target, name) {
 }
 
 function addRainbowRole(userID, targetUser, tierNumber, cmd) {
-    var rainbowRole = guild.roles.find('name', 'rainbow');
+    const server = bot.getServer();
+    var rainbowRole = server.roles.find('name', 'rainbow');
 
 	if (!rainbowRole) {
-		guild.createRole({
+		server.createRole({
 			name: 'rainbow',
-			position: guild.roles.array().length - 3
+			position: server.roles.array().length - 3
 		})
 		.then((role) => {
 			targetUser.addRole(role);
@@ -834,8 +833,28 @@ function addRainbowRole(userID, targetUser, tierNumber, cmd) {
     removePrizeFromInventory(userID, cmd, tierNumber);
 }
 
+function updateChannelTopicWithMagicWordCount(channelID) {
+    const magicWordCount = Object.keys(loot.magicWords[channelID]).length;
+    const magicWordRegex = new RegExp(/^(:sparkles:|✨) [0-9]+ Magic Words (:sparkles:|✨) /);
+    const channel = bot.getServer().channels.find('id', channelID);
+    const oldTopic = channel.topic;
+    var topic;
+
+    if (magicWordCount === 0) {
+        topic = oldTopic.replace(magicWordRegex, '');
+    } else {
+        topic = magicWordRegex.test(oldTopic) ? oldTopic.replace(/[0-9]+/, magicWordCount) : `✨ ${magicWordCount} Magic Words ✨ ${oldTopic}`;
+    }
+
+    channel.setTopic(topic)
+        .catch((err) => {
+            util.logger.error(`<ERROR> ${util.getTimestamp()}  Edit Channel Topic for Magic Word Error: ${err}`);
+        });
+}
+
 exports.checkForMagicWords = function(message) {
-    const magicWordsToEndTime = loot.magicWords[message.channel.id];
+    const channelID = message.channel.id;
+    const magicWordsToEndTime = loot.magicWords[channelID];
     if (!magicWordsToEndTime) { return; }
 
     const magicWordsPattern = `\\b(${Object.keys(magicWordsToEndTime).join("|")})\\b`;
@@ -852,6 +871,8 @@ exports.checkForMagicWords = function(message) {
         util.exportJson(loot, 'loot');
         banDays--;
     })
+
+    updateChannelTopicWithMagicWordCount(channelID);
 
     if (banDays === 0) { return; }
 
@@ -872,11 +893,14 @@ exports.addMagicWord = function(word, tierNumber, channelID, userID, cmd) {
 
     const banDays = c.PRIZE_TIERS[tierNumber - 1][cmd].replace(/\D/g,'');
     const magicWordEndTime = moment().add(banDays, 'days');
-    const endTimeMsg = `magic word is in effect until \`${magicWordEndTime.format(c.MDY_HM_DATE_TIME_FORMAT)}\``;
-    const magicWordsToEndTime = loot.magicWords[channelID];
-    const totalWordsMsg = magicWordEndTime ? `. There are now ${Object.keys(magicWordEndTime).length} magic words for this channel.` : '';
 
     loot.magicWords[channelID][word] = magicWordEndTime.valueOf();
+    updateChannelTopicWithMagicWordCount(channelID);
+
+    const magicWordCount = Object.keys(magicWordEndTime).length;
+    const totalWordsMsg = magicWordEndTime ? `. There are now ${magicWordCount} magic words for this channel.` : '';
+    const endTimeMsg = `magic word is in effect until \`${magicWordEndTime.format(c.MDY_HM_DATE_TIME_FORMAT)}\``;
+
     util.sendEmbedMessage('Magic Word Set', `A new ${endTimeMsg}${totalWordsMsg}`, userID, null, null, null, channelID);
     util.getMembers().find('id', userID).createDM()
         .then((dm) => {

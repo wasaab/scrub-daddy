@@ -1,10 +1,8 @@
-var Discord = require('discord.js');
 var moment = require('moment');
 var jsdom = require('jsdom');
 var path = require('path');
 var d3 = require('d3');
 var c = require('./const.js');
-var bot = require('./bot.js');
 var util = require('./utilities.js');
 var imgUtils = require('./imageUtils.js');
 

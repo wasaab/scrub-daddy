@@ -1,10 +1,6 @@
-var Discord = require('discord.js');
 var path = require('path');
-var fs = require('fs');
 var d3 = require('d3');
-var c = require('./const.js');
 var util = require('./utilities.js');
-var bot = require('./bot.js');
 var imgUtils = require('./imageUtils.js');
 
 var jsdom = require("jsdom");
@@ -32,7 +28,7 @@ var svg = d3.select(document.body).append("svg")
     .append("g")
     .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-var dayLabels = svg.selectAll(".dayLabel")
+svg.selectAll(".dayLabel")
     .data(days)
     .enter().append("text")
     .text(function (d) {
@@ -48,7 +44,7 @@ var dayLabels = svg.selectAll(".dayLabel")
         return ((i >= 0 && i <= 4) ? "dayLabel mono axis" : "dayLabel mono axis");
     });
 
-var timeLabels = svg.selectAll(".timeLabel")
+svg.selectAll(".timeLabel")
     .data(times)
     .enter().append("text")
     .text(function (d) {

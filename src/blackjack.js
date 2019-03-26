@@ -4,7 +4,6 @@
  * @author Alec Fox
  */
 
-var fs = require('fs');
 const c = require("./const.js");
 const g = require("./gambling.js");
 const util = require("./utilities.js");
@@ -191,7 +190,7 @@ function dealHands(userID, userName, bet) {
         for (var i = 1; i <= 2; i++) {
             dealCards(userID, "player", userName);
         }
-        checkOutcome(userID, userName, );
+        checkOutcome(userID, userName);
 
     } else {
         util.sendEmbedMessage(userName + ' you need to finish your game in progress!', null, userID, null);

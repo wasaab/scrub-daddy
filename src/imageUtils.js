@@ -2,7 +2,6 @@ var xmlserializer = require('xmlserializer');
 var svgToPng = require('svg-to-png');
 var fs = require('fs');
 var path = require('path');
-var util = require('./utilities.js');
 const imageDir = path.join(__dirname.slice(0, -4), 'resources', 'images');
 
 function XMLSerializer() {

@@ -14,7 +14,6 @@ const request = require('request');
 const co = require('co');
 
 var gambling = require('./gambling.js');
-var heatmap = require('./heatmap.js');
 var games = require('./games.js');
 var cars = require('./cars.js');
 var bot = require('./bot.js');
@@ -93,7 +92,7 @@ function createChannelInCategory(command, channelType, channelName, message, cre
 	.catch((error) => {
 		logger.error(`<ERROR> ${getTimestamp()}  Create Channel Error: ${error}`);
 	})
-};
+}
 
 /**
  * Removes view channel permission for the provided user.
@@ -119,7 +118,7 @@ function leaveTempChannel(channel, userID) {
 }
 
 function determineChannelsLeftByUser(userID) {
-	return channelsLeft = bot.getClient().channels.filter((channel) => {
+	return bot.getClient().channels.filter((channel) => {
 		const permissionOverwrites = channel.permissionOverwrites.find('id', userID);
 
 		return c.LEFT_CHANNEL_PERMISSION === get(permissionOverwrites, 'deny');
@@ -197,7 +196,7 @@ function toggleServerLogRedirect(userID) {
 		enableServerLogRedirect();
 		sendEmbedMessage('Server Log Redirection Enabled', `The server log will now be redirected to ${mentionChannel(c.LOG_CHANNEL_ID)}`, userID)
 	}
-};
+}
 
 /**
  * Gets a random number between min and max.
@@ -210,7 +209,7 @@ function getRand(min, max) {
 	min = Math.ceil(min);
 	max = Math.floor(max);
 	return Math.floor(Math.random() * (max - min)) + min;
-};
+}
 
 /**
  * Gets a timestamp representing the current time.
@@ -236,7 +235,7 @@ function getTimestamp() {
 	}
 
 	return `${day} ${pad(hours)}:${pad(minutes)} ${meridiem}`;
-};
+}
 
 /**
  * Logs the response of an API request for Add Role or Move User.
@@ -250,7 +249,7 @@ function log(error, response) {
 	} else if (response) {
 		logger.info(`<API RESPONSE> ${getTimestamp()}  ${inspect(response)}`);
 	}
-};
+}
 
 /**
  * Builds an embed field object with name and value.
@@ -265,7 +264,7 @@ function buildField(name, value, inline) {
 		value: value,
 		inline: inline
 	};
-};
+}
 
 /**
  * Comparator for two field objects. Compares values.
@@ -277,12 +276,16 @@ function compareFieldValues(a,b) {
 	const aNum = Number(a.value);
 	const bNum = Number(b.value);
 
-	if ( aNum > bNum)
-	  return -1;
-	if (aNum < bNum)
-	  return 1;
+	if ( aNum > bNum) {
+		return -1;
+	}
+
+	if (aNum < bNum) {
+		return 1;
+	}
+
 	return 0;
-};
+}
 
 /**
  * Send a message with fields to bot-spam.
@@ -304,7 +307,7 @@ function sendEmbedFieldsMessage(title, fields, userID, footer, channelID) {
 		fields: fields,
 		footer: footer
 	}));
-};
+}
 
 function sendAuthoredMessage(description, userID, channelID) {
 	var message = {
@@ -342,7 +345,7 @@ function sendEmbedMessage(title, description, userID, image, thumbnail, footer, 
 	}
 
 	return sendMessageToChannel(message, channelID);
-};
+}
 
 function sendMessageToChannel(message, channelID) {
 	const channel = channelID ? bot.getClient().channels.find('id', channelID) : bot.getBotSpam();
@@ -374,7 +377,7 @@ function updateReadme() {
 	var cmdCount = 0;
 
 	c.HELP_CATEGORIES.forEach((category) => {
-		result += `\n1. ${category.name.split('\`').join('')}\n`;
+		result += `\n1. ${category.name.split('`').join('')}\n`;
 		category.fields.forEach((field) => {
 			result += `      + ${field.name} - ${field.value}\n`
 			cmdCount++;
@@ -383,7 +386,7 @@ function updateReadme() {
 
 	result = `# scrub-daddy\n${c.CODACY_BADGE}\n\n${c.UPDATE_LOG_LINK}\n\nDiscord bot with the following ${cmdCount} commands:\n${result}\n\n${c.ADMIN_COMMANDS}`;
 	fs.writeFile('README.md', result, 'utf8', log);
-};
+}
 
 function outputCmdsMissingHelpDocs() {
 	const cmdsMissingDocs = c.COMMANDS.filter((cmd) => {
@@ -411,7 +414,7 @@ function outputUpdatedHelpCategoriesPrompt() {
 		result += `{ name: '${i+1}) ${category.name}', value: '\`${cmdsList}\`', inline: 'false'},\n`;
 	});
 
-	console.log(result);
+	console.log(result); //eslint-disable-line
 }
 
 /**
@@ -437,7 +440,7 @@ function outputHelpForCommand(cmd, userID) {
  * @param {number} selection - the category selection
  * @param {String} userID - the ID of the user requesting help
  */
-function outputHelpCategory(selection, userID) {
+function outputHelpCategory(selection, userID) { //eslint-disable-line
 	const helpCategory = c.HELP_CATEGORIES[selection];
 	sendEmbedFieldsMessage(helpCategory.name, helpCategory.fields, userID);
 }
@@ -451,7 +454,7 @@ function outputHelpCategory(selection, userID) {
 function reactionTimedOut(userID, selectionType) {
 	logger.info((`<INFO> ${getTimestamp()}  After 40 seconds, there were no reactions.`));
 	sendEmbedMessage(`${capitalizeFirstLetter(selectionType)} Reponse Timed Out`,
-		`${scrubIdToNick[userID]}, you have not made a ${selectionType} selection, via reaction, so I\'m not listening to you anymore 😛`, userID);
+		`${scrubIdToNick[userID]}, you have not made a ${selectionType} selection, via reaction, so I'm not listening to you anymore 😛`, userID);
 }
 
 /**
@@ -474,7 +477,7 @@ function awaitAndHandleReaction(msgSent, userID, results, selectionType, homeRes
 			maybeUpdateDynamicMessage(collected, msgSent, userID, results, selectionType, homeResult);
 		}
 	})
-	.catch((collected) => {
+	.catch(() => {
 		reactionTimedOut(userID, selectionType);
 	});
 }
@@ -577,7 +580,7 @@ function help(userID) {
 	};
 
 	sendDynamicMessage(userID, 'category', c.HELP_CATEGORIES, homePage);
-};
+}
 
 /**
  * Gets a random cat fact.
@@ -592,7 +595,7 @@ function getRandomCatFact() {
  */
 function outputCatFact(userID) {
 	sendEmbedMessage('Did you know?', getRandomCatFact(), userID);
-};
+}
 
 /**
  * Messages a fact to all Cat Facts subscribers.
@@ -676,7 +679,7 @@ function scheduleRecurringJobs() {
 	clearTimeSheetRule.minute = 0;
 
 	schedule.scheduleJob(clearTimeSheetRule, function(){
-	  games.clearTimeSheet();
+		games.clearTimeSheet();
 	});
 
 	var updateBansRule = new schedule.RecurrenceRule();
@@ -711,19 +714,20 @@ function scheduleRecurringJobs() {
 	tipAndInvitesRule.hour = [10, 17, 23];
 	tipAndInvitesRule.minute = 0;
 	var firstRun = true;
-	var outputTip = schedule.scheduleJob(tipAndInvitesRule, function(){
+	schedule.scheduleJob(tipAndInvitesRule, function(){
 		updateServerInvites();
 
 		if (isDevEnv()) { return; }
 		if (!firstRun) {
 			previousTip.delete();
 		}
+
 		firstRun = false;
 		var tip = c.TIPS[getRand(0, c.TIPS.length)];
 		bot.getBotSpam().send(new Discord.RichEmbed(tip))
-		.then((message) => {
-			previousTip = message;
-		});
+			.then((message) => {
+				previousTip = message;
+			});
 	});
 
 	updateServerInvites();
@@ -731,19 +735,19 @@ function scheduleRecurringJobs() {
 	if (config.lottoTime) {
 		const lottoTime = config.lottoTime;
 		const lottoRule = `0 ${lottoTime.hour} ${lottoTime.day} ${lottoTime.month} *`;
-		var endLotto = schedule.scheduleJob(lottoRule, function() {
+		schedule.scheduleJob(lottoRule, function() {
 			logger.info(`<INFO> ${getTimestamp()}  Beyond lotto ending`);
 			gambling.endLotto();
 		});
 
 		var lottoCountdownRule = new schedule.RecurrenceRule();
 		lottoCountdownRule.mintue = 0;
-		var updateCountdown = schedule.scheduleJob(lottoCountdownRule, updateLottoCountdown);
+		schedule.scheduleJob(lottoCountdownRule, updateLottoCountdown);
 	}
 
 	scheduleRecurringExport();
 	scheduleRecurringVoiceChannelScan();
-};
+}
 
 /**
  * Replaces first letter of all Scrub's nicknames.
@@ -766,7 +770,7 @@ function shuffleScrubs(scrubs, caller, args) {
 function addToReviewRole(target, roles) {
 	target.addRole(roles.find('id', c.REVIEW_ROLE_ID));
 	sendEmbedMessage(null, `Welcome to the team ${mentionUser(target.id)}!`, target.id);
-};
+}
 
 /**
  * Removes the review role from the provided target.
@@ -774,7 +778,7 @@ function addToReviewRole(target, roles) {
 function removeFromReviewRole(target, roles) {
 	target.removeRole(roles.find('id', c.REVIEW_ROLE_ID));
 	sendEmbedMessage(null, `Good riddance. You were never there to review with us anyways, ${mentionUser(target.id)}!`, target.id);
-};
+}
 
 /**
  * exports bans.
@@ -813,7 +817,7 @@ function replaceOrAddColorRole(guild, color, hex, targetUser) {
 		position: guild.roles.array().length - 3
 	})
 	.then((role) => {
-		target.addRole(role);
+		targetUser.addRole(role);
 	})
 	.catch((err) => {
 		logger.error(`<ERROR> ${getTimestamp()}  Add Role Error: ${err}`);
@@ -834,7 +838,7 @@ function exportColors(title, description, userID, guild, hex, color) {
 			replaceOrAddColorRole(guild, color, hex, targetUser);
 		}
 	}
-};
+}
 
 function getHexFromTinyColor(color) {
 	return parseInt(color.toHexString().replace(/^#/, ''), 16)
@@ -860,7 +864,7 @@ function setUserColor(targetColor, userID, guild) {
 		}
 	}
 	exportColors(title, description, userID, guild, hex, targetColor);
-};
+}
 
 /**
  * Plays the target soundbyte in the command initiator's voice channel.
@@ -936,7 +940,7 @@ function downloadAttachment(message, userID) {
  */
 function maybeAddSoundByte(message, userID) {
 	downloadAttachment(message, userID);
-};
+}
 
 /**
  * Builds a target which could be one word or multiple.
@@ -950,7 +954,7 @@ function getTargetFromArgs(args, startIdx) {
 		target += ` ${args[i]}`;
 	}
 	return target;
-};
+}
 
 /**
  * Creates an alias for a command, that only works for the provided user.
@@ -967,7 +971,7 @@ function createAlias(userID, user, args) {
 	const msg = `Calling \`.${command}\` will now trigger a call to \`.${aliases[command]}\``;
 	sendEmbedMessage(`Alias Created for ${user}`, msg, userID)
 	exportJson(userIDToAliases, 'aliases');
-};
+}
 
 /**
  * Gets the alias if it exists for the provided command and user
@@ -981,7 +985,7 @@ function maybeGetAlias(command, userID) {
 		return aliases[command];
 	}
 	return null;
-};
+}
 
 /**
  * Outputs all of the provided user's command aliases
@@ -999,7 +1003,7 @@ function outputAliases(userID, user) {
 		});
 	}
 	sendEmbedMessage(`Aliases Created by ${user}`, msg, userID)
-};
+}
 
 /**
  * Removes an alias created by a user.
@@ -1032,7 +1036,7 @@ function listBackups() {
 		filesMsg += `\`${time.toString()}\`\n`;
 	});
 	sendEmbedMessage('Available Backups', filesMsg, c.K_ID)
-};
+}
 
 /**
  * Waits for the specified backup file to exist.
@@ -1043,7 +1047,7 @@ function listBackups() {
  * @param {Boolean} restart - whether or not the bot should restart on success
  */
 function waitForFileToExist(time, path, timeout, restart) {
-	const retriesLeft = 15;
+	var retriesLeft = 15;
 	const interval = setInterval(function() {
 		if (fs.existsSync(path)) {
 			clearInterval(interval);
@@ -1058,7 +1062,7 @@ function waitForFileToExist(time, path, timeout, restart) {
 			retriesLeft--;
 		}
 	}, timeout);
-};
+}
 
 /**
  * Backs the server up.
@@ -1073,7 +1077,7 @@ function backupJson(restart) {
 
 	const backupPath = `../jsonBackups/${time}.backup`
 	waitForFileToExist(time, backupPath, 2000, restart);
-};
+}
 
 /**
  * Restores all json files from the specified backup.
@@ -1090,8 +1094,9 @@ function restoreJsonFromBackup(backupTarget) {
 		const tempDir = './resources/resources';
 		backup.restore(backupPath, './resources/');
 		setTimeout(() => {
-			var spawn = require('child_process').execSync,
-				mv = spawn(`mv ${tempDir}/data/* ./resources/data/`);
+			var spawn = require('child_process').execSync;
+
+			spawn(`mv ${tempDir}/data/* ./resources/data/`);
 			fs.rmdirSync(`${tempDir}/data`);
 			fs.rmdirSync(tempDir);
 			sendEmbedMessage('Data Restored From Backup', `All data files have been restored to the state they were in on ${backupTarget}.`);
@@ -1099,7 +1104,7 @@ function restoreJsonFromBackup(backupTarget) {
 	} else {
 		sendEmbedMessage('Invalid Backup Specified', `There is no backup for the provided time of ${backupTarget}.`);
 	}
-};
+}
 
 /**
  * Restarts the bot.
@@ -1110,13 +1115,13 @@ function restartBot(update) {
 	const updateParam = update || '';
 	require('child_process')
 	.exec(`restart.sh ${updateParam}`, (error, stdout, stderr) => {
-		console.log('stdout: ' + stdout);
-		console.log('stderr: ' + stderr);
+		console.log('stdout: ' + stdout);	//eslint-disable-line
+		console.log('stderr: ' + stderr);	//eslint-disable-line
 		if (error !== null) {
-			console.log('exec error: ' + error);
+			console.log('exec error: ' + error);	//eslint-disable-line
 		}
-  	});
-};
+	});
+}
 
 /**
  * Deletes the quote tip message.
@@ -1186,7 +1191,7 @@ function quoteUser(ogMessage, quotedUserID, quotingUserID, channelID) {
 			logger.error(`<ERROR> ${getTimestamp()}  Add Role Error: ${err}`);
 		});
 	});
-};
+}
 
 function maybeReplicateLol(message) {
 	if (!(/^l(ol)+$/i).test(message.content) || message.channel.id === c.LOL_CHANNEL_ID) { return; }
@@ -1221,7 +1226,7 @@ function getQuotes(quoteTarget, userID) {
 	} else {
 		sendEmbedMessage('404 Quotes Not Found', `I guess ${targetName} isn't very quoteworthy.`, userID);
 	}
-};
+}
 
 /**
  * Inserts quotes into the provided message if the user has recently called quoteReply.
@@ -1229,7 +1234,7 @@ function getQuotes(quoteTarget, userID) {
  * @param {Object} message - the message to add the quote to
  */
 function maybeInsertQuotes(message) {
-	const block = '\`\`\`';
+	const block = '```';
 	const replyQuotes = quotingUserIDToQuotes[message.author.id];
 	if (!replyQuotes) { return; }
 	var quoteBlocks = '';
@@ -1343,7 +1348,7 @@ function getCallerOrProvided(funcName) {
  */
 function lock(funcName) {
 	locks[getCallerOrProvided(funcName)] = true;
-};
+}
 
 /**
  * Unlocks the provided function, allowing it to be called.
@@ -1352,7 +1357,7 @@ function lock(funcName) {
  */
 function unLock(funcName) {
 	locks[getCallerOrProvided(funcName)] = false;
-};
+}
 
 /**
  * Checks if the provided function is currently locked from calls.
@@ -1361,7 +1366,7 @@ function unLock(funcName) {
  */
 function isLocked(funcName) {
 	return locks[getCallerOrProvided(funcName)];
-};
+}
 
 /**
  * Removes the provided element from the array if found.
@@ -1414,11 +1419,15 @@ function updateMuteAndDeaf(channels) {
 function maybeMoveMuteAndDeaf() {
 	const purgatoryVC = bot.getPurgatory();
 	const now = moment();
-	for (userID in muteAndDeafUserIDToTime) {
+
+	for (var userID in muteAndDeafUserIDToTime) {
 		if (now.diff(muteAndDeafUserIDToTime[userID], 'minutes') < 5) { continue; }
+
 		delete muteAndDeafUserIDToTime[userID];
 		const deafMember = members.find('id', userID);
+
 		if (!deafMember) { continue; }
+
 		deafMember.setVoiceChannel(purgatoryVC);
 		logger.info(`<INFO> ${getTimestamp()}  Sending ${getNick(deafMember.id)} to solitary for being mute & deaf.`);
 	}
@@ -1434,7 +1443,7 @@ function maybeMoveMuteAndDeaf() {
 function handleMuteAndDeaf(channels) {
 	updateMuteAndDeaf(channels);
 	maybeMoveMuteAndDeaf();
-};
+}
 
 /**
  * Returns true iff the user associated with the provided ID is an admin.
@@ -1529,7 +1538,7 @@ function unBanSpammer(userID, channelID) {
 }
 
 /**
- * Lifts any spamming ban that has been active for at least 2 days.
+ * Lifts any spamming ban that has been active longer than its end time.
  */
 function maybeUnbanSpammers() {
 	for (var userID in bannedUserIDToBans) {
@@ -1757,9 +1766,7 @@ function updateServerInvites() {
 				inviterToUses[invite.inviter.id] = invite.uses;
 			});
 		})
-		.catch((err) => {
-			console.log(err);
-		})
+		.catch(log);
 }
 
 function addInvitedByRole(newMember) {
@@ -1942,89 +1949,107 @@ function formatAsBoldCodeBlock(text) {
 	return `**\`${text}\`**`;
 }
 
+//Todo: count number of exports pre and post refactor to ensure I didn't lost anything
 //-------------------- Public Functions --------------------
-exports.addInitialNumberReactions = addInitialNumberReactions;//messaging util
-exports.addInvitedByRole = addInvitedByRole;//user util
-exports.addMessageToReviewQueue = addMessageToReviewQueue;//messaging util
-exports.addToList = addToList;
-exports.addToReviewRole = addToReviewRole;//user util or messaging util
-exports.awaitAndHandleReaction = awaitAndHandleReaction;//messaging util
+//AdminUtil
 exports.backupJson = backupJson;
-exports.banSpammer = banSpammer;//messaging util
-exports.buildField = buildField;//true util
-exports.capitalizeFirstLetter = capitalizeFirstLetter;//true util
-exports.compareFieldValues = compareFieldValues;//true util
+exports.banSpammer = banSpammer;
+exports.enableServerLogRedirect = enableServerLogRedirect;
+exports.handleMuteAndDeaf = handleMuteAndDeaf;
+exports.isAdmin = isAdmin;
+exports.isDevEnv = isDevEnv;
+exports.listBackups = listBackups;
+exports.maybeBanSpammer = maybeBanSpammer;
+exports.outputCmdsMissingHelpDocs = outputCmdsMissingHelpDocs;
+exports.outputUpdatedHelpCategoriesPrompt = outputUpdatedHelpCategoriesPrompt;
+exports.restartBot = restartBot;
+exports.restoreJsonFromBackup = restoreJsonFromBackup;
+exports.reviewMessages = reviewMessages;
+exports.scheduleRecurringJobs = scheduleRecurringJobs;
+exports.updateLottoCountdown = updateLottoCountdown;
+exports.updateReadme = updateReadme;
+//
+
+//EntertainmentAndInfo Util
+exports.help = help;
+exports.maybeAddSoundByte = maybeAddSoundByte;
+exports.outputCatFact = outputCatFact;
+exports.outputHelpForCommand = outputHelpForCommand;
+exports.playSoundByte = playSoundByte;
+exports.showTips = showTips;
+//
+
+// Messaging Util
+exports.addInitialNumberReactions = addInitialNumberReactions;
+exports.addMessageToReviewQueue = addMessageToReviewQueue;
+exports.awaitAndHandleReaction = awaitAndHandleReaction;
+exports.deleteMessages = deleteMessages;
+exports.deleteQuoteTipMsg = deleteQuoteTipMsg;
+exports.exportQuotes = exportQuotes;
+exports.getQuotes = getQuotes;
+exports.log = log;
+exports.logger = logger;
+exports.maybeInsertQuotes = maybeInsertQuotes;
+exports.maybeReplicateLol = maybeReplicateLol;
+exports.maybeUpdateDynamicMessage = maybeUpdateDynamicMessage;
+exports.quoteUser = quoteUser;
+exports.sendAuthoredMessage = sendAuthoredMessage;
+exports.sendDynamicMessage = sendDynamicMessage;
+exports.sendEmbedFieldsMessage = sendEmbedFieldsMessage;
+exports.sendEmbedMessage = sendEmbedMessage;
+exports.toggleServerLogRedirect = toggleServerLogRedirect;
+//
+
+// True Util
+exports.buildField = buildField;
+exports.capitalizeFirstLetter = capitalizeFirstLetter;
+exports.compareFieldValues = compareFieldValues;
+exports.exportJson = exportJson;
+exports.formatAsBoldCodeBlock = formatAsBoldCodeBlock;
+exports.getIdFromMention = getIdFromMention;
+exports.getMembers = () => members;
+exports.getNick = getNick;
+exports.getRand = getRand;
+exports.getScrubIdToAvatar = () => scrubIdToAvatar;
+exports.getScrubIdToNick = () => scrubIdToNick;
+exports.getTargetFromArgs = getTargetFromArgs;
+exports.getTimestamp = getTimestamp;
+exports.getTrueDisplayName = getTrueDisplayName;
+exports.getUserColor = getUserColor;
+exports.isLocked = isLocked;
+exports.lock = lock;
+exports.maybeGetPlural = maybeGetPlural;
+exports.maybeRemoveFromArray = maybeRemoveFromArray;
+exports.mentionChannel = mentionChannel;
+exports.mentionGroup = mentionGroup;
+exports.mentionRole = mentionRole;
+exports.mentionUser = mentionUser;
+exports.unLock = unLock;
+exports.updateMembers = updateMembers;
+//
+
+// User Util
+exports.addInvitedByRole = addInvitedByRole;
+exports.addToList = addToList;
+exports.addToReviewRole = addToReviewRole;
 exports.createAlias = createAlias;
 exports.createChannelInCategory = createChannelInCategory;
 exports.createGroup = createGroup;
 exports.createList = createList;
-exports.deleteMessages = deleteMessages;//messaging util
-exports.enableServerLogRedirect = enableServerLogRedirect;//messaging util
-exports.exportJson = exportJson;//true util
-exports.exportQuotes = exportQuotes;//messaging util
-exports.formatAsBoldCodeBlock = formatAsBoldCodeBlock;
-exports.getIdFromMention = getIdFromMention;//true util
-exports.getMembers = () => members;//true util
-exports.getNick = getNick;//true util
-exports.getQuotes = getQuotes;//messaging util
-exports.getRand = getRand;//true util
-exports.getScrubIdToAvatar = () => scrubIdToAvatar;//true util
-exports.getScrubIdToNick = () => scrubIdToNick;//true util
-exports.getTargetFromArgs = getTargetFromArgs;//true util
-exports.getTimestamp = getTimestamp;//true util
-exports.getTrueDisplayName = getTrueDisplayName;//true util
-exports.getUserColor = getUserColor;//true util
-exports.handleMuteAndDeaf = handleMuteAndDeaf;
-exports.help = help;
-exports.isAdmin = isAdmin;//true util
-exports.isChannelOwner = isChannelOwner;//true util
-exports.isDevEnv = isDevEnv;//true util
-exports.isLocked = isLocked;//true util
-exports.listBackups = listBackups;
+exports.isChannelOwner = isChannelOwner;
 exports.leaveTempChannel = leaveTempChannel;
-exports.lock = lock;//true util
-exports.log = log;//messaging util
-exports.logger = logger;//messaging util
-exports.maybeAddSoundByte = maybeAddSoundByte;
-exports.maybeBanSpammer = maybeBanSpammer;//messaging util
-exports.maybeGetAlias = maybeGetAlias;//cmd handler
-exports.maybeGetPlural = maybeGetPlural;//true util
-exports.maybeInsertQuotes = maybeInsertQuotes;//messaging util
-exports.maybeRemoveFromArray = maybeRemoveFromArray;//true util
-exports.maybeReplicateLol = maybeReplicateLol;//messaging util?
-exports.maybeUpdateDynamicMessage = maybeUpdateDynamicMessage;//messaging util
-exports.mentionChannel = mentionChannel;//true util
-exports.mentionGroup = mentionGroup;//true util
-exports.mentionRole = mentionRole;//true util
-exports.mentionUser = mentionUser;//true util
 exports.outputAliases = outputAliases;
-exports.outputCatFact = outputCatFact;
-exports.outputCmdsMissingHelpDocs = outputCmdsMissingHelpDocs;
-exports.outputHelpForCommand = outputHelpForCommand;
 exports.outputTempChannelsLeftByUser = outputTempChannelsLeftByUser;
-exports.outputUpdatedHelpCategoriesPrompt = outputUpdatedHelpCategoriesPrompt;
-exports.playSoundByte = playSoundByte;
-exports.deleteQuoteTipMsg = deleteQuoteTipMsg;//messaging util
-exports.quoteUser = quoteUser;//messaging util
 exports.rejoinTempChannel = rejoinTempChannel;
-exports.removeFromReviewRole = removeFromReviewRole;//user util
-exports.restartBot = restartBot;
-exports.restoreJsonFromBackup = restoreJsonFromBackup;
-exports.reviewMessages = reviewMessages;//messaging util
-exports.scheduleRecurringJobs = scheduleRecurringJobs;
-exports.sendAuthoredMessage = sendAuthoredMessage;//messaging util
-exports.sendDynamicMessage = sendDynamicMessage;//messaging util
-exports.sendEmbedFieldsMessage = sendEmbedFieldsMessage;//messaging util
-exports.sendEmbedMessage = sendEmbedMessage;//messaging util
-exports.setUserColor = setUserColor;//user util
-exports.showLists = showLists;
-exports.showTips = showTips;
-exports.shuffleScrubs = shuffleScrubs;//user util
+exports.removeFromReviewRole = removeFromReviewRole;
+exports.setUserColor = setUserColor;
 exports.subscribeToCatFacts = subscribeToCatFacts;
-exports.toggleServerLogRedirect = toggleServerLogRedirect;//messaging util
+exports.showLists = showLists;
+exports.shuffleScrubs = shuffleScrubs;
 exports.unalias = unalias;
-exports.unLock = unLock;//true util
-exports.updateLottoCountdown = updateLottoCountdown;
-exports.updateMembers = updateMembers;//true util
-exports.updateReadme = updateReadme;
+//
+
+// Move this into Cmd Handler
+exports.maybeGetAlias = maybeGetAlias;
+//
 //----------------------------------------------------------

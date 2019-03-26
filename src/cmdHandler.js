@@ -9,6 +9,7 @@ var games = require('./games.js');
 var vote = require('./vote.js');
 var cars = require('./cars.js');
 var blackjack = require("./blackjack.js");
+var config = require('../resources/data/config.json');
 var fuse = new Fuse(c.COMMANDS, {verbose: false});
 
 /**

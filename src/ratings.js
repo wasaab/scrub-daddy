@@ -21,7 +21,6 @@ var ratingsResponses = 0;
  * @param {String} original - string to get proper title from
  */
 function determineTitle(original) {
-	var i, j, title;
 	var title = original.replace(/([^\W_]+[^\s-]*) */g, function(txt) {
 		return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
 	});
@@ -30,7 +29,8 @@ function determineTitle(original) {
 	// they are the first or last words in the string
 	const lowers = ['A', 'An', 'The', 'And', 'But', 'Or', 'For', 'Nor', 'As', 'At',
 	'By', 'For', 'From', 'In', 'Into', 'Near', 'Of', 'On', 'Onto', 'To', 'With'];
-	for (i = 0, j = lowers.length; i < j; i++)
+
+	for (var i = 0, j = lowers.length; i < j; i++)
 		title = title.replace(new RegExp('\\s' + lowers[i] + '\\s', 'g'),
 		function(txt) {
 			return txt.toLowerCase();
@@ -52,7 +52,7 @@ function determineTitle(original) {
  */
 function getStars(count) {
 	var result = '';
-	for (i=0; i < Math.floor(count); i++) {
+	for (var i=0; i < Math.floor(count); i++) {
 		result += '⭐';
 	}
 
@@ -360,17 +360,6 @@ function titleNotFound(title, channel, userID) {
 }
 
 /**
- * Gets all of the titles concatenated into a single array.
- */
-function getAllTitles() {
-	return Object.keys(ratings.movies).concat(
-		Object.keys(ratings.tv),
-		Object.keys(ratings.unverified.tv),
-		Object.keys(ratings.unverified.movies)
-	);
-}
-
-/**
  * Outputs the movies or tv shows with the rating provided.
  *
  * @param {Number} rating - numerical rating 1-4
@@ -404,7 +393,7 @@ exports.outputRatings = function(rating, category, isVerified, channel) {
 			});
 	} else {
 		const categoryEmoji = c[`${category.toUpperCase()}_EMOJI`];
-		util.sendEmbedMessage(`${categoryEmoji}	${getStars(rating)}`, titlesMsg);
+		util.sendEmbedMessage(`${categoryEmoji}	${getStars(rating)}`, output);
 	}
 }
 
@@ -474,7 +463,7 @@ exports.ratingInfo = function(args, userID) {
 		info += `${getStars(1)} **${rating.rating.toPrecision(2)}**`;
 	}
 	info += '\n\n**Reviews**';
-	for (reviewer in rating.reviews) {
+	for (var reviewer in rating.reviews) {
 		info += `\n${util.getNick(reviewer)}	${getStars(rating.reviews[reviewer])}`
 	}
 
@@ -683,7 +672,7 @@ function updateExternalRatingsJson() {
 		body: JSON.stringify(tableData)
 	}
 	rp(options)
-		.then(function (response) {
+		.then(() => {
 			util.logger.info(`<INFO> ${util.getTimestamp()} Reviews external json updated`);
 		})
 		.catch(util.log);

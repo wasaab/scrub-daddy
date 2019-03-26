@@ -101,25 +101,31 @@ module.exports = {
 		'https://media.giphy.com/media/l0MYyv6UK0Bd4DE76/giphy.gif',
 		'https://media.giphy.com/media/NUesM2Iybd2Gpxmyhw/giphy.gif',
 		'https://media.giphy.com/media/9D1vFuUNdhB50rys9P/giphy.gif',
-		'https://media.giphy.com/media/6ielGX780cN5C/giphy.gif'
-	],
-	SETTINGS_IMG: 'https://i.imgur.com/T2ABKgC.png',
-	BUBBLE_IMAGES: ['https://i.imgur.com/rddtZR6.png','https://i.imgur.com/MdKfKVG.png','https://i.imgur.com/ZAyLJSJ.png','https://i.imgur.com/K6k4b3q.png','https://i.imgur.com/m7V6BEa.png',
-						 'https://i.imgur.com/Q7JO7Fn.png','https://i.imgur.com/lXZNXoz.png','https://i.imgur.com/xdwTSuG.png','https://i.imgur.com/PE99BJ8.png','https://i.imgur.com/VhFgbRQ.png',
-						 'https://i.imgur.com/hQvbZkP.png','https://i.imgur.com/LLdxaj4.png','https://i.imgur.com/cCiI4CE.png','https://i.imgur.com/fue3AAM.png','https://i.imgur.com/8cah0Ar.png',
-						 'https://i.imgur.com/3bXFEcL.png','https://i.imgur.com/Q33oITR.png','https://i.imgur.com/O2iQuhP.png','https://i.imgur.com/LUq3M1Q.png','https://i.imgur.com/ne412gl.png',
-						 'https://i.imgur.com/ASgP6i6.png'],
+		'https://media.giphy.com/media/6ielGX780cN5C/giphy.gif'],
+	BUBBLE_IMAGES: ['https://i.imgur.com/rddtZR6.png', 'https://i.imgur.com/MdKfKVG.png', 'https://i.imgur.com/ZAyLJSJ.png',
+		'https://i.imgur.com/K6k4b3q.png', 'https://i.imgur.com/m7V6BEa.png', 'https://i.imgur.com/Q7JO7Fn.png',
+		'https://i.imgur.com/lXZNXoz.png', 'https://i.imgur.com/xdwTSuG.png', 'https://i.imgur.com/PE99BJ8.png',
+		'https://i.imgur.com/VhFgbRQ.png', 'https://i.imgur.com/hQvbZkP.png', 'https://i.imgur.com/LLdxaj4.png',
+		'https://i.imgur.com/cCiI4CE.png', 'https://i.imgur.com/fue3AAM.png', 'https://i.imgur.com/8cah0Ar.png',
+		'https://i.imgur.com/3bXFEcL.png', 'https://i.imgur.com/Q33oITR.png', 'https://i.imgur.com/O2iQuhP.png',
+		'https://i.imgur.com/LUq3M1Q.png','https://i.imgur.com/ne412gl.png', 'https://i.imgur.com/ASgP6i6.png'],
 	STEAL_IMG: 'https://i.imgur.com/L1ZYgZE.png',
+	SETTINGS_IMG: 'https://i.imgur.com/T2ABKgC.png',
 	INFO_IMG: 'https://i.imgur.com/WLWBbQ9.png',
 	HELP_CATEGORIES_PROMPT: [
 		{ name: '1) `Voting`', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
-		{ name: '2) `Scrubbing Bubbles`', value: '`enlist`	`discharge`	`give`	`reserve`	`clean`	`21`	`hit`	`stay`	`army`	`ranks`	`stats`	`who-said`	`sunken-sailor`	`add-emoji`	`magic-word`	`rename-hank`	`rename-channel`	`rename-role`	`rename-user`	`scrub-box`		`inventory`	`start-lotto`	`stop-lotto`', inline: 'false'},
+		{ name: '2) `Scrubbing Bubbles`', value: '`enlist`	`discharge`	`give`	`reserve`	`clean`	`21`	`hit`	`stay`'
+			+ '	`army`	`ranks`	`stats`	`who-said`	`sunken-sailor`	`add-emoji`	`magic-word`	`rename-hank`	`rename-channel`'
+			+ '	`rename-role`	`rename-user`	`scrub-box`		`inventory`	`start-lotto`	`stop-lotto`', inline: 'false'},
 		{ name: '3) `Time Played`', value: '`time`	`opt-in`	`heatmap`', inline: 'false'},
-		{ name: '4) `Gaming`', value: '`playing`	`who-plays`	`lets-play`	`1-more`	`p`	`split-group`	`trends`	`total-trends`	`fortnite-stats`	`fortnite-leaderboard`	`set-fortnite`', inline: 'false'},
+		{ name: '4) `Gaming`', value: '`playing`	`who-plays`	`lets-play`	`1-more`	`p`	`split-group`	`trends`	`total-trends`'
+			+ '	`fortnite-stats`	`fortnite-leaderboard`	`set-fortnite-name`', inline: 'false'},
 		{ name: '5) `Bot Issues, Feature Requests, and Help`', value: '`tips`	`issue`	`feature`	`implement`	`help`', inline: 'false'},
-		{ name: '6) `Roles & User Settings`', value: '`join-review`	`leave-review`	`color`	`shuffle-scrubs`	`set-stream`	`toggle-streaming`	`alias`	`unalias`', inline: 'false'},
+		{ name: '6) `Roles & User Settings`', value: '`join-review`	`leave-review`	`color`	`shuffle-scrubs`	`set-stream`'
+			+ '	`toggle-streaming`	`alias`	`unalias`', inline: 'false'},
 		{ name: '7) `Soundbytes`', value: '`sb`	`add-sb`	`fav-sb`	`volume`', inline: 'false'},
-		{ name: '8) `Utilities`', value: '`temp`	`leave-temp`	`lotto`	`quote`	`quotes`	`create-list`	`list`	`create-group`	`@`	`subscribe-catfacts`	`catfacts`	`channels-left`	`rejoin-temp`	`ignore-posts`	`delete`', inline: 'false'},
+		{ name: '8) `Utilities`', value: '`temp`	`leave-temp`	`lotto`	`quote`	`quotes`	`create-list`	`list`	`create-group`'
+			+ '	`@`	`subscribe-catfacts`	`catfacts`	`channels-left`	`rejoin-temp`	`ignore-posts`	`delete`', inline: 'false'},
 	],
 	HELP_CATEGORIES: [
 		{
@@ -218,7 +224,8 @@ module.exports = {
 				{ name: '.shuffle-scrubs <`letter`>', value: '`to set the first letter of every Srub\'s name.`', inline: 'false'},
 				{ name: '.set-stream <`url`>', value: '`to set the url for either your stream or the stream you are watching.`', inline: 'false'},
 				{ name: '.toggle-streaming', value: '`to toggle your streaming state on/off, which will update your nickname.`', inline: 'false'},
-				{ name: '.alias <`alias`> <`command to call`>', value: '`creates an alias for the provided command call. \ne.g. .alias ow who-plays Overwatch ... will allow you to call .ow`', inline: 'false'},
+				{ name: '.alias <`alias`> <`command to call`>',
+					value: '`creates an alias for the provided command call. \ne.g. .alias ow who-plays Overwatch ... will allow you to call .ow`', inline: 'false'},
 				{ name: '.unalias <`alias`>', value: '`removes the alias with the provided name.`', inline: 'false'}
 			]
 		},
@@ -241,13 +248,15 @@ module.exports = {
 				{ name: '.leave-temp', value: '`to leave the temp channel the command is called in.`', inline: 'false'},
 				{ name: '.lotto', value: '`to join the currently running Beyond lotto or get the time remaining.`', inline: 'false'},
 				{ name: '.quote', value: '`to quote and reply or save the quote, depending on which reaction you use (:quoteReply: or :quoteSave:).`', inline: 'false'},
-				{ name: '.quote <`@user`>', value: '`to quote and reply or save the quote from @user, depending on which reaction you use (:quoteReply: or :quoteSave:).`', inline: 'false'},
+				{ name: '.quote <`@user`>',
+					value: '`to quote and reply or save the quote from @user, depending on which reaction you use (:quoteReply: or :quoteSave:).`', inline: 'false'},
 				{ name: '.quotes', value: '`to retrieve the list of quotes from everyone on the server.`', inline: 'false'},
 				{ name: '.quotes <`@user`>', value: '`to retrieve the list of quotes from the specified user.`', inline: 'false'},
 				{ name: '.create-list <`name of list`>', value: '`to create a named list that users can add entries to.`', inline: 'false'},
 				{ name: '.list', value: '`to view all of the user created lists.`', inline: 'false'},
 				{ name: '.list <`list-name`> <`your new entry`>', value: '`to add a new entry to a user created list.`', inline: 'false'},
-				{ name: '.create-group <`groupName`> <`@user1`> <`@user2`>', value: '`To create a mentionable group of users. You can mention as many users as you want.`', inline: 'false'},
+				{ name: '.create-group <`groupName`> <`@user1`> <`@user2`>',
+					value: '`To create a mentionable group of users. You can mention as many users as you want.`', inline: 'false'},
 				{ name: '.create-group <`groupName`> <`title of game`>', value: '`To create a mentionable group of users who play the specified game.`', inline: 'false'},
 				{ name: '.@<`groupName`> <`message to send`>', value: '`To mention all members of a custom group in a message.`', inline: 'false'},
 				{ name: '.@<`gameName`> <`message to send`>', value: '`To mention all users who play gameName in a message.`', inline: 'false'},
@@ -293,20 +302,28 @@ module.exports = {
 			scrubsDischared: 0
 		},
 	},
-	Clubs: ['https://i.imgur.com/o7m74ae.png', 'https://i.imgur.com/s15mB52.png', 'https://i.imgur.com/8zKQuRh.png?1', 'https://i.imgur.com/cCGAnwz.png', 'https://i.imgur.com/aw8SjKM.png', 'https://i.imgur.com/fDYMBkl.png', 'https://i.imgur.com/9GdN1xf.png', 'https://i.imgur.com/KT1weaO.png', 'https://i.imgur.com/qt9QC39.png', 'https://i.imgur.com/Z13JEy5.png', 'https://i.imgur.com/ihire3h.png', 'https://i.imgur.com/YghMO9j.png', 'https://i.imgur.com/LzMzKTB.png'],
-	Spades: ['https://i.imgur.com/FHvk0sp.png', 'https://i.imgur.com/sLDI1Bo.png', 'https://i.imgur.com/WjJ2puv.png', 'https://i.imgur.com/kQC54bz.png', 'https://i.imgur.com/9LwWVZY.png', 'https://i.imgur.com/xl4iMRD.png', 'https://i.imgur.com/QZGxsEn.png', 'https://i.imgur.com/LTwacw5.png', 'https://i.imgur.com/ktDrrsF.png', 'https://i.imgur.com/1XSryPi.png', 'https://i.imgur.com/ve4ImOC.png', 'https://i.imgur.com/gedGmML.png', 'https://i.imgur.com/8AR2XPY.png'],
-	Diamonds: ['https://i.imgur.com/0yoc7jc.png', 'https://i.imgur.com/TjpZNj4.png', 'https://i.imgur.com/RT3lgO9.png', 'https://i.imgur.com/VknG03X.png', 'https://i.imgur.com/KzRjlUJ.png', 'https://i.imgur.com/yqQFHn5.png', 'https://i.imgur.com/AOPOjZI.png', 'https://i.imgur.com/2EypWwj.png', 'https://i.imgur.com/TS00BlT.png', 'https://i.imgur.com/to5qn8r.png', 'https://i.imgur.com/bulA3sS.png', 'https://i.imgur.com/WOLNfRq.png', 'https://i.imgur.com/54qFEo9.png'],
-	Hearts: ['https://i.imgur.com/gQVUlQW.png', 'https://i.imgur.com/az3oztW.png', 'https://i.imgur.com/YzJB3ee.png', 'https://i.imgur.com/3BwKfue.png', 'https://i.imgur.com/1wQv85L.png', 'https://i.imgur.com/1fRlihh.png', 'https://i.imgur.com/7JZP5Gj.png', 'https://i.imgur.com/lXizCrc.png', 'https://i.imgur.com/Cdib2wr.png', 'https://i.imgur.com/6FVwLvj.png', 'https://i.imgur.com/dT8taqF.png', 'https://i.imgur.com/yOJPOvz.png', 'https://i.imgur.com/NfHoAdu.png'],
+	Clubs: ['https://i.imgur.com/o7m74ae.png', 'https://i.imgur.com/s15mB52.png', 'https://i.imgur.com/8zKQuRh.png?1', 'https://i.imgur.com/cCGAnwz.png',
+		'https://i.imgur.com/aw8SjKM.png', 'https://i.imgur.com/fDYMBkl.png','https://i.imgur.com/9GdN1xf.png', 'https://i.imgur.com/KT1weaO.png',
+		'https://i.imgur.com/qt9QC39.png','https://i.imgur.com/Z13JEy5.png', 'https://i.imgur.com/ihire3h.png', 'https://i.imgur.com/YghMO9j.png', 'https://i.imgur.com/LzMzKTB.png'],
+	Spades: ['https://i.imgur.com/FHvk0sp.png', 'https://i.imgur.com/sLDI1Bo.png', 'https://i.imgur.com/WjJ2puv.png', 'https://i.imgur.com/kQC54bz.png',
+		'https://i.imgur.com/9LwWVZY.png', 'https://i.imgur.com/xl4iMRD.png', 'https://i.imgur.com/QZGxsEn.png', 'https://i.imgur.com/LTwacw5.png',
+		'https://i.imgur.com/ktDrrsF.png', 'https://i.imgur.com/1XSryPi.png', 'https://i.imgur.com/ve4ImOC.png', 'https://i.imgur.com/gedGmML.png', 'https://i.imgur.com/8AR2XPY.png'],
+	Diamonds: ['https://i.imgur.com/0yoc7jc.png', 'https://i.imgur.com/TjpZNj4.png', 'https://i.imgur.com/RT3lgO9.png', 'https://i.imgur.com/VknG03X.png',
+		'https://i.imgur.com/KzRjlUJ.png', 'https://i.imgur.com/yqQFHn5.png', 'https://i.imgur.com/AOPOjZI.png', 'https://i.imgur.com/2EypWwj.png',
+		'https://i.imgur.com/TS00BlT.png', 'https://i.imgur.com/to5qn8r.png', 'https://i.imgur.com/bulA3sS.png', 'https://i.imgur.com/WOLNfRq.png','https://i.imgur.com/54qFEo9.png'],
+	Hearts: ['https://i.imgur.com/gQVUlQW.png', 'https://i.imgur.com/az3oztW.png', 'https://i.imgur.com/YzJB3ee.png', 'https://i.imgur.com/3BwKfue.png',
+		'https://i.imgur.com/1wQv85L.png', 'https://i.imgur.com/1fRlihh.png', 'https://i.imgur.com/7JZP5Gj.png', 'https://i.imgur.com/lXizCrc.png',
+		'https://i.imgur.com/Cdib2wr.png', 'https://i.imgur.com/6FVwLvj.png', 'https://i.imgur.com/dT8taqF.png', 'https://i.imgur.com/yOJPOvz.png', 'https://i.imgur.com/NfHoAdu.png'],
 	TIPS:[
 		{
 			color: 0xffff00,
 			title: '💡 Lrn2Use .help Ya Scrub',
 			description: 'You do not need to type the `<`, `|`, or `>` symbols found within .help documentation.\n\n' +
-						'<`parameter`> just lets you know the word within the arrows is a parameter for the user to input.\n\n' +
-						'| stands for "or", so if you see that seperating two parameters it means you can choose one of them.\n' +
-						'e.g. .temp <`text|voice`> <`channel-title`> --> .temp text cool-kids-club\n\n' +
-						'.help <`command`> - to get help for a specific command\n' +
-						'.help - to get help for all commands'
+				'<`parameter`> just lets you know the word within the arrows is a parameter for the user to input.\n\n' +
+				'| stands for "or", so if you see that seperating two parameters it means you can choose one of them.\n' +
+				'e.g. .temp <`text|voice`> <`channel-title`> --> .temp text cool-kids-club\n\n' +
+				'.help <`command`> - to get help for a specific command\n' +
+				'.help - to get help for all commands'
 		},
 		{
 			color: 0xffff00,
@@ -318,8 +335,8 @@ module.exports = {
 		},
 		{
 			color: 0xffff00,
-			title: '💡 Adding Soundbytes',
-			description: 'You must call *add-sb and attach your .mp3 file in the same message as seen below.',
+			title: '💡 Adding Soundbytes And Emojis',
+			description: 'You must call *add-sb/.add-emoji and attach your .mp3/.png file in the same message as seen below.',
 			image: {
 				url: 'https://i.imgur.com/WdoyTXc.png'
 			}
@@ -327,7 +344,7 @@ module.exports = {
 		{
 			color: 0xffff00,
 			title: '💡 New Commands',
-			description: '`leave-temp`	`unalias`	`delete`	`list`	`create-list`	`give`	`tips`	`quote`	`quotes`	`21`	`fortnite-stats`	`fortnite-leaderboard`',
+			description: '`reserve`	`scrub-box`	`inventory`	`split-group`	`channels-left`	`rejoin-temp`',
 			image: {
 				url: 'https://media3.giphy.com/media/UGxfEt5POsukg/giphy.gif'
 			}
@@ -336,9 +353,9 @@ module.exports = {
 			color: 0xffff00,
 			title: '💡 Is Typoeing Hard?',
 			description: '⌨ **Fret no more, because fuzzy commands are here!**\n\n' +
-						'You can now activate the command which is the closest match to your input.\n' +
-						'For example, `.akry` --> `.army`, `.lcan` --> `.clean`, etc.\n' +
-						'You really don\'t even have to be close anymore.'
+				'You can now activate the command which is the closest match to your input.\n' +
+				'For example, `.akry` --> `.army`, `.lcan` --> `.clean`, etc.\n' +
+				'You really don\'t even have to be close anymore.'
 		},
 		{
 			color: 0xffff00,
@@ -376,7 +393,8 @@ module.exports = {
 		'who-plays', 'who-said',
 		'test', 'trends', 'total-trends'
 	],
-	GLOBAL_COMMANDS: ['@', 'cars', 'change-category', 'delete', 'delete-rating', 'ignore-posts','leave-temp', 'magic-word', 'quote', 'rate', 'rename', 'refresh-ratings', 'rating-info'],
+	GLOBAL_COMMANDS: ['@', 'cars', 'change-category', 'delete', 'delete-rating', 'ignore-posts',
+		'leave-temp', 'magic-word', 'quote', 'rate', 'rename', 'refresh-ratings', 'rating-info'],
 	WHO_PLAYS_FUZZY_OPTIONS: {
 		shouldSort: true,
 		threshold: 0.3,
@@ -408,11 +426,6 @@ module.exports = {
 		'I': '🄸', 'J': '🄹', 'K': '🄺', 'L': '🄻', 'M': '🄼', 'N': '🄽', 'O': '🄾', 'P': '🄿', 'Q': '🅀',
 		'R': '🅁', 'S': '🅂', 'T': '🅃', 'U': '🅄', 'V': '🅅', 'W': '🅆', 'X': '🅇', 'Y': '🅈', 'Z': '🅉',
 		'0': '⓪', '1': '①', '2': '②', '3': '③', '4': '④', '5': '⑤', '6': '⑥', '7': '⑦', '8': '⑧', '9': '⑨'
-	},
-	NEG_ENCLOSED_LETTERS: {
-		'A': '🅰', 'B': '🅱', 'C': '🅲', 'D': '🅳', 'E': '🅴', 'F': '🅵', 'G': '🅶', 'H': '🅷',
-		'I': '🅸', 'J': '🅹', 'K': '🅺', 'L': '🅻', 'M': '🅼', 'N': '🅽', 'O': '🅾', 'P': '🅿', 'Q': '🆀',
-		'R': '🆁', 'S': '🆂', 'T': '🆃', 'U': '🆄', 'V': '🆅', 'W': '🆆', 'X': '🆇', 'Y': '🆈', 'Z': '🆉'
 	},
 	REACTION_NUMBERS: ['0⃣', '1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣', '8⃣','9⃣'],
 	PPL_EMOJIS: ['😢', '🕺', '👬', '👨‍👨‍👧', '👨‍👨‍👧‍👦⠀', '🧙👩‍👩‍👧‍👦⠀'],
