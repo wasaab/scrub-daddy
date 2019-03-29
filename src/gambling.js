@@ -862,8 +862,8 @@ function updateChannelTopicWithMagicWordCount(channelID) {
 
 exports.checkForMagicWords = function(message) {
     const channelID = message.channel.id;
-    const magicWordsToEndTime = loot.magicWords[channelID];
-    if (!magicWordsToEndTime) { return; }
+    var magicWordsToEndTime = loot.magicWords[channelID];
+    if (!magicWordsToEndTime || message.author.bot) { return; }
 
     const magicWordsPattern = `\\b(${Object.keys(magicWordsToEndTime).join("|")})\\b`;
     const magicWordsRegex = new RegExp(magicWordsPattern, 'gi');
@@ -881,16 +881,16 @@ exports.checkForMagicWords = function(message) {
             delete loot.magicWords[channelID];
         }
 
-        util.exportJson(loot, 'loot');
         banDays--;
     });
 
+    util.exportJson(loot, 'loot');
     updateChannelTopicWithMagicWordCount(channelID);
 
     if (banDays === 0) { return; }
 
     util.logger.info(`<INFO> ${util.getTimestamp()}  Banning ${util.getNick(message.author.id)}`
-        + ` for saying the magic words "${magicWordMatches}" in ${message.channel.name}`);
+        + ` for saying the magic words "${magicWordMatches}" in ${util.mentionChannel(channelID)}`);
     util.banSpammer(message.author, message.channel, banDays, true);
 };
 
