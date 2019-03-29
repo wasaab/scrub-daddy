@@ -842,7 +842,8 @@ function addRainbowRole(userID, targetUser, tierNumber, cmd) {
 }
 
 function updateChannelTopicWithMagicWordCount(channelID) {
-    const magicWordCount = Object.keys(loot.magicWords[channelID]).length;
+    const magicWords = loot.magicWords[channelID];
+    const magicWordCount = magicWords ? Object.keys(magicWords).length : 0;
     const magicWordRegex = new RegExp(/^(:sparkles:|✨) [0-9]+ Magic Words (:sparkles:|✨) /);
     const channel = bot.getServer().channels.find('id', channelID);
     const oldTopic = channel.topic;
@@ -875,10 +876,10 @@ exports.checkForMagicWords = function(message) {
     magicWordMatches.forEach((magicWord) => {
         if (moment().isBefore(moment(magicWordsToEndTime[magicWord]))) { return; }
 
-        delete magicWordsToEndTime[magicWord];
-
-        if (Object.keys(magicWordsToEndTime).length === 0) {
+        if (Object.keys(magicWordsToEndTime).length === 1) {
             delete loot.magicWords[channelID];
+        } else {
+            delete magicWordsToEndTime[magicWord];
         }
 
         banDays--;
