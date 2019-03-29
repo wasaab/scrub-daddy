@@ -889,6 +889,8 @@ exports.checkForMagicWords = function(message) {
 
     if (banDays === 0) { return; }
 
+    util.logger.info(`<INFO> ${util.getTimestamp()}  Banning ${util.getNick(message.author.id)}`
+        + ` for saying the magic words "${magicWordMatches}" in ${message.channel.name}`);
     util.banSpammer(message.author, message.channel, banDays, true);
 };
 
