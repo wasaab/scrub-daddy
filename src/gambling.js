@@ -387,14 +387,22 @@ exports.maybeDeletePreviousMessage = function (msg) {
 };
 
 function isValidTime(monthDayTokens, hour) {
+    function isInputNumbers() {
+        return !isNaN(month) && !isNaN(day) && !isNaN(hour);
+    }
+
+    function isValBetweenMinAndMax(value, min, max) {
+        return value > min && value < max;
+    }
+
     if (monthDayTokens.length !== 2) { return false; }
     const month = monthDayTokens[0];
     const day = monthDayTokens[1];
 
-    return !isNaN(month) && !isNaN(day) && !isNaN(hour) &&
-        month > 0 && month < 13 &&
-        day > 0 && day < 32 &&
-        hour > -1 && hour < 24;
+    return isInputNumbers()
+        && isValBetweenMinAndMax(month, 0, 13)
+        && isValBetweenMinAndMax(day, 0, 32)
+        && isValBetweenMinAndMax(hour, -1, 24);
 }
 
 exports.startLotto = function(user, userID, monthDay, hour) {
@@ -868,6 +876,11 @@ exports.checkForMagicWords = function(message) {
         if (moment().isBefore(moment(magicWordsToEndTime[magicWord]))) { return; }
 
         delete magicWordsToEndTime[magicWord];
+
+        if (Object.keys(magicWordsToEndTime).length === 0) {
+            delete loot.magicWords[channelID];
+        }
+
         util.exportJson(loot, 'loot');
         banDays--;
     });
@@ -917,5 +930,5 @@ exports.rock = function(userID) {
 
     const userEntry = ledger[userID];
 
-    userEntry.rocksDropped = userEntry.rocksDropped !== undefined ? userEntry.rocksDropped + 1 : 1;
+    userEntry.rocksDropped = userEntry.rocksDropped ? userEntry.rocksDropped + 1 : 1;
 };
