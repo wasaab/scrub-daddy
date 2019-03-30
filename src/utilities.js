@@ -2,18 +2,16 @@ var tinycolor = require('tinycolor2');
 var schedule = require('node-schedule');
 var Discord = require('discord.js');
 var inspect = require('util-inspect');
+var request = require('request');
 var moment = require('moment');
 var backup = require('backup');
 var Fuse = require('fuse.js');
 var get = require('lodash.get');
 var fs = require('fs');
-
-const winston = require('winston');
-const Transport = require('winston-transport');
-const request = require('request');
-const co = require('co');
+var co = require('co');
 
 var gambling = require('./gambling.js');
+var logger = require('./logger.js').botLogger;
 var games = require('./games.js');
 var cars = require('./cars.js');
 var bot = require('./bot.js');
@@ -79,7 +77,7 @@ function createChannelInCategory(command, channelType, channelName, message, cre
 		});
 	}
 
-	logger.info(`<INFO> ${getTimestamp()}  Perm Overwrites: ${inspect(overwrites)}`);
+	logger.info(`Perm Overwrites: ${inspect(overwrites)}`);
 	message.guild.createChannel(channelName, channelType, overwrites)
 	.then((channel) => {
 		channel.setParent(c.CATEGORY_ID[channelCategoryName]);
@@ -87,10 +85,10 @@ function createChannelInCategory(command, channelType, channelName, message, cre
 			userID, c.SETTINGS_IMG, null, null, channel.id);
 		sendEmbedMessage(`➕ ${channelCategoryName} Channel Created`,
 			`You can find your channel, ${mentionChannel(channel.id)}, under the \`${channelCategoryName}\` category.`, userID);
-		logger.info(`<INFO> ${getTimestamp()}  ${channelCategoryName}${createdByMsg}  ${description}`);
+		logger.info(`${channelCategoryName}${createdByMsg}  ${description}`);
 	})
 	.catch((error) => {
-		logger.error(`<ERROR> ${getTimestamp()}  Create Channel Error: ${error}`);
+		logger.error(`Create Channel Error: ${error}`);
 	});
 }
 
@@ -110,10 +108,10 @@ function leaveTempChannel(channel, userID) {
 	.then(() => {
 		sendEmbedMessage(`${scrubIdToNick[userID]} has left the channel`, null,
 			userID, c.LEAVE_IMAGES[getRand(0, c.LEAVE_IMAGES.length)], null, null, channel.id);
-		logger.info(`<INFO> ${getTimestamp()} ${scrubIdToNick[userID]} has left ${channel.name}`);
+		logger.info(`${scrubIdToNick[userID]} has left ${channel.name}`);
 	})
 	.catch((err) => {
-		logger.error(`<ERROR> ${getTimestamp()}  Leave ${channel.name} - Overwrite Permissions Error: ${err}`);
+		logger.error(`Leave ${channel.name} - Overwrite Permissions Error: ${err}`);
 	});
 }
 
@@ -144,57 +142,7 @@ function rejoinTempChannel(userID, channelName) {
 		targetChannel.permissionOverwrites.find('id', userID).delete();
 		sendEmbedMessage(`${getNick(userID)} is back in town!`, null,
 			userID, c.REJOIN_IMAGES[getRand(0, c.REJOIN_IMAGES.length)], null, null, targetChannel.id);
-		logger.info(`<INFO> ${getTimestamp()} ${getNick(userID)} has rejoined ${channelName}`);
-	}
-}
-
-/**
- * Discord server logger.
- *
- * @param {Object[]} opts - logger options
- */
-const discordServerTransport = class DiscordServerTransport extends Transport {
-	constructor(opts) {
-		super(opts);
-	}
-
-	log(info, callback) {
-		bot.getLogChannel().send(info.message);
-		callback();
-	}
-};
-
-//TODO: strip timestamp and maybe info/error/apiReq logic out of the rest of my code. instead use this printf format combined with timestamp format.
-//look at winstons documentation for an example
-const logger = new winston.createLogger({
-	level: 'info',
-	format: winston.format.printf(info => {
-		return `${info.message}`;
-	}),
-	transports: [ new winston.transports.Console() ]
-});
-
-/**
- * Enables the server log redirect.
- */
-function enableServerLogRedirect() {
-	if (!bot.getLogChannel()) { return; }
-	logger.add(new discordServerTransport());
-}
-
-/**
- * Toggles the logger redirect to discord text channel on or off.
- */
-function toggleServerLogRedirect(userID) {
-	if (logger.transports.length === 2) {
-		const discordTransport = logger.transports.find(transport => {
-			return transport.constructor.name === 'DiscordServerTransport';
-		});
-		logger.remove(discordTransport);
-		sendEmbedMessage('Server Log Redirection Disabled', 'Server logs will stay where they belong!', userID);
-	} else {
-		enableServerLogRedirect();
-		sendEmbedMessage('Server Log Redirection Enabled', `The server log will now be redirected to ${mentionChannel(c.LOG_CHANNEL_ID)}`, userID);
+		logger.info(`${getNick(userID)} has rejoined ${channelName}`);
 	}
 }
 
@@ -217,24 +165,7 @@ function getRand(min, max) {
  * @return {String} properly formatted timestamp
  */
 function getTimestamp() {
-	function pad(n) {
-			return (n < 10) ? `0${n}` : n;
-	}
-
-	const time = new Date();
-	const day = c.DAYS[time.getDay()];
-	var hours = time.getHours();
-	var minutes = time.getMinutes();
-	var meridiem = 'AM';
-
-	if (hours > 12) {
-		hours -= 12;
-		meridiem = 'PM';
-	} else if (hours === 0) {
-		hours = 12;
-	}
-
-	return `${day} ${pad(hours)}:${pad(minutes)} ${meridiem}`;
+	return moment().format('ddd h:mm A');
 }
 
 /**
@@ -245,9 +176,9 @@ function getTimestamp() {
  */
 function log(error, response) {
 	if (error) {
-		logger.error(`<API ERROR> ${getTimestamp()}  ERROR: ${error}`);
+		logger.error(`API ERROR: ${error}`);
 	} else if (response) {
-		logger.info(`<API RESPONSE> ${getTimestamp()}  ${inspect(response)}`);
+		logger.info(`API RESPONSE: ${inspect(response)}`);
 	}
 }
 
@@ -452,7 +383,7 @@ function outputHelpCategory(selection, userID) { //eslint-disable-line
  * @param {String} selectionType - type of selection that timed out
  */
 function reactionTimedOut(userID, selectionType) {
-	logger.info((`<INFO> ${getTimestamp()}  After 40 seconds, there were no reactions.`));
+	logger.info((`After 40 seconds, there were no reactions.`));
 	sendEmbedMessage(`${capitalizeFirstLetter(selectionType)} Reponse Timed Out`,
 		`${scrubIdToNick[userID]}, you have not made a ${selectionType} selection, via reaction, so I'm not listening to you anymore 😛`, userID);
 }
@@ -736,7 +667,7 @@ function scheduleRecurringJobs() {
 		const lottoTime = config.lottoTime;
 		const lottoRule = `0 ${lottoTime.hour} ${lottoTime.day} ${lottoTime.month} *`;
 		schedule.scheduleJob(lottoRule, function() {
-			logger.info(`<INFO> ${getTimestamp()}  Beyond lotto ending`);
+			logger.info(`Beyond lotto ending`);
 			gambling.endLotto();
 		});
 
@@ -805,7 +736,7 @@ function replaceOrAddColorRole(guild, color, hex, targetUser) {
 			color: hex
 		})
 		.catch((err) => {
-			logger.error(`<ERROR> ${getTimestamp()}  Edit Role Error: ${err}`);
+			logger.error(`Edit Role Error: ${err}`);
 		});
 	});
 
@@ -820,7 +751,7 @@ function replaceOrAddColorRole(guild, color, hex, targetUser) {
 		targetUser.addRole(role);
 	})
 	.catch((err) => {
-		logger.error(`<ERROR> ${getTimestamp()}  Add Role Error: ${err}`);
+		logger.error(`Add Role Error: ${err}`);
 	});
 }
 
@@ -881,7 +812,7 @@ function playSoundByte(channel, target, userID) {
 	if (soundBytes.includes(target.toLowerCase())) {
 		channel.join()
 		.then((connection) => {
-			logger.error(`<INFO> ${getTimestamp()}  Connected to channel!`);
+			logger.error(`Connected to channel!`);
 			const dispatcher = connection.playFile(`./resources/audio/${target}.mp3`);
 
 			dispatcher.on('end', () => {
@@ -889,7 +820,7 @@ function playSoundByte(channel, target, userID) {
 			});
 		})
 		.catch((err) => {
-			logger.error(`<ERROR> ${getTimestamp()}  Soundbyte Error: ${err}`);
+			logger.error(`Soundbyte Error: ${err}`);
 		});
 	}
 }
@@ -1171,7 +1102,7 @@ function quoteUser(ogMessage, quotedUserID, quotingUserID, channelID) {
 	quoteableMessages.forEach((message) => {
 		message.awaitReactions(filter, { time: 15000, max: 2})
 		.then((collected) => {
-			logger.info(`<INFO> ${getTimestamp()}  Collected ${collected.size} reactions: ${inspect(collected)}`);
+			logger.info(`Collected ${collected.size} reactions: ${inspect(collected)}`);
 			var replyQuotes = quotingUserIDToQuotes[quotingUserID] || [];
 			collected.forEach((reaction) => {
 				const quote = {
@@ -1188,7 +1119,7 @@ function quoteUser(ogMessage, quotedUserID, quotingUserID, channelID) {
 			});
 		})
 		.catch((err) => {
-			logger.error(`<ERROR> ${getTimestamp()}  Add Role Error: ${err}`);
+			logger.error(`Add Role Error: ${err}`);
 		});
 	});
 }
@@ -1407,7 +1338,7 @@ function updateMuteAndDeaf(channels) {
 				}
 			} else if (!muteAndDeafUserIDToTime[member.id] && !isInPurgatoryOrAFK(channel.id)) {
 				muteAndDeafUserIDToTime[member.id] = moment();
-				logger.info(`<INFO> ${getTimestamp()}  Adding ${getNick(member.id)} to mute & deaf list.`);
+				logger.info(`Adding ${getNick(member.id)} to mute & deaf list.`);
 			}
 		});
 	});
@@ -1429,7 +1360,7 @@ function maybeMoveMuteAndDeaf() {
 		if (!deafMember) { continue; }
 
 		deafMember.setVoiceChannel(purgatoryVC);
-		logger.info(`<INFO> ${getTimestamp()}  Sending ${getNick(deafMember.id)} to solitary for being mute & deaf.`);
+		logger.info(`Sending ${getNick(deafMember.id)} to solitary for being mute & deaf.`);
 	}
 }
 
@@ -1475,9 +1406,9 @@ function banSpammer(user, channel, days = 2, isMagicWord) {
 	channel.overwritePermissions(user, {
 		SEND_MESSAGES: false
 	})
-	.then(logger.info(`<INFO> ${getTimestamp()}  Banning ${getNick(user.id)} from ${channel.name} for spamming.`))
+	.then(logger.info(`Banning ${getNick(user.id)} from ${channel.name} for spamming.`))
 	.catch((err) => {
-		logger.error(`<ERROR> ${getTimestamp()}  Ban - Overwrite Permissions Error: ${err}`);
+		logger.error(`Ban - Overwrite Permissions Error: ${err}`);
 	});
 	usersBans.push({
 		channelID: channel.id,
@@ -1528,9 +1459,9 @@ function unBanSpammer(userID, channelID) {
 	channel.overwritePermissions(userID, {
 		SEND_MESSAGES: true
 	})
-	.then(logger.info(`<INFO> ${getTimestamp()}  Un-banning ${scrubIdToNick[userID]} from ${channel.name} for spamming.`))
+	.then(logger.info(`Un-banning ${scrubIdToNick[userID]} from ${channel.name} for spamming.`))
 	.catch((err) => {
-		logger.error(`<ERROR> ${getTimestamp()}  Un-ban - Overwrite Permissions Error: ${err}`);
+		logger.error(`Un-ban - Overwrite Permissions Error: ${err}`);
 	});
 	delete bannedUserIDToBans[userID];
 	exportBanned();
@@ -1812,7 +1743,7 @@ function addInvitedByRole(newMember) {
  * @param {Object} message - the message to delete
  */
 function deleteMessage(message) {
-	logger.info(`<INFO> ${getTimestamp()} Deleting message with content: "${message.content}"`);
+	logger.info(`Deleting message with content: "${message.content}"`);
 	message.delete();
 }
 
@@ -1877,7 +1808,7 @@ function capitalizeFirstLetter(original) {
  * @param {String} fileName - name of the file
  */
 function exportJson(content, fileName) {
-	fs.writeFile(`./resources/data/${fileName}.json`, JSON.stringify(content), 'utf8', log);
+	fs.writeFileSync(`./resources/data/${fileName}.json`, JSON.stringify(content));
 }
 
 /**
@@ -1919,7 +1850,7 @@ function reviewMessages(reviewer) {
 	reviewer.createDM()
 	.then((dm) => {
 		reviewQueue.forEach((message) => {
-			logger.info(`<INFO> ${getTimestamp()}  Message to review: ${message}`);
+			logger.info(`Message to review: ${message}`);
 			dm.send(message);
 		});
 	});
@@ -1954,7 +1885,6 @@ function formatAsBoldCodeBlock(text) {
 //AdminUtil
 exports.backupJson = backupJson;
 exports.banSpammer = banSpammer;
-exports.enableServerLogRedirect = enableServerLogRedirect;
 exports.handleMuteAndDeaf = handleMuteAndDeaf;
 exports.isAdmin = isAdmin;
 exports.isDevEnv = isDevEnv;
@@ -1988,7 +1918,6 @@ exports.deleteQuoteTipMsg = deleteQuoteTipMsg;
 exports.exportQuotes = exportQuotes;
 exports.getQuotes = getQuotes;
 exports.log = log;
-exports.logger = logger;
 exports.maybeInsertQuotes = maybeInsertQuotes;
 exports.maybeReplicateLol = maybeReplicateLol;
 exports.maybeUpdateDynamicMessage = maybeUpdateDynamicMessage;
@@ -1997,7 +1926,6 @@ exports.sendAuthoredMessage = sendAuthoredMessage;
 exports.sendDynamicMessage = sendDynamicMessage;
 exports.sendEmbedFieldsMessage = sendEmbedFieldsMessage;
 exports.sendEmbedMessage = sendEmbedMessage;
-exports.toggleServerLogRedirect = toggleServerLogRedirect;
 //
 
 // True Util

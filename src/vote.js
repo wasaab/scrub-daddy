@@ -1,6 +1,7 @@
 var c = require('./const.js');
 var bot = require('./bot.js');
 var util = require('./utilities.js');
+var logger = require('./logger.js').botLogger;
 
 var voteChannelMembers = {
 	'370625207150575617' : [],						//Beyond
@@ -64,7 +65,7 @@ exports.getTotalVotesForTarget = function(user, userID, kickChannel, channelID, 
 	if (!kickChannel) {
 		const description = `Sup ${user}! Tryna voteinfo @user from nothing, ey dumbass?`;
 		util.sendEmbedMessage(null, description, userID);
-		util.logger.info(`<INFO> ${util.getTimestamp()}  ${user} is trying to voteinfo @user from nothing.`);
+		logger.info(`${user} is trying to voteinfo @user from nothing.`);
 		return;
 	}
 	var target = util.getTargetFromArgs(args, 1);
@@ -137,14 +138,14 @@ function maybeEndVote(voteData, roles, userID) {
 
 	const channelSize = voteChannelMembers[voteData.channelID].length;
 	const majority = channelSize/2;
-	util.logger.info(`<INFO> ${util.getTimestamp()}  majority: ${majority} votes: ${votes[voteData.targetConcat]}`);
+	logger.info(`majority: ${majority} votes: ${votes[voteData.targetConcat]}`);
 	if (channelSize > 2 && votes[voteData.targetConcat] > majority) {
 		const targetName = voteData.targetConcat.split(':-:')[0];
 		endVote(voteData, target, roles);
 
 		const description = `${targetName} has been voted off the island, a.k.a. ${voteData.channelName}! 🔨` ;
 		util.sendEmbedMessage(null, description, userID);
-		util.logger.info(`<KICK> ${util.getTimestamp()}  Kicking ${targetName} from ${voteData.channelName}`);
+		logger.info(`Kicking ${targetName} from ${voteData.channelName}`);
 	}
 }
 
@@ -169,7 +170,7 @@ exports.conductVote = function(user, userID, channelID, args, type, kickChannel,
 	if (!kickChannel) {
 		const description = `Sup ${user}! Tryna vote${type} from nothing, ey dumbass?`;
 		util.sendEmbedMessage(null, description, userID);
-		util.logger.info(`<INFO> ${util.getTimestamp()}  ${user} is trying to kick from nothing.`);
+		logger.info(`${user} is trying to kick from nothing.`);
 		return;
 	}
 
@@ -206,7 +207,7 @@ exports.conductVote = function(user, userID, channelID, args, type, kickChannel,
 				targetConcat: targetConcat,
 			};
 			maybeEndVote(currVote, roles, userID);
-			util.logger.info(`<INFO> ${util.getTimestamp()}  ${votes[targetConcat]}${msg}${target} from ${kickChannel.name}`);
+			logger.info(`${votes[targetConcat]}${msg}${target} from ${kickChannel.name}`);
 		} else {
 			//custom vote
 			var message = votes[targetConcat] + msg;
@@ -218,11 +219,11 @@ exports.conductVote = function(user, userID, channelID, args, type, kickChannel,
 				}
 			}
 			util.sendEmbedMessage(null, `📋 ${message}`, userID);
-			util.logger.info(`<INFO> ${util.getTimestamp()}  ${message}`);
+			logger.info(`${message}`);
 		}
 	} else {
 		const message = `Screw yourself ${user}! You can only vote for a person once.`;
 		util.sendEmbedMessage(null, message, userID);
-		util.logger.info(`<INFO> ${util.getTimestamp()}  ${user} is attempting to vote for a person more than once.`);
+		logger.info(`${user} is attempting to vote for a person more than once.`);
 	}
 };

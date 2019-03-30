@@ -5,6 +5,7 @@ var get = require('lodash.get');
 var c = require('./const.js');
 var bot = require('./bot.js');
 var util = require('./utilities.js');
+var logger = require('./logger.js').botLogger;
 
 var loot = require('../resources/data/loot.json');
 var ledger = require('../resources/data/ledger.json');   //keeps track of how big of an army each member has as well as bet amounts
@@ -490,7 +491,7 @@ exports.endLotto = function() {
 
     const winningMsg = winningMsgs[util.getRand(0, winningMsgs.length)];
     util.sendEmbedMessage('The Beyond Lotto Has Concluded', winningMsg, null, c.BEYOND_LOTTO_IMG);
-    util.logger.info(`<INFO> ${util.getTimestamp()}  Beyond lotto winner = ${winner}`);
+    logger.info(`Beyond lotto winner = ${winner}`);
 
     const server = bot.getServer();
     const winningUser = server.members.find('id', winnerID);
@@ -750,7 +751,7 @@ function updateRenamedList(oldName, newName, endTime) {
             message.edit('', updatedMsg);
         })
         .catch((err) => {
-            util.logger.error(`<ERROR> ${util.getTimestamp()}  Edit Renamed List Msg Error: ${err}`);
+            logger.error(`Edit Renamed List Msg Error: ${err}`);
         });
 }
 
@@ -792,7 +793,7 @@ exports.renameUserRoleOrChannel = function(type, targetID, args, tierNumber, use
             updateRenamedList(oldName, name, formattedUnlockTime);
         })
         .catch((err) => {
-            util.logger.error(`<ERROR> ${util.getTimestamp()}  Edit Name Error: ${err}`);
+            logger.error(`Edit Name Error: ${err}`);
         });
 };
 
@@ -857,7 +858,7 @@ function updateChannelTopicWithMagicWordCount(channelID) {
 
     channel.setTopic(topic)
         .catch((err) => {
-            util.logger.error(`<ERROR> ${util.getTimestamp()}  Edit Channel Topic for Magic Word Error: ${err}`);
+            logger.error(`Edit Channel Topic for Magic Word Error: ${err}`);
         });
 }
 
@@ -890,7 +891,7 @@ exports.checkForMagicWords = function(message) {
 
     if (banDays === 0) { return; }
 
-    util.logger.info(`<INFO> ${util.getTimestamp()}  Banning ${util.getNick(message.author.id)}`
+    logger.info(`Banning ${util.getNick(message.author.id)}`
         + ` for saying the magic words "${magicWordMatches}" in ${util.mentionChannel(channelID)}`);
     util.banSpammer(message.author, message.channel, banDays, true);
 };

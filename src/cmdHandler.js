@@ -1,6 +1,7 @@
 var Fuse = require('fuse.js');
 var c = require('./const.js');
 var util = require('./utilities.js');
+var logUtil = require('./logger.js');
 var ratings = require('./ratings.js');
 var heatmap = require('./heatmap.js');
 var gambling = require('./gambling.js');
@@ -11,6 +12,7 @@ var cars = require('./cars.js');
 var blackjack = require("./blackjack.js");
 var config = require('../resources/data/config.json');
 var fuse = new Fuse(c.COMMANDS, {verbose: false});
+var logger = logUtil.botLogger;
 
 /**
  * Returns the closest matching command to what was provided.
@@ -18,7 +20,7 @@ var fuse = new Fuse(c.COMMANDS, {verbose: false});
 function findClosestCommandMatch(command) {
 	const fuzzyResults = fuse.search(command.toLowerCase());
 	if (fuzzyResults.length !== 0) {
-		util.logger.info(`<INFO> ${util.getTimestamp()}	1st: ${c.COMMANDS[fuzzyResults[0]]}, 2nd: ${c.COMMANDS[fuzzyResults[1]]}`);
+		logger.cmd(`1st: ${c.COMMANDS[fuzzyResults[0]]}, 2nd: ${c.COMMANDS[fuzzyResults[1]]}`);
 		return c.COMMANDS[fuzzyResults[0]];
 	}
 }
@@ -219,7 +221,7 @@ exports.handle = function(message) {
 	}
 	function logCalled() {
 		if (!util.isAdmin(userID)) { return; }
-		util.toggleServerLogRedirect(userID);
+		logUtil.toggleServerLogRedirect(userID);
 	}
 	function lottoCalled() {
 		if (args[1] && args[1] === 'check') {
@@ -435,20 +437,20 @@ exports.handle = function(message) {
 		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.CUSTOM);
 	}
 	function votebanCalled() {
-		util.logger.info(`<VOTE Ban> ${util.getTimestamp()}  ${user}: ${message}`);
+		logger.info(`VOTE Ban - ${user}: ${message}`);
 		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.BAN, message.member.voiceChannel, message.guild.roles);
 	}
 	function voteinfoCalled() {
 		if (!args[1]) {
-			util.logger.info(`<VOTE Info Custom> ${util.getTimestamp()}  ${user}: ${message}`);
+			logger.info(`VOTE Info Custom - ${user}: ${message}`);
 			vote.getCustomVoteTotals(userID);
 		} else {
-			util.logger.info(`<VOTE Info User> ${util.getTimestamp()}  ${user}: ${message}`);
+			logger.info(`VOTE Info User - ${user}: ${message}`);
 			vote.getTotalVotesForTarget(user, userID, message.member.voiceChannel, channelID, args);
 		}
 	}
 	function votekickCalled() {
-		util.logger.info(`<VOTE Kick> ${util.getTimestamp()}  ${user}: ${message}`);
+		logger.info(`VOTE Kick - ${user}: ${message}`);
 		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.KICK, message.member.voiceChannel, message.guild.roles);
 	}
 	function whoPlaysCalled() {
@@ -562,10 +564,10 @@ exports.handle = function(message) {
 
 	if (args[1] === 'help') {
 		args[1] = args[0];
-		util.logger.info(`<CMD> ${util.getTimestamp()}  help for ${cmd} called`);
+		logger.cmd(`help for ${cmd} called`);
 		helpCalled();
 	} else if (commandToHandler[cmd]){
-		util.logger.info(`<CMD> ${util.getTimestamp()}  ${cmd} called`);
+		logger.cmd(`${cmd} called`);
 		return commandToHandler[cmd]();
 	}
 };

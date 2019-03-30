@@ -10,6 +10,7 @@ var rt = require('lw5');
 var c = require('./const.js');
 var bot = require('./bot.js');
 var util = require('./utilities.js');
+var logger = require('./logger.js').botLogger;
 var private = require('../../private.json');
 var ratings = require('../resources/data/ratings.json');
 var ratingsResponses = 0;
@@ -30,17 +31,19 @@ function determineTitle(original) {
 	const lowers = ['A', 'An', 'The', 'And', 'But', 'Or', 'For', 'Nor', 'As', 'At',
 	'By', 'For', 'From', 'In', 'Into', 'Near', 'Of', 'On', 'Onto', 'To', 'With'];
 
-	for (var i = 0, j = lowers.length; i < j; i++)
+	for (var i = 0, j = lowers.length; i < j; i++) {
 		title = title.replace(new RegExp('\\s' + lowers[i] + '\\s', 'g'),
 		function(txt) {
 			return txt.toLowerCase();
 		});
+	}
 
 	// Certain words such as initialisms or acronyms should be left uppercase
 	const uppers = ['Id', 'Tv'];
-	for (i = 0, j = uppers.length; i < j; i++)
+	for (i = 0, j = uppers.length; i < j; i++) {
 		title = title.replace(new RegExp('\\b' + uppers[i] + '\\b', 'g'),
 		uppers[i].toUpperCase());
+	}
 
 	return title;
 }
@@ -231,8 +234,8 @@ function maybeExportAndRefreshRatings(channel, titleToPartialTitleMatch, missing
 		updateExternalRatingsJson();
 		ratingsResponses = 0;
 		refreshRatings(channel, isCalledByStartup);
-		util.logger.error(`\n\n<ERROR> ${util.getTimestamp()}  3rd Party Ratings Partial Matches: ${inspect(titleToPartialTitleMatch)}`);
-		util.logger.error(`\n\n<ERROR> ${util.getTimestamp()}  3rd Party Ratings Not Matched: ${inspect(missingTitles)}`);
+		logger.error(`\n\n3rd Party Ratings Partial Matches: ${inspect(titleToPartialTitleMatch)}`);
+		logger.error(`\n\n3rd Party Ratings Not Matched: ${inspect(missingTitles)}`);
 	}
 }
 
@@ -261,7 +264,7 @@ function updateThirdPartyRatingsForCategory(site, responses, category) {
 		const targetTitle = titles[responseIdx];
 		if (!response.success) {
 			titlesNotFound.push(targetTitle);
-			//util.logger.error(`<ERROR> ${util.getTimestamp()}  RT/IMDB Rating not found for title "${targetTitle}", Error: ${inspect(response.error)}`);
+			//logger.error(`RT/IMDB Rating not found for title "${targetTitle}", Error: ${inspect(response.error)}`);
 			return;
 		}
 
@@ -272,11 +275,11 @@ function updateThirdPartyRatingsForCategory(site, responses, category) {
 
 		if (!category[title] && !category[`${title} 🎌`]) {
 			titleToPartialMatch[targetTitle] = title;
-			//util.logger.error(`<ERROR> ${util.getTimestamp()}  RT/IMDB rating found, but expected title of ${targetTitle} does not match result: ${title}`);
+			//logger.error(`RT/IMDB rating found, but expected title of ${targetTitle} does not match result: ${title}`);
 		} else {
 			title = category[title] ? title : `${title} 🎌`;
 			category[title][`${site}Rating`] = score;
-			//util.logger.info(`<INFO> ${util.getTimestamp()} ${site} Rating for ${title} = ${score}`);
+			//logger.info(`${site} Rating for ${title} = ${score}`);
 		}
 	});
 
@@ -389,7 +392,7 @@ exports.outputRatings = function(rating, category, isVerified, channel) {
 				message.edit('', updatedMsg);
 			})
 			.catch((err) => {
-				util.logger.error(`<ERROR> ${util.getTimestamp()}  Edit Ratings Msg Error: ${err}`);
+				logger.error(`Edit Ratings Msg Error: ${err}`);
 			});
 	} else {
 		const categoryEmoji = c[`${category.toUpperCase()}_EMOJI`];
@@ -605,7 +608,7 @@ exports.delete = function(args, channel, userID) {
 				' as you are not the sole reviewer of this title.', userID, null, null, null, channel.id);
 	}
 
-	util.logger.info(`<INFO> ${util.getTimestamp()} Deleting rating for "${title}" in ${category}`);
+	logger.info(`Deleting rating for "${title}" in ${category}`);
 	if (isVerified) {
 		delete ratings[category][title];
 	} else {
@@ -673,7 +676,7 @@ function updateExternalRatingsJson() {
 	};
 	rp(options)
 		.then(() => {
-			util.logger.info(`<INFO> ${util.getTimestamp()} Reviews external json updated`);
+			logger.info(`Reviews external json updated`);
 		})
 		.catch(util.log);
 }
