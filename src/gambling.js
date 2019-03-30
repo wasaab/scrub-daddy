@@ -119,7 +119,7 @@ exports.reserve = function(userID) {
  */
 function removeFromArmy(userID, amount) {
     ledger[userID].armySize -= amount;
-    ledger[userID].scrubsDischared += amount;
+    ledger[userID].stats.scrubsDischared += amount;
 }
 
 function maybeCreateLedgerEntry(userID) {
@@ -140,10 +140,10 @@ function addToArmy(userID, amount) {
     const userEntry = ledger[userID];
 
     userEntry.armySize += amount;
-    userEntry.scrubsEnlisted += amount;
+    userEntry.stats.scrubsEnlisted += amount;
 
-    if (userEntry.armySize > userEntry.recordArmy) {
-        userEntry.recordArmy = userEntry.armySize;
+    if (userEntry.armySize > userEntry.stats.recordArmy) {
+        userEntry.stats.recordArmy = userEntry.armySize;
     }
 }
 
