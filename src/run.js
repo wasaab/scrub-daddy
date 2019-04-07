@@ -1,0 +1,1 @@
+require('forever').start('./src/bot.js', { uid: 12345 });

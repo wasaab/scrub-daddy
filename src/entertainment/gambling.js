@@ -250,9 +250,9 @@ exports.maybeRefundUnfinishedRace = function() {
 
     if (!scrubDaddyEntry || !scrubDaddyEntry.race) { return; }
 
-    const userIdToProgress = scrubDaddyEntry.race.userIdToProgress;
+    const userIdToEmoji = scrubDaddyEntry.race.userIdToEmoji;
 
-    for (var userID in userIdToProgress) {
+    for (var userID in userIdToEmoji) {
         const bet = ledger[userID].raceBet;
         addToArmy(userID, bet);
         resetLedgerAfterBet(userID, 'race');
@@ -262,25 +262,22 @@ exports.maybeRefundUnfinishedRace = function() {
     delete scrubDaddyEntry.race;
 };
 
-function updateRace(raceMsg, race) {
-    if (race.updates.length === 0) { return endRace(race.winner); }
+function updateRace(raceMsg, updates) {
+    if (updates.length === 0) { return endRace(); }
 
-    const updatedMsg = race.updates.pop();
-
-    raceMsg.edit('', updatedMsg)
+    raceMsg.edit('', updates.pop())
         .then((msgSent) => {
-            updateRace(msgSent, race);
+            updateRace(msgSent, updates);
         });
 }
 
-function startRace(race) {
-    race.ongoing = true;
-    race.updates = buildRaceProgressUpdates();
+function startRace() {
+    const updates = buildRaceProgressUpdates();
 
-    util.sendEmbedMessage('🏁 Race', race.updates.pop().description).then((msgSent) => {
+    util.sendEmbedMessage('🏁 Race', updates.pop().description).then((msgSent) => {
         setTimeout(() => {
-            updateRace(msgSent, race);
-        }, 5000);
+            updateRace(msgSent, updates);
+        }, 1500);
     });
 }
 
@@ -302,12 +299,13 @@ function buildRaceUpdate(userIdToProgress, sideline) {
 
 function buildRaceProgressUpdates() {
     const sideline = '━'.repeat(18);
+    const lane = `${c.FINISH_LINE}${'﹒ '.repeat(11)}`;
     const race = ledger[c.SCRUB_DADDY_ID].race;
-    const userIdToProgress = race.userIdToProgress;
-    const userIds = Object.keys(userIdToProgress);
+    const userIds = Object.keys(race.userIdToEmoji);
     var newProgress;
     var movingUserId;
     var raceUpdates = [];
+    var userIdToProgress = {};
 
     function updateProgress() {
         movingUserId = userIds[util.getRand(0, userIds.length)];
@@ -316,6 +314,10 @@ function buildRaceProgressUpdates() {
         raceUpdates.push(buildRaceUpdate(userIdToProgress, sideline));
     }
 
+    userIds.forEach((userID) => {
+        userIdToProgress[userID] = lane + race.userIdToEmoji[userID];
+    });
+
     raceUpdates.push(buildRaceUpdate(userIdToProgress, sideline));
 
     while (!newProgress || newProgress.startsWith(`${c.FINISH_LINE}﹒`)) {
@@ -323,16 +325,17 @@ function buildRaceProgressUpdates() {
     }
 
     race.winner = {
-        emoji: newProgress.split(c.FINISH_LINE)[1],
+        emoji: race.userIdToEmoji[movingUserId],
         id: movingUserId,
-        racerIds: Object.keys(userIdToProgress)
+        racerIds: userIds
     };
 
     return raceUpdates.reverse();
 }
 
-function endRace(winner) {
+function endRace() {
     const scrubDaddyEntry = ledger[c.SCRUB_DADDY_ID];
+    const winner = scrubDaddyEntry.race.winner;
     const payoutMultiplier = winner.racerIds.length < 4 ? 2 : 2.6;
     var winnings = Math.floor(ledger[winner.id].raceBet * payoutMultiplier);
     var extraWinningsMsg = '';
@@ -362,17 +365,15 @@ function isAbleToAffordBet(userID, bet) {
     return userEntry && userEntry.armySize >= bet;
 }
 
-function enterRaceAndGetEmoji(userID, bet, type) {
+function enterRace(userID, bet, type) {
     const scrubDaddyEntry = ledger[c.SCRUB_DADDY_ID];
     const racerEmoji = scrubDaddyEntry.race.racerEmojis.pop();
     const updatedSDArmySize = scrubDaddyEntry.armySize ? scrubDaddyEntry.armySize + bet : bet;
 
     takeBetFromUser(userID, bet, type);
     scrubDaddyEntry.armySize = updatedSDArmySize;
-    scrubDaddyEntry.race.userIdToProgress[userID] = `${c.FINISH_LINE}${'﹒ '.repeat(12)}${racerEmoji}`;
+    scrubDaddyEntry.race.userIdToEmoji[userID] = racerEmoji;
     util.sendEmbedMessage('New Race Competitor', `Watch out boys, ${util.mentionUser(userID)}'s ${racerEmoji} has joined the race.`, userID);
-
-    return racerEmoji;
 }
 
 exports.race = function(userID, args, type) {
@@ -387,7 +388,7 @@ exports.race = function(userID, args, type) {
         ledger[c.SCRUB_DADDY_ID] = Object.assign(scrubDaddyEntry, {
             race: {
                 bet: Number(args[1]),
-                userIdToProgress: {},
+                userIdToEmoji: {},
                 racerEmojis: racerEmojis
             }
         });
@@ -395,29 +396,27 @@ exports.race = function(userID, args, type) {
 
     const race = scrubDaddyEntry.race;
 
-    if (race.ongoing || !isAbleToAffordBet(userID, race.bet)|| race.userIdToProgress[userID] || race.racerEmojis.length === 0) { return; }
+    if (race.ongoing || !isAbleToAffordBet(userID, race.bet)|| race.userIdToEmoji[userID] || race.racerEmojis.length === 0) { return; }
 
-    const racerEmoji = enterRaceAndGetEmoji(userID, race.bet, type);
+    enterRace(userID, race.bet, type);
 
-    if (Object.keys(race.userIdToProgress).length !== 1) { return; }
+    if (Object.keys(race.userIdToEmoji).length !== 1) { return; }
 
     util.sendEmbedMessage('Race Starting Soon', `A race will start in 20 seconds.\n`
         + `Call ${util.formatAsBoldCodeBlock(`${config.prefix}race`)} to enter with a bet of ${util.formatAsBoldCodeBlock(race.bet)} Scrubbing Bubbles.`);
     setTimeout(() => {
-        if (Object.keys(race.userIdToProgress).length === 1) {
-            return cancelRace(scrubDaddyEntry, race, userID, racerEmoji);
+        if (Object.keys(race.userIdToEmoji).length === 1) {
+            return cancelRace(race, userID);
         }
 
-        startRace(race);
+        race.ongoing = true;
+        startRace();
     }, 20000);
 };
 
-function cancelRace(scrubDaddyEntry, race, userID, racerEmoji) {
-    scrubDaddyEntry.armySize -= race.bet;
-    ledger[userID].armySize += race.bet;
-    resetLedgerAfterBet(userID, 'race');
-    delete scrubDaddyEntry.race;
-    util.sendEmbedMessage('Race Cancelled', `Sorry ${util.mentionUser(userID)}, looks like everybody is too 🐔 to challenge your ${racerEmoji}`);
+function cancelRace(race, userID) {
+    exports.maybeRefundUnfinishedRace();
+    util.sendEmbedMessage('Race Cancelled', `Sorry ${util.mentionUser(userID)}, looks like everybody is too 🐔 to challenge your ${race.userIdToEmoji[userID]}`);
 }
 
 /**

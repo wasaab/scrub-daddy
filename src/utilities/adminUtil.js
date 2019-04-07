@@ -1,3 +1,4 @@
+var execSync = require('child_process').execSync;
 var backup = require('backup');
 var moment = require('moment');
 var get = require('lodash.get');
@@ -259,15 +260,11 @@ function outputUpdatedHelpCategoriesPrompt() {
  * @param {Boolean} update - whether or not the bot should pull from github
  */
 function restartBot(update) {
-	const updateParam = update || '';
-	require('child_process')
-	.exec(`restart.sh ${updateParam}`, (error, stdout, stderr) => {
-		console.log('stdout: ' + stdout);	//eslint-disable-line
-		console.log('stderr: ' + stderr);	//eslint-disable-line
-		if (error !== null) {
-			console.log('exec error: ' + error);	//eslint-disable-line
-		}
-	});
+    if (update) {
+        execSync('git pull', {stdio: 'inherit'});
+	}
+
+	process.exit(0); //eslint-disable-line
 }
 
 /**
@@ -311,9 +308,7 @@ function restoreJsonFromBackup(backupTarget) {
 		const tempDir = './resources/resources';
 		backup.restore(backupPath, './resources/');
 		setTimeout(() => {
-			var spawn = require('child_process').execSync;
-
-			spawn(`mv ${tempDir}/data/* ./resources/data/`);
+			execSync(`mv ${tempDir}/data/* ./resources/data/`);
 			fs.rmdirSync(`${tempDir}/data`);
 			fs.rmdirSync(tempDir);
 			sendEmbedMessage('Data Restored From Backup', `All data files have been restored to the state they were in on ${backupTarget}.`);
