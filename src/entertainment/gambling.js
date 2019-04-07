@@ -486,7 +486,7 @@ function outputUserGamblingData(userID, args) {
 
     if (!userEntry) { return; }
 
-    const armySize = userEntry.armySize;
+    const armySize = 999;
     var title;
     var description = '';
 
