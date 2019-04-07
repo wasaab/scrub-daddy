@@ -1,20 +1,19 @@
 var inspect = require('util-inspect');
 var get = require('lodash.get');
-var fs = require('fs');
 
-var c = require('./const.js');
-var bot = require('./bot.js');
-var util = require('./utilities.js');
-var logUtil = require('./logger.js');
+var c = require('../const.js');
+var bot = require('../bot.js');
+var util = require('../utilities/utilities.js');
+var logger = require('../logger.js').botLogger;
 var cmdHandler = require('./cmdHandler.js');
-var gambling = require('./gambling.js');
-var ratings = require('./ratings.js');
-var games = require('./games.js');
-var cars = require('./cars.js');
-var logger = logUtil.botLogger;
+var scheduler = require('../scheduler.js');
+var gambling = require('../entertainment/gambling.js');
+var ratings = require('../channelEnhancements/ratings.js');
+var games = require('../entertainment/games.js');
+var cars = require('../channelEnhancements/cars.js');
 
-var config = require('../resources/data/config.json');
-var priv = require('../../private.json');
+var config = require('../../resources/data/config.json');
+var priv = require('../../../private.json');
 
 module.exports = class BotEventHandler {
     constructor(client) {
@@ -43,7 +42,7 @@ module.exports = class BotEventHandler {
          * listens for updates to a user's presence (online status, game, etc).
          */
         this.client.on('presenceUpdate', (oldMember, newMember) => {
-            if (util.isDevEnv()) { return; }
+            // if (util.isDevEnv()) { return; }
 
             const oldGame = get(oldMember, 'presence.game.name');
             const newGame = get(newMember, 'presence.game.name');
@@ -99,15 +98,16 @@ module.exports = class BotEventHandler {
         this.client.on('ready', () => {
             this.setChannels();
             util.updateMembers();
-            logUtil.enableServerLogRedirect();
-            util.scheduleRecurringJobs();
+            util.enableServerLogRedirect();
+            scheduler.scheduleRecurringJobs();
             logger.info(`Connected`);
 
             if (util.isDevEnv()) { return; }
 
             ratings.updateThirdPartyRatings(true);
             games.updatePlayingStatus();
-            util.updateLottoCountdown();
+            gambling.maybeRefundUnfinishedRace();
+            gambling.updateLottoCountdown();
             util.sendEmbedMessage('B A C K⠀O N L I N E !', null, null, c.ONLINE_IMG);
         });
 

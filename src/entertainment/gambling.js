@@ -2,14 +2,14 @@ var Discord = require('discord.js');
 var moment = require('moment');
 var get = require('lodash.get');
 
-var c = require('./const.js');
-var bot = require('./bot.js');
-var util = require('./utilities.js');
-var logger = require('./logger.js').botLogger;
+var c = require('../const.js');
+var bot = require('../bot.js');
+var util = require('../utilities/utilities.js');
+var logger = require('../logger.js').botLogger;
 
-var loot = require('../resources/data/loot.json');
-var ledger = require('../resources/data/ledger.json');   //keeps track of how big of an army each member has as well as bet amounts
-var config = require('../resources/data/config.json');
+var loot = require('../../resources/data/loot.json');
+var ledger = require('../../resources/data/ledger.json');   //keeps track of how big of an army each member has as well as bet amounts
+var config = require('../../resources/data/config.json');
 
 var dropped = 0;
 var previousMessage;
@@ -41,8 +41,8 @@ exports.giveScrubBubbles = function (userID, userName, targetMention, numBubbles
     if (util.getNick(targetID)) {
         removeFromArmy(userID, numBubbles);
         addToArmy(targetID, numBubbles);
-        const msg = `${targetMention}  ${getArmyGrownMessage(numBubbles)} ${getArmySizeMsg(userID)}`;
-        util.sendEmbedMessage(`Scrubbing Bubbles Gifted By ${userName}`, msg, targetID);
+        const msg = `${targetMention}  ${getArmyGrownMessage(numBubbles)} ${getArmySizeMsg(targetID)}`;
+        util.sendEmbedMessage(`Scrubbing Bubbles Gifted By ${userName}`, msg, userID);
     }
 };
 
@@ -141,6 +141,9 @@ function addToArmy(userID, amount) {
     const userEntry = ledger[userID];
 
     userEntry.armySize += amount;
+
+    if (!userEntry.stats) { return; }
+
     userEntry.stats.scrubsEnlisted += amount;
 
     if (userEntry.armySize > userEntry.stats.recordArmy) {
@@ -241,8 +244,183 @@ function addToGamblingStats(amount, userID, isWin) {
     addToGamblingStreaks(userStats, isWin);
 }
 
+exports.maybeRefundUnfinishedRace = function() {
+    const scrubDaddyEntry = ledger[c.SCRUB_DADDY_ID];
+
+    if (!scrubDaddyEntry || !scrubDaddyEntry.race) { return; }
+
+    const userIdToProgress = scrubDaddyEntry.race.userIdToProgress;
+
+    for (var userID in userIdToProgress) {
+        const bet = ledger[userID].raceBet;
+        addToArmy(userID, bet);
+        resetLedgerAfterBet(userID, 'race');
+        scrubDaddyEntry.armySize -= bet;
+    }
+
+    delete scrubDaddyEntry.race;
+};
+
+function updateRace(raceMsg, race) {
+    if (race.updates.length === 0) { return endRace(race.winner); }
+
+    const updatedMsg = race.updates.pop();
+
+    raceMsg.edit('', updatedMsg)
+        .then((msgSent) => {
+            updateRace(msgSent, race);
+        });
+}
+
+function startRace(race) {
+    race.ongoing = true;
+    race.updates = buildRaceProgressUpdates();
+
+    util.sendEmbedMessage('🏁 Race', race.updates.pop().description).then((msgSent) => {
+        setTimeout(() => {
+            updateRace(msgSent, race);
+        }, 5000);
+    });
+}
+
+function buildRaceUpdate(userIdToProgress, sideline) {
+    var raceUpdate = new Discord.RichEmbed({
+        color: 0xffff00,
+        title: '🏁 Race',
+        description: ''
+    });
+
+    for (var userID in userIdToProgress) {
+        raceUpdate.description += `${sideline}\n${userIdToProgress[userID]}\n`;
+    }
+
+    raceUpdate.description += sideline;
+
+    return raceUpdate;
+}
+
+function buildRaceProgressUpdates() {
+    const sideline = '━'.repeat(18);
+    const race = ledger[c.SCRUB_DADDY_ID].race;
+    const userIdToProgress = race.userIdToProgress;
+    const userIds = Object.keys(userIdToProgress);
+    var newProgress;
+    var movingUserId;
+    var raceUpdates = [];
+
+    function updateProgress() {
+        movingUserId = userIds[util.getRand(0, userIds.length)];
+        newProgress = userIdToProgress[movingUserId].replace('﹒ ', '');
+        userIdToProgress[movingUserId] = newProgress;
+        raceUpdates.push(buildRaceUpdate(userIdToProgress, sideline));
+    }
+
+    raceUpdates.push(buildRaceUpdate(userIdToProgress, sideline));
+
+    while (!newProgress || newProgress.startsWith(`${c.FINISH_LINE}﹒`)) {
+        updateProgress();
+    }
+
+    race.winner = {
+        emoji: newProgress.split(c.FINISH_LINE)[1],
+        id: movingUserId,
+        racerIds: Object.keys(userIdToProgress)
+    };
+
+    return raceUpdates.reverse();
+}
+
+function endRace(winner) {
+    const scrubDaddyEntry = ledger[c.SCRUB_DADDY_ID];
+    const payoutMultiplier = winner.racerIds.length < 4 ? 2 : 2.6;
+    var winnings = Math.floor(ledger[winner.id].raceBet * payoutMultiplier);
+    var extraWinningsMsg = '';
+
+    if (util.getRand(1, 11) === 1) {
+        const extraWinnings = util.getRand(1, scrubDaddyEntry.armySize);
+
+        scrubDaddyEntry.armySize -= extraWinnings;
+        winnings += extraWinnings;
+        extraWinningsMsg = `\n\nThe RNG Gods have blessed you with an additional ${util.formatAsBoldCodeBlock(extraWinnings)} `
+            + `Scrubbing Bubbles from ${util.mentionUser(c.SCRUB_DADDY_ID)}s army!`;
+    }
+
+    addToArmy(winner.id, winnings);
+    util.sendEmbedMessage('🏁 Race Finished', `🎊 ${winner.emoji} 🎊    ${util.mentionUser(winner.id)} is the winner mon!`
+        + `${extraWinningsMsg}\n\n${getArmyGrownMessage(winnings)} ${getArmySizeMsg(winner.id)}`);
+
+    winner.racerIds.forEach((userID) => {
+        resetLedgerAfterBet(userID, 'race');
+    });
+
+    delete scrubDaddyEntry.race;
+}
+
+function isAbleToAffordBet(userID, bet) {
+    const userEntry = ledger[userID];
+    return userEntry && userEntry.armySize >= bet;
+}
+
+function enterRaceAndGetEmoji(userID, bet, type) {
+    const scrubDaddyEntry = ledger[c.SCRUB_DADDY_ID];
+    const racerEmoji = scrubDaddyEntry.race.racerEmojis.pop();
+    const updatedSDArmySize = scrubDaddyEntry.armySize ? scrubDaddyEntry.armySize + bet : bet;
+
+    takeBetFromUser(userID, bet, type);
+    scrubDaddyEntry.armySize = updatedSDArmySize;
+    scrubDaddyEntry.race.userIdToProgress[userID] = `${c.FINISH_LINE}${'﹒ '.repeat(12)}${racerEmoji}`;
+    util.sendEmbedMessage('New Race Competitor', `Watch out boys, ${util.mentionUser(userID)}'s ${racerEmoji} has joined the race.`, userID);
+
+    return racerEmoji;
+}
+
+exports.race = function(userID, args, type) {
+    const scrubDaddyEntry = ledger[c.SCRUB_DADDY_ID] || {};
+
+    if (!scrubDaddyEntry.race) {
+        if (!args[1] || isNaN(args[1])) { return; }
+
+        const racerEmojis = c.RACER_EMOJIS.slice(0);
+
+        util.shuffleArray(racerEmojis);
+        ledger[c.SCRUB_DADDY_ID] = Object.assign(scrubDaddyEntry, {
+            race: {
+                bet: Number(args[1]),
+                userIdToProgress: {},
+                racerEmojis: racerEmojis
+            }
+        });
+    }
+
+    const race = scrubDaddyEntry.race;
+
+    if (race.ongoing || !isAbleToAffordBet(userID, race.bet)|| race.userIdToProgress[userID] || race.racerEmojis.length === 0) { return; }
+
+    const racerEmoji = enterRaceAndGetEmoji(userID, race.bet, type);
+
+    if (Object.keys(race.userIdToProgress).length !== 1) { return; }
+
+    util.sendEmbedMessage('Race Starting Soon', `A race will start in 20 seconds.\n`
+        + `Call ${util.formatAsBoldCodeBlock(`${config.prefix}race`)} to enter with a bet of ${util.formatAsBoldCodeBlock(race.bet)} Scrubbing Bubbles.`);
+    setTimeout(() => {
+        if (Object.keys(race.userIdToProgress).length === 1) {
+            return cancelRace(scrubDaddyEntry, race, userID, racerEmoji);
+        }
+
+        startRace(race);
+    }, 20000);
+};
+
+function cancelRace(scrubDaddyEntry, race, userID, racerEmoji) {
+    scrubDaddyEntry.armySize -= race.bet;
+    ledger[userID].armySize += race.bet;
+    resetLedgerAfterBet(userID, 'race');
+    delete scrubDaddyEntry.race;
+    util.sendEmbedMessage('Race Cancelled', `Sorry ${util.mentionUser(userID)}, looks like everybody is too 🐔 to challenge your ${racerEmoji}`);
+}
+
 /**
- * Handles !clean command. Takes the bet from the user and
+ * Handles clean command. Takes the bet from the user and
  * keeps it if they lose. If they win, twice the bet is given to the user.
  *
  * @param {String} userID - the id of the user betting
@@ -366,6 +544,8 @@ exports.armyRanks = function(userID) {
     var fields = [];
     const scrubIDToNick = util.getScrubIdToNick();
     for (var id in ledger) {
+        if (id === c.SCRUB_DADDY_ID) { continue; }
+
         fields.push(util.buildField(scrubIDToNick[id], ledger[id].armySize));
     }
     fields.sort(util.compareFieldValues);
@@ -385,6 +565,14 @@ exports.maybeDeletePreviousMessage = function (msg) {
         prevMsg.delete();
         previousMessage = msg;
     });
+};
+
+/**
+ * Updates the lotto countdown for use in playing status.
+ */
+exports.updateLottoCountdown = function() {
+	if (!config.lottoTime || util.isDevEnv()) { return; }
+	bot.getClient().user.setPresence({game: {name: `lotto ${exports.getTimeUntilLottoEnd().timeUntil}`}});
 };
 
 function isValidTime(monthDayTokens, hour) {
@@ -540,6 +728,8 @@ exports.fakeStealAll = function() {
 
     util.lock();
     for (var id in ledger) {
+        if (id === c.SCRUB_DADDY_ID) { continue; }
+
         const thirdOfArmy = Math.round(ledger[id].armySize/3);
         if (thirdOfArmy > 0) {
             ledger[id].armySize -= thirdOfArmy;
@@ -823,7 +1013,7 @@ function maybeRename(type, target, name) {
     }
 }
 
-function addRainbowRole(userID, targetUser, tierNumber, cmd) {
+function addRainbowRole(userID, targetUser, tierNumber, cmd) { //eslint-disable-line
     const server = bot.getServer();
     var rainbowRole = server.roles.find('name', 'rainbow');
 
@@ -935,4 +1125,27 @@ exports.rock = function(userID) {
     const userEntry = ledger[userID];
 
     userEntry.rocksDropped = userEntry.rocksDropped ? userEntry.rocksDropped + 1 : 1;
+};
+
+//Todo: use this for annoy
+exports.maybeJoinRandomChannelAndPlaySoundbyte = function() {
+	if (util.getRand(1, 21) > 13) {
+		const soundByteChoices = ['tryagainlater', 'cmdnotrecognized', 'repeatthat', 'betconfirmed'];
+		const voiceChannels = bot.getServer().channels.filterArray(
+			(channel) => channel.type === 'voice' && channel.members.size !== 0);
+		const chosenChannel = voiceChannels[util.getRand(0, voiceChannels.length)];
+		const chosenSoundByte = soundByteChoices[util.getRand(0, soundByteChoices.length)];
+		const chosenUserID = chosenChannel.members.first().id;
+
+		if (chosenSoundByte === 'betconfimed') {
+			betClean(chosenUserID, util.getRand(1, 11), 'clean');
+        }
+
+        chosenChannel.join()
+            .then((connection) => {
+                setTimeout(() => {
+                    util.playSoundByte(chosenChannel, chosenSoundByte, chosenUserID, connection);
+                }, util.getRand(2000, 9000));
+            });
+	}
 };

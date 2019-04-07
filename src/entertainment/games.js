@@ -6,18 +6,18 @@ var Fuse = require('fuse.js');
 var get = require('lodash.get');
 var fs = require('fs');
 var rp = require('request-promise');
-var c = require('./const.js');
-var bot = require('./bot.js');
-var util = require('./utilities.js');
-var logger = require('./logger.js').botLogger;
-var private = require('../../private.json');
-var optedInUsers = require('../resources/data/optedIn.json');		//users that have opted in to playtime tracking
-var userIDToFortniteUserName = require('../resources/data/fortniteUserData.json'); //map of Discord userID to Fortnite username
-var userIDToStreamingUrl = require('../resources/data/streaming.json'); //map of user id to the url of their stream
-var gamesPlayed = require('../resources/data/gamesPlayed.json');	//map of game name to users that play that game
-var gameHistory = require('../resources/data/gameHistory.json');	//timestamped log of player counts for each game
-var timeSheet = require('../resources/data/timeSheet.json');		//map of userID to gameToTimePlayed map for that user
-var heatMapData = require('../resources/data/rawHeatMapData.json');	//Heat map data for every day-hour combo.
+var c = require('../const.js');
+var bot = require('../bot.js');
+var util = require('../utilities/utilities.js');
+var logger = require('../logger.js').botLogger;
+var private = require('../../../private.json');
+var optedInUsers = require('../../resources/data/optedIn.json');		//users that have opted in to playtime tracking
+var userIDToFortniteUserName = require('../../resources/data/fortniteUserData.json'); //map of Discord userID to Fortnite username
+var userIDToStreamingUrl = require('../../resources/data/streaming.json'); //map of user id to the url of their stream
+var gamesPlayed = require('../../resources/data/gamesPlayed.json');	//map of game name to users that play that game
+var gameHistory = require('../../resources/data/gameHistory.json');	//timestamped log of player counts for each game
+var timeSheet = require('../../resources/data/timeSheet.json');		//map of userID to gameToTimePlayed map for that user
+var heatMapData = require('../../resources/data/rawHeatMapData.json');	//Heat map data for every day-hour combo.
 var gameChannels = [];		//voice channels that change name based upon what the users are playing
 var whoSaidScore = {};
 
@@ -878,13 +878,6 @@ exports.setFortniteName = function(userID, args) {
 	util.exportJson(userIDToFortniteUserName, 'fortniteUserData');
 };
 
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        let j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-}
-
 function sendSunkenSailorMessage(user, isSunken) {
 	user.createDM()
 	.then((dm) => {
@@ -896,7 +889,7 @@ exports.sunkenSailor = function(callingMember) {
 	if (!callingMember.voiceChannel) { return; }
 	var players = callingMember.voiceChannel.members.array();
 	if (players.length < 2) { return; }
-	shuffleArray(players);
+	util.shuffleArray(players);
 	util.sendEmbedMessage('Sunken Sailor Round Started', 'Feel free to join in https://aggie.io/c_ut33ka. You must be in the voice channel to participate.');
 	var nouns = fs.readFileSync('./resources/data/nouns.json'); //585 nouns
 	nouns = JSON.parse(nouns);
@@ -907,7 +900,7 @@ exports.sunkenSailor = function(callingMember) {
 		sendSunkenSailorMessage(players[i], false);
 	}
 	sendSunkenSailorMessage(players[players.length - 1], true);
-	shuffleArray(players);
+	util.shuffleArray(players);
 	var turnOrderMsg = '';
 	players.forEach((player, index) => {
 		turnOrderMsg += `\`${index + 1}.\`  **${util.getNick(player.id)}**\n`;
@@ -938,7 +931,7 @@ function getRandomQuotes(channel, minLength, minReactions, sampleSize) {
 				&& message.reactions.size >= minReactions
 				&& !message.author.bot;
 		});
-		shuffleArray(matchingQuotes);
+		util.shuffleArray(matchingQuotes);
 		return matchingQuotes.slice(0,5);
 	});
 }
@@ -949,13 +942,47 @@ function maybeGetImageFromContent(content) {
 	return images[util.getRand(0, images.length)];
 }
 
+/**
+ * Mentions a group of users with a custom message.
+ *
+ * @param {String} groupName - name of the group to mention
+ * @param {String[]} args - arguments passed to command
+ * @param {Object} message - the message command was sent in
+ * @param {Object} channel - channel command was sent in
+ * @param {String} userID - id of the user
+ */
+exports.mentionGroup = function(groupName, args, message, channel, userID) {
+	const customMessage = util.getTargetFromArgs(args, 2);
+	const { group, name } = util.getGroup(groupName);
+	const nickName = util.getNick(userID);
+
+	if (!group) {
+		//If no group found and called from bot spam or scrubs channel, trigger a call to letsPlay with groupName
+		if (c.BOT_SPAM_CHANNEL_ID === channel.id || c.SCRUBS_CHANNEL_ID === channel.id) {
+			const letsPlayArgs = ['lets-play', groupName];
+			exports.letsPlay(letsPlayArgs, userID, nickName, message, false, customMessage);
+		} else { //If no group found and called from any other channel, trigger a call to mentionChannelsPowerUsers
+			util.mentionChannelsPowerUsers(channel, nickName, customMessage);
+		}
+	} else if (Array.isArray(group)) { //Mention the group of users retrieved from getGroup
+		var msg = `↪️ **${nickName}**: \`@${name}\` ${customMessage}`;
+		group.forEach((groupMemberID) => {
+			msg += ` ${util.mentionUser(groupMemberID)}`;
+		});
+		bot.getScrubsChannel().send(msg);
+	} else { //Trigger a call to letsPlay with title retrieved from getGroup
+		const letsPlayArgs = ['lets-play','-r', ...group.split(' ')];
+		exports.letsPlay(letsPlayArgs, userID, nickName, message, false, customMessage);
+	}
+};
+
 exports.splitGroup = function(callingMember) {
 	if (!callingMember.voiceChannel) { return; }
 
 	var players = callingMember.voiceChannel.members.array();
 	if (players.length < 2) { return; }
 
-	shuffleArray(players);
+	util.shuffleArray(players);
 	var turnOrderMsg = '';
 	players.forEach((player, index) => {
 		turnOrderMsg += `\`${index + 1}.\`  **${util.getNick(player.id)}**\n`;

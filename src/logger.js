@@ -1,8 +1,6 @@
+const moment = require('moment');
 const winston = require('winston');
 const Transport = require('winston-transport');
-const util = require('./utilities.js');
-const bot = require('./bot.js');
-const c = require('./const.js');
 
 /**
  * Console logger.
@@ -37,8 +35,17 @@ class DiscordServerTransport extends Transport {
 	}
 }
 
+/**
+ * Gets a timestamp representing the current time.
+ *
+ * @return {String} properly formatted timestamp
+ */
+function getTimestamp() {
+	return moment().format('ddd h:mm A');
+}
+
 const format = winston.format((info) => {
-	info.message = `<${info.level.toUpperCase()}> ${util.getTimestamp()} |	${info.message}`;
+	info.message = `<${info.level.toUpperCase()}> ${getTimestamp()} |	${info.message}`;
 	return info;
 });
 
@@ -53,31 +60,5 @@ const logger = new winston.createLogger({
 	transports: [ new ConsoleTransport({ level: 'cmd' }) ]
 });
 
-/**
- * Enables the server log redirect.
- */
-exports.enableServerLogRedirect = function() {
-    const logChannel = bot.getLogChannel();
-
-	if (!logChannel) { return; }
-	logger.add(new DiscordServerTransport({ level: 'cmd', channel: logChannel }));
-};
-
-/**
- * Toggles the logger redirect to discord text channel on or off.
- */
-exports.toggleServerLogRedirect = function(userID) {
-	if (logger.transports.length === 2) {
-		const discordTransport = logger.transports.find((transport) => {
-			return transport.constructor.name === 'DiscordServerTransport';
-		});
-
-		logger.remove(discordTransport);
-		util.sendEmbedMessage('Server Log Redirection Disabled', 'Server logs will stay where they belong!', userID);
-	} else {
-		exports.enableServerLogRedirect();
-		util.sendEmbedMessage('Server Log Redirection Enabled', `The server log will now be redirected to ${util.mentionChannel(c.LOG_CHANNEL_ID)}`, userID);
-	}
-};
-
 exports.botLogger = logger;
+exports.DiscordServerTransport = DiscordServerTransport;

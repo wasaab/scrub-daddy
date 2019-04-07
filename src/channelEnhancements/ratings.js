@@ -7,12 +7,12 @@ var get = require('lodash.get');
 var rp = require('request-promise');
 var rt = require('lw5');
 
-var c = require('./const.js');
-var bot = require('./bot.js');
-var util = require('./utilities.js');
-var logger = require('./logger.js').botLogger;
-var private = require('../../private.json');
-var ratings = require('../resources/data/ratings.json');
+var c = require('../const.js');
+var bot = require('../bot.js');
+var util = require('../utilities/utilities.js');
+var logger = require('../logger.js').botLogger;
+var private = require('../../../private.json');
+var ratings = require('../../resources/data/ratings.json');
 var ratingsResponses = 0;
 
 /**

@@ -1,9 +1,9 @@
 var path = require('path');
 var d3 = require('d3');
-var util = require('./utilities.js');
-var imgUtils = require('./imageUtils.js');
+var util = require('../utilities/utilities.js');
+var imgConverter = require('./imageConverter.js');
 
-var jsdom = require("jsdom");
+var jsdom = require('jsdom');
 const { JSDOM } = jsdom;
 const { document } = new JSDOM(`<!DOCTYPE html><html><body></body></html>`).window;
 
@@ -63,6 +63,8 @@ svg.selectAll(".timeLabel")
 function heatmapChart(dataFileName, userID) {
     const filePath = path.join(__dirname.slice(3, -4), 'resources', 'data', dataFileName);
     d3.json(`file:///${filePath}`, (data) => {
+        if (!data) { return; }
+
         data = data.reduce((formattedData, day, dayIdx) => {
             var combinedEntries = 1 === dayIdx ? formatDay(formattedData, 0) : formattedData;
             return combinedEntries.concat(formatDay(day, dayIdx));
@@ -143,20 +145,22 @@ function heatmapChart(dataFileName, userID) {
             .attr("y", height + gridSize + 32);
 
         legend.exit().remove();
+        outputHeatMap(userID);
     });
-
-    setTimeout(() => {
-        imgUtils.writeSvgToFile(960, 430, 'rgba(54, 57, 62, 0.74)', 'heatMap', svg)
-            .then(() => {
-                util.sendEmbedMessage('🔥 Player Count Heat Map', null, userID, 'attachment://heatMap.png',
-                    null, null, null, './resources/images/heatMap.png');
-            });
-    }, 100);
 }
 
 exports.generateHeatMap = function(userID) {
     heatmapChart('rawHeatMapData.json', userID);
 };
+
+function outputHeatMap(userID) {
+    setTimeout(() => {
+        imgConverter.writeSvgToFileAsPng(960, 430, 'rgba(54, 57, 62, 0.74)', 'heatMap', svg)
+            .then(() => {
+                util.sendEmbedMessage('🔥 Player Count Heat Map', null, userID, 'attachment://heatMap.png', null, null, null, './resources/images/heatMap.png');
+            });
+    }, 100);
+}
 
 function formatDay(day, dayIdx) {
     return day.map((hour, hourIdx) => {

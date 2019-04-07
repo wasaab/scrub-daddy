@@ -2,7 +2,7 @@ var xmlserializer = require('xmlserializer');
 var svgToPng = require('svg-to-png');
 var fs = require('fs');
 var path = require('path');
-const imageDir = path.join(__dirname.slice(0, -4), 'resources', 'images');
+const imageDir = path.join(__dirname.split('\\src')[0], 'resources', 'images');
 
 function XMLSerializer() {
 }
@@ -27,7 +27,7 @@ function getSVGString(svgNode) {
     return svgString;
 }
 
-exports.writeSvgToFile = function(width, height, bgColor, fileName, svg) {
+exports.writeSvgToFileAsPng = function(width, height, bgColor, fileName, svg) {
     var svgString = getSVGString(svg.node());
     svgString = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" style="background-color: ${bgColor};"`
         + ` xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml" type="text/css"/>`

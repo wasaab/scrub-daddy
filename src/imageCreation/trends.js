@@ -2,9 +2,9 @@ var moment = require('moment');
 var jsdom = require('jsdom');
 var path = require('path');
 var d3 = require('d3');
-var c = require('./const.js');
-var util = require('./utilities.js');
-var imgUtils = require('./imageUtils.js');
+var c = require('../const.js');
+var util = require('../utilities/utilities.js');
+var imgConverter = require('./imageConverter.js');
 
 const { JSDOM } = jsdom;
 const { document } = new JSDOM(`<!DOCTYPE html><html><body></body></html>`).window;
@@ -34,6 +34,8 @@ function generateGraph(userID, countKey, targetGames) {
     const filePath = path.join(__dirname.slice(3, -4), 'resources', 'data', 'gameHistory.json');
 
     d3.json(`file:///${filePath}`, function(rawLogs) {
+        if (!rawLogs) { return; }
+
         var { logs, maxY } = formatLogsAndDetermineMaxY(rawLogs, countKey, targetGames);
 
         // Scale the range of the data
@@ -56,13 +58,15 @@ function generateGraph(userID, countKey, targetGames) {
         appendLinesAndLegend(dataNest, countKey);
         appendXAxis();
         appendYAxis(maxY);
+        outputTrends(userID);
     });
+}
 
+function outputTrends(userID) {
     setTimeout(() => {
-        imgUtils.writeSvgToFile(fullSvgWidth, fullSvgHeight + 30, 'darkgray', 'trend', svg)
+        imgConverter.writeSvgToFileAsPng(fullSvgWidth, fullSvgHeight + 30, 'darkgray', 'trend', svg)
             .then(() => {
-                util.sendEmbedMessage('Player Count Trends', null, userID, 'attachment://trend.png',
-                    null, null, null, './resources/images/trend.png');
+                util.sendEmbedMessage('Player Count Trends', null, userID, 'attachment://trend.png', null, null, null, './resources/images/trend.png');
             });
     }, 100);
 }

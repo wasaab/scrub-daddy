@@ -1,13 +1,12 @@
 var rp = require('request-promise');
 var moment = require('moment');
-const fs = require('fs');
-const c = require('./const.js');
-const util = require('./utilities.js');
+const c = require('../const.js');
+const util = require('../utilities/utilities.js');
 const mergeImg = require('merge-img');
 const Jimp = require('jimp');
 var jsdom = require('jsdom');
 const { JSDOM } = jsdom;
-var forumIdToLastCrawlTime = require('../resources/data/carForum.json');
+var forumData = require('../../resources/data/carForum.json');
 var updatedForumIdToLastCrawlTime = {};
 const dateFormat = 'MM-DD-YYYY';
 const baseUrl = 'https://www.2addicts.com';
@@ -21,11 +20,44 @@ const forumIdToName = {
 };
 var channel;
 
+// function addNotification(userID, keywords) {
+
+// }
+
+// function notify(userID, keywords, match, url) {
+//     util.getMembers().find('id', userID).createDM()
+//         .then((dm) => {
+//             dm.send(`I heard you might be looking for this: ${url}\nKeywords: ${keywords}, match: ${match}`);
+//         });
+// }
+
+function maybeIgnorePost(message) {
+    if (!message.reactions.has(c.TRASH_REACTION)) { return; }
+
+    const post = message.embeds[0];
+
+    forumData.ignoredPosts.push(post.url.split('/')[4]);
+    util.sendEmbedMessage('Post Ignored', `You will no longer see updates for the following post:\n${post.title}`,
+        message.member.id, null, null, null, channel.id, null, post.url);
+    message.delete();
+    util.exportJson(forumData, 'carForum');
+}
+
+exports.ignorePosts = function() {
+	channel.fetchMessages({limit: 50})
+        .then((foundMessages) => {
+            foundMessages.array().forEach((msg) => {
+                maybeIgnorePost(msg);
+            });
+        });
+};
+
+//Todo: Make this in util or somewhere reusable for ratings.js. THIS IS DUPLICATED.
 function handleAllPromises(promises) {
     const toResultObject = (promise) => {
         return promise
-        .then(result => ({ success: true, result }))
-        .catch(error => ({ success: false, error }));
+            .then(result => ({ success: true, result }))
+            .catch(error => ({ success: false, error }));
     };
 
     return Promise.all(promises.map(toResultObject));
@@ -72,13 +104,13 @@ function outputPostAndMaybeForumHeader(title, postDoc, i, forumID, postMoment, t
             tags.forEach((tag) => {
                 msgSent.react(tag);
             });
-        })
+        });
 }
 
 function mergeAndOutput(imgResponses, title, postDoc, i, forumID, postMoment) {
     var images = [];
 
-    imgResponses.forEach((imgResponse, responseIdx) => {
+    imgResponses.forEach((imgResponse) => {
         if (!imgResponse.success) { return; }
 
         images.push(imgResponse.result);
@@ -91,9 +123,7 @@ function mergeAndOutput(imgResponses, title, postDoc, i, forumID, postMoment) {
         img.write('./resources/images/postCollage.png',
             () => outputPostAndMaybeForumHeader(title, postDoc, i, forumID, postMoment));
     })
-    .catch(err => {
-        console.error(err);
-    });
+    .catch(util.log);
 }
 
 
@@ -105,7 +135,7 @@ function scaleImage(response, imgPromises, imageUrls, title, postDoc, i, forumID
 
         handleAllPromises(imgPromises)
         .then((responses) => {
-            mergeAndOutput(responses, title, postDoc, i, forumID, postMoment)
+            mergeAndOutput(responses, title, postDoc, i, forumID, postMoment);
         });
     });
 }
@@ -113,7 +143,7 @@ function scaleImage(response, imgPromises, imageUrls, title, postDoc, i, forumID
 function scaleImages(responses, imageUrls, title, postDoc, i, forumID, postMoment) {
     var imgPromises = [];
 
-    responses.forEach((response, responseIdx) => {
+    responses.forEach((response) => {
         if (!response.success) { return; }
 
         scaleImage(response, imgPromises, imageUrls, title, postDoc, i, forumID, postMoment);
@@ -124,7 +154,7 @@ function downloadImages(imageUrls) {
     var promises = [];
 
 	imageUrls.forEach((url) => {
-        promises.push(Jimp.read(url))
+        promises.push(Jimp.read(url));
 	});
 
 	return handleAllPromises(promises);
@@ -176,16 +206,14 @@ function getPostInfo(titles, times, i, forumID) {
 
             const postMoment = determinePostMoment(time);
 
-            if (postMoment.isSameOrBefore(moment(forumIdToLastCrawlTime[forumID]))) {
+            if (postMoment.isSameOrBefore(moment(forumData.forumIdToLastCrawlTime[forumID]))) {
                 isFinished = true;
                 return;
             }
 
             buildPost(title, postDoc, i, getImageUrls(postDoc), forumID, postMoment);
         })
-        .catch((postErr) => {
-            console.error(postErr);
-        })
+        .catch(util.log)
         .finally(() => {
             if (isFinished) { return; }
 
@@ -193,20 +221,34 @@ function getPostInfo(titles, times, i, forumID) {
         });
 }
 
+function scrapeTitlesAndTimestamps(document, forumID) {
+    var titles = [].slice.call(document.querySelectorAll(`#threadbits_forum_${forumID} a[id^='thread_title']`)).reverse();
+    const lastPostTimes = [].slice.call(document.querySelectorAll(`#threadbits_forum_${forumID} .time`)).reverse();
+
+    titles = titles.filter((title, i) => {
+        if (forumData.ignoredPosts.includes(title.getAttribute('href'))) {
+            lastPostTimes.splice(i, 1);
+            return false;
+        }
+
+        return true;
+    });
+
+    return { titles, lastPostTimes };
+}
+
 function getPostInForum(forumID) {
     return rp(`${baseForumPath}${forumID}`)
         .then((html) => {
             const { window } = new JSDOM(html, { url: 'https://www.2addicts.com' });
             const document = window.document;
-            const titles = [].slice.call(document.querySelectorAll(`#threadbits_forum_${forumID} a[id^='thread_title']`)).reverse()
-            const lastPostTimes = [].slice.call(document.querySelectorAll(`#threadbits_forum_${forumID} .time`)).reverse();
+            const { titles, lastPostTimes } = scrapeTitlesAndTimestamps(document, forumID);
 
             return getPostInfo(titles, lastPostTimes, 1, forumID);
         })
-        .catch((err) => {
-            console.error(err);
-        });
+        .catch(util.log);
 }
+
 
 function getPostsInForums(forumIds) {
     const forumID = forumIds.pop();
@@ -215,8 +257,8 @@ function getPostsInForums(forumIds) {
         .then(() => {
             if (forumIds.length === 0) {
                 setTimeout(() => {
-                    forumIdToLastCrawlTime = Object.assign(forumIdToLastCrawlTime, updatedForumIdToLastCrawlTime);
-                    fs.writeFileSync(`./resources/data/carForum.json`, JSON.stringify(forumIdToLastCrawlTime), 'utf8');
+                    forumData.forumIdToLastCrawlTime = Object.assign(forumData.forumIdToLastCrawlTime, updatedForumIdToLastCrawlTime);
+                    util.exportJson(forumData, 'carForum');
                 }, 3000);
                 return;
             }

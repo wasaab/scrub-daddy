@@ -114,7 +114,7 @@ module.exports = {
 	INFO_IMG: 'https://i.imgur.com/WLWBbQ9.png',
 	HELP_CATEGORIES_PROMPT: [
 		{ name: '1) `Voting`', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
-		{ name: '2) `Scrubbing Bubbles`', value: '`enlist`	`discharge`	`give`	`reserve`	`clean`	`21`	`hit`	`stay`'
+		{ name: '2) `Scrubbing Bubbles`', value: '`enlist`	`discharge`	`give`	`reserve`	`clean`		`race`	`21`	`hit`	`stay`'
 			+ '	`army`	`ranks`	`stats`	`who-said`	`sunken-sailor`	`add-emoji`	`magic-word`	`rename-hank`	`rename-channel`'
 			+ '	`rename-role`	`rename-user`	`scrub-box`		`inventory`	`start-lotto`	`stop-lotto`', inline: 'false'},
 		{ name: '3) `Time Played`', value: '`time`	`opt-in`	`heatmap`', inline: 'false'},
@@ -236,7 +236,7 @@ module.exports = {
 				{ name: '.sb <`name`>', value: '`to play the sound byte of the given name in your voice channel.`', inline: 'false'},
 				{ name: '.add-sb + `ATTACHMENT IN SAME MESSAGE`', value: '`to add a sound byte.`', inline: 'false'},
 				{ name: '.fav-sb', value: '`to get the list of your most frequently used soundbytes.`', inline: 'false'},
-				{ name: '.volume + `ATTACHMENT IN SAME MESSAGE`', value: '`to add a sound byte.`', inline: 'false'}
+				{ name: '.volume <soundbyte> <1-10>', value: '`to set the volume for the provided soundbyte.`', inline: 'false'}
 			]
 		},
 		{
@@ -284,6 +284,8 @@ module.exports = {
 		bjGameStarted: false,
 		bjGameOver: true,
 		rocksDropped: 0,
+		player:{},
+        dealer: {},
 		stats: {
 			recordArmy: 0,
 			mostBet: 0,
@@ -375,7 +377,7 @@ module.exports = {
 		'delete', 'delete-rating', 'discharge',
 		'enlist', 'export',
 		'feature',
-		'fortnite-leaderboard', 'fortnite-stats',
+		'fav-sb', 'fortnite-leaderboard', 'fortnite-stats',
 		'give',
 		'h', 'heatmap', 'help', 'hit',
 		'ignore-posts', 'implement', 'inventory', 'issue',
@@ -385,11 +387,11 @@ module.exports = {
 		'opt-in',
 		'p', 'playing',
 		'quote', 'quotes',
-		'rainbow-role', 'rank', 'ranks', 'rate', 'ratings', 'rating-info', 'refresh-ratings', 'rejoin-temp', 'remove-player', 'rename', 'rename-channel', 'rename-hank', 'rename-role', 'rename-user', 'reserve', 'restart', 'restore', 'review-messages', 'revive', 'rock',
+		'race', 'rainbow-role', 'rank', 'ranks', 'rate', 'ratings', 'rating-info', 'refresh-ratings', 'rejoin-temp', 'remove-player', 'rename', 'rename-channel', 'rename-hank', 'rename-role', 'rename-user', 'reserve', 'restart', 'restore', 'review-messages', 'revive', 'rock',
 		'sb', 'sb-add', 'scrub-box', 'set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'split-group', 'start-lotto', 'stats', 'stay', 'steal', 'steal-all', 'stop-lotto', 'subscribe-catfacts', 'sunken-sailor',
 		'temp', 'time', 'tips', 'toggle-streaming',
 		'unalias', 'update-readme',
-		'vote', 'voteban', 'voteinfo', 'votekick',
+		'volume', 'vote', 'voteban', 'voteinfo', 'votekick',
 		'who-plays', 'who-said',
 		'test', 'trends', 'total-trends'
 	],
@@ -429,6 +431,8 @@ module.exports = {
 	},
 	REACTION_NUMBERS: ['0⃣', '1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣', '8⃣','9⃣'],
 	PPL_EMOJIS: ['😢', '🕺', '👬', '👨‍👨‍👧', '👨‍👨‍👧‍👦⠀', '🧙👩‍👩‍👧‍👦⠀'],
+	RACER_EMOJIS: ['🐒', '🦔', '🐢', '🐳', '🐓', '🐬', '🏃', '🦀', '🦖', '🐉', '🐇', '🐑'],
+	FINISH_LINE: '🙾🙾',
 	TV_EMOJI: '📺',
 	MOVIES_EMOJI: '📀',
 	TRASH_REACTION: 'trashcan:427231130241204224',
@@ -532,7 +536,8 @@ module.exports = {
 	SHORT_DATE_FORMAT: 'l',
 	BACKUP_DATE_FORMAT: 'M[-]D[-]YY[@]h[-]mm[-]a',
 	NO_RENAMES_MSG: 'No active renames',
-	DAILY_RESERVE_AMOUNT: 10
+	DAILY_RESERVE_AMOUNT: 10,
+	VOLUME_TO_DB: [-70, -60, -50, -40, -30, -20, -15, -10, -5, 0]
 };
 
 function deepFreeze(constants) {

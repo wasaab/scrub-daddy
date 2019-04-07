@@ -1,7 +1,7 @@
 var Discord = require('discord.js');
 var private = require('../../private.json');
 var client = new Discord.Client();
-var BotEventHandler = require('./BotEventHandler.js');
+var BotEventHandler = require('./handlers/BotEventHandler.js');
 const eventHandler = new BotEventHandler(client);
 
 var server;

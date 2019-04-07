@@ -1,7 +1,7 @@
-var c = require('./const.js');
-var bot = require('./bot.js');
-var util = require('./utilities.js');
-var logger = require('./logger.js').botLogger;
+var c = require('../const.js');
+var bot = require('../bot.js');
+var util = require('../utilities/utilities.js');
+var logger = require('../logger.js').botLogger;
 
 var voteChannelMembers = {
 	'370625207150575617' : [],						//Beyond

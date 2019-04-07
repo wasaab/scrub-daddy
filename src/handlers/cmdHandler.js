@@ -1,18 +1,17 @@
 var Fuse = require('fuse.js');
-var c = require('./const.js');
-var util = require('./utilities.js');
-var logUtil = require('./logger.js');
-var ratings = require('./ratings.js');
-var heatmap = require('./heatmap.js');
-var gambling = require('./gambling.js');
-var trends = require('./trends.js');
-var games = require('./games.js');
-var vote = require('./vote.js');
-var cars = require('./cars.js');
-var blackjack = require("./blackjack.js");
-var config = require('../resources/data/config.json');
+var c = require('../const.js');
+var util = require('../utilities/utilities.js');
+var logger = require('../logger.js').botLogger;
+var ratings = require('../channelEnhancements/ratings.js');
+var heatmap = require('../imageCreation/heatmap.js');
+var gambling = require('../entertainment/gambling.js');
+var trends = require('../imageCreation/trends.js');
+var games = require('../entertainment/games.js');
+var vote = require('../entertainment/vote.js');
+var cars = require('../channelEnhancements/cars.js');
+var blackjack = require('../entertainment/blackjack.js');
+var config = require('../../resources/data/config.json');
 var fuse = new Fuse(c.COMMANDS, {verbose: false});
-var logger = logUtil.botLogger;
 
 /**
  * Returns the closest matching command to what was provided.
@@ -57,7 +56,7 @@ exports.handle = function(message) {
 
 	function mentionGroupCalled() {
 		if (args.length < 2) { return; }
-		util.mentionGroup(args[1], args, message, message.channel, userID);
+		games.mentionGroup(args[1], args, message, message.channel, userID);
 		message.delete();
 	}
 	function oneMoreCalled() {
@@ -149,6 +148,9 @@ exports.handle = function(message) {
 		gambling.exportLedger();
 		games.exportTimeSheetAndGameHistory();
 	}
+	function favSbCalled() {
+		util.outputFavoriteSoundBytes(userID, user);
+	}
 	function fortniteLeaderboardCalled() {
 		if (!args[1] || !args[2]) { return; }
 		games.getFortniteStats(args[1], args[2], userID);
@@ -221,7 +223,7 @@ exports.handle = function(message) {
 	}
 	function logCalled() {
 		if (!util.isAdmin(userID)) { return; }
-		logUtil.toggleServerLogRedirect(userID);
+		util.toggleServerLogRedirect(userID);
 	}
 	function lottoCalled() {
 		if (args[1] && args[1] === 'check') {
@@ -264,6 +266,9 @@ exports.handle = function(message) {
 	function rainbowRoleCalled() {
 		// TODO: create
 		if (!gambling.hasPrize(userID, cmd, Number(args[1]))) { return; }
+	}
+	function raceCalled() {
+		gambling.race(userID, args, cmd);
 	}
 	function ranksCalled() {
 		gambling.armyRanks(userID);
@@ -433,6 +438,11 @@ exports.handle = function(message) {
 		if (!util.isAdmin(userID)) { return; }
 		util.updateReadme();
 	}
+	function volumeCalled() {
+		if (args.length === 3 && !isNaN(args[2])) {
+			util.setVolume(args[1], Number(args[2]), user, userID);
+		}
+	}
 	function voteCalled() {
 		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.CUSTOM);
 	}
@@ -483,6 +493,7 @@ exports.handle = function(message) {
 		'discharge': dischargeCalled,
 		'enlist': enlistCalled,
 		'export': exportCalled,
+		'fav-sb': favSbCalled,
 		'feature': issueOrFeatureCalled,
 		'fortnite-leaderboard': fortniteLeaderboardCalled,
 		'fortnite-stats': fortniteStatsCalled,
@@ -512,6 +523,7 @@ exports.handle = function(message) {
 		'quote': quoteCalled,
 		'quotes': quotesCalled,
 		'rainbow-role': rainbowRoleCalled,
+		'race': raceCalled,
 		'rank': ranksCalled,
 		'ranks': ranksCalled,
 		'rate': rateCalled,
@@ -554,6 +566,7 @@ exports.handle = function(message) {
 		'total-trends': trendsTotalCalled,
 		'unalias': unaliasCalled,
 		'update-readme': updateReadmeCalled,
+		'volume': volumeCalled,
 		'vote': voteCalled,
 		'voteban': votebanCalled,
 		'voteinfo': voteinfoCalled,
