@@ -2,7 +2,6 @@ var schedule = require('node-schedule');
 var Discord = require('discord.js');
 
 var gambling = require('./entertainment/gambling.js');
-var logger = require('./logger.js');
 var games = require('./entertainment/games.js');
 var cars = require('./channelEnhancements/cars.js');
 var util = require('./utilities/utilities.js');
@@ -125,18 +124,20 @@ exports.scheduleRecurringJobs = function() {
 	util.updateServerInvites();
 
 	if (config.lottoTime) {
-		const lottoTime = config.lottoTime;
-		const lottoRule = `0 ${lottoTime.hour} ${lottoTime.day} ${lottoTime.month} *`;
-		schedule.scheduleJob(lottoRule, function() {
-			logger.info(`Beyond lotto ending`);
-			gambling.endLotto();
-		});
-
-		var lottoCountdownRule = new schedule.RecurrenceRule();
-		lottoCountdownRule.mintue = 0;
-		schedule.scheduleJob(lottoCountdownRule, gambling.updateLottoCountdown);
+		exports.scheduleLotto();
 	}
 
 	scheduleRecurringExport();
 	scheduleRecurringVoiceChannelScan();
+};
+
+exports.scheduleLotto = function() {
+	schedule.scheduleJob(new Date(config.lottoTime), function () {
+		gambling.endLotto();
+	});
+
+	var lottoCountdownRule = new schedule.RecurrenceRule();
+
+	lottoCountdownRule.mintue = 0;
+	schedule.scheduleJob(lottoCountdownRule, gambling.updateLottoCountdown);
 };

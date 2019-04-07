@@ -167,7 +167,7 @@ module.exports = {
 				{ name: '.rename-user <`tier`> <`@user`> <`New Name`>', value: '`🏆 to rename a user`', inline: 'false'},
 				{ name: '.scrub-box <`tier`>', value: '`to open a Scrub Box. Tier cost = tier * 200. Better and longer lasting prizes as tier increases.`', inline: 'false'},
 				{ name: '.inventory', value: '`to see your scrub box prize inventory.`', inline: 'false'},
-				{ name: '.start-lotto <`MM/DD`> <`HH`>', value: '`🏆 to start a Beyond lotto that will end at the specified time (`HH` can be 0-23).`', inline: 'false'},
+				{ name: '.start-lotto <`MM/DD`> <`HH`>', value: '`🏆 to start a Beyond lotto that will end at the specified time\n-----(HH is 24-hour format in EST)-----`', inline: 'false'},
 				{ name: '.stop-lotto', value: '`🏆 to stop the current Beyond Lotto without choosing a winner.`', inline: 'false'}
 			],
 		},
@@ -387,7 +387,7 @@ module.exports = {
 		'opt-in',
 		'p', 'playing',
 		'quote', 'quotes',
-		'race', 'rainbow-role', 'rank', 'ranks', 'rate', 'ratings', 'rating-info', 'refresh-ratings', 'rejoin-temp', 'remove-player', 'rename', 'rename-channel', 'rename-hank', 'rename-role', 'rename-user', 'reserve', 'restart', 'restore', 'review-messages', 'revive', 'rock',
+		'race', 'rainbow-role', 'ranks', 'rate', 'ratings', 'rating-info', 'refresh-ratings', 'rejoin-temp', 'remove-player', 'rename', 'rename-channel', 'rename-hank', 'rename-role', 'rename-user', 'reserve', 'restart', 'restore', 'review-messages', 'revive', 'rock',
 		'sb', 'sb-add', 'scrub-box', 'set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'split-group', 'start-lotto', 'stats', 'stay', 'steal', 'steal-all', 'stop-lotto', 'subscribe-catfacts', 'sunken-sailor',
 		'temp', 'time', 'tips', 'toggle-streaming',
 		'unalias', 'update-readme',

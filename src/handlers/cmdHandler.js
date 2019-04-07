@@ -51,7 +51,6 @@ exports.handle = function(message) {
 	const channelID = message.channel.id;
 	const user = util.getNick(message.member.id);
 
-	//If not called in from bot spam and not a global command, do nothing
 	if (channelID !== c.BOT_SPAM_CHANNEL_ID && !c.GLOBAL_COMMANDS.includes(cmd)) { return; }
 
 	function mentionGroupCalled() {
@@ -226,11 +225,7 @@ exports.handle = function(message) {
 		util.toggleServerLogRedirect(userID);
 	}
 	function lottoCalled() {
-		if (args[1] && args[1] === 'check') {
-			gambling.checkLotto(userID);
-		} else {
-			gambling.joinLotto(user, userID);
-		}
+		gambling.joinLotto(user, userID);
 	}
 	function magicWordCalled() {
 		const tierNumber = Number(args[1]);

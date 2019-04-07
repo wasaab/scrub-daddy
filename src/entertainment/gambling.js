@@ -6,6 +6,7 @@ var c = require('../const.js');
 var bot = require('../bot.js');
 var util = require('../utilities/utilities.js');
 var logger = require('../logger.js').botLogger;
+var scheduler = require('../scheduler.js');
 
 var loot = require('../../resources/data/loot.json');
 var ledger = require('../../resources/data/ledger.json');   //keeps track of how big of an army each member has as well as bet amounts
@@ -572,7 +573,7 @@ exports.maybeDeletePreviousMessage = function (msg) {
  */
 exports.updateLottoCountdown = function() {
 	if (!config.lottoTime || util.isDevEnv()) { return; }
-	bot.getClient().user.setPresence({game: {name: `lotto ${exports.getTimeUntilLottoEnd().timeUntil}`}});
+	bot.getClient().user.setPresence({game: {name: `lotto ${getTimeUntilLottoEnd().timeUntil}`}});
 };
 
 function isValidTime(monthDayTokens, hour) {
@@ -598,19 +599,21 @@ exports.startLotto = function(user, userID, monthDay, hour) {
     if (config.lottoTime) { return; }
 
     const monthDayTokens = monthDay.split("/");
-    if (isValidTime(monthDayTokens, hour)) {
-        config.lottoTime = {
-            month: monthDayTokens[0],
-            day: monthDayTokens[1],
-            hour: hour
-        };
-        util.exportJson(config, 'config');
-    }
-    util.sendEmbedMessage('Beyond Lotto Started', `The lotto will end on ${monthDay} @ ${hour}:00 EST(24-hour format)`);
+
+    if (!isValidTime(monthDayTokens, hour)) { return; }
+
+    const lottoDate = new Date(
+        new Date().getFullYear(), monthDayTokens[0] - 1, monthDayTokens[1], hour, 0);
+
+    config.lottoTime = lottoDate.valueOf();
+    util.exportJson(config, 'config');
+    outputLottoInfo(userID, true);
 
     if (!util.isAdmin(userID)) {
         removePrizeFromInventory(userID, 'start-lotto', 3);
     }
+
+    scheduler.scheduleLotto();
 };
 
 exports.stopLotto = function (userID, tierNumber, cmd) {
@@ -622,9 +625,9 @@ exports.stopLotto = function (userID, tierNumber, cmd) {
 
 exports.joinLotto = function(user, userID) {
     var entries = config.lottoEntries || [];
+
     if (entries.includes(userID)) {
-        util.sendEmbedMessage(`You Have Already Entered The Lotto`, `${user}, allow me to show you the current lotto information...`, userID);
-        exports.checkLotto(userID);
+        checkLotto(userID);
     } else {
         entries.push(userID);
         config.lottoEntries = entries;
@@ -633,39 +636,20 @@ exports.joinLotto = function(user, userID) {
     }
 };
 
-exports.getTimeUntilLottoEnd = function() {
-    const present = moment();
-    const endTime = Object.assign({}, config.lottoTime);
-    endTime.year = present.year();
-    endTime.month--;
-    const endMoment = moment(endTime);
-    const endDate = endMoment.format(c.FULL_DATE_TIME_FORMAT);
-    const timeUntil = endMoment.fromNow();
+function getTimeUntilLottoEnd() {
+    const endMoment = moment(config.lottoTime);
 
-    return { timeUntil: timeUntil, endDate: endDate };
-};
+    return { timeUntil: endMoment.fromNow(), endDate: endMoment.format(c.FULL_DATE_TIME_FORMAT) };
+}
 
-exports.checkLotto = function(userID) {
-    if (!config.lottoEntries) {
-        util.sendEmbedMessage('Beyond Lotto Information', 'There are currently no entries for the Beyond Lotto.', userID);
-        return;
-    }
+function checkLotto(userID) {
     if (!config.lottoTime) {
         util.sendEmbedMessage('Beyond Lotto Information', 'There is no Beyond lotto currently running.', userID);
         return;
     }
 
-    var entries = '';
-    const scrubIDToNick = util.getScrubIdToNick();
-    config.lottoEntries.forEach((entry) => {
-        entries += `${scrubIDToNick[entry]}\n`;
-    });
-
-    const { timeUntil, endDate } = exports.getTimeUntilLottoEnd();
-    util.sendEmbedMessage('Beyond Lotto Information',
-        `The lotto will end ${util.formatAsBoldCodeBlock(timeUntil)} on ${endDate} EST\n\n` +
-        `**The following ${config.lottoEntries.length} users have entered:**\n${entries}`, userID);
-};
+    outputLottoInfo(userID);
+}
 
 exports.endLotto = function() {
 	if (!config.lottoEntries || config.lottoEntries.length <= 1) { return; }
@@ -688,6 +672,19 @@ exports.endLotto = function() {
     delete config.lottoTime;
     delete config.lottoEntries;
 };
+
+function outputLottoInfo(userID, isStartMsg) {
+    const { timeUntil, endDate } = getTimeUntilLottoEnd();
+    const title = isStartMsg ? 'Started' : 'Information';
+    var entries = '';
+
+    config.lottoEntries.forEach((userId) => {
+        entries += `${util.getNick(userId)}\n`;
+    });
+
+    util.sendEmbedMessage(`Beyond Lotto ${title}`, `The lotto will end ${util.formatAsBoldCodeBlock(timeUntil)} on ${endDate} EST\n\n` +
+        `**The following ${config.lottoEntries.length} users have entered:**\n${entries}`, userID);
+}
 
 function getFakeAndRealWinner() {
 	var winnerID;
