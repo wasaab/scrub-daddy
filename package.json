@@ -10,6 +10,7 @@
     "d3-node": "^1.1.1",
     "discord.js": "~11.3.2",
     "ffmpeg-binaries": "^3.2.2-3",
+    "forever": "^1.0.0",
     "fuse.js": "^3.2.0",
     "google-url": "0.0.4",
     "imdb-api": "^3.1.2",
@@ -34,5 +35,8 @@
   },
   "devDependencies": {
     "lebab": "^2.7.7"
+  },
+  "scripts": {
+    "start": "node ./src/run.js"
   }
 }
