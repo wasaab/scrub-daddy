@@ -389,20 +389,19 @@ exports.whoPlays = function(args, userID) {
 	}
 };
 
-function maybeAddCurrPlayingToArgs(args, message) {
-	const currPlaying = get(message.member, 'presence.game.name');
+function shouldExcludeUserFromLetsPlay(allFlagProvided, user) {
+	return !allFlagProvided && (user.role === c.SUPER_SCRUBS_ROLE_ID || !user.time
+		|| moment().diff(moment(user.time), 'days') > 5);
+}
 
-    if(args.length === 1) {
-		if (!currPlaying) { return null; }
+function maybeAddCurrPlayingToArgs(args, user, gameIdx) {
+	if (args.length !== gameIdx) { return; }
 
-		args[1] = currPlaying;
-	} else if(args.length === 2 && args[1] === '-ss') {
-		if (!currPlaying) { return null; }
+	const currPlaying = get(user, 'presence.game.name');
 
-		args[2] = currPlaying;
+	if (currPlaying) {
+		args[gameIdx] = currPlaying;
 	}
-
-    return args;
 }
 
 /**
@@ -410,54 +409,48 @@ function maybeAddCurrPlayingToArgs(args, message) {
  */
 exports.letsPlay = function(args, userID, userName, message, oneMore, customMessage) {
 	const emojis = message.guild.emojis;
+	const allFlagProvided = '-all' === args[1];
+	const gameIdx = allFlagProvided ? 2 : 1;
 
-	args = maybeAddCurrPlayingToArgs(args, message);
+	maybeAddCurrPlayingToArgs(args, message.member, gameIdx);
 
-	if (!args) { return util.outputHelpForCommand('lets-play', userID); }
+	//If no game provided and user is not currently playing a game, output help
+	if (args.length === gameIdx) { return util.outputHelpForCommand('lets-play', userID); }
 
-	const gameIdx = args[1] === '-ss' || args[1] === '-r' ? 2 : 1;
-	var game = util.getTargetFromArgs(args, gameIdx);
-	const gameTokens = game.split(':');
-
-	if (gameTokens && gameTokens.length === 3) {
-		game = gameTokens[1];
-	}
-
+	var game = util.getTargetFromArgs(args, gameIdx).replace(/:/g, '');
 	const gameUserData = getGameUserData(game, 0.3);
+	var usersWhoPlay = gameUserData.users;
+	var msg = `↪️ **${userName}**: `;
+
 	logger.info(`Lets Play ${game} - ${inspect(gameUserData)}`);
 
-	var usersWhoPlay = gameUserData.users;
+	if (!usersWhoPlay) { return util.sendEmbedMessage('Literally Nobody Plays That', 'You\'re on your own bud.', userID); }
 
-	if (usersWhoPlay) {
-		game = emojis.find('name',  util.capitalizeFirstLetter(game)) || game;
-		var msg = `↪️ **${userName}**: `;
-		if (customMessage) {
-			msg += `\`@${gameUserData.title}\` ${customMessage}`;
-		} else {
-			const oneMoreMsg = oneMore ? 'We need **1** more for ' : '';
-			const punctuation = oneMore ? '!' : '?';
-			msg += `${oneMoreMsg}${game}${punctuation}`;
-		}
-
-		usersWhoPlay.forEach((user) => {
-			if ((gameIdx === 2 && user.role === c.SUPER_SCRUBS_ROLE_ID) ||
-				(args[1] === '-r' && (!user.time || moment().diff(moment(user.time), 'days') > 5))) {
-					return;
-			}
-
-			msg += ` ${util.mentionUser(user.id)}`;
-		});
-		bot.getScrubsChannel().send(msg);
+	if (customMessage) {
+		msg += `\`@${gameUserData.title}\` ${customMessage}`;
 	} else {
-		util.sendEmbedMessage('Literally Nobody Plays That', 'You\'re on your own bud.', userID);
+		const oneMoreMsg = oneMore ? 'We need **1** more for ' : '';
+		const punctuation = oneMore ? '!' : '?';
+
+		game = emojis.find('name',  util.capitalizeFirstLetter(game)) || game;
+		msg += `${oneMoreMsg}${game}${punctuation}`;
 	}
+
+	usersWhoPlay.forEach((user) => {
+		if (shouldExcludeUserFromLetsPlay(allFlagProvided, user)){ return; }
+
+		msg += ` ${util.mentionUser(user.id)}`;
+	});
+	bot.getScrubsChannel().send(msg);
 };
 
 exports.maybeCallLetsPlay = function(message) {
 	const game = get(message, 'member.presence.game.name');
-	if (message.author.bot || message.content !== "" || message.attachments.size !== 0
+
+	if (message.author.bot || message.content !== '' || message.attachments.size !== 0
 		|| message.type !== 'DEFAULT' || !game) { return; }
-	exports.letsPlay(['', '-ss', game], message.member.id, util.getNick(message.member.id), message);
+
+	exports.letsPlay(['', game], message.member.id, util.getNick(message.member.id), message);
 };
 
 function determineUpdatedUsersWhoPlay(usersWhoPlay, userID, role, isRemoval) {
@@ -971,7 +964,7 @@ exports.mentionGroup = function(groupName, args, message, channel, userID) {
 		});
 		bot.getScrubsChannel().send(msg);
 	} else { //Trigger a call to letsPlay with title retrieved from getGroup
-		const letsPlayArgs = ['lets-play','-r', ...group.split(' ')];
+		const letsPlayArgs = ['lets-play', ...group.split(' ')];
 		exports.letsPlay(letsPlayArgs, userID, nickName, message, false, customMessage);
 	}
 };
