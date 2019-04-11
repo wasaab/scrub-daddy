@@ -146,7 +146,7 @@ function endGame(userID, payout) {
  * @param {string} userName - Username of player
  *
 **/
-function checkOutcome(userID, userName) {
+function checkOutcome(userID, userName, isPlayerStaying) {
     const userEntry = getUserEntry(userID);
     const bet = userEntry.bjBet;
     const dealerPoints = userEntry.dealer.points;
@@ -162,13 +162,19 @@ function checkOutcome(userID, userName) {
     } else if (dealerPoints > 21) {
         util.sendEmbedMessage(userName + ' you win ' + bet*2 + ' Scrubbing Bubbles!', 'The Dealer busted!', userID, null);
         endGame(userID, bet*2);
-    } else if (dealerPoints <= 21 && dealerPoints > playerPoints) {
+    } else if (isPlayerStaying) {
+        checkStayOutcome(dealerPoints, playerPoints, userName, bet, userID);
+    }
+}
+
+function checkStayOutcome(dealerPoints, playerPoints, userName, bet, userID) {
+    if (dealerPoints <= 21 && dealerPoints > playerPoints) {
         util.sendEmbedMessage(userName + " you lose " + bet + ' Scrubbing Bubbles!', 'The Dealer Wins!', userID, null);
         endGame(userID, 0);
     } else if (dealerPoints >= 17) {
         if (dealerPoints < playerPoints) {
-            util.sendEmbedMessage(userName + ' you win ' + bet*2 + ' Scrubbing Bubbles!', 'Congrats, my dude!', userID, null);
-            endGame(userID, bet*2);
+            util.sendEmbedMessage(userName + ' you win ' + bet * 2 + ' Scrubbing Bubbles!', 'Congrats, my dude!', userID, null);
+            endGame(userID, bet * 2);
         } else if (dealerPoints === playerPoints) {
             util.sendEmbedMessage('It\'s a tie!', 'There are no winners this time.', userID, null);
             endGame(userID, bet);
@@ -260,11 +266,12 @@ exports.hitMe = function (userID, userName) {
 **/
 exports.stay = function (userID, userName) {
     maybePopulateBlackjackUserFields(userID, userName);
+
     if (getUserEntry(userID).player.points > 0 && !getUserEntry(userID).bjGameOver) {
         maybeRestoreOldDeck(userID);
         while (dealerShouldHit(userID)) {
             dealCards(userID, "dealer");
-            checkOutcome(userID, userName);
+            checkOutcome(userID, userName, true);
         }
     } else {
         util.sendEmbedMessage(userName + " you need to start a new game!", null, userID, null);
