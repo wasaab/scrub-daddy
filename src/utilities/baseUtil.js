@@ -103,6 +103,15 @@ function getNick(userID) {
 }
 
 /**
+ * Gets the avatar of the user with the provided id.
+ *
+ * @param {String} userID - id of user to get avatar of
+ */
+function getAvatar(userID) {
+	return scrubIdToAvatar[userID];
+}
+
+/**
  * returns an 's' iff count > 1.
  *
  * @param {number} count
@@ -231,11 +240,11 @@ exports.capitalizeFirstLetter = capitalizeFirstLetter;
 exports.compareFieldValues = compareFieldValues;
 exports.exportJson = exportJson;
 exports.formatAsBoldCodeBlock = formatAsBoldCodeBlock;
+exports.getAvatar = getAvatar;
 exports.getIdFromMention = getIdFromMention;
 exports.getMembers = () => members;
 exports.getNick = getNick;
 exports.getRand = getRand;
-exports.getScrubIdToAvatar = () => scrubIdToAvatar;
 exports.getScrubIdToNick = () => scrubIdToNick;
 exports.getTargetFromArgs = getTargetFromArgs;
 exports.getTrueDisplayName = getTrueDisplayName;

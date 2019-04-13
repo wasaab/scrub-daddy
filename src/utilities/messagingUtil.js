@@ -7,7 +7,7 @@ var logger = require('../logger.js').botLogger;
 var bot = require('../bot.js');
 var c = require('../const.js');
 
-const { getNick, getScrubIdToAvatar, exportJson, capitalizeFirstLetter,
+const { getNick, getAvatar, exportJson, capitalizeFirstLetter,
 	lock, isLocked, unLock, getIdFromMention, buildField } = require('./baseUtil.js');
 
 var userIDToColor = require('../../resources/data/colors.json');
@@ -26,7 +26,7 @@ function getAuthor(userID) {
 
 	return {
 		name: getNick(userID),
-		icon_url: getScrubIdToAvatar(userID)
+		icon_url: getAvatar(userID)
 	};
 }
 
