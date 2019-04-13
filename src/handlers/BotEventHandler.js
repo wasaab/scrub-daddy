@@ -100,13 +100,13 @@ module.exports = class BotEventHandler {
             util.updateMembers();
             util.enableServerLogRedirect();
             scheduler.scheduleRecurringJobs();
+            gambling.maybeRefundUnfinishedRace();
             logger.info(`Connected`);
 
             if (util.isDevEnv()) { return; }
 
             ratings.updateThirdPartyRatings(true);
             games.updatePlayingStatus();
-            gambling.maybeRefundUnfinishedRace();
             gambling.updateLottoCountdown();
             util.sendEmbedMessage('B A C K⠀O N L I N E !', null, null, c.ONLINE_IMG);
         });

@@ -267,7 +267,9 @@ function updateRace(raceMsg, updates) {
 
     raceMsg.edit('', updates.pop())
         .then((msgSent) => {
-            updateRace(msgSent, updates);
+            setTimeout(() => {
+                updateRace(msgSent, updates);
+            }, 700);
         });
 }
 
@@ -302,16 +304,30 @@ function buildRaceProgressUpdates() {
     const lane = `${c.FINISH_LINE}${'﹒ '.repeat(11)}`;
     const race = ledger[c.SCRUB_DADDY_ID].race;
     const userIds = Object.keys(race.userIdToEmoji);
+    const numRacers = userIds.length;
     var newProgress;
     var movingUserId;
+    var prevMovingUserId;
     var raceUpdates = [];
     var userIdToProgress = {};
+    var movesRemainingInUpdate = util.getRand(1, numRacers + 1);
 
     function updateProgress() {
-        movingUserId = userIds[util.getRand(0, userIds.length)];
+        prevMovingUserId = movingUserId;
+        movingUserId = userIds[util.getRand(0, numRacers)];
+
+        if (movesRemainingInUpdate > 1 && prevMovingUserId === movingUserId) { return; }
+
         newProgress = userIdToProgress[movingUserId].replace('﹒ ', '');
         userIdToProgress[movingUserId] = newProgress;
+        movesRemainingInUpdate--;
+    }
+
+    function maybeAddUpdatedProgress(isRaceFinished) {
+        if (!isRaceFinished && movesRemainingInUpdate !== 0) { return; }
+
         raceUpdates.push(buildRaceUpdate(userIdToProgress, sideline));
+        movesRemainingInUpdate = util.getRand(1, numRacers + 1);
     }
 
     userIds.forEach((userID) => {
@@ -322,7 +338,10 @@ function buildRaceProgressUpdates() {
 
     while (!newProgress || newProgress.startsWith(`${c.FINISH_LINE}﹒`)) {
         updateProgress();
+        maybeAddUpdatedProgress();
     }
+
+    maybeAddUpdatedProgress(true);
 
     race.winner = {
         emoji: race.userIdToEmoji[movingUserId],
@@ -336,8 +355,9 @@ function buildRaceProgressUpdates() {
 function endRace() {
     const scrubDaddyEntry = ledger[c.SCRUB_DADDY_ID];
     const winner = scrubDaddyEntry.race.winner;
+    const bet = ledger[winner.id].raceBet;
     const payoutMultiplier = winner.racerIds.length < 4 ? 2 : 2.6;
-    var winnings = Math.floor(ledger[winner.id].raceBet * payoutMultiplier);
+    var winnings = Math.floor(bet * payoutMultiplier);
     var extraWinningsMsg = '';
 
     if (util.getRand(1, 11) === 1) {
@@ -351,7 +371,7 @@ function endRace() {
 
     addToArmy(winner.id, winnings);
     util.sendEmbedMessage('🏁 Race Finished', `🎊 ${winner.emoji} 🎊    ${util.mentionUser(winner.id)} is the winner mon!`
-        + `${extraWinningsMsg}\n\n${getArmyGrownMessage(winnings)} ${getArmySizeMsg(winner.id)}`);
+        + `${extraWinningsMsg}\n\n${getArmyGrownMessage(winnings - bet)} ${getArmySizeMsg(winner.id)}`);
 
     winner.racerIds.forEach((userID) => {
         resetLedgerAfterBet(userID, 'race');
