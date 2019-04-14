@@ -115,7 +115,7 @@ exports.handle = function(message) {
 	}
 	function colorCalled() {
 		if (!args[1]) { return; }
-		util.setUserColor(args[1], userID, message.guild);
+		util.setUserColor(args[1], userID);
 	}
 	function createGroupCalled() {
 		if (args.length < 3) { return; }
@@ -575,7 +575,7 @@ exports.handle = function(message) {
 		logger.cmd(`help for ${cmd} called`);
 		helpCalled();
 	} else if (commandToHandler[cmd]){
-		logger.cmd(`${cmd} called`);
+		logger.cmd(`${cmd} called by ${user} - "${message.content}"`);
 		return commandToHandler[cmd]();
 	}
 };

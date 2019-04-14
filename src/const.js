@@ -433,6 +433,7 @@ module.exports = {
 	TV_EMOJI: '📺',
 	MOVIES_EMOJI: '📀',
 	TRASH_REACTION: 'trashcan:427231130241204224',
+	DELETE_REACTION: 'delete:567030275054239754',
 	TAG_TO_TEXT: {
         '🔵' : ['estoril', ' blue ', 'ebii', ' eb ', ' eb2 '],
         '🔴': ['melbourne', ' red ', ' mr '],

@@ -466,7 +466,7 @@ function isChannelOwner(channel, user) {
 		&& permissionOverwrites.deny === 0;
 }
 
-function replaceOrAddColorRole(guild, color, hex, targetUser) {
+function replaceOrAddColorRole(color, hex, targetUser) {
 	var roleEdited = false;
 
 	targetUser.roles.array().forEach((role) => {
@@ -490,10 +490,10 @@ function replaceOrAddColorRole(guild, color, hex, targetUser) {
 
 	if (roleEdited) { return; }
 
-	guild.createRole({
+	bot.getServer().createRole({
 		name: color,
 		color: hex,
-		position: guild.roles.array().length - 3
+		position: bot.getServer().roles.array().length - 4
 	})
 	.then((role) => {
 		targetUser.addRole(role);
@@ -506,15 +506,15 @@ function replaceOrAddColorRole(guild, color, hex, targetUser) {
 /**
  * exports the user color preferences to a json file.
  */
-function exportColors(title, description, userID, guild, hex, color) {
+function exportColors(title, description, userID, hex, color) {
 	sendEmbedMessage(title, description, userID);
 	//If color not taken, write to colors.json
 	if (title.substring(0, 1) !== 'C') {
 		exportJson(getUserIDToColor(), 'colors');
-		const targetUser = guild.members.find('id', userID);
+		const targetUser = bot.getServer().members.find('id', userID);
 
 		if (targetUser.roles.find('id', c.BEYOND_ROLE_ID)) {
-			replaceOrAddColorRole(guild, color, hex, targetUser);
+			replaceOrAddColorRole(color, hex, targetUser);
 		}
 	}
 }
@@ -526,7 +526,7 @@ function getHexFromTinyColor(color) {
 /**
  * Sets the user's message response color to the provided color.
  */
-function setUserColor(targetColor, userID, guild) {
+function setUserColor(targetColor, userID) {
 	var color = tinycolor(targetColor);
 	var title = '🏳️‍🌈 User Color Preference Set!';
 	var description = 'If the color on the left is not what you chose, then you typed something wrong or did not choose from the provided colors.\n' +
@@ -535,6 +535,7 @@ function setUserColor(targetColor, userID, guild) {
 
 	if (color.isValid()) {
 		var hex = getHexFromTinyColor(color);
+
 		if (Object.values(userIDToColor).includes(hex)) {
 			title = 'Color already taken 😛';
 			description = description.split('\n')[1];
@@ -543,7 +544,8 @@ function setUserColor(targetColor, userID, guild) {
 			userIDToColor[userID] = hex;
 		}
 	}
-	exportColors(title, description, userID, guild, hex, targetColor);
+
+	exportColors(title, description, userID, hex, targetColor);
 }
 
 exports.addInvitedByRole = addInvitedByRole;

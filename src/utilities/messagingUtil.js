@@ -378,22 +378,13 @@ function maybeInsertQuotes(message) {
 }
 
 /**
- * Deletes a message.
+ * Checks if the reactions include the delete reactions.
  *
- * @param {Object} message - the message to delete
+ * @param {Object} reactions - the reactions to check
  */
-function deleteMessage(message) {
-	logger.info(`Deleting message with content: "${message.content}"`);
-	message.delete();
-}
-
-/**
- * Checks if the message has the delete reactions.
- *
- * @param {Object} message - the message to check
- */
-function hasDeleteReactions(message) {
-	return message.reactions.has(c.TRASH_REACTION) && message.reactions.has('⚫');
+function hasDeleteReactions(reactions) {
+	return reactions.has(c.DELETE_REACTION) ||
+		(reactions.has(c.TRASH_REACTION) && reactions.has('⚫'));
 }
 
 /**
@@ -402,20 +393,31 @@ function hasDeleteReactions(message) {
  * @param {Object} message - the message that triggered the command
  */
 function deleteMessages(message) {
+	var messagesToDelete = [];
+
+	function addMessageToDelete(msg) {
+		logger.info(`Deleting message with content: "${msg.content}"`);
+		messagesToDelete.push(msg);
+	}
+
 	message.channel.fetchMessages({limit: 50})
-	.then((foundMessages) => {
-		message.delete();
-		var deleteReactionsFound = false;
-		foundMessages.array().some((message) => {
-			if (deleteReactionsFound) {
-				deleteMessage(message);
-				if (hasDeleteReactions(message)) { return true; }
-			} else if (hasDeleteReactions(message)) {
-				deleteReactionsFound = true;
-				deleteMessage(message);
-			}
-		});
-	});
+		.then((foundMessages) => {
+			var deleteReactionsFound = false;
+
+			message.delete();
+			foundMessages.array().some((msg) => {
+				if (deleteReactionsFound) {
+					addMessageToDelete(msg);
+					if (hasDeleteReactions(msg.reactions)) { return true; }
+				} else if (hasDeleteReactions(msg.reactions)) {
+					deleteReactionsFound = true;
+					addMessageToDelete(msg);
+				}
+			});
+			message.channel.bulkDelete(messagesToDelete)
+				.catch(log);
+		})
+		.catch(log);
 }
 
 /**
