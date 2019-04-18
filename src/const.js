@@ -155,7 +155,7 @@ module.exports = {
 				{ name: '.stats <`@user`>', value: '`outputs the user\'s clean stats.`', inline: 'false'},
 				{ name: '.invest <`stock`> <`shares`>', value: '`to invest Scrubbing Bubbles in a stock. Cost is 1-1 with real world price.`', inline: 'false'},
 				{ name: '.sell-shares <`stock`> <`shares`>', value: '`to sell shares in a stock`', inline: 'false'},
-				{ name: '.stocks <`numBubbles`> <`@user`>', value: '`transfers numBubbles from your army to user\'s army.`', inline: 'false'},
+				{ name: '.stocks', value: '`to see how your stocks are doing today`', inline: 'false'},
 				{ name: '.who-said <`channel-name`> <`minMsgLength`> <`minMsgReactions`> <`sampleSize`>',
 					value: '`Starts a quote guessing game using 5 random quotes pulled from sampleSize messages, matching the provided criteria.`', inline: 'false'},
 				{ name: '.sunken-sailor', value: '`to start a game of Sunken Sailor with the users in your current voice channel.`', inline: 'false'},
