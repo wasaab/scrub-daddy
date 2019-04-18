@@ -98,6 +98,7 @@ module.exports = class BotEventHandler {
         this.client.on('ready', () => {
             this.setChannels();
             util.updateMembers();
+            util.updateServerInvites();
             util.enableServerLogRedirect();
             scheduler.scheduleRecurringJobs();
             gambling.maybeRefundUnfinishedRace();

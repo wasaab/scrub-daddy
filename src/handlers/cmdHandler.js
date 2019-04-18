@@ -88,7 +88,7 @@ exports.handle = function(message) {
 		if (!gambling.hasPrize(userID, cmd, Number(args[1]))) { return; }
 	}
 	function armyCalled() {
-        gambling.army(userID, args);
+		gambling.army(userID, args);
     }
 	function backupCalled() {
 		if (!util.isAdmin(userID)) { return; }
@@ -187,6 +187,11 @@ exports.handle = function(message) {
 	}
 	function inventoryCalled() {
 		gambling.outputInventory(userID);
+	}
+	function investCalled() {
+		if (!args[1]) { return; }
+
+		gambling.invest(userID, args[1], args[2]);
 	}
 	function implementCalled() {
 		args.splice(1, 0, cmd);
@@ -356,6 +361,11 @@ exports.handle = function(message) {
 		if (!args[1] || isNaN(args[1])) { return; }
 		gambling.scrubBox(userID, Number(args[1]));
 	}
+	function sellSharesCalled() {
+		if (!args[1]) { return; }
+
+		gambling.sellShares(userID, args[1], args[2]);
+	}
 	function setFortniteNameCalled() {
 		if (args[1]) {
 			games.setFortniteName(userID, args);
@@ -382,6 +392,9 @@ exports.handle = function(message) {
 	}
 	function stayCalled() {
         blackjack.stay(userID, user);
+	}
+	function stocksCalled() {
+		gambling.outputUsersStockChanges(userID);
 	}
 	function stopLottoCalled() {
 		if (!gambling.hasPrize(userID, cmd, 3)) { return; }
@@ -499,6 +512,7 @@ exports.handle = function(message) {
 		'hit':hitCalled,
 		'ignore-posts': ignorePostsCalled,
 		'inventory': inventoryCalled,
+		'invest': investCalled,
 		'implement': implementCalled,
 		'issue': issueOrFeatureCalled,
 		'join-review-team': joinReviewTeamCalled,
@@ -541,6 +555,7 @@ exports.handle = function(message) {
 		'sb': sbCalled,
 		'sb-add': addSBCalled,
 		'scrub-box': scrubBoxCalled,
+		'sell-shares': sellSharesCalled,
 		'set-fortnite-name': setFortniteNameCalled,
 		'set-stream': setStreamCalled,
 		'shuffle-scrubs': shuffleScrubsCalled,
@@ -548,6 +563,7 @@ exports.handle = function(message) {
 		'start-lotto': startLottoCalled,
 		'stats': statsCalled,
 		'stay': stayCalled,
+		'stocks': stocksCalled,
 		'stop-lotto': stopLottoCalled,
 		'steal': stealCalled,
 		'steal-all': stealAllCalled,

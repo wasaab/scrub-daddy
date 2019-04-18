@@ -73,6 +73,7 @@ module.exports = {
 	PUBG_ALIASES: ['scrubg', 'pubg', 'pugG', 'pabg', 'pobg', 'pebg', 'pibg', 'pybg', 'Mr. Pib G.', 'pub', 'pudgy', 'puh ba gee'],
 	GREETINGS: ['you guys', 'yous guys', 'y\'all', 'hey buddies,', 'hey pals,', 'hey friends,', 'sup dudes,', 'hello fellow humans,'],
 	LOOP_DELAY: 1500,							//delay between each loop
+	MIN_STOCK_PRICE: 50,
 	VOTE_TYPE: {
 		KICK : 'kick',
 		BAN : 'ban',
@@ -281,7 +282,8 @@ module.exports = {
 		bjGameOver: true,
 		rocksDropped: 0,
 		player:{},
-        dealer: {},
+		dealer: {},
+		stockToInfo: {},
 		stats: {
 			recordArmy: 0,
 			mostBet: 0,
@@ -376,7 +378,7 @@ module.exports = {
 		'fav-sb', 'fortnite-leaderboard', 'fortnite-stats',
 		'give',
 		'h', 'heatmap', 'help', 'hit',
-		'ignore-posts', 'implement', 'inventory', 'issue',
+		'ignore-posts', 'implement', 'inventory', 'invest','issue',
 		'join-review-team',
 		'list', 'leave-temp', 'leave-review-team', 'lets-play', 'list-backups', 'log', 'lotto',
 		'magic-word', 'missing-help', 'move-user',
@@ -384,7 +386,7 @@ module.exports = {
 		'p', 'playing',
 		'quote', 'quotes',
 		'race', 'rainbow-role', 'ranks', 'rate', 'ratings', 'rating-info', 'refresh-ratings', 'rejoin-temp', 'remove-player', 'rename', 'rename-channel', 'rename-hank', 'rename-role', 'rename-user', 'reserve', 'restart', 'restore', 'review-messages', 'revive', 'rock',
-		'sb', 'sb-add', 'scrub-box', 'set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'split-group', 'start-lotto', 'stats', 'stay', 'steal', 'steal-all', 'stop-lotto', 'subscribe-catfacts', 'sunken-sailor',
+		'sb', 'sb-add', 'scrub-box', 'sell-shares','set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'split-group', 'start-lotto', 'stats', 'stay', 'steal', 'steal-all', 'stocks', 'stop-lotto', 'subscribe-catfacts', 'sunken-sailor',
 		'temp', 'time', 'tips', 'toggle-streaming',
 		'unalias', 'update-readme',
 		'volume', 'vote', 'voteban', 'voteinfo', 'votekick',
@@ -434,6 +436,7 @@ module.exports = {
 	MOVIES_EMOJI: '📀',
 	TRASH_REACTION: 'trashcan:427231130241204224',
 	DELETE_REACTION: 'delete:567030275054239754',
+	SCRUBBING_BUBBLE_EMOJI: '<:ScrubbingBubble:567548883085819904>',
 	TAG_TO_TEXT: {
         '🔵' : ['estoril', ' blue ', 'ebii', ' eb ', ' eb2 '],
         '🔴': ['melbourne', ' red ', ' mr '],
@@ -452,6 +455,7 @@ module.exports = {
 		's-squad': 'stats.curr_p9',
 		'all': 'lifeTimeStats'
 	},
+	STOCKS_BASE_URL: 'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=',
 	DEV: 'dev',
 	MAX_BITRATE: 96,
 	MIN_BITRATE: 64,

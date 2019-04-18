@@ -1,6 +1,7 @@
 var Discord = require('discord.js');
 var moment = require('moment');
 var get = require('lodash.get');
+var rp = require('request-promise');
 
 var c = require('../const.js');
 var bot = require('../bot.js');
@@ -11,6 +12,7 @@ var scheduler = require('../scheduler.js');
 var loot = require('../../resources/data/loot.json');
 var ledger = require('../../resources/data/ledger.json');   //keeps track of how big of an army each member has as well as bet amounts
 var config = require('../../resources/data/config.json');
+var private = require('../../../private.json');
 
 var dropped = 0;
 var previousMessage;
@@ -1165,3 +1167,239 @@ exports.maybeJoinRandomChannelAndPlaySoundbyte = function() {
             });
 	}
 };
+
+function finalizeInvestment(userEntry, stock, shares, stockPrice, cost, userID) {
+    var stockInfo = userEntry.stockToInfo[stock];
+
+    if (!stockInfo) {
+        userEntry.stockToInfo[stock] = {
+            shares: shares,
+            initialPrice: stockPrice,
+            currentPrice: stockPrice,
+            netArmyChange: 0
+        };
+    } else {
+        stockInfo.shares += shares;
+        stockInfo.currentPrice = stockPrice;
+    }
+
+    userEntry.armySize -= cost;
+    util.sendEmbedMessage('📈 Solid Investment', `${util.mentionUser(userID)} your investment of ${util.formatAsBoldCodeBlock(cost)} Scrubbing Bubbles` +
+        ` for ${util.formatAsBoldCodeBlock(shares)} shares of ${util.formatAsBoldCodeBlock(stock)} stock has been processed. ${getArmySizeMsg(userID)}`, userID);
+}
+
+function buildInvestmentArgs(shares, stock, userID) {
+    const scrubDaddyEntry = ledger[c.SCRUB_DADDY_ID];
+
+    shares = isNaN(shares) ? 1 : Number(shares);
+    stock = stock.toUpperCase();
+
+    maybeCreateLedgerEntry(userID);
+
+    if (!scrubDaddyEntry.stocks) {
+        createScrubDaddyStocksEntry(scrubDaddyEntry);
+    }
+
+    var userEntry = ledger[userID];
+    if (!ledger[userID].stockToInfo) {
+        userEntry.stockToInfo = {};
+    }
+
+    return { userEntry, shares, stock };
+}
+
+exports.invest = function(userID, stockName, desiredShares) {
+    const { userEntry, shares, stock } = buildInvestmentArgs(desiredShares, stockName, userID);
+
+    getStockUpdate(stock)
+        .then((newStockInfo) => {
+            if (!newStockInfo) {
+                return util.sendEmbedMessage('📈 Stock not Found',
+                    `Sorry ${util.mentionUser(userID)}, I could not find any stock matching \`${stock}\``, userID);
+            }
+
+            const stockPrice = newStockInfo.price;
+
+            if (stockPrice < c.MIN_STOCK_PRICE) {
+                return util.sendEmbedMessage('📈 Stock Too Cheap', `${util.mentionUser(userID)} you must` +
+                    ` invest in a stock that costs a minimum of ${util.formatAsBoldCodeBlock(c.MIN_STOCK_PRICE)} Scrubbing Bubbles per share.`);
+            }
+
+            const cost = Math.ceil(stockPrice * shares);
+
+            if (!isAbleToAffordBet(userID, cost)) {
+                return util.sendEmbedMessage('📈 Unable to Afford Stock',
+                    `${util.mentionUser(userID)} you will need ${util.formatAsBoldCodeBlock(cost)} Scrubbing Bubbles` +
+                    ` to purchase ${util.formatAsBoldCodeBlock(shares)} shares of ${util.formatAsBoldCodeBlock(stock)} stock.`, userID);
+            }
+
+            finalizeInvestment(userEntry, stock, shares, stockPrice, cost, userID);
+            exports.exportLedger();
+        });
+};
+
+exports.sellShares = function(userID, stock, shares) {
+    const stockToInfo = get(ledger, `[${userID}].stockToInfo`);
+
+    if (!stockToInfo) { return; }
+
+    const stockInfo = stockToInfo[stock];
+    const sharesOwned = stockInfo.shares;
+    shares = isNaN(shares) ? sharesOwned : Number(shares);
+
+    if (shares > sharesOwned) { return; }
+
+    getStockUpdate(stock)
+        .then((newStockInfo) => {
+            const price = newStockInfo.price;
+
+            if (!price) { return; }
+
+            const payout = Math.ceil(price * shares);
+            stockInfo.shares -= shares;
+            ledger[userID].armySize += payout;
+            util.sendEmbedMessage('📈 Scrubble Stock Liquidated',
+                `${util.mentionUser(userID)} your ${util.formatAsBoldCodeBlock(shares)} share${util.maybeGetPlural(shares)}` +
+                ` of ${util.formatAsBoldCodeBlock(stock)} stock sold for ${util.formatAsBoldCodeBlock(payout)} Scrubbing Bubbles. ${getArmySizeMsg(userID)}`, userID);
+
+            if (0 === stockInfo.shares) {
+                delete stockToInfo[stock];
+            }
+        });
+};
+
+function createScrubDaddyStocksEntry(scrubDaddyEntry) {
+    scrubDaddyEntry.stocks = {
+        stockToInfo: {},
+        updateDate: moment().format(c.MDY_DATE_FORMAT)
+    };
+}
+
+function updateStockInfo(stockToInfo, stock, newStockInfo, userID) {
+    const stockInfo = stockToInfo[stock];
+    const armyChange = newStockInfo ? newStockInfo.armyChange : 1; // Default to 1 if error getting stock change from api
+
+    ledger[userID].armySize += armyChange;
+    stockInfo.netArmyChange += armyChange;
+
+    if (newStockInfo) {
+        stockInfo.currentPrice = newStockInfo.price;
+    }
+}
+
+function updateUsersStocks(stockToInfo, userID) {
+    Object.keys(stockToInfo).forEach((stock) => {
+        getStockUpdate(stock)
+            .then((newStockInfo) => {
+                updateStockInfo(stockToInfo, stock, newStockInfo, userID);
+            });
+    });
+}
+
+exports.updateStocks = function() {
+    const scrubDaddyEntry = ledger[c.SCRUB_DADDY_ID];
+
+    if (!scrubDaddyEntry.stocks) { return; }
+
+    createScrubDaddyStocksEntry(scrubDaddyEntry);
+
+    for (var userID in ledger) {
+        const stockToInfo = ledger[userID].stockToInfo;
+
+        if (!stockToInfo) { continue; }
+
+        updateUsersStocks(stockToInfo, userID);
+    }
+
+    setTimeout(() => {
+        outputStockChanges(scrubDaddyEntry.stocks.stockToInfo);
+        exports.exportLedger();
+    }, 15000);
+};
+
+function outputStockChanges(stockToInfo) {
+    if (Object.keys(stockToInfo).length === 0) { return; }
+
+    const stockChangeFields = buildStockChangeFields(stockToInfo);
+
+    util.sendEmbedFieldsMessage(`📈 Scrubble Stock Changes for ${ledger[c.SCRUB_DADDY_ID].stocks.updateDate}`, stockChangeFields);
+}
+
+exports.outputUsersStockChanges = function(userID) {
+    const userStockToInfo = get(ledger, `[${userID}].stockToInfo`);
+    const cachedStockToInfo = ledger[c.SCRUB_DADDY_ID].stocks.stockToInfo;
+
+    if (!userStockToInfo || Object.keys(userStockToInfo).length === 0) {
+        return util.sendEmbedMessage('📈 Stock Portfolio Not Found',
+            `${util.mentionUser(userID)} you don't have any investments.` +
+            ` Call ${util.formatAsBoldCodeBlock('.help invest')} to learn how to invest in Scrubble Stocks.`, userID);
+    }
+
+    var userStockToArmyChange = {};
+
+    for (var stock in userStockToInfo) {
+        const armyChange = cachedStockToInfo[stock].armyChange;
+        const shares = userStockToInfo[stock].shares;
+        const plural = util.maybeGetPlural(shares);
+
+        userStockToArmyChange[`${stock} (${shares} share${plural})`] = { armyChange: Math.ceil(armyChange * shares) };
+    }
+
+    outputStockChanges(userStockToArmyChange);
+};
+
+function buildStockChangeFields(stockToInfo) {
+    var changeFields = [];
+
+    for (var stock in stockToInfo) {
+        const armyChange = stockToInfo[stock].armyChange;
+        const changeSymbol = armyChange > 0 ? '+' : '';
+
+        changeFields.push(util.buildField(stock,
+            `${changeSymbol}${armyChange} ${c.SCRUBBING_BUBBLE_EMOJI}${util.maybeGetPlural(armyChange)}`));
+    }
+
+    return changeFields;
+}
+
+function determineStockUpdate(mostRecentQuote) {
+    const price = Number(mostRecentQuote['05. price']);
+    const change = Number(mostRecentQuote['09. change']);
+    const armyChange = change < 0 ? Math.floor(change * 2) : Math.ceil(change * 2);
+    const newStockInfo = {
+        armyChange: armyChange,
+        price: price
+    };
+
+    return newStockInfo;
+}
+
+function getStockUpdate(stock) {
+    const stocks = ledger[c.SCRUB_DADDY_ID].stocks;
+    const cachedStockInfo = stocks.stockToInfo[stock];
+
+    if (cachedStockInfo) {
+        return Promise.resolve(cachedStockInfo);
+    }
+
+    var options= {
+		uri: `${c.STOCKS_BASE_URL}${stock}&apikey=${private.stocksApiKey}`,
+		method: 'GET',
+		headers: {
+			'Content-Type': 'application/json'
+		}
+    };
+
+    return rp(options)
+		.then((result) => {
+            const mostRecentQuote = JSON.parse(result)["Global Quote"];
+            if (!mostRecentQuote || Object.keys(mostRecentQuote).length === 0) { return; }
+
+            const stockUpdate = determineStockUpdate(mostRecentQuote);
+
+            stocks.stockToInfo[stock] = stockUpdate;
+
+            return stockUpdate;
+		})
+		.catch(util.log);
+}

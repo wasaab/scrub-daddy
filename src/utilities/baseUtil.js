@@ -117,7 +117,7 @@ function getAvatar(userID) {
  * @param {number} count
  */
 function maybeGetPlural(count) {
-    if (count > 1)
+    if (count > 1 || count < -1)
         return 's';
     return '';
 }

@@ -41,103 +41,125 @@ function scheduleRecurringExport() {
  * Schedules recurring jobs.
  */
 exports.scheduleRecurringJobs = function() {
-	const reviewJob = private.job;
-
 	if (Object.keys(schedule.scheduledJobs).length !== 0) { return; }
 
-	if (reviewJob) {
-		var reviewRule = new schedule.RecurrenceRule();
-
-		reviewRule[reviewJob.key1] = reviewJob.val1;
-		reviewRule[reviewJob.key2] = reviewJob.val2;
-		reviewRule[reviewJob.key3] = reviewJob.val3;
-
-		schedule.scheduleJob(reviewRule, function(){
-			if (util.isDevEnv()) { return; }
-			bot.getBotSpam().send(c.REVIEW_ROLE);
-			util.sendEmbedMessage(null, null, null, reviewJob.img);
-		});
-
-		reviewRule[reviewJob.key3] = reviewJob.val3 - 3;
-		schedule.scheduleJob(reviewRule, function(){
-			if (util.isDevEnv()) { return; }
-			bot.getBotSpam().send(`${c.REVIEW_ROLE} Upcoming Review. Reserve the room and fire up that projector.`);
-		});
-	}
-
-	var clearTimeSheetRule = new schedule.RecurrenceRule();
-	clearTimeSheetRule.hour = 5;
-	clearTimeSheetRule.minute = 0;
-
-	schedule.scheduleJob(clearTimeSheetRule, function(){
-		games.clearTimeSheet();
-	});
-
-	var updateBansRule = new schedule.RecurrenceRule();
-	updateBansRule.hour = [8, 20]; // 8am and 8pm
-	updateBansRule.minute = 0;
-	schedule.scheduleJob(updateBansRule, function(){
-		util.maybeUnbanSpammers();
-	});
-
-	var crawlCarForumRule = new schedule.RecurrenceRule();
-	crawlCarForumRule.hour = [17, 23]; // 5pm and 11pm
-	crawlCarForumRule.minute = 0;
-	schedule.scheduleJob(crawlCarForumRule, cars.crawlCarForum);
-
-	var updateMembersHeatMapAndCatFactsSubsRule = new schedule.RecurrenceRule();
-	updateMembersHeatMapAndCatFactsSubsRule.minute = 0;
-
-	schedule.scheduleJob(updateMembersHeatMapAndCatFactsSubsRule, function(){
-		util.updateMembers();
-		util.messageCatFactsSubscribers();
-		games.maybeOutputCountOfGamesBeingPlayed(util.getMembers(), c.SCRUB_DADDY_ID);
-	});
-
-	var updatePlayingStatusRule = new schedule.RecurrenceRule();
-	updatePlayingStatusRule.minute = config.lottoTime ? [30, 50] : [5, 25, 45];
-
-	schedule.scheduleJob(updatePlayingStatusRule, function(){
-		games.updatePlayingStatus();
-	});
-
-	var tipAndInvitesRule = new schedule.RecurrenceRule();
-	tipAndInvitesRule.hour = [10, 17, 23];
-	tipAndInvitesRule.minute = 0;
-	var firstRun = true;
-	schedule.scheduleJob(tipAndInvitesRule, function(){
-		util.updateServerInvites();
-
-		if (util.isDevEnv()) { return; }
-		if (!firstRun) {
-			previousTip.delete();
-		}
-
-		firstRun = false;
-		var tip = c.TIPS[util.getRand(0, c.TIPS.length)];
-		bot.getBotSpam().send(new Discord.RichEmbed(tip))
-			.then((message) => {
-				previousTip = message;
-			});
-	});
-
-	util.updateServerInvites();
-
-	if (config.lottoTime) {
-		exports.scheduleLotto();
-	}
-
-	scheduleRecurringExport();
-	scheduleRecurringVoiceChannelScan();
+	scheduleHourlyJobs();		// Hourly
+	updatePlayingStatusTwoOrThreeTimesAnHour(); // 2-3/Hour
+	scheduleRecurringVoiceChannelScan(); // Every minute
+	scheduleRecurringExport();	// Every 70 seconds
+	clearTimesheetAtFiveAM();	// 5 AM
+	updateBansAtEightAmAndPM(); // 8 AM/PM
+	crawlCarForumAtFivePM();	// 5 PM
+	updateStocksAtSixPM();		// 6 PM
+	outputTipAndUpdateInvitesAtTenAMFivePMAndElevenPM(); // 10 AM, 5 PM, 11 PM
+	maybeScheduleReviewJob();
+	maybeScheduleLottoEnd();
 };
 
 exports.scheduleLotto = function() {
-	schedule.scheduleJob(new Date(config.lottoTime), function () {
-		gambling.endLotto();
-	});
+	schedule.scheduleJob(new Date(config.lottoTime), gambling.endLotto);
 
 	var lottoCountdownRule = new schedule.RecurrenceRule();
 
 	lottoCountdownRule.mintue = 0;
 	schedule.scheduleJob(lottoCountdownRule, gambling.updateLottoCountdown);
 };
+
+function maybeScheduleLottoEnd() {
+	if (!config.lottoTime) { return; }
+
+	exports.scheduleLotto();
+}
+
+function updateStocksAtSixPM() {
+	var updateStocksRule = new schedule.RecurrenceRule();
+
+	updateStocksRule.hour = 18; // 6pm
+	updateStocksRule.minute = 0;
+	schedule.scheduleJob(updateStocksRule, gambling.updateStocks);
+}
+function outputTipAndUpdateInvitesAtTenAMFivePMAndElevenPM() {
+	var firstRun = true;
+	var tipAndInvitesRule = new schedule.RecurrenceRule();
+	tipAndInvitesRule.hour = [10, 17, 23];
+	tipAndInvitesRule.minute = 0;
+
+	if (util.isDevEnv()) {	return; }
+
+	schedule.scheduleJob(tipAndInvitesRule, function () {
+		if (!firstRun) {
+			previousTip.delete();
+		}
+
+		var tip = c.TIPS[util.getRand(0, c.TIPS.length)];
+
+		util.updateServerInvites();
+		bot.getBotSpam().send(new Discord.RichEmbed(tip))
+			.then((message) => {
+				previousTip = message;
+			});
+		firstRun = false;
+	});
+}
+
+function updatePlayingStatusTwoOrThreeTimesAnHour() {
+	var updatePlayingStatusRule = new schedule.RecurrenceRule();
+
+	updatePlayingStatusRule.minute = config.lottoTime ? [30, 50] : [5, 25, 45];
+	schedule.scheduleJob(updatePlayingStatusRule, games.updatePlayingStatus);
+}
+
+function scheduleHourlyJobs() {
+	var hourlyJobsRule = new schedule.RecurrenceRule();
+
+	hourlyJobsRule.minute = 0;
+	schedule.scheduleJob(hourlyJobsRule, function () {
+		util.updateMembers();
+		util.messageCatFactsSubscribers();
+		games.maybeOutputCountOfGamesBeingPlayed(util.getMembers(), c.SCRUB_DADDY_ID);
+	});
+}
+
+function crawlCarForumAtFivePM() {
+	var crawlCarForumRule = new schedule.RecurrenceRule();
+
+	crawlCarForumRule.hour = 17; // 5pm
+	crawlCarForumRule.minute = 0;
+	schedule.scheduleJob(crawlCarForumRule, cars.crawlCarForum);
+}
+
+function updateBansAtEightAmAndPM() {
+	var updateBansRule = new schedule.RecurrenceRule();
+
+	updateBansRule.hour = [8, 20]; // 8am and 8pm
+	updateBansRule.minute = 0;
+	schedule.scheduleJob(updateBansRule, util.maybeUnbanSpammers);
+}
+
+function clearTimesheetAtFiveAM() {
+	var clearTimeSheetRule = new schedule.RecurrenceRule();
+
+	clearTimeSheetRule.hour = 5;
+	clearTimeSheetRule.minute = 0;
+	schedule.scheduleJob(clearTimeSheetRule, games.clearTimeSheet);
+}
+
+function maybeScheduleReviewJob() {
+	const reviewJob = private.job;
+
+	if (!reviewJob || util.isDevEnv()) { return; }
+
+	var reviewRule = new schedule.RecurrenceRule();
+
+	reviewRule[reviewJob.key1] = reviewJob.val1;
+	reviewRule[reviewJob.key2] = reviewJob.val2;
+	reviewRule[reviewJob.key3] = reviewJob.val3;
+	schedule.scheduleJob(reviewRule, function () {
+		bot.getBotSpam().send(c.REVIEW_ROLE);
+		util.sendEmbedMessage(null, null, null, reviewJob.img);
+	});
+	reviewRule[reviewJob.key3] = reviewJob.val3 - 3;
+	schedule.scheduleJob(reviewRule, function () {
+		bot.getBotSpam().send(`${c.REVIEW_ROLE} Upcoming Review. Reserve the room and fire up that projector.`);
+	});
+}
