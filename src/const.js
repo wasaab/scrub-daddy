@@ -113,8 +113,8 @@ module.exports = {
 	HELP_CATEGORIES_PROMPT: [
 		{ name: '1) `Voting`', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
 		{ name: '2) `Scrubbing Bubbles`', value: '`enlist`	`discharge`	`give`	`reserve`	`clean`		`race`	`21`	`hit`	`stay`'
-			+ '	`army`	`ranks`	`stats`	`who-said`	`sunken-sailor`	`add-emoji`	`magic-word`	`rename-hank`	`rename-channel`'
-			+ '	`rename-role`	`rename-user`	`scrub-box`		`inventory`	`start-lotto`	`stop-lotto`', inline: 'false'},
+			+ '	`army`	`ranks`	`stats`	`who-said`	`sunken-sailor`	`add-emoji`	`magic-word`	`rename-hank`	`rename-channel` `stocks`'
+			+ '	`invest`	`sell-shares`	`rename-role`	`rename-user`	`scrub-box`		`inventory`	`start-lotto`	`stop-lotto`', inline: 'false'},
 		{ name: '3) `Time Played`', value: '`time`	`opt-in`	`heatmap`', inline: 'false'},
 		{ name: '4) `Gaming`', value: '`playing`	`who-plays`	`lets-play`	`1-more`	`p`	`split-group`	`trends`	`total-trends`'
 			+ '	`fortnite-stats`	`fortnite-leaderboard`	`set-fortnite-name`', inline: 'false'},
@@ -153,6 +153,9 @@ module.exports = {
 				{ name: '.ranks', value: '`outputs the army size of every user.`', inline: 'false'},
 				{ name: '.stats', value: '`outputs your clean stats.`', inline: 'false'},
 				{ name: '.stats <`@user`>', value: '`outputs the user\'s clean stats.`', inline: 'false'},
+				{ name: '.invest <`stock`> <`shares`>', value: '`to invest Scrubbing Bubbles in a stock. Cost is 1-1 with real world price.`', inline: 'false'},
+				{ name: '.sell-shares <`stock`> <`shares`>', value: '`to sell shares in a stock`', inline: 'false'},
+				{ name: '.stocks <`numBubbles`> <`@user`>', value: '`transfers numBubbles from your army to user\'s army.`', inline: 'false'},
 				{ name: '.who-said <`channel-name`> <`minMsgLength`> <`minMsgReactions`> <`sampleSize`>',
 					value: '`Starts a quote guessing game using 5 random quotes pulled from sampleSize messages, matching the provided criteria.`', inline: 'false'},
 				{ name: '.sunken-sailor', value: '`to start a game of Sunken Sailor with the users in your current voice channel.`', inline: 'false'},

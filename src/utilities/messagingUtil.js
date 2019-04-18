@@ -48,21 +48,20 @@ function getUserColor(userID) {
  * @param {Object} footer - the footer for the message
  */
 function sendEmbedFieldsMessage(title, fields, userID, footer, channelID) {
-	if (fields.length === 1 && fields[0].name === '') {
-		return;
-	}
+	if (fields.length === 1 && fields[0].name === '') { return; }
 
-	const channel = channelID ? bot.getClient().channels.find('id', channelID) : bot.getBotSpam();
-	return channel.send(new Discord.RichEmbed({
+	const message = {
 		color: getUserColor(userID),
 		title: title,
 		fields: fields,
 		footer: footer
-	}));
+	};
+
+	return sendMessageToChannel(message, channelID);
 }
 
 function sendAuthoredMessage(description, userID, channelID) {
-	var message = {
+	const message = {
 		color: getUserColor(userID),
 		description: description,
 		author: getAuthor(userID)
