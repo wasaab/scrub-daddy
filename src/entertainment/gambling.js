@@ -1317,12 +1317,19 @@ exports.updateStocks = function() {
     }, 15000);
 };
 
-function outputStockChanges(stockToInfo) {
+function outputStockChanges(stockToInfo, userID) {
     if (Object.keys(stockToInfo).length === 0) { return; }
 
-    const stockChangeFields = buildStockChangeFields(stockToInfo);
+    const updateDate = ledger[c.SCRUB_DADDY_ID].stocks.updateDate;
+    const { stockChangeFields, netArmyChange } = buildStockChangeFieldsAndDetermineChange(stockToInfo);
+    const graphEmoji = netArmyChange >= 0 ? '📈' : '📉';
+    const footer = {
+        icon_url: c.BUBBLE_IMAGES[0],
+        text: `${determineChangeSymbol(netArmyChange)}${netArmyChange}`
+    };
 
-    util.sendEmbedFieldsMessage(`📈 Scrubble Stock Changes for ${ledger[c.SCRUB_DADDY_ID].stocks.updateDate}`, stockChangeFields);
+    util.sendEmbedFieldsMessage(`${graphEmoji} Scrubble Stock Changes for ${updateDate}`,
+        stockChangeFields, userID, footer);
 }
 
 exports.outputUsersStockChanges = function(userID) {
@@ -1345,21 +1352,27 @@ exports.outputUsersStockChanges = function(userID) {
         userStockToArmyChange[`${stock} (${shares} share${plural})`] = { armyChange: Math.ceil(armyChange * shares) };
     }
 
-    outputStockChanges(userStockToArmyChange);
+    outputStockChanges(userStockToArmyChange, userID);
 };
 
-function buildStockChangeFields(stockToInfo) {
+function buildStockChangeFieldsAndDetermineChange(stockToInfo) {
     var changeFields = [];
+    var netArmyChange = 0;
 
     for (var stock in stockToInfo) {
         const armyChange = stockToInfo[stock].armyChange;
-        const changeSymbol = armyChange > 0 ? '+' : '';
+        const changeSymbol = determineChangeSymbol(armyChange);
 
+        netArmyChange += armyChange;
         changeFields.push(util.buildField(stock,
             `${changeSymbol}${armyChange} ${c.SCRUBBING_BUBBLE_EMOJI}${util.maybeGetPlural(armyChange)}`));
     }
 
-    return changeFields;
+    return { netArmyChange: netArmyChange, stockChangeFields: changeFields };
+}
+
+function determineChangeSymbol(armyChange) {
+    return armyChange > 0 ? '+' : '';
 }
 
 function determineStockUpdate(mostRecentQuote) {
