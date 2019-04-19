@@ -1320,6 +1320,7 @@ exports.updateStocks = function() {
 function outputStockChanges(stockToInfo, userID) {
     if (Object.keys(stockToInfo).length === 0) { return; }
 
+    const stocksOwner = userID ? `${util.getNick(userID)}'s` : '';
     const updateDate = ledger[c.SCRUB_DADDY_ID].stocks.updateDate;
     const { stockChangeFields, netArmyChange } = buildStockChangeFieldsAndDetermineChange(stockToInfo);
     const graphEmoji = netArmyChange >= 0 ? '📈' : '📉';
@@ -1328,7 +1329,7 @@ function outputStockChanges(stockToInfo, userID) {
         text: `${determineChangeSymbol(netArmyChange)}${netArmyChange}`
     };
 
-    util.sendEmbedFieldsMessage(`${graphEmoji} Scrubble Stock Changes for ${updateDate}`,
+    util.sendEmbedFieldsMessage(`${graphEmoji} ${stocksOwner} Scrubble Stock Changes for ${updateDate}`,
         stockChangeFields, userID, footer);
 }
 
