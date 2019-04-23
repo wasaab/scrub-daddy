@@ -1443,7 +1443,7 @@ exports.outputUserStockPortfolio = function(userID) {
     const columnLenths = header.split(separator).map((header) => header.length);
     var output = `**\`\`\`${header}\n${underline}\n`;
 
-    Object.keys(userStockToInfo).forEach((stock) => {
+    Object.keys(userStockToInfo).sort().forEach((stock) => {
         const stockInfo = userStockToInfo[stock];
         const initialPrice = `${Math.ceil(stockInfo.initialPrice)}`;
         const currentPrice = `${Math.ceil(stockInfo.currentPrice)}`;
