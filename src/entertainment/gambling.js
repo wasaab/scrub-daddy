@@ -536,8 +536,12 @@ function outputUserGamblingData(userID, args) {
             `Current Win Streak: ${util.formatAsBoldCodeBlock(userStats.winStreak)}\n` +
             `Current Loss Streak: ${util.formatAsBoldCodeBlock(userStats.lossStreak)}`;
 
-        if (userStats.rocksDropped) {
+        if (!isNaN(userStats.rocksDropped)) {
             description += `\nRocks Dropped: ${util.formatAsBoldCodeBlock(userStats.rocksDropped)}`;
+        }
+
+        if (!isNaN(userStats.stocksNetArmyChange)) {
+            description += `Stocks Net Army Change: ${util.formatAsBoldCodeBlock(userStats.stocksNetArmyChange)}`;
         }
     }
 
@@ -1431,31 +1435,54 @@ function getStockUpdate(stock) {
 }
 
 exports.outputUserStockPortfolio = function(userID) {
-    const separator = ' | ';
     const userStockToInfo = get(ledger, `[${userID}].stockToInfo`);
 
     if (!userStockToInfo || Object.keys(userStockToInfo).length === 0) {
         return outputStockPortfolioNotFoundMsg(userID);
     }
 
-    const header = 'Stock | Shares | Init. Price | Curr. Price | Army Change';
-    const underline = '══════|════════|═════════════|═════════════|════════════';
-    const columnLenths = header.split(separator).map((header) => header.length);
-    var output = `**\`\`\`${header}\n${underline}\n`;
+    var { output, columnLengths } = buildTableHeader(['Stock', 'Shares', 'Init. Price', 'Curr. Price', 'Net Army Change']);
+    var netArmyChange = 0;
 
     Object.keys(userStockToInfo).sort().forEach((stock) => {
         const stockInfo = userStockToInfo[stock];
+        const shares = `${stockInfo.shares}`;
         const initialPrice = `${Math.ceil(stockInfo.initialPrice)}`;
         const currentPrice = `${Math.ceil(stockInfo.currentPrice)}`;
+        const armyChange = `${determineChangeSymbol(stockInfo.netArmyChange)}${stockInfo.netArmyChange}`;
 
-        output += `${stock}${' '.repeat(columnLenths[0] - stock.length)}${separator}`
-            + `${stockInfo.shares}${' '.repeat(columnLenths[1] - stockInfo.shares.toString().length)}${separator}`
-            + `${initialPrice}${' '.repeat(columnLenths[2] - initialPrice.length)}${separator}`
-            + `${currentPrice}${' '.repeat(columnLenths[3] - currentPrice.length)}${separator}`
-            + `${determineChangeSymbol(stockInfo.netArmyChange)}${stockInfo.netArmyChange}\n`;
+        netArmyChange += stockInfo.netArmyChange;
+        output += buildColumn(stock, columnLengths[0])
+            + buildColumn(shares, columnLengths[1])
+            + buildColumn(initialPrice, columnLengths[2])
+            + buildColumn(currentPrice, columnLengths[3])
+            + buildColumn(armyChange, columnLengths[4], true)
     });
+
+    const footer = {
+        icon_url: c.BUBBLE_IMAGES[0],
+        text: `${determineChangeSymbol(netArmyChange)}${netArmyChange}`
+    };
 
     output += '```**';
 
-    util.sendEmbedMessage(`📈 ${util.getNick(userID)}'s Scrubble Stock Portfolio`, output, userID);
+    util.sendEmbedMessage(`📈 ${util.getNick(userID)}'s Scrubble Stock Portfolio`, output, userID, null, null, footer);
 }
+
+function buildColumn(text, columnLength, isLastColumn) {
+    if (text > columnLength) {
+        text = text.slice(0, columnLength);
+    }
+
+    return isLastColumn ? `${text}\n` : `${text}${' '.repeat(columnLength - text.length)}${c.TABLE_COL_SEPARATOR}`;
+}
+
+function buildTableHeader(columnHeaders) {
+    const header = columnHeaders.join(c.TABLE_COL_SEPARATOR);
+    const columnLengths = columnHeaders.map((header) => header.length);
+    const underline = columnLengths.map((length) => '═'.repeat(length)).join('═╬═');
+    const output = `**\`\`\`${header}\n${underline}\n`;
+
+    return { output, columnLengths };
+}
+

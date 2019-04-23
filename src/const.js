@@ -349,7 +349,7 @@ module.exports = {
 		{
 			color: 0xffff00,
 			title: '💡 New Commands',
-			description: '`reserve`	`scrub-box`	`inventory`	`split-group`	`channels-left`	`rejoin-temp`',
+			description: '`invest`	`sell-shares`	`stocks`	`portfolio`	`race`	`reserve`	`scrub-box`	`inventory`	`split-group`',
 			image: {
 				url: 'https://media3.giphy.com/media/UGxfEt5POsukg/giphy.gif'
 			}
@@ -544,7 +544,8 @@ module.exports = {
 	BACKUP_DATE_FORMAT: 'M[-]D[-]YY[@]h[-]mm[-]a',
 	NO_RENAMES_MSG: 'No active renames',
 	DAILY_RESERVE_AMOUNT: 10,
-	VOLUME_TO_DB: [-70, -60, -50, -40, -30, -20, -15, -10, -5, 0]
+	VOLUME_TO_DB: [-70, -60, -50, -40, -30, -20, -15, -10, -5, 0],
+	TABLE_COL_SEPARATOR: ' ║ '
 };
 
 function deepFreeze(constants) {
