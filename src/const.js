@@ -113,7 +113,7 @@ module.exports = {
 	HELP_CATEGORIES_PROMPT: [
 		{ name: '1) `Voting`', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
 		{ name: '2) `Scrubbing Bubbles`', value: '`enlist`	`discharge`	`give`	`reserve`	`clean`		`race`	`21`	`hit`	`stay`'
-			+ '	`invest`	`sell-shares`	`stocks`	`army`	`ranks`	`stats`	`who-said`	`sunken-sailor`	`add-emoji`	`magic-word`'
+			+ '	`invest`	`sell-shares`	`stocks`	`portfolio`	`army`	`ranks`	`stats`	`who-said`	`sunken-sailor`	`add-emoji`	`magic-word`'
 			+ '	`rename-hank`	`rename-channel`	`rename-role`	`rename-user`	`scrub-box`		`inventory`	`start-lotto`	`stop-lotto`', inline: 'false'},
 		{ name: '3) `Time Played`', value: '`time`	`opt-in`	`heatmap`', inline: 'false'},
 		{ name: '4) `Gaming`', value: '`playing`	`who-plays`	`lets-play`	`1-more`	`p`	`split-group`	`trends`	`total-trends`'
@@ -156,6 +156,7 @@ module.exports = {
 				{ name: '.invest <`stock`> <`shares`>', value: '`to invest Scrubbing Bubbles in a stock. Cost is 1-1 with real world price.`', inline: 'false'},
 				{ name: '.sell-shares <`stock`> <`shares`>', value: '`to sell shares in a stock`', inline: 'false'},
 				{ name: '.stocks', value: '`to see how your stocks are doing today`', inline: 'false'},
+				{ name: '.portfolio', value: '`to see how your stocks have done over time`', inline: 'false'},
 				{ name: '.who-said <`channel-name`> <`minMsgLength`> <`minMsgReactions`> <`sampleSize`>',
 					value: '`Starts a quote guessing game using 5 random quotes pulled from sampleSize messages, matching the provided criteria.`', inline: 'false'},
 				{ name: '.sunken-sailor', value: '`to start a game of Sunken Sailor with the users in your current voice channel.`', inline: 'false'},
@@ -302,7 +303,8 @@ module.exports = {
 			highestWinStreak: 0,
 			highestLossStreak: 0,
 			scrubsEnlisted: 0,
-			scrubsDischared: 0
+			scrubsDischared: 0,
+			stocksNetArmyChange: 0
 		},
 	},
 	Clubs: ['https://i.imgur.com/o7m74ae.png', 'https://i.imgur.com/s15mB52.png', 'https://i.imgur.com/8zKQuRh.png?1', 'https://i.imgur.com/cCGAnwz.png',
@@ -386,7 +388,7 @@ module.exports = {
 		'list', 'leave-temp', 'leave-review-team', 'lets-play', 'list-backups', 'log', 'lotto',
 		'magic-word', 'missing-help', 'move-user',
 		'opt-in',
-		'p', 'playing',
+		'p', 'playing', 'portfolio',
 		'quote', 'quotes',
 		'race', 'rainbow-role', 'ranks', 'rate', 'ratings', 'rating-info', 'refresh-ratings', 'rejoin-temp', 'remove-player', 'rename', 'rename-channel', 'rename-hank', 'rename-role', 'rename-user', 'reserve', 'restart', 'restore', 'review-messages', 'revive', 'rock',
 		'sb', 'sb-add', 'scrub-box', 'sell-shares','set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'split-group', 'start-lotto', 'stats', 'stay', 'steal', 'steal-all', 'stocks', 'stop-lotto', 'subscribe-catfacts', 'sunken-sailor',

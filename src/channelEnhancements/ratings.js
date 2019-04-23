@@ -537,6 +537,8 @@ exports.updateThirdPartyRatings = function(isCalledByStartup) {
 		missingTitles[category][site] = missingTitles[category][site].concat(titlesNotFound);
 	}
 
+	if (Object.keys(ratings).length === 0) { return; }
+
 	categories.forEach((category) => {
 		const sites = category === 'tv' ? ['imdb'] : ['rt', 'imdb'];
 		sites.forEach((site) => {

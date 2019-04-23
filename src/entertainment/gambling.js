@@ -1278,8 +1278,17 @@ function createScrubDaddyStocksEntry(scrubDaddyEntry) {
 function updateStockInfo(stockToInfo, stock, newStockInfo, userID) {
     const stockInfo = stockToInfo[stock];
     const armyChange = newStockInfo ? newStockInfo.armyChange : 1; // Default to 1 if error getting stock change from api
+    var userEntry = ledger[userID];
 
-    ledger[userID].armySize += armyChange;
+
+    if (!userEntry.stats) {
+        userEntry.stats = Object.assign({}, c.NEW_LEDGER_ENTRY.stats);
+    }
+
+    const oldNetArmyChangeStat = userEntry.stats.netArmyChange;
+   
+    userEntry.stats.netArmyChange = isNaN(oldNetArmyChangeStat) ? armyChange : oldNetArmyChangeStat + armyChange;
+    userEntry.armySize += armyChange;
     stockInfo.netArmyChange += armyChange;
 
     if (newStockInfo) {
@@ -1299,7 +1308,7 @@ function updateUsersStocks(stockToInfo, userID) {
 exports.updateStocks = function() {
     const scrubDaddyEntry = ledger[c.SCRUB_DADDY_ID];
 
-    if (!scrubDaddyEntry.stocks) { return; }
+    if (!scrubDaddyEntry || !scrubDaddyEntry.stocks) { return; }
 
     createScrubDaddyStocksEntry(scrubDaddyEntry);
 
@@ -1338,9 +1347,7 @@ exports.outputUsersStockChanges = function(userID) {
     const cachedStockToInfo = ledger[c.SCRUB_DADDY_ID].stocks.stockToInfo;
 
     if (!userStockToInfo || Object.keys(userStockToInfo).length === 0) {
-        return util.sendEmbedMessage('📈 Stock Portfolio Not Found',
-            `${util.mentionUser(userID)} you don't have any investments.` +
-            ` Call ${util.formatAsBoldCodeBlock('.help invest')} to learn how to invest in Scrubble Stocks.`, userID);
+        return outputStockPortfolioNotFoundMsg(userID);
     }
 
     var userStockToArmyChange = {};
@@ -1355,6 +1362,11 @@ exports.outputUsersStockChanges = function(userID) {
 
     outputStockChanges(userStockToArmyChange, userID);
 };
+
+function outputStockPortfolioNotFoundMsg(userID) {
+    return util.sendEmbedMessage('📈 Stock Portfolio Not Found', `${util.mentionUser(userID)} you don't have any investments.` +
+        ` Call ${util.formatAsBoldCodeBlock('.help invest')} to learn how to invest in Scrubble Stocks.`, userID);
+}
 
 function buildStockChangeFieldsAndDetermineChange(stockToInfo) {
     var changeFields = [];
@@ -1416,4 +1428,34 @@ function getStockUpdate(stock) {
             return stockUpdate;
 		})
 		.catch(util.log);
+}
+
+exports.outputUserStockPortfolio = function(userID) {
+    const separator = ' | ';
+    const userStockToInfo = get(ledger, `[${userID}].stockToInfo`);
+
+    if (!userStockToInfo || Object.keys(userStockToInfo).length === 0) {
+        return outputStockPortfolioNotFoundMsg(userID);
+    }
+
+    const header = 'Stock | Shares | Init. Price | Curr. Price | Army Change';
+    const underline = '══════|════════|═════════════|═════════════|════════════';
+    const columnLenths = header.split(separator).map((header) => header.length);
+    var output = `**\`\`\`${header}\n${underline}\n`;
+
+    Object.keys(userStockToInfo).forEach((stock) => {
+        const stockInfo = userStockToInfo[stock];
+        const initialPrice = `${Math.ceil(stockInfo.initialPrice)}`;
+        const currentPrice = `${Math.ceil(stockInfo.currentPrice)}`;
+
+        output += `${stock}${' '.repeat(columnLenths[0] - stock.length)}${separator}`
+            + `${stockInfo.shares}${' '.repeat(columnLenths[1] - stockInfo.shares.toString().length)}${separator}`
+            + `${initialPrice}${' '.repeat(columnLenths[2] - initialPrice.length)}${separator}`
+            + `${currentPrice}${' '.repeat(columnLenths[3] - currentPrice.length)}${separator}`
+            + `${determineChangeSymbol(stockInfo.netArmyChange)}${stockInfo.netArmyChange}\n`;
+    });
+
+    output += '```**';
+
+    util.sendEmbedMessage(`📈 ${util.getNick(userID)}'s Scrubble Stock Portfolio`, output, userID);
 }

@@ -257,6 +257,9 @@ exports.handle = function(message) {
 		games.maybeOutputCountOfGamesBeingPlayed(message.guild.members.array(), userID);
 		message.delete();
 	}
+	function portfolioCalled() {
+		gambling.outputUserStockPortfolio(userID);
+	}
 	function quoteCalled() {
 		util.quoteUser(message, args[1], userID, channelID);
 	}
@@ -529,6 +532,7 @@ exports.handle = function(message) {
 		'opt-in': optInCalled,
 		'p': pCalled,
 		'playing': playingCalled,
+		'portfolio': portfolioCalled,
 		'quote': quoteCalled,
 		'quotes': quotesCalled,
 		'rainbow-role': rainbowRoleCalled,

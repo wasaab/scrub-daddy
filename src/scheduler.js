@@ -72,19 +72,24 @@ function maybeScheduleLottoEnd() {
 }
 
 function updateStocksAtSixPM() {
+	if (util.isDevEnv()) {	return; }
+
 	var updateStocksRule = new schedule.RecurrenceRule();
 
+	updateStocksRule.dayOfWeek = new schedule.Range(1, 5);
 	updateStocksRule.hour = 18; // 6pm
 	updateStocksRule.minute = 0;
+
 	schedule.scheduleJob(updateStocksRule, gambling.updateStocks);
 }
+
 function outputTipAndUpdateInvitesAtTenAMFivePMAndElevenPM() {
+	if (util.isDevEnv()) {	return; }
+
 	var firstRun = true;
 	var tipAndInvitesRule = new schedule.RecurrenceRule();
 	tipAndInvitesRule.hour = [10, 17, 23];
 	tipAndInvitesRule.minute = 0;
-
-	if (util.isDevEnv()) {	return; }
 
 	schedule.scheduleJob(tipAndInvitesRule, function () {
 		if (!firstRun) {
