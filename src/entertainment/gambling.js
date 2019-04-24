@@ -163,9 +163,9 @@ function getArmySizeMsg(userID) {
 }
 
 exports.maybeEnlistForRandomUser = function(channelID, userID) {
-    if (channelID !== c.BOT_SPAM_CHANNEL_ID || userID !== c.DBC_ID) { return; }
+    if (channelID !== c.BOT_SPAM_CHANNEL_ID || userID !== c.DBC_ID || util.getRand(0, 5) === 0) { return; }
 
-    const userIDs = Object.keys(ledger).filter((id) => id !== c.SCRUB_DADDY_ID && id !== c.C_ID);
+    const userIDs = Object.keys(ledger).filter((id) => id !== c.SCRUB_DADDY_ID && id !== c.C_ID && id !== c.DBC_ID);
     const chosenUser = userIDs[util.getRand(0, userIDs.length)];
 
     exports.enlist(chosenUser);
