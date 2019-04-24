@@ -59,11 +59,11 @@ function determineArgsAndCommand(message, userID) {
  * @param {Object} message - the full message object.
  */
 exports.handle = function(message) {
+	const userID = message.member.id;
 	var { args, cmd } = determineArgsAndCommand(message, userID);
 
 	if (!args) { return; }
 	
-	const userID = message.member.id;
 	const channelID = message.channel.id;
 	const user = util.getNick(message.member.id);
 
