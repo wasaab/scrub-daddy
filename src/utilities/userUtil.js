@@ -167,11 +167,13 @@ function createAlias(userID, user, args) {
  * @param {String} command - the command to check for an alias value
  * @param {String} userID - the ID of the user calling the command
  */
-function maybeGetAlias(command, userID) {
+function maybeGetAlias(command, args, userID) {
 	const aliases = userIDToAliases[userID];
+
 	if (aliases) {
 		return aliases[command];
 	}
+
 	return null;
 }
 

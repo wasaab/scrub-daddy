@@ -25,17 +25,19 @@ function findClosestCommandMatch(command) {
 }
 
 /**
- * Handles valid commands.
- *
- * @param {Object} message - the full message object.
+ * Determines the arguments sent by a user for a command.
+ * 
+ * @param {Object} message - message to get args from
+ * @param {String} userID - id of the user calling command
  */
-exports.handle = function(message) {
-	var args = message.content.substring(1).match(/\S+/g);
+function determineArgsAndCommand(message, userID) {
+	var args = message.content.slice(1).match(/\S+/g);
+
 	if (!args) { return; }
 
-	var userID = message.member.id;
-	var cmd;
 	const aliasCmd = util.maybeGetAlias(args[0], userID);
+	var cmd;
+
 	if (aliasCmd) {
 		args = aliasCmd.split(' ');
 		cmd = args[0];
@@ -48,6 +50,20 @@ exports.handle = function(message) {
 		args[0] = cmd;
 	}
 
+	return { args, cmd }
+}
+
+/**
+ * Handles valid commands.
+ *
+ * @param {Object} message - the full message object.
+ */
+exports.handle = function(message) {
+	var { args, cmd } = determineArgsAndCommand(message, userID);
+
+	if (!args) { return; }
+	
+	const userID = message.member.id;
 	const channelID = message.channel.id;
 	const user = util.getNick(message.member.id);
 
@@ -137,7 +153,7 @@ exports.handle = function(message) {
 		message.delete();
 	}
 	function dischargeCalled() {
-		gambling.dischargeScrubBubble(userID, args[1]);
+		gambling.dischargeScrubBubble(args[1], userID);
 	}
 	function enlistCalled() {
 		gambling.enlist(userID, message);
@@ -349,7 +365,7 @@ exports.handle = function(message) {
 	}
 	function reviveCalled() {
 		if (!util.isAdmin(userID)) { return; }
-		gambling.dischargeScrubBubble(null, args[1]);
+		gambling.dischargeScrubBubble(args[1]);
 	}
 	function rockCalled() {
 		gambling.rock(userID);

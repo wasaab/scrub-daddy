@@ -56,7 +56,7 @@ exports.giveScrubBubbles = function (userID, userName, targetMention, numBubbles
  * @param {String} userID - the id of the user discharging a bubble
  * @param {Number} numBubbles - the number of bubbles to discharge
  */
-exports.dischargeScrubBubble = function(userID, numBubbles) {
+exports.dischargeScrubBubble = function(numBubbles, userID) {
     numBubbles = numBubbles && !isNaN(numBubbles) ? Number(numBubbles) : 1;
     if (userID) {
         if (numBubbles < 1 || !(ledger[userID] && ledger[userID].armySize >= numBubbles)) { return; }
@@ -90,9 +90,9 @@ exports.maybeDischargeScrubBubble = function() {
     var num = util.getRand(1, 11);
     if (num > 6) {
         if (num !== prevDropNum) {
-            exports.dischargeScrubBubble(null);
+            exports.dischargeScrubBubble();
         } else {
-            exports.dischargeScrubBubble(null, util.getRand(1, 61));
+            exports.dischargeScrubBubble(util.getRand(1, 61));
         }
 
         prevDropNum = num;
@@ -162,18 +162,30 @@ function getArmySizeMsg(userID) {
     return `You now have an army of ${util.formatAsBoldCodeBlock(ledger[userID].armySize)}.`;
 }
 
+exports.maybeEnlistForRandomUser = function(channelID, userID) {
+    if (channelID !== c.BOT_SPAM_CHANNEL_ID || userID !== c.DBC_ID) { return; }
+
+    const userIDs = Object.keys(ledger);
+    const chosenUser = userIDs[util.getRand(0, userIDs.length)];
+
+    exports.enlist(chosenUser);
+};
+
 /**
  * enlists a scrubbing bubble in userID's army.
  */
 exports.enlist = function(userID, message) {
-    if (dropped > 0) {
-        addToArmy(userID, dropped);
-        const msg = `${util.mentionUser(userID)}  ${getArmyGrownMessage(dropped)} ${getArmySizeMsg(userID)}`;
-        util.sendEmbedMessage(null, msg, userID);
-        exports.maybeDeletePreviousMessage();
-        message.delete();
-        dropped = 0;
-    }
+    if (dropped < 1) { return; }
+
+    addToArmy(userID, dropped);
+    const msg = `${util.mentionUser(userID)}  ${getArmyGrownMessage(dropped)} ${getArmySizeMsg(userID)}`;
+    util.sendEmbedMessage(null, msg, userID);
+    exports.maybeDeletePreviousMessage();
+    dropped = 0;
+
+    if (!message) { return; }
+
+    message.delete();           
 };
 
 /**
@@ -1243,6 +1255,8 @@ exports.invest = function(userID, stockName, desiredShares) {
 };
 
 exports.sellShares = function(userID, stock, shares) {
+    stock = stock.toUpperCase();
+
     const stockToInfo = get(ledger, `[${userID}].stockToInfo`);
 
     if (!stockToInfo) { return; }
@@ -1422,6 +1436,8 @@ function getStockUpdate(stock) {
 
     return rp(options)
 		.then((result) => {
+            logger.info(`Stocks API Response: ${result}`);
+
             const mostRecentQuote = JSON.parse(result)["Global Quote"];
             if (!mostRecentQuote || Object.keys(mostRecentQuote).length === 0) { return; }
 

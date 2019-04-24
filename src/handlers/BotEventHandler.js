@@ -26,6 +26,7 @@ module.exports = class BotEventHandler {
          */
         this.client.on('message', (message) => {
             const firstChar = message.content.substring(0, 1);
+
             //Scrub Daddy will listen for messages starting with the prefix specified in config.json
             if (firstChar === config.prefix) {
                 cmdHandler.handle(message);
@@ -42,7 +43,7 @@ module.exports = class BotEventHandler {
          * listens for updates to a user's presence (online status, game, etc).
          */
         this.client.on('presenceUpdate', (oldMember, newMember) => {
-            // if (util.isDevEnv()) { return; }
+            if (util.isDevEnv()) { return; }
 
             const oldGame = get(oldMember, 'presence.game.name');
             const newGame = get(newMember, 'presence.game.name');
@@ -54,6 +55,10 @@ module.exports = class BotEventHandler {
                 gambling.maybeDischargeScrubBubble();
             }
         });
+
+        this.client.on('typingStart', (channel, user) => {
+            gambling.maybeEnlistForRandomUser(channel.id, user.id);
+        })
 
         this.client.on('voiceStateUpdate', (oldMember, newMember) => {
             if (util.isDevEnv()) { return; }

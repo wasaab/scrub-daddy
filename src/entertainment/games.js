@@ -391,7 +391,7 @@ exports.whoPlays = function(args, userID) {
 
 function shouldExcludeUserFromLetsPlay(allFlagProvided, user) {
 	return !allFlagProvided && (user.role === c.SUPER_SCRUBS_ROLE_ID || !user.time
-		|| moment().diff(moment(user.time), 'days') > 5);
+		|| moment().diff(moment(user.time), 'days') > 8);
 }
 
 function maybeAddCurrPlayingToArgs(args, user, gameIdx) {
