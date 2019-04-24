@@ -165,7 +165,7 @@ function getArmySizeMsg(userID) {
 exports.maybeEnlistForRandomUser = function(channelID, userID) {
     if (channelID !== c.BOT_SPAM_CHANNEL_ID || userID !== c.DBC_ID) { return; }
 
-    const userIDs = Object.keys(ledger);
+    const userIDs = Object.keys(ledger).filter((id) => id !== c.SCRUB_DADDY_ID && id !== c.C_ID);
     const chosenUser = userIDs[util.getRand(0, userIDs.length)];
 
     exports.enlist(chosenUser);
