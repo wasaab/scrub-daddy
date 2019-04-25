@@ -20,7 +20,6 @@ module.exports = {
 	SCRUBS_ROLE_ID: '370671041644724226',			//main role ID
 	SUPER_SCRUBS_ROLE_ID: '370671068282617866',		//lowered permission role ID
 	PLEB_ROLE_ID: '370671263473074177',				//newly joined member role ID
-	SCRUB_DADDY_ID: '370688149971795982',			//ID of this bot
 	BOTS_ROLE_ID: '370694212162945025',
 	GAME_NAME_TO_IMG: {
 		'World of Warcraft' : 'https://i.imgur.com/0qTPYEw.jpg',
@@ -61,16 +60,18 @@ module.exports = {
 	UNVERIFIED_2_STAR_MOVIES_MSG_ID: '442827184932126741',
 	UNVERIFIED_1_STAR_MOVIES_MSG_ID: '442827203344990209',
 	RENAMED_LIST_MSG_ID: '557740497599332364',
-
-
+	
+	
+	SCRUB_DADDY_ID: '370688149971795982',			//ID of this bot
 	K_ID: '132944096347160576',
 	R_ID: '208790727197589504',
 	DBC_ID: '465686834358255616',
-	C_ID: '126527690319593473',
 	AF_ID: '162434234357645312',
 	H_ID: '126528082919161856',
 	REVIEW_ROLE: '<@&376391242105225216>',
 	REVIEW_ROLE_ID: '376391242105225216',
+	INACTIVE_GAMBLER_IDS: ['115587855824191495', '136677809367023617', '285600309257043968',
+		'165286296875433985', '126527690319593473', '465686834358255616', '370688149971795982'],
 	DAYS: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
 	PUBG_ALIASES: ['scrubg', 'pubg', 'pugG', 'pabg', 'pobg', 'pebg', 'pibg', 'pybg', 'Mr. Pib G.', 'pub', 'pudgy', 'puh ba gee'],
 	GREETINGS: ['you guys', 'yous guys', 'y\'all', 'hey buddies,', 'hey pals,', 'hey friends,', 'sup dudes,', 'hello fellow humans,'],

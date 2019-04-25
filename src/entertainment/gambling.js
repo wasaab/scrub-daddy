@@ -14,6 +14,8 @@ var ledger = require('../../resources/data/ledger.json');   //keeps track of how
 var config = require('../../resources/data/config.json');
 var private = require('../../../private.json');
 
+const activeGamblerIds = getActiveGamblerIds();
+
 var dropped = 0;
 var previousMessage;
 var idToAmountStolen = {};
@@ -162,13 +164,14 @@ function getArmySizeMsg(userID) {
     return `You now have an army of ${util.formatAsBoldCodeBlock(ledger[userID].armySize)}.`;
 }
 
+function getActiveGamblerIds() {
+    return Object.keys(ledger).filter((id) => !c.INACTIVE_GAMBLER_IDS.includes(id));
+}
+
 exports.maybeEnlistForRandomUser = function(channelID, userID) {
     if (channelID !== c.BOT_SPAM_CHANNEL_ID || userID !== c.DBC_ID || util.getRand(0, 5) === 0) { return; }
 
-    const userIDs = Object.keys(ledger).filter((id) => id !== c.SCRUB_DADDY_ID && id !== c.C_ID && id !== c.DBC_ID);
-    const chosenUser = userIDs[util.getRand(0, userIDs.length)];
-
-    exports.enlist(chosenUser);
+    exports.enlist(activeGamblerIds[util.getRand(0, activeGamblerIds.length)]);
 };
 
 /**
@@ -1201,7 +1204,8 @@ function finalizeInvestment(userEntry, stock, shares, stockPrice, cost, userID) 
 
     userEntry.armySize -= cost;
     util.sendEmbedMessage('📈 Solid Investment', `${util.mentionUser(userID)} your investment of ${util.formatAsBoldCodeBlock(cost)} Scrubbing Bubbles` +
-        ` for ${util.formatAsBoldCodeBlock(shares)} shares of ${util.formatAsBoldCodeBlock(stock)} stock has been processed. ${getArmySizeMsg(userID)}`, userID);
+        ` for ${util.formatAsBoldCodeBlock(shares)} shares of ${util.formatAsBoldCodeBlock(stock)} stock has been processed. ${getArmySizeMsg(userID)}\n` +
+        'Your army will grow or shrink daily by `2 * ⌈stock close price - stock open price⌉ * #shares`. See this calculated daily change by calling `.stocks`', userID);
 }
 
 function buildInvestmentArgs(shares, stock, userID) {
@@ -1350,11 +1354,7 @@ function outputStockChanges(stockToInfo, userID) {
     const stocksOwner = userID ? `${util.getNick(userID)}'s` : '';
     const updateDate = ledger[c.SCRUB_DADDY_ID].stocks.updateDate;
     const { stockChangeFields, netArmyChange } = buildStockChangeFieldsAndDetermineChange(stockToInfo);
-    const graphEmoji = netArmyChange >= 0 ? '📈' : '📉';
-    const footer = {
-        icon_url: c.BUBBLE_IMAGES[0],
-        text: `${determineChangeSymbol(netArmyChange)}${netArmyChange}`
-    };
+    const { graphEmoji, footer } = buildArmyChangeFooterAndGraphEmoji(netArmyChange);
 
     util.sendEmbedFieldsMessage(`${graphEmoji} ${stocksOwner} Scrubble Stock Changes for ${updateDate}`,
         stockChangeFields, userID, footer);
@@ -1380,6 +1380,16 @@ exports.outputUsersStockChanges = function(userID) {
 
     outputStockChanges(userStockToArmyChange, userID);
 };
+
+function buildArmyChangeFooterAndGraphEmoji(netArmyChange) {
+    const graphEmoji = netArmyChange >= 0 ? '📈' : '📉';
+    const footer = {
+        icon_url: c.BUBBLE_IMAGES[0],
+        text: `${determineChangeSymbol(netArmyChange)}${netArmyChange}`
+    };
+
+    return { graphEmoji, footer };
+}
 
 function outputStockPortfolioNotFoundMsg(userID) {
     return util.sendEmbedMessage('📈 Stock Portfolio Not Found', `${util.mentionUser(userID)} you don't have any investments.` +
@@ -1475,14 +1485,10 @@ exports.outputUserStockPortfolio = function(userID) {
             + buildColumn(armyChange, columnLengths[4], true)
     });
 
-    const footer = {
-        icon_url: c.BUBBLE_IMAGES[0],
-        text: `${determineChangeSymbol(netArmyChange)}${netArmyChange}`
-    };
+    const { graphEmoji, footer } = buildArmyChangeFooterAndGraphEmoji(netArmyChange);
 
     output += '```**';
-
-    util.sendEmbedMessage(`📈 ${util.getNick(userID)}'s Scrubble Stock Portfolio`, output, userID, null, null, footer);
+    util.sendEmbedMessage(`${graphEmoji} ${util.getNick(userID)}'s Scrubble Stock Portfolio`, output, userID, null, null, footer);
 }
 
 function buildColumn(text, columnLength, isLastColumn) {
@@ -1501,4 +1507,3 @@ function buildTableHeader(columnHeaders) {
 
     return { output, columnLengths };
 }
-
