@@ -369,7 +369,7 @@ module.exports = {
 			color: 0xffff00,
 			title: '💡 Lets Play & Discord\'s Join Game Integration',
 			description: 'By using Discord\'s game integration to invite users to join you, lets-play will be called for that game.'
-				+ 'This will mention every user that plays the game except for Super Scrubs, because nobody wants to play with those guys.' ,
+				+ 'This will mention every user that recently played the game except for Super Scrubs, because nobody wants to play with those guys.' ,
 			image: {
 				url: 'https://i.imgur.com/QCM9Y3n.png'
 			}

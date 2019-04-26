@@ -16,6 +16,7 @@ var private = require('../../../private.json');
 
 const activeGamblerIds = getActiveGamblerIds();
 
+var numStocksUpdated = 0;
 var dropped = 0;
 var previousMessage;
 var idToAmountStolen = {};
@@ -556,7 +557,7 @@ function outputUserGamblingData(userID, args) {
         }
 
         if (!isNaN(userStats.stocksNetArmyChange)) {
-            description += `Stocks Net Army Change: ${util.formatAsBoldCodeBlock(userStats.stocksNetArmyChange)}`;
+            description += `\nStocks Net Army Change: ${util.formatAsBoldCodeBlock(userStats.stocksNetArmyChange)}`;
         }
     }
 
@@ -1217,7 +1218,7 @@ function buildInvestmentArgs(shares, stock, userID) {
     maybeCreateLedgerEntry(userID);
 
     if (!scrubDaddyEntry.stocks) {
-        createScrubDaddyStocksEntry(scrubDaddyEntry);
+        createScrubDaddyStocksEntry();
     }
 
     var userEntry = ledger[userID];
@@ -1290,26 +1291,25 @@ exports.sellShares = function(userID, stock, shares) {
         });
 };
 
-function createScrubDaddyStocksEntry(scrubDaddyEntry) {
-    scrubDaddyEntry.stocks = {
+function createScrubDaddyStocksEntry() {
+    ledger[c.SCRUB_DADDY_ID].stocks = {
         stockToInfo: {},
         updateDate: moment().format(c.MDY_DATE_FORMAT)
     };
 }
 
-function updateStockInfo(stockToInfo, stock, newStockInfo, userID) {
+function updateUsersStockInfo(stockToInfo, stock, newStockInfo, userID) {
     const stockInfo = stockToInfo[stock];
     const armyChange = newStockInfo ? newStockInfo.armyChange : 1; // Default to 1 if error getting stock change from api
     var userEntry = ledger[userID];
-
-
+    
     if (!userEntry.stats) {
         userEntry.stats = Object.assign({}, c.NEW_LEDGER_ENTRY.stats);
     }
-
-    const oldNetArmyChangeStat = userEntry.stats.netArmyChange;
-   
-    userEntry.stats.netArmyChange = isNaN(oldNetArmyChangeStat) ? armyChange : oldNetArmyChangeStat + armyChange;
+    
+    const oldNetArmyChangeStat = userEntry.stats.stocksNetArmyChange;
+    
+    userEntry.stats.stocksNetArmyChange = isNaN(oldNetArmyChangeStat) ? armyChange : oldNetArmyChangeStat + armyChange;
     userEntry.armySize += armyChange;
     stockInfo.netArmyChange += armyChange;
 
@@ -1318,34 +1318,62 @@ function updateStockInfo(stockToInfo, stock, newStockInfo, userID) {
     }
 }
 
-function updateUsersStocks(stockToInfo, userID) {
+function updateUsersStocks(stockToInfo, userID, updatedStockToInfo) {
     Object.keys(stockToInfo).forEach((stock) => {
-        getStockUpdate(stock)
-            .then((newStockInfo) => {
-                updateStockInfo(stockToInfo, stock, newStockInfo, userID);
-            });
+        const updatedStockInfo = updatedStockToInfo[stock]
+
+        updateUsersStockInfo(stockToInfo, stock, updatedStockInfo, userID);
     });
 }
 
+function updateAllUserStocks(stockOwnerIdToInfo, updatedStockToInfo) {
+    for (var userID in stockOwnerIdToInfo) {
+        updateUsersStocks(stockOwnerIdToInfo[userID], userID, updatedStockToInfo);
+    }
+}
+
+function waitIfRateLimitReached() {
+    numStocksUpdated++;
+
+    const waitMs = numStocksUpdated % 5 === 0 ? 60000 : 0;
+
+    return new Promise(resolve => setTimeout(() => resolve(), waitMs));
+}
+
+function updateCachedStocks(stocks) {
+    if (stocks.length === 0) { return; }
+
+    return getStockUpdate(stocks.pop())
+        .then(waitIfRateLimitReached)
+        .then(() => updateCachedStocks(stocks));
+}
+
 exports.updateStocks = function() {
-    const scrubDaddyEntry = ledger[c.SCRUB_DADDY_ID];
+    createScrubDaddyStocksEntry();
 
-    if (!scrubDaddyEntry || !scrubDaddyEntry.stocks) { return; }
-
-    createScrubDaddyStocksEntry(scrubDaddyEntry);
+    var stockOwnerIdToInfo = {};
+    var stocks = [];
 
     for (var userID in ledger) {
         const stockToInfo = ledger[userID].stockToInfo;
 
-        if (!stockToInfo) { continue; }
-
-        updateUsersStocks(stockToInfo, userID);
+        if (!stockToInfo || Object.keys(stockToInfo).length === 0) { continue; }
+        
+        stockOwnerIdToInfo[userID] = stockToInfo;
+        stocks.push(...Object.keys(stockToInfo));
     }
 
-    setTimeout(() => {
-        outputStockChanges(scrubDaddyEntry.stocks.stockToInfo);
-        exports.exportLedger();
-    }, 15000);
+    numStocksUpdated = 0;
+    stocks = [...new Set(stocks)]; //remove duplicates
+
+    updateCachedStocks(stocks)
+        .then(() => {
+            const updatedStockToInfo = scrubDaddyEntry.stocks.stockToInfo;
+
+            outputStockChanges(updatedStockToInfo);
+            updateAllUserStocks(stockOwnerIdToInfo, updatedStockToInfo);
+            exports.exportLedger();
+        })
 };
 
 function outputStockChanges(stockToInfo, userID) {

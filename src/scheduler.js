@@ -1,5 +1,6 @@
 var schedule = require('node-schedule');
 var Discord = require('discord.js');
+var get = require('lodash.get');
 
 var gambling = require('./entertainment/gambling.js');
 var games = require('./entertainment/games.js');
@@ -50,7 +51,7 @@ exports.scheduleRecurringJobs = function() {
 	clearTimesheetAtFiveAM();	// 5 AM
 	updateBansAtEightAmAndPM(); // 8 AM/PM
 	crawlCarForumAtFivePM();	// 5 PM
-	updateStocksAtSixPM();		// 6 PM
+	maybeUpdateStocksBeforeSixPM();		// 6 PM
 	outputTipAndUpdateInvitesAtTenAMFivePMAndElevenPM(); // 10 AM, 5 PM, 11 PM
 	maybeScheduleReviewJob();
 	maybeScheduleLottoEnd();
@@ -71,14 +72,19 @@ function maybeScheduleLottoEnd() {
 	exports.scheduleLotto();
 }
 
-function updateStocksAtSixPM() {
+function maybeUpdateStocksBeforeSixPM() {
 	if (util.isDevEnv()) {	return; }
+	
+	const stockToInfo = get(gambling.getLedger(), `[${c.SCRUB_DADDY_ID}].stocks.stockToInfo`);
 
+	if (!stockToInfo) { return; }
+
+	const minsPriorToSix = Math.floor(Object.keys(stockToInfo).length / 5);
 	var updateStocksRule = new schedule.RecurrenceRule();
 
 	updateStocksRule.dayOfWeek = new schedule.Range(1, 5);
-	updateStocksRule.hour = 18; // 6pm
-	updateStocksRule.minute = 0;
+	updateStocksRule.hour = 17; // 5pm
+	updateStocksRule.minute = 60 - minsPriorToSix;
 
 	schedule.scheduleJob(updateStocksRule, gambling.updateStocks);
 }
