@@ -107,7 +107,6 @@ module.exports = class BotEventHandler {
             util.enableServerLogRedirect();
             scheduler.scheduleRecurringJobs();
             gambling.maybeRefundUnfinishedRace();
-            gambling.updateStocks();
             logger.info(`Connected`);
 
             if (util.isDevEnv()) { return; }
