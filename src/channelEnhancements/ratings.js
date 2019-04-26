@@ -11,7 +11,7 @@ var c = require('../const.js');
 var bot = require('../bot.js');
 var util = require('../utilities/utilities.js');
 var logger = require('../logger.js').botLogger;
-var private = require('../../../private.json');
+var priv = require('../../../private.json');
 var ratings = require('../../resources/data/ratings.json');
 var ratingsResponses = 0;
 
@@ -300,7 +300,7 @@ function getThirdPartyRatingsForCategory(category, site) {
 		if (site === 'rt') {
 			promises.push(rt(title, 0, 3000));
 		} else {
-			promises.push(imdb.get(title, {apiKey: private.imdbApiKey, timeout: 10000}));
+			promises.push(imdb.get(title, {apiKey: priv.imdbApiKey, timeout: 10000}));
 		}
 	});
 
@@ -669,7 +669,7 @@ function convertRatingsCategoryToTableData(category, isVerified) {
 function updateExternalRatingsJson() {
 	const tableData = convertRatingsToTableData();
 	var options= {
-		uri: `https://api.myjson.com/bins/${private.externalJsonID}`,
+		uri: `https://api.myjson.com/bins/${priv.externalJsonID}`,
 		method: 'PUT',
 		headers: {
 			'Content-Type': 'application/json'

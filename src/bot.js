@@ -1,5 +1,5 @@
 var Discord = require('discord.js');
-var private = require('../../private.json');
+var priv = require('../../private.json');
 var client = new Discord.Client();
 var BotEventHandler = require('./handlers/BotEventHandler.js');
 const eventHandler = new BotEventHandler(client);
@@ -59,4 +59,4 @@ exports.setServer = function(botServer) {
 };
 
 eventHandler.createEventHandlers();
-client.login(private.token);
+client.login(priv.token);

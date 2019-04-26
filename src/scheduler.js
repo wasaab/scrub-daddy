@@ -10,7 +10,7 @@ var bot = require('./bot.js');
 var c = require('./const.js');
 
 var config = require('../resources/data/config.json');
-const private = require('../../private.json');
+const priv = require('../../private.json');
 var previousTip = {};
 
 /**
@@ -156,7 +156,7 @@ function clearTimesheetAtFiveAM() {
 }
 
 function maybeScheduleReviewJob() {
-	const reviewJob = private.job;
+	const reviewJob = priv.job;
 
 	if (!reviewJob || util.isDevEnv()) { return; }
 

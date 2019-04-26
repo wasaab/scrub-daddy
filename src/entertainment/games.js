@@ -10,7 +10,7 @@ var c = require('../const.js');
 var bot = require('../bot.js');
 var util = require('../utilities/utilities.js');
 var logger = require('../logger.js').botLogger;
-var private = require('../../../private.json');
+var priv = require('../../../private.json');
 var optedInUsers = require('../../resources/data/optedIn.json');		//users that have opted in to playtime tracking
 var userIDToFortniteUserName = require('../../resources/data/fortniteUserData.json'); //map of Discord userID to Fortnite username
 var userIDToStreamingUrl = require('../../resources/data/streaming.json'); //map of user id to the url of their stream
@@ -705,7 +705,7 @@ exports.setDynamicGameChannels = function(channels) {
  * Sets the user's streaming url for use with toggle-streaming.
  */
 exports.setStreamingUrl = function(member, url) {
-	var shortener = new gUrl({key: private.googleUrlApiKey});
+	var shortener = new gUrl({key: priv.googleUrlApiKey});
 	shortener.shorten(url, function(err, shortUrl) {
 		if (shortUrl) {
 			userIDToStreamingUrl[member.id] = shortUrl;
@@ -838,7 +838,7 @@ exports.getFortniteStats = function(gameMode, stat, callingUserID, fortniteUserN
 		uri: baseUri,
 		method: 'GET',
 		headers: {
-			'TRN-Api-Key': private.trnApiKey
+			'TRN-Api-Key': priv.trnApiKey
 		}
 	};
 

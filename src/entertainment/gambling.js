@@ -12,7 +12,7 @@ var scheduler = require('../scheduler.js');
 var loot = require('../../resources/data/loot.json');
 var ledger = require('../../resources/data/ledger.json');   //keeps track of how big of an army each member has as well as bet amounts
 var config = require('../../resources/data/config.json');
-var private = require('../../../private.json');
+var priv = require('../../../private.json');
 
 const activeGamblerIds = getActiveGamblerIds();
 
@@ -1285,7 +1285,7 @@ exports.sellShares = function(userID, stock, shares) {
                 `${util.mentionUser(userID)} your ${util.formatAsBoldCodeBlock(shares)} share${util.maybeGetPlural(shares)}` +
                 ` of ${util.formatAsBoldCodeBlock(stock)} stock sold for ${util.formatAsBoldCodeBlock(payout)} Scrubbing Bubbles. ${getArmySizeMsg(userID)}`, userID);
 
-            if (0 === stockInfo.shares) {
+            if (stockInfo.shares === 0) {
                 delete stockToInfo[stock];
             }
         });
@@ -1337,7 +1337,7 @@ function waitIfRateLimitReached() {
 
     const waitMs = numStocksUpdated % 5 === 0 ? 60000 : 0;
 
-    return new Promise(resolve => setTimeout(() => resolve(), waitMs));
+    return new Promise((resolve) => setTimeout(() => resolve(), waitMs));
 }
 
 function updateCachedStocks(stocks) {
@@ -1368,7 +1368,7 @@ exports.updateStocks = function() {
 
     updateCachedStocks(stocks)
         .then(() => {
-            const updatedStockToInfo = scrubDaddyEntry.stocks.stockToInfo;
+            const updatedStockToInfo = ledger[c.SCRUB_DADDY_ID].stocks.stockToInfo;
 
             outputStockChanges(updatedStockToInfo);
             updateAllUserStocks(stockOwnerIdToInfo, updatedStockToInfo);
@@ -1380,7 +1380,7 @@ function outputStockChanges(stockToInfo, userID) {
     if (Object.keys(stockToInfo).length === 0) { return; }
 
     const stocksOwner = userID ? `${util.getNick(userID)}'s` : '';
-    const updateDate = ledger[c.SCRUB_DADDY_ID].stocks.updateDate;
+    const { updateDate } = ledger[c.SCRUB_DADDY_ID].stocks;
     const { stockChangeFields, netArmyChange } = buildStockChangeFieldsAndDetermineChange(stockToInfo);
     const { graphEmoji, footer } = buildArmyChangeFooterAndGraphEmoji(netArmyChange);
 
@@ -1448,24 +1448,20 @@ function determineStockUpdate(mostRecentQuote) {
     const price = Number(mostRecentQuote['05. price']);
     const change = Number(mostRecentQuote['09. change']);
     const armyChange = change < 0 ? Math.floor(change * 2) : Math.ceil(change * 2);
-    const newStockInfo = {
-        armyChange: armyChange,
-        price: price
-    };
 
-    return newStockInfo;
+    return { armyChange, price };
 }
 
 function getStockUpdate(stock) {
-    const stocks = ledger[c.SCRUB_DADDY_ID].stocks;
+    const { stocks } = ledger[c.SCRUB_DADDY_ID];
     const cachedStockInfo = stocks.stockToInfo[stock];
 
     if (cachedStockInfo) {
         return Promise.resolve(cachedStockInfo);
     }
 
-    var options= {
-		uri: `${c.STOCKS_BASE_URL}${stock}&apikey=${private.stocksApiKey}`,
+    var options = {
+		uri: `${c.STOCKS_BASE_URL}${stock}&apikey=${priv.stocksApiKey}`,
 		method: 'GET',
 		headers: {
 			'Content-Type': 'application/json'
@@ -1495,6 +1491,13 @@ exports.outputUserStockPortfolio = function(userID) {
         return outputStockPortfolioNotFoundMsg(userID);
     }
 
+    var { netArmyChange, output } = buildPortfolioTableBody(userStockToInfo);
+    const { graphEmoji, footer } = buildArmyChangeFooterAndGraphEmoji(netArmyChange);
+
+    util.sendEmbedMessage(`${graphEmoji} ${util.getNick(userID)}'s Scrubble Stock Portfolio`, output, userID, null, null, footer);
+};
+
+function buildPortfolioTableBody(userStockToInfo) {
     var { output, columnLengths } = buildTableHeader(['Stock', 'Shares', 'Init. Price', 'Curr. Price', 'Net Army Change']);
     var netArmyChange = 0;
 
@@ -1510,13 +1513,12 @@ exports.outputUserStockPortfolio = function(userID) {
             + buildColumn(shares, columnLengths[1])
             + buildColumn(initialPrice, columnLengths[2])
             + buildColumn(currentPrice, columnLengths[3])
-            + buildColumn(armyChange, columnLengths[4], true)
+            + buildColumn(armyChange, columnLengths[4], true);
     });
-
-    const { graphEmoji, footer } = buildArmyChangeFooterAndGraphEmoji(netArmyChange);
-
+    
     output += '```**';
-    util.sendEmbedMessage(`${graphEmoji} ${util.getNick(userID)}'s Scrubble Stock Portfolio`, output, userID, null, null, footer);
+
+    return { netArmyChange, output };
 }
 
 function buildColumn(text, columnLength, isLastColumn) {
@@ -1529,7 +1531,7 @@ function buildColumn(text, columnLength, isLastColumn) {
 
 function buildTableHeader(columnHeaders) {
     const header = columnHeaders.join(c.TABLE_COL_SEPARATOR);
-    const columnLengths = columnHeaders.map((header) => header.length);
+    const columnLengths = columnHeaders.map((currHeader) => currHeader.length);
     const underline = columnLengths.map((length) => '═'.repeat(length)).join('═╬═');
     const output = `**\`\`\`${header}\n${underline}\n`;
 
