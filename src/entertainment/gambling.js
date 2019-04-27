@@ -172,7 +172,13 @@ function getActiveGamblerIds() {
 exports.maybeEnlistForRandomUser = function(channelID, userID) {
     if (channelID !== c.BOT_SPAM_CHANNEL_ID || userID !== c.DBC_ID || util.getRand(0, 5) === 0) { return; }
 
-    exports.enlist(activeGamblerIds[util.getRand(0, activeGamblerIds.length)]);
+    const onlineActiveGamblers = activeGamblerIds.filter((gamblerID) => {
+        const gambler = util.getMembers().find((member) => member.id === gamblerID);
+
+        return gambler && 'online' === get(gambler, 'presence.status');
+    });
+
+    exports.enlist(onlineActiveGamblers[util.getRand(0, onlineActiveGamblers.length)]);
 };
 
 /**
