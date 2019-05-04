@@ -195,7 +195,7 @@ exports.enlist = function(userID, message) {
 
     if (!message) { return; }
 
-    message.delete();           
+    message.delete();
 };
 
 /**
@@ -1308,13 +1308,13 @@ function updateUsersStockInfo(stockToInfo, stock, newStockInfo, userID) {
     const stockInfo = stockToInfo[stock];
     const armyChange = newStockInfo ? newStockInfo.armyChange : 1; // Default to 1 if error getting stock change from api
     var userEntry = ledger[userID];
-    
+
     if (!userEntry.stats) {
         userEntry.stats = Object.assign({}, c.NEW_LEDGER_ENTRY.stats);
     }
-    
+
     const oldNetArmyChangeStat = userEntry.stats.stocksNetArmyChange;
-    
+
     userEntry.stats.stocksNetArmyChange = isNaN(oldNetArmyChangeStat) ? armyChange : oldNetArmyChangeStat + armyChange;
     userEntry.armySize += armyChange;
     stockInfo.netArmyChange += armyChange;
@@ -1326,7 +1326,7 @@ function updateUsersStockInfo(stockToInfo, stock, newStockInfo, userID) {
 
 function updateUsersStocks(stockToInfo, userID, updatedStockToInfo) {
     Object.keys(stockToInfo).forEach((stock) => {
-        const updatedStockInfo = updatedStockToInfo[stock]
+        const updatedStockInfo = updatedStockToInfo[stock];
 
         updateUsersStockInfo(stockToInfo, stock, updatedStockInfo, userID);
     });
@@ -1364,7 +1364,7 @@ exports.updateStocks = function() {
         const stockToInfo = ledger[userID].stockToInfo;
 
         if (!stockToInfo || Object.keys(stockToInfo).length === 0) { continue; }
-        
+
         stockOwnerIdToInfo[userID] = stockToInfo;
         stocks.push(...Object.keys(stockToInfo));
     }
@@ -1379,7 +1379,7 @@ exports.updateStocks = function() {
             outputStockChanges(updatedStockToInfo);
             updateAllUserStocks(stockOwnerIdToInfo, updatedStockToInfo);
             exports.exportLedger();
-        })
+        });
 };
 
 function outputStockChanges(stockToInfo, userID) {
@@ -1521,7 +1521,7 @@ function buildPortfolioTableBody(userStockToInfo) {
             + buildColumn(currentPrice, columnLengths[3])
             + buildColumn(armyChange, columnLengths[4], true);
     });
-    
+
     output += '```**';
 
     return { netArmyChange, output };

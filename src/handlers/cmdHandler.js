@@ -26,7 +26,7 @@ function findClosestCommandMatch(command) {
 
 /**
  * Determines the arguments sent by a user for a command.
- * 
+ *
  * @param {Object} message - message to get args from
  * @param {String} userID - id of the user calling command
  */
@@ -50,7 +50,7 @@ function determineArgsAndCommand(message, userID) {
 		args[0] = cmd;
 	}
 
-	return { args, cmd }
+	return { args, cmd };
 }
 
 /**
@@ -63,7 +63,7 @@ exports.handle = function(message) {
 	var { args, cmd } = determineArgsAndCommand(message, userID);
 
 	if (!args) { return; }
-	
+
 	const channelID = message.channel.id;
 	const user = util.getNick(message.member.id);
 
@@ -71,7 +71,7 @@ exports.handle = function(message) {
 
 	function mentionGroupCalled() {
 		if (args.length < 2) { return; }
-	
+
 		games.mentionGroup(args[1], args, message, message.channel, userID);
 		message.delete();
 	}
@@ -84,14 +84,14 @@ exports.handle = function(message) {
 	}
 	function addEmojiCalled() {
 		const tierNumber = Number(args[1]);
-	
+
 		if (!gambling.hasPrize(userID, cmd, tierNumber)) { return; }
 
 		gambling.addEmoji(message, args[2], tierNumber, userID, cmd);
 	}
 	function addSBCalled() {
 		if (!config.soundBytesEnabled) { return; }
-	
+
 		util.maybeAddSoundByte(message, userID);
 	}
 	function aliasCalled() {
@@ -407,12 +407,12 @@ exports.handle = function(message) {
 	}
 	function sbCalled() {
 		if (!config.soundBytesEnabled) { return; }
-	
+
 		util.playSoundByte(message.member.voiceChannel, args[1], userID);
 	}
 	function scrubBoxCalled() {
 		if (!args[1] || isNaN(args[1])) { return; }
-	
+
 		gambling.scrubBox(userID, Number(args[1]));
 	}
 	function sellSharesCalled() {
@@ -422,12 +422,12 @@ exports.handle = function(message) {
 	}
 	function setFortniteNameCalled() {
 		if (!args[1]) { return; }
-	
+
 		games.setFortniteName(userID, args);
 	}
 	function setStreamCalled() {
 		if (!args[1]) { return; }
-	
+
 		games.setStreamingUrl(message.member, args[1]);
 	}
 	function shuffleScrubsCalled() {
@@ -457,7 +457,7 @@ exports.handle = function(message) {
 	}
 	function stealCalled() {
 		if (args.length !== 3 || (userID !== c.AF_ID && !util.isAdmin(userID))) { return; }
-		
+
 		gambling.fakeSteal(Number(args[1]), args[2], userID);
 	}
 	function stealAllCalled() {

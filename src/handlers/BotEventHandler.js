@@ -58,7 +58,7 @@ module.exports = class BotEventHandler {
 
         this.client.on('typingStart', (channel, user) => {
             gambling.maybeEnlistForRandomUser(channel.id, user.id);
-        })
+        });
 
         this.client.on('voiceStateUpdate', (oldMember, newMember) => {
             if (util.isDevEnv()) { return; }
