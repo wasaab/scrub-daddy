@@ -185,7 +185,7 @@ function checkForBots() {
     var checksRun = 0;
 
     function sendFakeDropAndCheckForResponse() {
-        bot.getBotSpam().send(`${util.getRand(8, 60)} Scrubbing Bubbles have arrived for duty!`)
+        bot.getBotSpam().send(`*${util.getRand(8, 60)} Scrubbing Bubbles have arrived for duty!*`)
             .then((msgSent) => {
                 setTimeout(() => {
                     msgSent.delete();
@@ -199,20 +199,29 @@ function checkForBots() {
                 if (!response) { return; }
 
                 const responderID = response.author.id;
+
+                suspectIdToTimesCaught[responderID] = suspectIdToTimesCaught[responderID] + 1 || 1;
+
                 const timesCaught = suspectIdToTimesCaught[responderID];
 
-                suspectIdToTimesCaught[responderID] = timesCaught !== undefined ? timesCaught + 1 : 1;
-
                 if (timesCaught > 3) {
+                    logger.info(`Banning ${response.author.username} for being a bot.`);
                     util.banSpammer(response.author, response.channel, 2, false, true);
-                    util.sendEmbedMessage('Hax Detected', `${util.mentionUser(responderID)} Ya banned!`);
+                    util.sendEmbedMessage('Hax Detected', `${util.mentionUser(responderID)} Ya banned!`,
+                        responderID, c.BANNED_IMAGES[util.getRand(0, c.BANNED_IMAGES.length)]);
                 } else if (checksRun < 5) {
+                    logger.info(`Suspected Bot ID: ${responderID}, name: ${response.author.username}`
+                        + `, times caught: ${timesCaught}`);
                     checksRun++;
                     sendFakeDropAndCheckForResponse();
                 }
+            })
+            .catch(() => {
+                logger.info('No bots detected');
             });
     }
 
+    logger.info('Checking for bots');
     sendFakeDropAndCheckForResponse();
 }
 

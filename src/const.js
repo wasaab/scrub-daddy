@@ -60,8 +60,8 @@ module.exports = {
 	UNVERIFIED_2_STAR_MOVIES_MSG_ID: '442827184932126741',
 	UNVERIFIED_1_STAR_MOVIES_MSG_ID: '442827203344990209',
 	RENAMED_LIST_MSG_ID: '557740497599332364',
-	
-	
+
+
 	SCRUB_DADDY_ID: '370688149971795982',			//ID of this bot
 	K_ID: '132944096347160576',
 	R_ID: '208790727197589504',
@@ -110,6 +110,13 @@ module.exports = {
 		'https://i.imgur.com/cCiI4CE.png', 'https://i.imgur.com/fue3AAM.png', 'https://i.imgur.com/8cah0Ar.png',
 		'https://i.imgur.com/3bXFEcL.png', 'https://i.imgur.com/Q33oITR.png', 'https://i.imgur.com/O2iQuhP.png',
 		'https://i.imgur.com/LUq3M1Q.png','https://i.imgur.com/ne412gl.png', 'https://i.imgur.com/ASgP6i6.png'],
+	BANNED_IMAGES: ['https://media.giphy.com/media/fe4dDMD2cAU5RfEaCU/giphy.gif',
+		'https://media.giphy.com/media/GB0lKzzxIv1te/giphy.gif',
+		'https://media.giphy.com/media/52FmnokM0kfcgFb5fq/giphy.gif',
+		'https://media.giphy.com/media/l41YzMffhYx40mL0Q/giphy.gif',
+		'https://media.giphy.com/media/11rIergnpiYpvW/giphy.gif',
+		'https://media.giphy.com/media/cAbRpmEksTR8XVhFI7/giphy.gif',
+		'https://media.giphy.com/media/2394PGDVooY5BzXwJ1/giphy.gif'],
 	STEAL_IMG: 'https://i.imgur.com/L1ZYgZE.png',
 	SETTINGS_IMG: 'https://i.imgur.com/T2ABKgC.png',
 	INFO_IMG: 'https://i.imgur.com/WLWBbQ9.png',
