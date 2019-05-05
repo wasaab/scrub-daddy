@@ -9,7 +9,7 @@ var bot = require('../bot.js');
 var c = require('../const.js');
 
 const { sendEmbedMessage, log } = require('./messagingUtil.js');
-const { getNick, exportJson, mentionUser, mentionChannel, getMembers, maybeGetPlural } = require('./baseUtil.js');
+const { getNick, exportJson, mentionUser, mentionChannel, getMembers, maybeGetPlural, getRand } = require('./baseUtil.js');
 
 var bannedUserIDToBans = require('../../resources/data/banned.json');
 var config = require('../../resources/data/config.json');
@@ -51,6 +51,7 @@ function banSpammer(user, channel, days = 2, isMagicWord, isSilent) {
 	if (isSilent) { return; }
 
 	channel.send(`🔨 ${mentionUser(user.id)} ${msg}`);
+	sendEmbedMessage(null, null, null, c.BANNED_IMAGES[getRand(0, c.BANNED_IMAGES.length)], null, null, channel.id);
 }
 
 /**

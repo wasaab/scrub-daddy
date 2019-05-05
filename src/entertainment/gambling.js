@@ -267,6 +267,7 @@ function takeBetFromUser(userID, bet, type) {
     userEntry[`${type}Bet`] = bet;
     userEntry.armySize -= bet;
     userEntry.stats.scrubsBet += bet;
+    ledger[c.SCRUB_DADDY_ID].armySize += bet;
 
     if (userEntry.stats.mostBet < bet) {
         userEntry.stats.mostBet = bet;
@@ -385,6 +386,8 @@ function buildRaceProgressUpdates() {
     const race = ledger[c.SCRUB_DADDY_ID].race;
     const userIds = Object.keys(race.userIdToEmoji);
     const numRacers = userIds.length;
+    const crabId = Object.keys(race.userIdToEmoji).find(key => race.userIdToEmoji[key] === '🦀');
+
     var newProgress;
     var movingUserId;
     var prevMovingUserId;
@@ -397,6 +400,11 @@ function buildRaceProgressUpdates() {
         movingUserId = userIds[util.getRand(0, numRacers)];
 
         if (movesRemainingInUpdate > 1 && prevMovingUserId === movingUserId) { return; }
+
+        //crab advantage: 25% chance to move instead of another racer
+        if (crabId && movingUserId !== crabId && util.getRand(0, 4) === 0) {
+            movingUserId = crabId;
+        }
 
         newProgress = userIdToProgress[movingUserId].replace('﹒ ', '');
         userIdToProgress[movingUserId] = newProgress;
@@ -441,7 +449,13 @@ function endRace() {
     var extraWinningsMsg = '';
 
     if (util.getRand(1, 11) === 1) {
-        const extraWinnings = util.getRand(1, scrubDaddyEntry.armySize);
+        var maxExtra = bet * 20;
+
+        if (maxExtra > scrubDaddyEntry.armySize) {
+            maxExtra = scrubDaddyEntry.armySize;
+        }
+
+        const extraWinnings = util.getRand(1, maxExtra);
 
         scrubDaddyEntry.armySize -= extraWinnings;
         winnings += extraWinnings;
@@ -468,10 +482,8 @@ function isAbleToAffordBet(userID, bet) {
 function enterRace(userID, bet, type) {
     const scrubDaddyEntry = ledger[c.SCRUB_DADDY_ID];
     const racerEmoji = scrubDaddyEntry.race.racerEmojis.pop();
-    const updatedSDArmySize = scrubDaddyEntry.armySize ? scrubDaddyEntry.armySize + bet : bet;
 
     takeBetFromUser(userID, bet, type);
-    scrubDaddyEntry.armySize = updatedSDArmySize;
     scrubDaddyEntry.race.userIdToEmoji[userID] = racerEmoji;
     util.sendEmbedMessage('New Race Competitor', `Watch out boys, ${util.mentionUser(userID)}'s ${racerEmoji} has joined the race.`, userID);
 }
@@ -544,6 +556,7 @@ function betClean(userID, bet, type) {
 
         if (util.getRand(0,2)) {
             const payout = bet*2;
+
             img = c.CLEAN_WIN_IMG;
             msg = `Congrats, your auxiliary army gained ${util.formatAsBoldCodeBlock(bet)} Scrubbing Bubbles after cleaning the bathroom and conquering the land!`;
             addToArmy(userID, payout);
@@ -551,6 +564,7 @@ function betClean(userID, bet, type) {
         } else {
             img = c.CLEAN_LOSE_IMG;
             msg = `Sorry bud, you lost ${util.formatAsBoldCodeBlock(bet)} Scrubbing Bubble${util.maybeGetPlural(bet)} in the battle.`;
+
             addToGamblingStats(bet, userID, false);
         }
         util.sendEmbedMessage(null, `${util.mentionUser(userID)}  ${msg}\n${getArmySizeMsg(userID)}`, userID, img);
