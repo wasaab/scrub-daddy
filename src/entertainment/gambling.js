@@ -185,7 +185,7 @@ function checkForBots() {
     var checksRun = 0;
 
     function sendFakeDropAndCheckForResponse() {
-        bot.getBotSpam().send('11 Scrubbing Bubbles have arrived for duty!')
+        bot.getBotSpam().send(`${util.getRand(8, 60)} Scrubbing Bubbles have arrived for duty!`)
             .then((msgSent) => {
                 setTimeout(() => {
                     msgSent.delete();
