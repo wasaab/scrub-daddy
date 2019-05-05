@@ -26,7 +26,7 @@ var muteAndDeafUserIDToTime = {};
  * @param {Object} channel - the channel to ban the user from posting in
  * @param {Number} [days = 2] - number of days to ban the user for
  */
-function banSpammer(user, channel, days = 2, isMagicWord) {
+function banSpammer(user, channel, days = 2, isMagicWord, isSilent) {
 	var usersBans = bannedUserIDToBans[user.id] || [];
 	channel.overwritePermissions(user, {
 		SEND_MESSAGES: false
@@ -47,6 +47,8 @@ function banSpammer(user, channel, days = 2, isMagicWord) {
 	if (isMagicWord) {
 		msg = `You said the magic word${maybeGetPlural(days)}! ${msg.split(',')[0]}.`;
 	}
+
+	if (isSilent) { return; }
 
 	channel.send(`🔨 ${mentionUser(user.id)} ${msg}`);
 }

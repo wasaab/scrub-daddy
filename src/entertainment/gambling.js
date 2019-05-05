@@ -169,6 +169,53 @@ function getActiveGamblerIds() {
     return Object.keys(ledger).filter((id) => !c.INACTIVE_GAMBLER_IDS.includes(id));
 }
 
+exports.maybeCheckForBots = function() {
+    if (util.getRand(0, 4) !== 0) { return; }
+
+    setTimeout(() => {
+        if (dropped !== 0) { return; }
+
+        checkForBots();
+    }, 2000);
+};
+
+function checkForBots() {
+    const filter = (m) => m.content.startsWith('.e');
+    var suspectIdToTimesCaught = {};
+    var checksRun = 0;
+
+    function sendFakeDropAndCheckForResponse() {
+        bot.getBotSpam().send('11 Scrubbing Bubbles have arrived for duty!')
+            .then((msgSent) => {
+                setTimeout(() => {
+                    msgSent.delete();
+                }, 10000);
+            });
+
+        bot.getBotSpam().awaitMessages(filter, { max: 1, time: 5100, errors: ['time'] })
+            .then((collected) => {
+                const response = collected.array()[0];
+
+                if (!response) { return; }
+
+                const responderID = response.author.id;
+                const timesCaught = suspectIdToTimesCaught[responderID];
+
+                suspectIdToTimesCaught[responderID] = timesCaught !== undefined ? timesCaught + 1 : 1;
+
+                if (timesCaught > 3) {
+                    util.banSpammer(response.author, response.channel, 2, false, true);
+                    util.sendEmbedMessage('Hax Detected', `${util.mentionUser(responderID)} Ya banned!`);
+                } else if (checksRun < 5) {
+                    checksRun++;
+                    sendFakeDropAndCheckForResponse();
+                }
+            });
+    }
+
+    sendFakeDropAndCheckForResponse();
+}
+
 exports.maybeEnlistForRandomUser = function(channelID, userID) {
     if (channelID !== c.BOT_SPAM_CHANNEL_ID || userID !== c.DBC_ID || util.getRand(0, 5) === 0) { return; }
 

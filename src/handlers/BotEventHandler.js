@@ -53,6 +53,7 @@ module.exports = class BotEventHandler {
                 games.maybeUpdateNickname(newMember, newGame);
                 games.updateTimesheet(util.getNick(newMember.id), newMember.id, newMember.highestRole, oldGame, newGame);
                 gambling.maybeDischargeScrubBubble();
+                gambling.maybeCheckForBots();
             }
         });
 
