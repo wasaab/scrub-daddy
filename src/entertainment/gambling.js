@@ -1060,13 +1060,11 @@ function updateRenamedList(oldName, newName, endTime) {
 }
 
 exports.renameUserRoleOrChannel = function(type, targetID, args, tierNumber, userID, cmd, mentions) {
-    const timePeriodTokens = c.PRIZE_TIERS[tierNumber - 1][`rename-${type}`].split(' ');
     const name = util.getTargetFromArgs(args, 3);
     var lockInfo = loot.lockedIdToLockInfo[targetID];
-    var unlockTime;
 
     if (lockInfo) {
-        unlockTime = moment(lockInfo.unlockTime);
+        const unlockTime = moment(lockInfo.unlockTime);
 
         if (moment().isBefore(unlockTime)) {
             return util.sendEmbedMessage('Target Locked', `You may not rename the target until \`${unlockTime.format(c.MDY_HM_DATE_TIME_FORMAT)}\``);
@@ -1081,11 +1079,10 @@ exports.renameUserRoleOrChannel = function(type, targetID, args, tierNumber, use
 
     maybeRename(type, target, name)
         .then(() => {
-            unlockTime = moment().add(timePeriodTokens[0], timePeriodTokens[1]);
-            const formattedUnlockTime = unlockTime.format(c.MDY_HM_DATE_TIME_FORMAT);
+            const { endTime, formattedEndTime } = getPrizeEndTime(tierNumber, `rename-${type}`);
 
             loot.lockedIdToLockInfo[targetID] = {
-                unlockTime: unlockTime.valueOf(),
+                unlockTime: endTime.valueOf(),
                 oldName: oldName,
                 newName: name,
                 type: group,
@@ -1093,8 +1090,8 @@ exports.renameUserRoleOrChannel = function(type, targetID, args, tierNumber, use
             removePrizeFromInventory(userID, cmd, tierNumber);
             util.exportJson(loot, 'loot');
             util.sendEmbedMessage(`${formattedType} Renamed`,
-                `Thou shalt be called ${util[`mention${mentionType}`](targetID)} until \`${formattedUnlockTime}\``, userID);
-            updateRenamedList(oldName, name, formattedUnlockTime);
+                `Thou shalt be called ${util[`mention${mentionType}`](targetID)} until \`${formattedEndTime}\``, userID);
+            updateRenamedList(oldName, name, formattedEndTime);
         })
         .catch((err) => {
             logger.error(`Edit Name Error: ${err}`);
@@ -1114,6 +1111,14 @@ exports.addEmoji = function(message, name, tierNumber, userID, cmd) {
         });
 };
 
+function getPrizeEndTime(tierNumber, prize) {
+    const timePeriodTokens = c.PRIZE_TIERS[tierNumber - 1][prize].split(' ');
+    const endTime = moment().add(timePeriodTokens[0], timePeriodTokens[1]);
+    const formattedEndTime = endTime.format(c.MDY_HM_DATE_TIME_FORMAT);
+
+    return { endTime, formattedEndTime };
+}
+
 function maybeRename(type, target, name) {
     switch (type) {
         case 'hank':
@@ -1127,24 +1132,53 @@ function maybeRename(type, target, name) {
     }
 }
 
-function addRainbowRole(userID, targetUser, tierNumber, cmd) { //eslint-disable-line
+exports.maybeRemoveRainbowRoleFromUsers = function() {
+    const rainbowRoleMemberIdToEndTime = loot.rainbowRoleMemberIdToEndTime;
+    const rainbowRole = bot.getServer().roles.find('name', 'rainbow');
+    const rainbowRoleMembers = rainbowRole.members.array();
+
+    if (rainbowRoleMembers.length === 0) { return; }
+
+    rainbowRoleMembers.forEach((member) => {
+        const endTime = rainbowRoleMemberIdToEndTime[member.id];
+
+        if (!endTime || moment().isAfter(moment(endTime))) {
+            delete loot.rainbowRoleMemberIdToEndTime[member.id];
+            member.removeRole(rainbowRole);
+            util.exportJson(loot, 'loot');
+        }
+    });
+};
+
+exports.addRainbowRole = function(userID, targetUser, tierNumber, cmd) {
     const server = bot.getServer();
     var rainbowRole = server.roles.find('name', 'rainbow');
 
 	if (!rainbowRole) {
 		server.createRole({
 			name: 'rainbow',
-			position: server.roles.array().length - 3
+			position: server.roles.array().length - 4
 		})
 		.then((role) => {
-			targetUser.addRole(role);
+			targetUser.addRole(role).then(util.updateRainbowRoleColor);
 		});
 	} else {
-		targetUser.addRole(rainbowRole);
+        targetUser.addRole(rainbowRole).then(util.updateRainbowRoleColor);
     }
 
+    if (!loot.rainbowRoleMemberIdToEndTime) {
+        loot.rainbowRoleMemberIdToEndTime = {};
+    }
+
+    const { endTime, formattedEndTime } = getPrizeEndTime(tierNumber, cmd);
+
+    loot.rainbowRoleMemberIdToEndTime[userID] = endTime.valueOf();
     removePrizeFromInventory(userID, cmd, tierNumber);
-}
+    logger.info(`Rainbow role active for ${util.getNick(userID)} until ${formattedEndTime}`);
+    util.sendEmbedMessage(`🌈 Rainbow Role Activated`,
+        `${util.mentionUser(userID)} Your role's color will change until ${util.formatAsBoldCodeBlock(formattedEndTime)}!`, userID);
+    util.exportJson(loot, 'loot');
+};
 
 function updateChannelTopicWithMagicWordCount(channelID) {
     const magicWords = loot.magicWords[channelID];

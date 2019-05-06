@@ -8,7 +8,7 @@ var bot = require('../bot.js');
 var c = require('../const.js');
 
 const { getNick, getTargetFromArgs, getIdFromMention,
-	exportJson, mentionUser, mentionChannel, getRand, capitalizeFirstLetter } = require('./baseUtil.js');
+	exportJson, mentionUser, mentionChannel, getRand, capitalizeFirstLetter, lock, isLocked } = require('./baseUtil.js');
 const { sendDynamicMessage, sendEmbedMessage, log, getUserIDToColor } = require('./messagingUtil.js');
 
 var config = require('../../resources/data/config.json');
@@ -466,6 +466,17 @@ function isChannelOwner(channel, user) {
 		&& permissionOverwrites.deny === 0;
 }
 
+function updateRainbowRoleColor() {
+    var rainbowRole = bot.getServer().roles.find('name', 'rainbow');
+
+	if (!rainbowRole || isLocked() || rainbowRole.members.array().length === 0) { return; }
+
+	lock();
+	setInterval(() => {
+		rainbowRole.setColor(getHexFromTinyColor(tinycolor.random()));
+	}, 2000);
+}
+
 function replaceOrAddColorRole(color, hex, targetUser) {
 	var roleEdited = false;
 
@@ -569,4 +580,5 @@ exports.subscribeToCatFacts = subscribeToCatFacts;
 exports.showLists = showLists;
 exports.shuffleScrubs = shuffleScrubs;
 exports.unalias = unalias;
+exports.updateRainbowRoleColor = updateRainbowRoleColor;
 exports.updateServerInvites = updateServerInvites;

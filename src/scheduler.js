@@ -53,6 +53,7 @@ exports.scheduleRecurringJobs = function() {
 	crawlCarForumAtFivePM();	// 5 PM
 	maybeUpdateStocksBeforeSixPM();		// 6 PM
 	outputTipAndUpdateInvitesAtTenAMFivePMAndElevenPM(); // 10 AM, 5 PM, 11 PM
+	activateRainbowRole();
 	maybeScheduleReviewJob();
 	maybeScheduleLottoEnd();
 };
@@ -72,9 +73,13 @@ function maybeScheduleLottoEnd() {
 	exports.scheduleLotto();
 }
 
+function activateRainbowRole() {
+	util.updateRainbowRoleColor();
+}
+
 function maybeUpdateStocksBeforeSixPM() {
 	if (util.isDevEnv()) {	return; }
-	
+
 	const stockToInfo = get(gambling.getLedger(), `[${c.SCRUB_DADDY_ID}].stocks.stockToInfo`);
 
 	if (!stockToInfo) { return; }
@@ -127,6 +132,7 @@ function scheduleHourlyJobs() {
 	schedule.scheduleJob(hourlyJobsRule, function () {
 		util.updateMembers();
 		util.messageCatFactsSubscribers();
+		gambling.maybeRemoveRainbowRoleFromUsers();
 		games.maybeOutputCountOfGamesBeingPlayed(util.getMembers(), c.SCRUB_DADDY_ID);
 	});
 }

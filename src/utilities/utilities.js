@@ -111,5 +111,6 @@ module.exports = {
     showLists: utils.userUtil.showLists,
     shuffleScrubs: utils.userUtil.shuffleScrubs,
     unalias: utils.userUtil.unalias,
+    updateRainbowRoleColor: utils.userUtil.updateRainbowRoleColor,
     updateServerInvites: utils.userUtil.updateServerInvites
 };

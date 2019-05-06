@@ -303,8 +303,11 @@ exports.handle = function(message) {
 		util.getQuotes(args[1], userID);
 	}
 	function rainbowRoleCalled() {
-		// TODO: create
-		if (!gambling.hasPrize(userID, cmd, Number(args[1]))) { return; }
+		const tierNumber = Number(args[1]);
+
+		if (!gambling.hasPrize(userID, cmd, tierNumber)) { return; }
+
+		gambling.addRainbowRole(userID, message.member, tierNumber, cmd);
 	}
 	function raceCalled() {
 		gambling.race(userID, args, cmd);
