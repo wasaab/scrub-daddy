@@ -33,14 +33,12 @@ module.exports = {
 		'370625345138720809' : '370747704621662218',	        //Post Beta
 		'370626021227233290' : '370748388578295808',	        //Spazzy's Scrub Shack
 		'370625671833190400' : '370747928400232448',	        //Cartoon Network
-		'378656154726957067' : '370748471835230209',	        //Civ Anonymous
 		'370626139972042752' : '370747759130705922'	        	//They'll fix that b4 release
 	},
 	GAME_CHANNEL_NAMES: {
 		'370625345138720809': 'Post Beta',
 		'370626021227233290': `Spazzy's Scrub Shack`,
 		'370625671833190400': 'Cartoon Network',
-		'378656154726957067': 'Civ Anonymous',
 		'370626139972042752': `They'll fix that b4 release`,
 	},
 	'4_STAR_TV_MSG_ID': '442826386776915999',
