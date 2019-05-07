@@ -459,9 +459,9 @@ exports.handle = function(message) {
 		gambling.stopLotto(userID, 3, cmd);
 	}
 	function stealCalled() {
-		if (args.length !== 3 || (userID !== c.AF_ID && !util.isAdmin(userID))) { return; }
+		if (args.length !== 3 || !util.isAdmin(userID)) { return; }
 
-		gambling.fakeSteal(Number(args[1]), args[2], userID);
+		gambling.steal(Number(args[1]), args[2], userID);
 	}
 	function stealAllCalled() {
 		if (userID !== c.AF_ID && !util.isAdmin(userID)) { return; }

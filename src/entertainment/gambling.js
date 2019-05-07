@@ -402,7 +402,7 @@ function buildRaceProgressUpdates() {
         if (movesRemainingInUpdate > 1 && prevMovingUserId === movingUserId) { return; }
 
         //crab advantage: 25% chance to move instead of another racer
-        if (crabId && movingUserId !== crabId && util.getRand(0, 4) === 0) {
+        if (crabId && movingUserId !== crabId && util.getRand(0, 6) === 0) {
             movingUserId = crabId;
         }
 
@@ -460,7 +460,7 @@ function endRace() {
         scrubDaddyEntry.armySize -= extraWinnings;
         winnings += extraWinnings;
         extraWinningsMsg = `\n\nThe RNG Gods have blessed you with an additional ${util.formatAsBoldCodeBlock(extraWinnings)} `
-            + `Scrubbing Bubbles from ${util.mentionUser(c.SCRUB_DADDY_ID)}s army!`;
+            + `Scrubbing Bubbles from ${util.mentionUser(c.SCRUB_DADDY_ID)}'s army!`;
     }
 
     addToArmy(winner.id, winnings);
@@ -492,14 +492,16 @@ exports.race = function(userID, args, type) {
     const scrubDaddyEntry = ledger[c.SCRUB_DADDY_ID] || {};
 
     if (!scrubDaddyEntry.race) {
-        if (!args[1] || isNaN(args[1])) { return; }
+        const bet = Number(args[1]);
+
+        if (isNaN(bet) || bet < 1) { return; }
 
         const racerEmojis = c.RACER_EMOJIS.slice(0);
 
         util.shuffleArray(racerEmojis);
         ledger[c.SCRUB_DADDY_ID] = Object.assign(scrubDaddyEntry, {
             race: {
-                bet: Number(args[1]),
+                bet: bet,
                 userIdToEmoji: {},
                 racerEmojis: racerEmojis
             }
@@ -821,19 +823,14 @@ exports.getLedger = function() {
     return ledger;
 };
 
-exports.fakeSteal = function(amount, target, userID) {
-    if (util.isLocked() || isNaN(amount)) { return; }
+exports.steal = function(amount, target, userID) {
+    if (isNaN(amount)) { return; }
 
     const targetID = util.getIdFromMention(target);
-    if (ledger[targetID] && ledger[targetID].armySize/3 >= amount) {
-        util.lock();
+
+    if (ledger[targetID] && ledger[targetID].armySize >= amount) {
         ledger[targetID].armySize -= amount;
         ledger[userID].armySize += amount;
-        setTimeout(() => {
-            ledger[targetID].armySize += amount;
-            ledger[userID].armySize -= amount;
-            util.unLock();
-        }, 45000);
     }
 };
 
