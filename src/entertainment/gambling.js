@@ -401,8 +401,7 @@ function buildRaceProgressUpdates() {
 
         if (movesRemainingInUpdate > 1 && prevMovingUserId === movingUserId) { return; }
 
-        //crab advantage: 25% chance to move instead of another racer
-        if (crabId && movingUserId !== crabId && util.getRand(0, 6) === 0) {
+        if (shouldReplaceMove(crabId, movingUserId)) {
             movingUserId = crabId;
         }
 
@@ -438,6 +437,10 @@ function buildRaceProgressUpdates() {
     };
 
     return raceUpdates.reverse();
+}
+
+function shouldReplaceMove(crabId, movingUserId) {
+    return crabId && movingUserId !== crabId && util.getRand(0, 8) === 0;
 }
 
 function endRace() {
