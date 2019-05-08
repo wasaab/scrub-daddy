@@ -380,6 +380,11 @@ function buildRaceUpdate(userIdToProgress, sideline) {
     return raceUpdate;
 }
 
+function shouldReplaceMove(crabId, movingUserId, prevMovingUserId) {
+    return crabId && movingUserId !== crabId &&
+        prevMovingUserId !== movingUserId && util.getRand(0, 9) === 0;
+}
+
 function buildRaceProgressUpdates() {
     const sideline = '━'.repeat(18);
     const lane = `${c.FINISH_LINE}${'﹒ '.repeat(11)}`;
@@ -401,7 +406,7 @@ function buildRaceProgressUpdates() {
 
         if (movesRemainingInUpdate > 1 && prevMovingUserId === movingUserId) { return; }
 
-        if (shouldReplaceMove(crabId, movingUserId)) {
+        if (shouldReplaceMove(crabId, movingUserId, prevMovingUserId)) {
             movingUserId = crabId;
         }
 
@@ -437,10 +442,6 @@ function buildRaceProgressUpdates() {
     };
 
     return raceUpdates.reverse();
-}
-
-function shouldReplaceMove(crabId, movingUserId) {
-    return crabId && movingUserId !== crabId && util.getRand(0, 8) === 0;
 }
 
 function endRace() {
