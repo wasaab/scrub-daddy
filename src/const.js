@@ -115,6 +115,7 @@ module.exports = {
 		'https://media.giphy.com/media/11rIergnpiYpvW/giphy.gif',
 		'https://media.giphy.com/media/cAbRpmEksTR8XVhFI7/giphy.gif',
 		'https://media.giphy.com/media/2394PGDVooY5BzXwJ1/giphy.gif'],
+	BOT_CHECK_IMG: 'https://i.imgur.com/f23Hwru.png',
 	STEAL_IMG: 'https://i.imgur.com/L1ZYgZE.png',
 	SETTINGS_IMG: 'https://i.imgur.com/T2ABKgC.png',
 	INFO_IMG: 'https://i.imgur.com/WLWBbQ9.png',
