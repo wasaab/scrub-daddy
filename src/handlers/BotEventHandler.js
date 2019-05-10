@@ -57,6 +57,12 @@ module.exports = class BotEventHandler {
             }
         });
 
+        this.client.on('messageDelete', (message) => {
+            const textDeleted = message.content || get(message, 'embeds[0].description');
+
+            logger.info(`Message by ${util.getNick(message.author.id)} deleted from ${util.mentionChannel(message.channel.id)}: "${textDeleted}"`);
+        });
+
         this.client.on('typingStart', (channel, user) => {
             gambling.maybeEnlistForRandomUser(channel.id, user.id);
         });
