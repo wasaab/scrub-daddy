@@ -234,8 +234,8 @@ function maybeExportAndRefreshRatings(channel, titleToPartialTitleMatch, missing
 		updateExternalRatingsJson();
 		ratingsResponses = 0;
 		refreshRatings(channel, isCalledByStartup);
-		logger.error(`\n\n3rd Party Ratings Partial Matches: ${inspect(titleToPartialTitleMatch)}`);
-		logger.error(`\n\n3rd Party Ratings Not Matched: ${inspect(missingTitles)}`);
+		logger.warn(`\n\n3rd Party Ratings Partial Matches: ${inspect(titleToPartialTitleMatch)}`);
+		logger.warn(`\n\n3rd Party Ratings Not Matched: ${inspect(missingTitles)}`);
 	}
 }
 

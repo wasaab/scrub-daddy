@@ -32,9 +32,10 @@ class DiscordServerTransport extends Transport {
 	log(info, callback) {
 		const msg = info.message;
 
-		if (msg.length > 2000) { return; }
+		if (msg.length <= 2000) {
+			this.logChannel.send(info.message);
+		}
 
-		this.logChannel.send(info.message);
 		callback();
 	}
 }
