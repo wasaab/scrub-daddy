@@ -204,7 +204,7 @@ function checkForBots() {
 
                 const timesCaught = suspectIdToTimesCaught[responderID];
 
-                if (timesCaught > 3) {
+                if (timesCaught > 1) {
                     logger.info(`Banning ${response.author.username} for being a bot.`);
                     util.banSpammer(response.author, response.channel, 2, false, true);
                     util.sendEmbedMessage('Hax Detected', `${util.mentionUser(responderID)} Ya banned!`,

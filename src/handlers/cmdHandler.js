@@ -25,12 +25,12 @@ function findClosestCommandMatch(command) {
 }
 
 /**
- * Determines the arguments sent by a user for a command.
+ * Handles valid commands.
  *
- * @param {Object} message - message to get args from
- * @param {String} userID - id of the user calling command
+ * @param {Object} message - the full message object.
  */
-function determineArgsAndCommand(message, userID) {
+exports.handle = function(message) {
+	const userID = message.member.id;
 	var args = message.content.slice(1).match(/\S+/g);
 
 	if (!args) { return; }
@@ -49,20 +49,6 @@ function determineArgsAndCommand(message, userID) {
 		if (!cmd) { return; }
 		args[0] = cmd;
 	}
-
-	return { args, cmd };
-}
-
-/**
- * Handles valid commands.
- *
- * @param {Object} message - the full message object.
- */
-exports.handle = function(message) {
-	const userID = message.member.id;
-	var { args, cmd } = determineArgsAndCommand(message, userID);
-
-	if (!args) { return; }
 
 	const channelID = message.channel.id;
 	const user = util.getNick(message.member.id);

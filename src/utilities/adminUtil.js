@@ -374,7 +374,8 @@ function exportBanned() {
 function enableServerLogRedirect() {
     const logChannel = bot.getLogChannel();
 
-	if (!logChannel) { return; }
+	if (!logChannel || logger.transports.length === 2) { return; }
+
 	logger.add(new DiscordServerTransport({ level: 'cmd', channel: logChannel }));
 }
 
