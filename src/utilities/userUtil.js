@@ -473,25 +473,26 @@ function updateRainbowRoleColor() {
 
 	lock();
 	setInterval(() => {
-		rainbowRole.setColor(getHexFromTinyColor(tinycolor.random()));
+		rainbowRole.setColor(getIntFromTinyColor(tinycolor.random()));
 	}, 2000);
 }
 
 function replaceOrAddColorRole(color, hex, targetUser) {
+	const colorRoleName = color.toName() || color.toHexString();
 	var roleEdited = false;
 
 	targetUser.roles.array().forEach((role) => {
 		const roleColor = tinycolor(role.name);
-		if (!roleColor.isValid() || getHexFromTinyColor(roleColor) !== role.color) { return; }
+		if (!roleColor.isValid() || role.hexColor !== tinycolor(role.name).toHexString()) { return; }
 
 		//If an old color role has already been edited, delete remaining color roles.
 		if (roleEdited) {
-			role.delete();
+			return role.delete();
 		}
 
 		roleEdited = true;
 		role.edit({
-			name: color,
+			name: colorRoleName,
 			color: hex
 		})
 		.catch((err) => {
@@ -502,7 +503,7 @@ function replaceOrAddColorRole(color, hex, targetUser) {
 	if (roleEdited) { return; }
 
 	bot.getServer().createRole({
-		name: color,
+		name: colorRoleName,
 		color: hex,
 		position: bot.getServer().roles.array().length - 4
 	})
@@ -517,46 +518,48 @@ function replaceOrAddColorRole(color, hex, targetUser) {
 /**
  * exports the user color preferences to a json file.
  */
-function exportColors(title, description, userID, hex, color) {
-	sendEmbedMessage(title, description, userID);
-	//If color not taken, write to colors.json
-	if (title.substring(0, 1) !== 'C') {
-		exportJson(getUserIDToColor(), 'colors');
-		const targetUser = bot.getServer().members.find('id', userID);
+function exportColors(description, user, hex, color) {
+	sendEmbedMessage( '🏳️‍🌈 User Color Preference Set!', description, user.id);
+	exportJson(getUserIDToColor(), 'colors');
 
-		if (targetUser.roles.find('id', c.BEYOND_ROLE_ID)) {
-			replaceOrAddColorRole(color, hex, targetUser);
-		}
+	if (user.roles.find('id', c.BEYOND_ROLE_ID)) {
+		replaceOrAddColorRole(color, hex, user);
 	}
 }
 
-function getHexFromTinyColor(color) {
-	return parseInt(color.toHexString().replace(/^#/, ''), 16);
+function parseIntFromHex(hex) {
+	return parseInt(hex.replace(/^#/, ''), 16);
+}
+
+function getIntFromTinyColor(color) {
+	return parseIntFromHex(color.toHexString());
 }
 
 /**
  * Sets the user's message response color to the provided color.
  */
-function setUserColor(targetColor, userID) {
-	var color = tinycolor(targetColor);
-	var title = '🏳️‍🌈 User Color Preference Set!';
-	var description = 'If the color on the left is not what you chose, then you typed something wrong or did not choose from the provided colors.\n' +
-	'You may use any of the colors on this list: http://www.w3.org/TR/css3-color/#svg-color';
-	var userIDToColor = getUserIDToColor();
+function setUserColor(targetColor, user) {
+	const userID = user.id;
+	const colorChoicesMsg = `${mentionUser(userID)} You may use any of the colors on this list: ${c.COLOR_OPTIONS_URL}`;
+	const color = tinycolor(targetColor);
+	const userIDToColor = getUserIDToColor();
 
-	if (color.isValid()) {
-		var hex = getHexFromTinyColor(color);
-
-		if (Object.values(userIDToColor).includes(hex)) {
-			title = 'Color already taken 😛';
-			description = description.split('\n')[1];
-		}
-		else {
-			userIDToColor[userID] = hex;
-		}
+	if (!color.isValid()) {
+		return sendEmbedMessage('Invalid Color', colorChoicesMsg);
 	}
 
-	exportColors(title, description, userID, hex, targetColor);
+	const hex = color.toHexString();
+
+	if (Object.values(userIDToColor).includes(hex)) {
+		return sendEmbedMessage('Color already taken 😛', colorChoicesMsg);
+	} else {
+		userIDToColor[userID] = parseIntFromHex(hex);
+	}
+
+	const description = 'If the color on the left is not what you chose, then you typed'
+		+ ' something wrong or did not choose from the provided colors.\n' + colorChoicesMsg;
+
+	exportColors(description, user, hex, color);
 }
 
 exports.addInvitedByRole = addInvitedByRole;

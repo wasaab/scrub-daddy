@@ -119,6 +119,7 @@ module.exports = {
 	STEAL_IMG: 'https://i.imgur.com/L1ZYgZE.png',
 	SETTINGS_IMG: 'https://i.imgur.com/T2ABKgC.png',
 	INFO_IMG: 'https://i.imgur.com/WLWBbQ9.png',
+	COLOR_OPTIONS_URL: 'https://www.w3.org/TR/2018/PR-css-color-3-20180315/#svg-color',
 	HELP_CATEGORIES_PROMPT: [
 		{ name: '1) `Voting`', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
 		{ name: '2) `Scrubbing Bubbles`', value: '`enlist`	`discharge`	`give`	`reserve`	`clean`		`race`	`21`	`hit`	`stay`'

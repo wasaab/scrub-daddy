@@ -123,7 +123,7 @@ exports.handle = function(message) {
 	function colorCalled() {
 		if (!args[1]) { return; }
 
-		util.setUserColor(args[1], userID);
+		util.setUserColor(args[1], message.member);
 	}
 	function createGroupCalled() {
 		if (args.length < 3) { return; }
