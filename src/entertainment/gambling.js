@@ -445,6 +445,34 @@ function buildRaceProgressUpdates() {
     return raceUpdates.reverse();
 }
 
+function determineEmojiWinPercentage(racerEmoji) {
+    var racerEmojiToStats = ledger[c.SCRUB_DADDY_ID].racerEmojiToStats || {};
+
+    if (Object.keys(racerEmojiToStats).length === 0) {
+        c.RACER_EMOJIS.forEach((emoji) => {
+            racerEmojiToStats[emoji] = { wins: 0, losses: 0 };
+        });
+
+        ledger[c.SCRUB_DADDY_ID].racerEmojiToStats = racerEmojiToStats;
+    }
+
+    const emojiStats = racerEmojiToStats[racerEmoji];
+    const totalRaces = emojiStats.wins + emojiStats.losses;
+
+    return (emojiStats.wins / totalRaces * 100).toFixed(2);
+}
+
+function updateRacerEmojiStats(winningEmoji, scrubDaddyEntry) {
+    const racerEmojiToStats = scrubDaddyEntry.racerEmojiToStats;
+    const racerEmojis = c.RACER_EMOJIS.filter((emoji) => !scrubDaddyEntry.race.racerEmojis.includes(emoji));
+
+    racerEmojis.forEach((racerEmoji) => {
+        const stat = racerEmoji === winningEmoji ? 'wins' : 'losses';
+
+        racerEmojiToStats[racerEmoji][stat]++;
+    });
+}
+
 function endRace() {
     const scrubDaddyEntry = ledger[c.SCRUB_DADDY_ID];
     const winner = scrubDaddyEntry.race.winner;
@@ -469,6 +497,7 @@ function endRace() {
     }
 
     addToArmy(winner.id, winnings);
+    updateRacerEmojiStats(winner.emoji, scrubDaddyEntry);
     util.sendEmbedMessage('🏁 Race Finished', `🎊 ${winner.emoji} 🎊    ${util.mentionUser(winner.id)} is the winner mon!`
         + `${extraWinningsMsg}\n\n${getArmyGrownMessage(winnings - bet)} ${getArmySizeMsg(winner.id)}`);
 
@@ -487,10 +516,14 @@ function isAbleToAffordBet(userID, bet) {
 function enterRace(userID, bet, type) {
     const scrubDaddyEntry = ledger[c.SCRUB_DADDY_ID];
     const racerEmoji = scrubDaddyEntry.race.racerEmojis.pop();
+    const footer = {
+        text: `${racerEmoji} Win Percentage: ${determineEmojiWinPercentage(racerEmoji)}%`
+    };
 
     takeBetFromUser(userID, bet, type);
     scrubDaddyEntry.race.userIdToEmoji[userID] = racerEmoji;
-    util.sendEmbedMessage('New Race Competitor', `Watch out boys, ${util.mentionUser(userID)}'s ${racerEmoji} has joined the race.`, userID);
+    util.sendEmbedMessage('New Race Competitor', `Watch out boys, ${util.mentionUser(userID)}'s ${racerEmoji}` +
+        ` has joined the race.`, userID, null, null, footer);
 }
 
 exports.race = function(userID, args, type) {
