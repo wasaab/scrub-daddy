@@ -458,8 +458,9 @@ function determineEmojiWinPercentage(racerEmoji) {
 
     const emojiStats = racerEmojiToStats[racerEmoji];
     const totalRaces = emojiStats.wins + emojiStats.losses;
+    const winPercentage = (emojiStats.wins / totalRaces * 100).toFixed(2);
 
-    return (emojiStats.wins / totalRaces * 100).toFixed(2);
+    return isNaN(winPercentage) ? 'Unknown' : `${winPercentage}%`;
 }
 
 function updateRacerEmojiStats(winningEmoji, scrubDaddyEntry) {
@@ -517,7 +518,7 @@ function enterRace(userID, bet, type) {
     const scrubDaddyEntry = ledger[c.SCRUB_DADDY_ID];
     const racerEmoji = scrubDaddyEntry.race.racerEmojis.pop();
     const footer = {
-        text: `${racerEmoji} Win Percentage: ${determineEmojiWinPercentage(racerEmoji)}%`
+        text: `${racerEmoji} Win Percentage: ${determineEmojiWinPercentage(racerEmoji)}`
     };
 
     takeBetFromUser(userID, bet, type);
