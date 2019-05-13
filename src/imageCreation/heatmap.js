@@ -1,11 +1,8 @@
 var path = require('path');
-var d3 = require('d3');
+var d3Node = require('d3-node');
+var { d3, document } = new d3Node();
 var util = require('../utilities/utilities.js');
 var imgConverter = require('./imageConverter.js');
-
-var jsdom = require('jsdom');
-const { JSDOM } = jsdom;
-const { document } = new JSDOM(`<!DOCTYPE html><html><body></body></html>`).window;
 
 var margin = {
         top: 50,
@@ -61,9 +58,9 @@ svg.selectAll(".timeLabel")
     });
 
 function heatmapChart(dataFileName, userID) {
-    const filePath = path.join(__dirname.slice(3, -4), 'resources', 'data', dataFileName);
-    d3.json(`file:///${filePath}`, (data) => {
-        if (!data) { return; }
+    const filePath = path.join(__dirname.slice(3), '../../resources', 'data', dataFileName);
+    d3.json(`file:///${filePath}`, (err, data) => {
+        if (err || !data) { return; }
 
         data = data.reduce((formattedData, day, dayIdx) => {
             var combinedEntries = 1 === dayIdx ? formatDay(formattedData, 0) : formattedData;

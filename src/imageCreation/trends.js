@@ -1,13 +1,11 @@
 var moment = require('moment');
-var jsdom = require('jsdom');
 var path = require('path');
-var d3 = require('d3');
+var d3Node = require('d3-node');
+var { d3, document } = new d3Node();
 var c = require('../const.js');
 var util = require('../utilities/utilities.js');
 var imgConverter = require('./imageConverter.js');
 
-const { JSDOM } = jsdom;
-const { document } = new JSDOM(`<!DOCTYPE html><html><body></body></html>`).window;
 const fullSvgWidth = 1500;
 const fullSvgHeight = fullSvgWidth / 2;
 const margin = {top: 30, right: 20, bottom: 70, left: 50},
@@ -31,10 +29,10 @@ function createSvgCanvas() {
 
 function generateGraph(userID, countKey, targetGames) {
     svg = createSvgCanvas();
-    const filePath = path.join(__dirname.slice(3, -4), 'resources', 'data', 'gameHistory.json');
+    const filePath = path.join(__dirname.slice(3), '../../resources', 'data', 'gameHistory.json');
 
-    d3.json(`file:///${filePath}`, function(rawLogs) {
-        if (!rawLogs) { return; }
+    d3.json(`file:///${filePath}`, function(err, rawLogs) {
+        if (err || !rawLogs) { return; }
 
         var { logs, maxY } = formatLogsAndDetermineMaxY(rawLogs, countKey, targetGames);
 

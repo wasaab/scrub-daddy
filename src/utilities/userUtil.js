@@ -473,7 +473,10 @@ function updateRainbowRoleColor() {
 
 	lock();
 	setInterval(() => {
-		rainbowRole.setColor(getIntFromTinyColor(tinycolor.random()));
+		rainbowRole.setColor(getIntFromTinyColor(tinycolor.random()))
+			.catch((err) => {
+				logger.error(`Update Rainbow Role Color Error:${err}`);
+			});
 	}, 2000);
 }
 

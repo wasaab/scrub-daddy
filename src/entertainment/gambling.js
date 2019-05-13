@@ -268,7 +268,6 @@ function takeBetFromUser(userID, bet, type) {
     userEntry[`${type}Bet`] = bet;
     userEntry.armySize -= bet;
     userEntry.stats.scrubsBet += bet;
-    ledger[c.SCRUB_DADDY_ID].armySize += bet;
 
     if (userEntry.stats.mostBet < bet) {
         userEntry.stats.mostBet = bet;
@@ -319,6 +318,7 @@ function addToGamblingStats(amount, userID, isWin) {
 
     userStats[`bets${outcome}`]++;
     userStats[`scrubs${outcome}`] += amount;
+    ledger[c.SCRUB_DADDY_ID].armySize += isWin ? -amount : amount;
 
     if (amount > userStats[mostStat]) {
         userStats[mostStat] = amount;
