@@ -1,6 +1,5 @@
 var Discord = require('discord.js');
-var request = require('request');
-var co = require('co');
+var rp = require('request-promise');
 var fs = require('fs');
 
 var logger = require('../logger.js').botLogger;
@@ -125,23 +124,19 @@ function outputFavoriteSoundBytes(userID, userName) {
 function playSoundByte(channel, target, userID, voiceConnection) {
 	function playSound(connection) {
 		const dispatcher = connection.playFile(`./resources/audio/${target}.mp3`);
+
 		setTimeout(() => {
 			logger.info(`Soundbyte - ${target} playing at ${dispatcher.volumeDecibels} decibels`);
 		}, 1000);
+
 		dispatcher.setVolumeDecibels(c.VOLUME_TO_DB[soundByteToVolume[target] - 1]);
 		dispatcher.on('end', () => {
 			channel.leave();
 		});
 	}
 
-	if (voiceConnection) {
-		return playSound(voiceConnection);
-	}
-
-	if (!target) {
-		return outputSoundBytesList(soundBytes, 'Available', userID);
-	}
-
+	if (voiceConnection) { return playSound(voiceConnection); }
+	if (!target) { return outputSoundBytesList(soundBytes, 'Available', userID); }
 	if (!soundBytes.includes(target)) { return; }
 
 	channel.join()
@@ -163,55 +158,41 @@ function playSoundByte(channel, target, userID, voiceConnection) {
 	}
 
 	userIDToSBUsage[userID] = sbUsage;
-
-}
-
-const retry = (f, n) => f().catch(err => {
-	if (n > 0) return retry(f, n - 1);
-	else throw err;
-});
-
-function downloadAttachment(message, userID) {
-	if (message.attachments.length === 0) { return; }
-
-	const nameData = message.attachments.array()[0].filename.split('.');
-	const fileName = nameData[0].toLowerCase();
-	const ext = 'mp3';
-
-	const download = co.wrap(function *() {
-		try {
-			if (nameData[1] !== ext) {
-				return sendEmbedMessage('🎶 Invalid File',
-					`You must attach a .${ext} file with the description set to \`${config.prefix}add-sb\``, userID);
-			}
-
-			yield Promise.all(message.attachments.map(co.wrap(function *(file) {
-				yield retry(() => new Promise((finish, error) => {
-					request(file.url)
-					.pipe(fs.createWriteStream(`./resources/audio/${file.filename.toLowerCase()}`))
-					.on('finish', finish)
-					.on('error', error);
-				}), 3);
-
-				sendEmbedMessage('🎶 Sound Byte Successfully Added',
-					`You may now hear the sound byte by calling \`${config.prefix}sb ${fileName}\` from within a voice channel.`, userID);
-				soundByteToVolume[fileName] = 10;
-				updateSoundByteToVolume();
-			})));
-		} catch (err) {
-			return sendEmbedMessage('🎶 Invalid File',
-				`You must attach a .${ext} file with the description set to \`${config.prefix}add-sb\``, userID);
-		}
-	});
-
-	download();
 }
 
 /**
  * Adds the attached soundbyte iff the attachment exists and is an mp3 file.
  */
 function maybeAddSoundByte(message, userID) {
-	downloadAttachment(message, userID);
+	if (message.attachments.length === 0) { return; }
+
+	const file = message.attachments.array()[0];
+	const nameData = file.filename.split('.');
+	const fileName = nameData[0].toLowerCase();
+	const ext = nameData[1];
+
+	if (ext !== 'mp3') {
+		return sendEmbedMessage('🎶 Invalid File',
+			`You must attach a .mp3 file with the description set to \`${config.prefix}add-sb\``, userID);
+	}
+
+	const options= {
+		url: file.url,
+		encoding: null
+	};
+
+	rp(options)
+		.then((mp3File) => {
+			fs.writeFileSync(`./resources/audio/a${file.filename.toLowerCase()}`, mp3File);
+			sendEmbedMessage('🎶 Sound Byte Successfully Added', `You may now hear the sound byte by calling \`${config.prefix}sb ${fileName}\` from within a voice channel.`, userID);
+			soundByteToVolume[fileName] = 10;
+			updateSoundByteToVolume();
+		})
+		.catch((err) => {
+			sendEmbedMessage('🎶 File Cannot Be Downloaded',
+				'There was an issue downloading the file provided. It may be too large.', userID);
+			logger.error(`Download Soundbyte Error: ${err}`);
+		});
 }
 
 function updateSoundByteToVolume() {
