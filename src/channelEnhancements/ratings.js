@@ -384,10 +384,9 @@ exports.outputRatings = function(rating, category, isVerified, channel) {
 
 		channel.fetchMessage(c[msgToEdit])
 			.then((message) => {
-				const categoryEmoji = c[`${category.toUpperCase()}_EMOJI`];
 				const updatedMsg = new Discord.RichEmbed({
 					color: 0xffff00,
-					title: `${categoryEmoji}	${getStars(rating)}`,
+					title: message.embeds[0].title,
 					description: output
 				});
 				message.edit('', updatedMsg);

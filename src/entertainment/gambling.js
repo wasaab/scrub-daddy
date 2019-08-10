@@ -318,13 +318,14 @@ function addToGamblingStats(amount, userID, isWin) {
 
     userStats[`bets${outcome}`]++;
     userStats[`scrubs${outcome}`] += amount;
-    ledger[c.SCRUB_DADDY_ID].armySize += isWin ? -amount : amount;
+    ledger[c.SCRUB_DADDY_ID].armySize += isWin ? amount / -2 : amount;
 
     if (amount > userStats[mostStat]) {
         userStats[mostStat] = amount;
     }
 
     addToGamblingStreaks(userStats, isWin);
+    maybeRefillSDArmy();
 }
 
 exports.maybeRefundUnfinishedRace = function() {
@@ -343,6 +344,12 @@ exports.maybeRefundUnfinishedRace = function() {
 
     delete scrubDaddyEntry.race;
 };
+
+function maybeRefillSDArmy() {
+    if (ledger[c.SCRUB_DADDY_ID].armySize < 0) {
+        ledger[c.SCRUB_DADDY_ID].armySize = 500;
+    }
+}
 
 function updateRace(raceMsg, updates) {
     if (updates.length === 0) { return endRace(); }
@@ -1448,7 +1455,7 @@ function updateUsersStockInfo(stockToInfo, stock, newStockInfo, userID) {
     var userEntry = ledger[userID];
     const stockInfo = stockToInfo[stock];
     const armyChangePerShare = newStockInfo ? newStockInfo.armyChange : 1; // Default to 1 if error getting stock change from api
-    const armyChange = Math.ceil(armyChangePerShare * userEntry.stockToInfo[stock].shares);
+    const armyChange = Math.ceil(armyChangePerShare * stockInfo.shares);
 
     if (!userEntry.stats) {
         userEntry.stats = Object.assign({}, c.NEW_LEDGER_ENTRY.stats);
@@ -1513,6 +1520,8 @@ exports.updateStocks = function() {
     numStocksUpdated = 0;
     stocks = [...new Set(stocks)]; //remove duplicates
 
+
+    toggleStocksLock();
     updateCachedStocks(stocks)
         .then(() => {
             const updatedStockToInfo = ledger[c.SCRUB_DADDY_ID].stocks.stockToInfo;
@@ -1520,8 +1529,17 @@ exports.updateStocks = function() {
             outputStockChanges(updatedStockToInfo);
             updateAllUserStocks(stockOwnerIdToInfo, updatedStockToInfo);
             exports.exportLedger();
+            toggleStocksLock();
         });
 };
+
+function toggleStocksLock() {
+    const toggleTo = util.isLocked('invest') ? 'unLock' : 'lock';
+
+    util[toggleTo]('invest');
+    util[toggleTo]('sellShares');
+    util[toggleTo]('outputUsersStockChanges');
+}
 
 function outputStockChanges(stockToInfo, userID) {
     if (Object.keys(stockToInfo).length === 0) { return; }

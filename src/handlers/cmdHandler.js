@@ -280,7 +280,8 @@ exports.handle = function(message) {
 		message.delete();
 	}
 	function portfolioCalled() {
-		gambling.outputUserStockPortfolio(userID);
+		const targetUser = args[1] ? util.getIdFromMention(args[1]) : userID;
+		gambling.outputUserStockPortfolio(targetUser);
 	}
 	function quoteCalled() {
 		util.quoteUser(message, args[1], userID, channelID);
