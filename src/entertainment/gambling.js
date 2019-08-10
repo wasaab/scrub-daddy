@@ -1445,9 +1445,10 @@ function createScrubDaddyStocksEntry() {
 }
 
 function updateUsersStockInfo(stockToInfo, stock, newStockInfo, userID) {
-    const stockInfo = stockToInfo[stock];
-    const armyChange = newStockInfo ? newStockInfo.armyChange : 1; // Default to 1 if error getting stock change from api
     var userEntry = ledger[userID];
+    const stockInfo = stockToInfo[stock];
+    const armyChangePerShare = newStockInfo ? newStockInfo.armyChange : 1; // Default to 1 if error getting stock change from api
+    const armyChange = Math.ceil(armyChangePerShare * userEntry.stockToInfo[stock].shares);
 
     if (!userEntry.stats) {
         userEntry.stats = Object.assign({}, c.NEW_LEDGER_ENTRY.stats);
