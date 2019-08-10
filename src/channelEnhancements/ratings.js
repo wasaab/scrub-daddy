@@ -379,21 +379,24 @@ exports.outputRatings = function(rating, category, isVerified, channel) {
 	if (output === '') { return; }
 
 	if (channel) {
-		const verification = isVerified ? '' : 'UNVERIFIED_';
-		const msgToEdit = `${verification}${rating}_STAR_${category.toUpperCase()}_MSG_ID`;
+		for (i = 0; i < 16; i++) {
+			channel.send('placeholder');
+		}
+		// const verification = isVerified ? '' : 'UNVERIFIED_';
+		// const msgToEdit = `${verification}${rating}_STAR_${category.toUpperCase()}_MSG_ID`;
 
-		channel.fetchMessage(c[msgToEdit])
-			.then((message) => {
-				const updatedMsg = new Discord.RichEmbed({
-					color: 0xffff00,
-					title: message.embeds[0].title,
-					description: output
-				});
-				message.edit('', updatedMsg);
-			})
-			.catch((err) => {
-				logger.error(`Edit Ratings Msg Error: ${err}`);
-			});
+		// channel.fetchMessage(c[msgToEdit])
+		// 	.then((message) => {
+		// 		const updatedMsg = new Discord.RichEmbed({
+		// 			color: 0xffff00,
+		// 			title: message.embeds[0].title,
+		// 			description: output
+		// 		});
+		// 		message.edit('', updatedMsg);
+		// 	})
+		// 	.catch((err) => {
+		// 		logger.error(`Edit Ratings Msg Error: ${err}`);
+		// 	});
 	} else {
 		const categoryEmoji = c[`${category.toUpperCase()}_EMOJI`];
 		util.sendEmbedMessage(`${categoryEmoji}	${getStars(rating)}`, output);
