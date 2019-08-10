@@ -6,7 +6,7 @@ module.exports = {
 	AFK_CHANNEL_ID: '370628203523473408',			//channel ID of the server's afk voice channel
 	PURGATORY_CHANNEL_ID: '370626266786824192',	    //sends kicked user's to this channel
 	LOG_CHANNEL_ID: '410258655322308608',			//channel ID of the text channel used for redirecting the console
-	RATINGS_CHANNEL_ID: '415305610179903492',		//channel used for rating tv and movies
+	RATINGS_CHANNEL_ID: '601115821066027102',		//channel used for rating tv and movies
 	CAR_PARTS_CHANNEL_ID: '544229507767468054',
 	LOL_CHANNEL_ID: '509761663814336532',
 	CATEGORY_ID: {
