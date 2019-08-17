@@ -653,7 +653,7 @@ function outputUserGamblingData(userID, args) {
     var description = '';
 
     if (args[0] === 'army') {
-        description = `${util.mentionUser(userID)}${msg} army is ${util.formatAsBoldCodeBlock(armySize)} Scrubbing Bubble${util.maybeGetPlural(armySize)} strong!`;
+        description = `${util.mentionUser(userID)}${msg} army is ${util.formatAsBoldCodeBlock(armySize)} Robert${util.maybeGetPlural(armySize)} strong!`;
     } else {
         const userStats = userEntry.stats;
 
@@ -715,7 +715,7 @@ exports.armyRanks = function(userID) {
         fields.push(util.buildField(scrubIDToNick[id], ledger[id].armySize));
     }
     fields.sort(util.compareFieldValues);
-    util.sendEmbedFieldsMessage('Scrubbing Bubbles Army Sizes', fields, userID);
+    util.sendEmbedFieldsMessage('Robert Army Sizes', fields, userID);
 };
 
 /**
