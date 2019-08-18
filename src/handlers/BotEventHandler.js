@@ -60,18 +60,7 @@ module.exports = class BotEventHandler {
         this.client.on('messageDelete', (message) => {
             const textDeleted = message.content || get(message, 'embeds[0].description');
 
-            bot.getServer().fetchAuditLogs({ limit: 5, type: 'MESSAGE_DELETE'})
-                .then((result) => {
-                    const relevantEntry = Array.from(result.entries.values())
-                        .filter((entry) => message.author.id === entry.target.id)[0];
-
-                    if (!relevantEntry || relevantEntry.executor.bot) { return; }
-
-                    logger.info(`Message by ${util.getNick(message.author.id)} deleted from ${util.mentionChannel(message.channel.id)}`
-                        + ` by ${util.getNick(relevantEntry.executor.id)}: "${textDeleted}"`);
-                })
-                .catch(util.log);
-
+            logger.info(`Message by ${util.getNick(message.author.id)} deleted from ${util.mentionChannel(message.channel.id)}: "${textDeleted}"`);
         });
 
         this.client.on('typingStart', (channel, user) => {
