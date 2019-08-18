@@ -889,7 +889,7 @@ exports.redistributeWealth = function () {
     const amountPerUser = Math.floor((wealthToDistribute / 1.1) / userIds.length - 1);
 
     userIds.forEach((userId) => {
-        if (id === c.AF_ID) { return; }
+        if (userId === c.AF_ID) { return; }
 
         ledger[userId].armySize += amountPerUser;
     });
@@ -1369,7 +1369,7 @@ function finalizeInvestment(userEntry, stock, shares, stockPrice, cost, userID) 
             netArmyChange: 0
         };
     } else {
-        stockInfo.shares += shares;
+        stockInfo.shares = Number((stockInfo.shares + shares).toFixed(2))
         stockInfo.currentPrice = stockPrice;
     }
 
@@ -1708,6 +1708,7 @@ function buildColumn(text, columnLength, isLastColumn) {
         text = text.slice(0, columnLength);
     }
 
+    logger.info(`text: "${text}", columnLength: ${columnLength}`);
     return isLastColumn ? `${text}\n` : `${text}${' '.repeat(columnLength - text.length)}${c.TABLE_COL_SEPARATOR}`;
 }
 
