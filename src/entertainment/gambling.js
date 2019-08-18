@@ -880,6 +880,23 @@ exports.steal = function(amount, target, userID) {
     }
 };
 
+exports.redistributeWealth = function () {
+    const wealthToDistribute = ledger[c.AF_ID].armySize;
+
+    if (wealthToDistribute < 0) { return; }
+
+    const userIds = Object.keys(ledger);
+    const amountPerUser = Math.floor((wealthToDistribute / 1.1) / userIds.length - 1);
+
+    userIds.forEach((userId) => {
+        if (id === c.AF_ID) { return; }
+
+        ledger[userId].armySize += amountPerUser;
+    });
+
+    util.sendEmbedMessage(null, null, null, c.DROP_ALL_IMG);
+};
+
 exports.fakeStealAll = function() {
     if (util.isLocked()) { return; }
 

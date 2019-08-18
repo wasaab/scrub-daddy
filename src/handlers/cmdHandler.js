@@ -451,9 +451,11 @@ exports.handle = function(message) {
 		gambling.steal(Number(args[1]), args[2], userID);
 	}
 	function stealAllCalled() {
-		if (userID !== c.AF_ID && !util.isAdmin(userID)) { return; }
-
-		gambling.fakeStealAll();
+		if (userID === c.AF_ID) {
+			gambling.redistributeWealth();
+		} else if (util.isAdmin(userID)) {
+			gambling.fakeStealAll();
+		}
 	}
 	function subscribeToCatFactsCalled() {
 		util.subscribeToCatFacts(userID);

@@ -117,6 +117,7 @@ module.exports = {
 		'https://media.giphy.com/media/2394PGDVooY5BzXwJ1/giphy.gif'],
 	BOT_CHECK_IMG: 'https://i.imgur.com/MZwgz9Z.png',
 	STEAL_IMG: 'https://i.imgur.com/L1ZYgZE.png',
+	DROP_ALL_IMG: 'https://i.imgur.com/JDMFy2s.png',
 	SETTINGS_IMG: 'https://i.imgur.com/T2ABKgC.png',
 	INFO_IMG: 'https://i.imgur.com/WLWBbQ9.png',
 	COLOR_OPTIONS_URL: 'https://www.w3.org/TR/2018/PR-css-color-3-20180315/#svg-color',
