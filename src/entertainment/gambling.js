@@ -1373,7 +1373,7 @@ function finalizeInvestment(userEntry, stock, shares, stockPrice, cost, userID) 
             netArmyChange: 0
         };
     } else {
-        stockInfo.shares = Number((stockInfo.shares + shares).toFixed(2))
+        stockInfo.shares = stockInfo.shares + shares
         stockInfo.currentPrice = stockPrice;
     }
 
@@ -1388,6 +1388,8 @@ function buildInvestmentArgs(shares, stock, userID) {
 
     shares = isNaN(shares) ? 1 : Number(shares);
     stock = stock.toUpperCase();
+
+    if (!Number.isInteger(shares) || shares < 1) { return; }
 
     maybeCreateLedgerEntry(userID);
 
@@ -1447,7 +1449,7 @@ exports.sellShares = function(userID, stock, shares) {
     const sharesOwned = stockInfo.shares;
     shares = isNaN(shares) ? sharesOwned : Number(shares);
 
-    if (shares > sharesOwned) { return; }
+    if (shares < 1 || shares > sharesOwned) { return; }
 
     getStockUpdate(stock)
         .then((newStockInfo) => {
