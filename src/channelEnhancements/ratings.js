@@ -412,6 +412,7 @@ exports.outputRatings = function(rating, category, isVerified, channel) {
 exports.rate = function(targetCategory, rating, args, channel, userID) {
 	targetCategory = targetCategory === 'movie' ? 'movies' : targetCategory;
 	var titleIdx = 3;
+
 	if (targetCategory !== 'movies' && targetCategory !== 'tv') {
 		if (isNaN(targetCategory)) { return; }
 
@@ -420,7 +421,7 @@ exports.rate = function(targetCategory, rating, args, channel, userID) {
 		titleIdx = 2;
 	}
 
-	if (isNaN(rating)) { return; }
+	if (isNaN(rating) || !Number.isInteger(rating) || rating < 1 || rating > 4) { return; }
 
 	const targetTitle = determineTitle(util.getTargetFromArgs(args, titleIdx));
 	var { category, title } = getRating(targetTitle);

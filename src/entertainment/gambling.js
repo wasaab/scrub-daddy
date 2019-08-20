@@ -41,7 +41,7 @@ exports.exportLedger = function() {
 exports.giveScrubBubbles = function (userID, userName, targetMention, numBubbles) {
     if (isNaN(numBubbles)) { return; }
     numBubbles = Number(numBubbles);
-    if (numBubbles < 1 || !(ledger[userID] && ledger[userID].armySize >= numBubbles)) { return; }
+    if (!Number.isInteger(numBubbles) || numBubbles < 1 || !(ledger[userID] && ledger[userID].armySize >= numBubbles)) { return; }
 
     const targetID = util.getIdFromMention(targetMention);
     if (util.getNick(targetID)) {
@@ -60,7 +60,10 @@ exports.giveScrubBubbles = function (userID, userName, targetMention, numBubbles
  * @param {Number} numBubbles - the number of bubbles to discharge
  */
 exports.dischargeScrubBubble = function(numBubbles, userID) {
-    numBubbles = numBubbles && !isNaN(numBubbles) ? Number(numBubbles) : 1;
+    numBubbles = numBubbles && !isNaN(numBubbles)  ? Number(numBubbles) : 1;
+
+    if (!Number.isInteger(numBubbles)) { return; }
+
     if (userID) {
         if (numBubbles < 1 || !(ledger[userID] && ledger[userID].armySize >= numBubbles)) { return; }
 
@@ -626,7 +629,7 @@ function betClean(userID, bet, type) {
 exports.maybeBetClean = function(userID, args, message) {
     const bet = Number(args[1]);
 
-    if (!bet || bet < 1) { return; }
+    if (!bet || !Number.isInteger(bet) || bet < 1) { return; }
 
     betClean(userID, bet, args[0]);
     message.delete();
@@ -923,7 +926,7 @@ exports.fakeStealAll = function() {
 };
 
 exports.scrubBox = function(userID, tierNumber) {
-    if (tierNumber > 3 || tierNumber < 1) { return; }
+    if (!Number.isInteger(tierNumber) || tierNumber > 3 || tierNumber < 1) { return; }
 
     const cost = c.TIER_COST[tierNumber - 1];
 
@@ -1438,6 +1441,9 @@ exports.sellShares = function(userID, stock, shares) {
     if (!stockToInfo) { return; }
 
     const stockInfo = stockToInfo[stock];
+
+    if (!stockInfo) { return; }
+
     const sharesOwned = stockInfo.shares;
     shares = isNaN(shares) ? sharesOwned : Number(shares);
 
