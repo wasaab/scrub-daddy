@@ -883,7 +883,7 @@ exports.steal = function(amount, target, userID) {
 exports.redistributeWealth = function () {
     const wealthToDistribute = ledger[c.AF_ID].armySize;
 
-    if (wealthToDistribute < 0) { return; }
+    if (mull === wealthToDistribute || isNaN(wealthToDistribute) || wealthToDistribute < 500) { return; }
 
     const userIds = Object.keys(ledger);
     const amountPerUser = Math.floor((wealthToDistribute / 1.1) / userIds.length - 1);
@@ -894,6 +894,7 @@ exports.redistributeWealth = function () {
         ledger[userId].armySize += amountPerUser;
     });
 
+    ledger[c.AF_ID].armySize -= amountPerUser * (userIds.length - 1);
     util.sendEmbedMessage(null, null, null, c.DROP_ALL_IMG);
 };
 
