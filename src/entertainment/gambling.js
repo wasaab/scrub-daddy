@@ -1709,7 +1709,6 @@ function buildColumn(text, columnLength, isLastColumn) {
         text = text.slice(0, columnLength);
     }
 
-    logger.info(`text: "${text}", columnLength: ${columnLength}`);
     return isLastColumn ? `${text}\n` : `${text}${' '.repeat(columnLength - text.length)}${c.TABLE_COL_SEPARATOR}`;
 }
 
