@@ -127,7 +127,9 @@ module.exports = class BotEventHandler {
         process.on('uncaughtException', (err) => {
             logger.error(`Uncaught Exception: ${inspect(err)}`);
             games.exportTimeSheetAndGameHistory();
-		    gambling.exportLedger();
+            gambling.exportLedger();
+
+            throw err;
         });
     }
 
