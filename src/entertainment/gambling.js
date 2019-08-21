@@ -1389,7 +1389,9 @@ function buildInvestmentArgs(shares, stock, userID) {
     shares = isNaN(shares) ? 1 : Number(shares);
     stock = stock.toUpperCase();
 
-    if (!Number.isInteger(shares) || shares < 1) { return; }
+    if (!Number.isInteger(shares) || shares < 1) {
+        shares = 1;
+    }
 
     maybeCreateLedgerEntry(userID);
 
