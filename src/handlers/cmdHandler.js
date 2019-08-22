@@ -641,6 +641,11 @@ exports.handle = function(message) {
 		helpCalled();
 	} else if (commandToHandler[cmd]){
 		logger.cmd(`${cmd} called by ${user} - "${message.content}"`);
-		return commandToHandler[cmd]();
+
+		try {
+			commandToHandler[cmd]();
+		} catch (error) {
+			logger.error(`command error: ${error}`);
+		}
 	}
 };
