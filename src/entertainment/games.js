@@ -245,9 +245,14 @@ function getCumulativeTimePlayed(gameName, target) {
  * @param {String} user - the user to check
  */
 function isOptedIn(user) {
+	if (!util.isMention(user)) { return false; }
+
 	user = util.getIdFromMention(user);
-	if (optedInUsers.indexOf(user) === -1)
+
+	if (optedInUsers.indexOf(user) === -1) {
 		return false;
+	}
+
 	return true;
 }
 
@@ -285,10 +290,12 @@ exports.maybeOutputTimePlayed = function(args, userID) {
 		return;
 	}
 
-    if (target.match(/\d/g) !== null) {
+    if (util.isMention(target)) {
         target = util.getIdFromMention(target);
-    }
-    var timePlayedData = getCumulativeTimePlayed(game,target);
+	}
+
+	var timePlayedData = getCumulativeTimePlayed(game,target);
+
     if (Object.keys(timePlayedData.gameToTime).length !== 0) {
         outputCumulativeTimePlayed(timePlayedData, userID);
     } else {
@@ -843,7 +850,7 @@ exports.getFortniteStats = function(gameMode, stat, callingUserID, fortniteUserN
 	};
 
 	//get stats of @mentioned user
-	if (fortniteUserName && fortniteUserName.match(/\d/g) !== null) {
+	if (util.isMention(fortniteUserName)) {
 		const matchedName = userIDToFortniteUserName[util.getIdFromMention(fortniteUserName)];
 		if (matchedName) {
 			fortniteUserName = matchedName;
@@ -862,7 +869,7 @@ exports.getFortniteStats = function(gameMode, stat, callingUserID, fortniteUserN
 exports.setFortniteName = function(userID, args) {
 	var userNameStartIdx = 1;
 	//if called by admin and first argument is a mention
-	if (util.isAdmin(userID) && !isNaN(util.getIdFromMention(args[1]))) {
+	if (util.isAdmin(userID) && util.isMention(args[1])) {
 		userID = util.getIdFromMention(args[1]);
 		userNameStartIdx = 2;
 	}

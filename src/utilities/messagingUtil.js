@@ -8,7 +8,7 @@ var bot = require('../bot.js');
 var c = require('../const.js');
 
 const { getNick, getAvatar, exportJson, capitalizeFirstLetter,
-	lock, isLocked, unLock, getIdFromMention, buildField } = require('./baseUtil.js');
+	lock, isLocked, isMention, unLock, getIdFromMention, buildField } = require('./baseUtil.js');
 
 var userIDToColor = require('../../resources/data/colors.json');
 var quotes = require('../../resources/data/quotes.json');
@@ -324,7 +324,7 @@ function getQuotes(quoteTarget, userID) {
 	var targetName = 'Everyone';
 	var targetQuotes = quotes;
 	var fields = [];
-	if (quoteTarget) {
+	if (isMention(quoteTarget)) {
 		const targetID = getIdFromMention(quoteTarget);
 		targetName = getNick(targetID);
 		targetQuotes = quotes.filter((quote) => { return quote.quotedUserID === targetID; });

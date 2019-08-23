@@ -39,11 +39,14 @@ exports.exportLedger = function() {
  * @param {Number} numBubbles - the number of bubbles to give
  */
 exports.giveScrubBubbles = function (userID, userName, targetMention, numBubbles) {
-    if (isNaN(numBubbles)) { return; }
+    if (isNaN(numBubbles) || !util.isMention(targetMention)) { return; }
+
     numBubbles = Number(numBubbles);
+
     if (!Number.isInteger(numBubbles) || numBubbles < 1 || !(ledger[userID] && ledger[userID].armySize >= numBubbles)) { return; }
 
     const targetID = util.getIdFromMention(targetMention);
+
     if (util.getNick(targetID)) {
         removeFromArmy(userID, numBubbles);
         addToArmy(targetID, numBubbles);
@@ -640,11 +643,10 @@ exports.maybeBetClean = function(userID, args, message) {
  */
 function outputUserGamblingData(userID, args) {
     var msg = ' your';
-    if (args[1]) {
-        if (args[1].match(/\d/g) !== null) {
-            userID = util.getIdFromMention(args[1]);
-            msg = '\'s';
-        }
+
+    if (util.isMention(args[1])) {
+        userID = util.getIdFromMention(args[1]);
+        msg = '\'s';
     }
 
     const userEntry = ledger[userID];
@@ -873,7 +875,7 @@ exports.getLedger = function() {
 };
 
 exports.steal = function(amount, target, userID) {
-    if (isNaN(amount)) { return; }
+    if (isNaN(amount) || !util.isMention(target)) { return; }
 
     const targetID = util.getIdFromMention(target);
 

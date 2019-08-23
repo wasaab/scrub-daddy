@@ -280,10 +280,12 @@ exports.handle = function(message) {
 		message.delete();
 	}
 	function portfolioCalled() {
-		const targetUser = args[1] && util.isMention(args[1]) ? util.getIdFromMention(args[1]) : userID;
+		const targetUser = util.isMention(args[1]) ? util.getIdFromMention(args[1]) : userID;
 		gambling.outputUserStockPortfolio(targetUser);
 	}
 	function quoteCalled() {
+		if (!util.isMention(args[1])) { return; }
+
 		util.quoteUser(message, args[1], userID, channelID);
 	}
 	function quotesCalled() {

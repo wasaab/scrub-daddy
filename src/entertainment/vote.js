@@ -71,7 +71,7 @@ exports.getTotalVotesForTarget = function(user, userID, kickChannel, channelID, 
 	var target = util.getTargetFromArgs(args, 1);
 	var titleTarget = 'The Provided User';
 	voteChannelMembers[kickChannel.id].forEach((vMember) => {
-		if (vMember.name === target || (target.match(/\d/g) !== null && vMember.id === util.getIdFromMention(target))) {
+		if (vMember.name === target || (util.isMention(target) && vMember.id === util.getIdFromMention(target))) {
 			titleTarget = vMember.name;
 		}
 	});
@@ -99,7 +99,7 @@ function getTargetInVoteChannel(vote) {
 	var result;
 	voteChannelMembers[vote.channelID].forEach((vMember) => {
 		const kickTarget = vote.targetConcat.split(':-:')[0];
-		if (vMember.name === kickTarget || (kickTarget.match(/\d/g) !== null && vMember.id === util.getIdFromMention(kickTarget))) {
+		if (vMember.name === kickTarget || (util.isMention(kickTarget) && vMember.id === util.getIdFromMention(kickTarget))) {
 			result = vMember.fullMember;
 		}
 	});
