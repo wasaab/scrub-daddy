@@ -549,8 +549,8 @@ module.exports = {
 	],
 	TIER_COST: [200, 400, 600],
 	MENTION_TYPE_TO_SYMBOL: {
-		role: '&',
-		user: '!',
+		role: '@&',
+		user: '@!',
 		channel: '#'
 	},
 	MENTION_TYPE: {

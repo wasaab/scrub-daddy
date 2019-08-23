@@ -130,11 +130,11 @@ function formatAsBoldCodeBlock(text) {
 }
 
 function isMention(text, mentionType) {
-	const typeSymbol = mentionType ? c.MENTION_TYPE_TO_SYMBOL[mentionType] : '.';
+	const typeSymbol = mentionType ? c.MENTION_TYPE_TO_SYMBOL[mentionType] : '@?(!|#|&)';
 
 	if (!text) { return false; }
 
-	return RegExp(`^<@${typeSymbol}[0-9]{18}>$`).test(text);
+	return RegExp(`^<${typeSymbol}[0-9]{18}>$`).test(text);
 }
 
 /**
