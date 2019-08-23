@@ -27,6 +27,8 @@ module.exports = class BotEventHandler {
         this.client.on('message', (message) => {
             const firstChar = message.content.substring(0, 1);
 
+            if (!message.guild) { return; } //ignore DMs
+
             //Scrub Daddy will listen for messages starting with the prefix specified in config.json
             if (firstChar === config.prefix) {
                 cmdHandler.handle(message);
