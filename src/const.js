@@ -548,6 +548,16 @@ module.exports = {
 		}
 	],
 	TIER_COST: [200, 400, 600],
+	MENTION_TYPE_TO_SYMBOL: {
+		role: '&',
+		user: '!',
+		channel: '#'
+	},
+	MENTION_TYPE: {
+		user: 'user',
+		channel: 'channel',
+		role: 'role'
+	},
 	MDY_HM_DATE_TIME_FORMAT: 'M/DD/YY hh:mm A',
 	MDY_DATE_FORMAT: 'MM/DD/YY',
 	FULL_DATE_TIME_FORMAT: 'LLLL',

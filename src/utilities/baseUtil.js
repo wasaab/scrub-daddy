@@ -1,6 +1,7 @@
 var fs = require('fs');
 
 var bot = require('../bot.js');
+var c = require('../const.js');
 
 var scrubIdToNick = {};
 var scrubIdToAvatar = {};
@@ -117,13 +118,21 @@ function getAvatar(userID) {
  * @param {number} count
  */
 function maybeGetPlural(count) {
-    if (count > 1 || count < -1)
+    if (count > 1 || count < -1) {
         return 's';
+	}
+
     return '';
 }
 
 function formatAsBoldCodeBlock(text) {
 	return `**\`${text}\`**`;
+}
+
+function isMention(text, mentionType) {
+	const typeSymbol = mentionType ? c.MENTION_TYPE_TO_SYMBOL[mentionType] : '.';
+
+	return RegExp(`^<@${typeSymbol}[0-9]{18}>$`).test(text);
 }
 
 /**
@@ -249,6 +258,7 @@ exports.getScrubIdToNick = () => scrubIdToNick;
 exports.getTargetFromArgs = getTargetFromArgs;
 exports.getTrueDisplayName = getTrueDisplayName;
 exports.isLocked = isLocked;
+exports.isMention = isMention;
 exports.lock = lock;
 exports.maybeGetPlural = maybeGetPlural;
 exports.maybeRemoveFromArray = maybeRemoveFromArray;

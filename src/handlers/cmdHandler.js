@@ -280,7 +280,7 @@ exports.handle = function(message) {
 		message.delete();
 	}
 	function portfolioCalled() {
-		const targetUser = args[1] ? util.getIdFromMention(args[1]) : userID;
+		const targetUser = args[1] && util.isMention(args[1]) ? util.getIdFromMention(args[1]) : userID;
 		gambling.outputUserStockPortfolio(targetUser);
 	}
 	function quoteCalled() {
@@ -332,7 +332,7 @@ exports.handle = function(message) {
 		util.rejoinTempChannel(userID, args[1]);
 	}
 	function removePlayerCalled() {
-		if (!util.isAdmin(userID)) { return; }
+		if (!util.isAdmin(userID) || !util.isMention(args[1])) { return; }
 
 		games.removePlayer(args);
 	}
@@ -345,7 +345,7 @@ exports.handle = function(message) {
 	function renameChannelCalled() {
 		const tierNumber = Number(args[1]);
 
-		if (message.mentions.channels.size === 0 || !gambling.hasPrize(userID, cmd, tierNumber)) { return; }
+		if (!util.isMention(args[2], c.MENTION_TYPE.channel) || !gambling.hasPrize(userID, cmd, tierNumber)) { return; }
 
 		gambling.renameUserRoleOrChannel('channel', util.getIdFromMention(args[2]), args, tierNumber, userID, cmd, message.mentions);
 	}
@@ -359,14 +359,14 @@ exports.handle = function(message) {
 	function renameRoleCalled() {
 		const tierNumber = Number(args[1]);
 
-		if (message.mentions.roles.size === 0 || !gambling.hasPrize(userID, cmd, tierNumber)) { return; }
+		if (!util.isMention(args[2], c.MENTION_TYPE.role) || !gambling.hasPrize(userID, cmd, tierNumber)) { return; }
 
 		gambling.renameUserRoleOrChannel('role', util.getIdFromMention(args[2]), args, tierNumber, userID, cmd, message.mentions);
 	}
 	function renameUserCalled() {
 		const tierNumber = Number(args[1]);
 
-		if (message.mentions.users.size === 0 || !gambling.hasPrize(userID, cmd, tierNumber)) { return; }
+		if (!util.isMention(args[2], c.MENTION_TYPE.user) || !gambling.hasPrize(userID, cmd, tierNumber)) { return; }
 
 		gambling.renameUserRoleOrChannel('user', util.getIdFromMention(args[2]), args, tierNumber, userID, cmd, message.mentions);
 	}

@@ -63,6 +63,7 @@ module.exports = {
     getTargetFromArgs: utils.baseUtil.getTargetFromArgs,
     getTrueDisplayName: utils.baseUtil.getTrueDisplayName,
     isLocked: utils.baseUtil.isLocked,
+    isMention: utils.baseUtil.isMention,
     lock: utils.baseUtil.lock,
     maybeGetPlural: utils.baseUtil.maybeGetPlural,
     maybeRemoveFromArray: utils.baseUtil.maybeRemoveFromArray,
