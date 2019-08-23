@@ -211,7 +211,7 @@ exports.handle = function(message) {
 	}
 	function implementCalled() {
 		args.splice(1, 0, cmd);
-		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.CUSTOM);
+		vote.conductVote(user, userID, args, c.VOTE_TYPE.CUSTOM);
 	}
 	function issueOrFeatureCalled() {
 		const chanName = args[1];
@@ -502,11 +502,11 @@ exports.handle = function(message) {
 		util.setVolume(args[1], Number(args[2]), user, userID);
 	}
 	function voteCalled() {
-		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.CUSTOM);
+		vote.conductVote(user, userID, args, c.VOTE_TYPE.CUSTOM);
 	}
 	function votebanCalled() {
 		logger.info(`VOTE Ban - ${user}: ${message}`);
-		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.BAN, message.member.voiceChannel, message.guild.roles);
+		vote.conductVote(user, userID, args, c.VOTE_TYPE.BAN, message.member.voiceChannel, message.guild.roles);
 	}
 	function voteinfoCalled() {
 		if (!args[1]) {
@@ -514,12 +514,12 @@ exports.handle = function(message) {
 			vote.getCustomVoteTotals(userID);
 		} else {
 			logger.info(`VOTE Info User - ${user}: ${message}`);
-			vote.getTotalVotesForTarget(user, userID, message.member.voiceChannel, channelID, args);
+			vote.getTotalVotesForTarget(user, userID, message.member.voiceChannel, args);
 		}
 	}
 	function votekickCalled() {
 		logger.info(`VOTE Kick - ${user}: ${message}`);
-		vote.conductVote(user, userID, channelID, args, c.VOTE_TYPE.KICK, message.member.voiceChannel, message.guild.roles);
+		vote.conductVote(user, userID, args, c.VOTE_TYPE.KICK, message.member.voiceChannel, message.guild.roles);
 	}
 	function whoPlaysCalled() {
 		games.whoPlays(args, userID);

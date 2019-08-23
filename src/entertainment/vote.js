@@ -58,10 +58,9 @@ exports.getCustomVoteTotals = function(userID) {
  *
  * @param {String} user - the user requesting the total
  * @param {String} kickChannel - the voice channel to kick a user from
- * @param {String} channelID - bot-spam channel to respond in
  * @param {String[]} args - input args of the requester (cmd and target)
  */
-exports.getTotalVotesForTarget = function(user, userID, kickChannel, channelID, args) {
+exports.getTotalVotesForTarget = function(user, userID, kickChannel, args) {
 	if (!kickChannel) {
 		const description = `Sup ${user}! Tryna voteinfo @user from nothing, ey dumbass?`;
 		util.sendEmbedMessage(null, description, userID);
@@ -155,13 +154,12 @@ function maybeEndVote(voteData, roles, userID) {
  *
  * @param {String} user - the user
  * @param {String} userID - the user's ID
- * @param {String} channelID - the channel's ID
  * @param {String[]} args - target of the vote
  * @param {String} type - vote type
  * @param {String} kickChannel - the voice channel of the user calling !vote
  * @param {String} roles - the guild's role objects
  */
-exports.conductVote = function(user, userID, channelID, args, type, kickChannel, roles) {
+exports.conductVote = function(user, userID, args, type, kickChannel, roles) {
 	if (type === c.VOTE_TYPE.CUSTOM) {
 		kickChannel = { id: '', name: ''};
 	}
@@ -178,6 +176,16 @@ exports.conductVote = function(user, userID, channelID, args, type, kickChannel,
 	if (type === c.VOTE_TYPE.CUSTOM) {
 		type = target;
 	}
+
+	if ('implement' === args[0]) {
+		if (!util.isMention(args[2], c.MENTION_TYPE.channel)) { return; }
+
+		const taskChannel = bot.getServer().channels.find('id', util.getIdFromMention(args[2]));
+
+		if (!taskChannel || (taskChannel.parentID !== c.CATEGORY_ID.Issue
+			&& taskChannel.parentID !== c.CATEGORY_ID.Feature)) { return; }
+	}
+
 	const targetConcat = `${target}:-:${kickChannel.id}:-:${type}`;
 	var msg = ` votes to ${type} `;
 
@@ -200,7 +208,7 @@ exports.conductVote = function(user, userID, channelID, args, type, kickChannel,
 				var memberData = {id: member.id, name: util.getNick(member.id), fullMember: member};
 				voteChannelMembers[kickChannel.id].push(memberData);
 			});
-			exports.getTotalVotesForTarget(user, userID, kickChannel, channelID, args);
+			exports.getTotalVotesForTarget(user, userID, kickChannel, args);
 			var currVote =  {
 				channelID : kickChannel.id,
 				channelName : kickChannel.name,
