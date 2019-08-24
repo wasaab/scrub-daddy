@@ -219,7 +219,7 @@ function unalias(alias, userID) {
  * @param {String} feedback - optional feedback provided if an issue/feature
  */
 function createChannelInCategory(command, channelType, channelName, message, createdByMsg, userID, feedback) {
-	if (!channelName) { return; }
+	if (!channelName || (channelType !== 'voice' && channelType !== 'text')) { return; }
 
 	if (channelName.includes(' ')) {
 		//remove the leading/trailing whitespace and replace other spaces with '-'
@@ -250,8 +250,12 @@ function createChannelInCategory(command, channelType, channelName, message, cre
 	message.guild.createChannel(channelName, channelType, overwrites)
 	.then((channel) => {
 		channel.setParent(c.CATEGORY_ID[channelCategoryName]);
-		sendEmbedMessage(channelCategoryName + createdByMsg, description,
-			userID, c.SETTINGS_IMG, null, null, channel.id);
+
+		if ('text' === channelType) {
+			sendEmbedMessage(channelCategoryName + createdByMsg, description,
+				userID, c.SETTINGS_IMG, null, null, channel.id);
+		}
+
 		sendEmbedMessage(`➕ ${channelCategoryName} Channel Created`,
 			`You can find your channel, ${mentionChannel(channel.id)}, under the \`${channelCategoryName}\` category.`, userID);
 		logger.info(`${channelCategoryName}${createdByMsg}  ${description}`);

@@ -888,7 +888,7 @@ exports.steal = function(amount, target, userID) {
 exports.redistributeWealth = function () {
     const wealthToDistribute = ledger[c.AF_ID].armySize;
 
-    if (mull === wealthToDistribute || isNaN(wealthToDistribute) || wealthToDistribute < 500) { return; }
+    if (!wealthToDistribute || isNaN(wealthToDistribute) || wealthToDistribute < 500) { return; }
 
     const userIds = Object.keys(ledger);
     const amountPerUser = Math.floor((wealthToDistribute / 1.1) / userIds.length - 1);
