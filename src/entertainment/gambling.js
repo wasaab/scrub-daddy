@@ -1081,7 +1081,7 @@ exports.maybeResetNames = function() {
             continue;
         }
 
-        const targetName = target.nickname || target.name;
+        const targetName = target.displayName || target.name;
 
         if (targetName === lockInfo.newName || targetName === lockInfo.newName.split(' ').join('-')) { continue; }
 
@@ -1141,7 +1141,7 @@ exports.renameUserRoleOrChannel = function(type, targetID, args, tierNumber, use
     const mentionType = type === 'hank' ? 'User' : formattedType;
     const group = mentionType === 'User' ? 'member' : mentionType.toLowerCase();
     const target = mentions.id ? mentions : mentions[`${group}s`].values().next().value;
-    const oldName = target.nickname || target.name;
+    const oldName = target.displayName || target.name;
 
     maybeRename(type, target, name)
         .then(() => {
