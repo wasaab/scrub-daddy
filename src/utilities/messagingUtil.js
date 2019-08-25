@@ -20,14 +20,19 @@ var quoteTipMsg = {};
  * Gets an author object for the provided userID.
  *
  * @param {String} userID - id of the user to get author object for
+ * @param {boolean} isWebhook - whether or not author will be used in a webhook msg
  */
-function getAuthor(userID) {
+function getAuthor(userID, isWebhook) {
 	if (!userID) { return; }
 
-	return {
-		name: getNick(userID),
-		icon_url: getAvatar(userID)
-	};
+	const nameProp = isWebhook ? 'username' : 'name';
+	const avatarProp = isWebhook ? 'avatarURL' : 'icon_url';
+	var author = {};
+
+	author[nameProp] = getNick(userID);
+	author[avatarProp] = getAvatar(userID);
+
+	return author;
 }
 
 /**
@@ -61,6 +66,21 @@ function sendEmbedFieldsMessage(title, fields, userID, footer, channelID) {
 }
 
 function sendAuthoredMessage(description, userID, channelID) {
+	const channel = bot.getServer().channels.find('id', channelID);
+	const author = getAuthor(userID, true);
+
+	if (!channel || !author) { return; }
+
+	if (author.username.length === 1) {
+		author.username = '·' + author.username;
+	}
+
+	channel.createWebhook("MessagesBackup", author.avatarURL).then((webhook) => {
+		webhook.send(description, author).catch(log);
+	}).catch(log);
+}
+
+function sendAuthoredEmbed(description, userID, channelID) {
 	const message = {
 		color: getUserColor(userID),
 		description: description,
@@ -445,6 +465,7 @@ exports.maybeInsertQuotes = maybeInsertQuotes;
 exports.maybeReplicateLol = maybeReplicateLol;
 exports.maybeUpdateDynamicMessage = maybeUpdateDynamicMessage;
 exports.quoteUser = quoteUser;
+exports.sendAuthoredEmbed = sendAuthoredEmbed;
 exports.sendAuthoredMessage = sendAuthoredMessage;
 exports.sendDynamicMessage = sendDynamicMessage;
 exports.sendEmbedFieldsMessage = sendEmbedFieldsMessage;
