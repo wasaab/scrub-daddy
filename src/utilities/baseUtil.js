@@ -16,6 +16,7 @@ var locks = {};		//function locks
  */
 function buildField(name, value, inline) {
 	inline = inline || 'true';
+
 	return {
 		name: name,
 		value: value,
@@ -54,6 +55,7 @@ function compareFieldValues(a,b) {
 function getRand(min, max) {
 	min = Math.ceil(min);
 	max = Math.floor(max);
+
 	return Math.floor(Math.random() * (max - min)) + min;
 }
 
@@ -130,7 +132,7 @@ function formatAsBoldCodeBlock(text) {
 }
 
 function isMention(text, mentionType) {
-	const typeSymbol = mentionType ? c.MENTION_TYPE_TO_SYMBOL[mentionType] : '@?(!|#|&)';
+	const typeSymbol = mentionType ?c.MENTION_TYPE_TO_SYMBOL[mentionType] : '@?(!|#|&)';
 
 	if (!text) { return false; }
 
@@ -217,9 +219,11 @@ function isLocked(funcName) {
  */
 function getTargetFromArgs(args, startIdx) {
 	var target = args[startIdx];
+
 	for (var i=startIdx+1; i < args.length; i++) {
 		target += ` ${args[i]}`;
 	}
+
 	return target;
 }
 

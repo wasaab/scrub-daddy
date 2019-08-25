@@ -5,6 +5,7 @@ var path = require('path');
 const imageDir = path.join(__dirname.split('\\src')[0], 'resources', 'images');
 
 function XMLSerializer() {
+    //Empty constructor
 }
 
 XMLSerializer.prototype.serializeToString = function (node) {

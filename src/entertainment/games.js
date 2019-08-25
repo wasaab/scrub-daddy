@@ -414,7 +414,7 @@ function maybeAddCurrPlayingToArgs(args, user, gameIdx) {
 /**
  * @Mentions every user that plays the provided game, asking them if they want to play.
  */
-exports.letsPlay = function(args, userID, userName, message, oneMore, customMessage) {
+exports.letsPlay = function(args, userID, message, oneMore, customMessage) {
 	const emojis = message.guild.emojis;
 	const allFlagProvided = '-all' === args[1];
 	const gameIdx = allFlagProvided ? 2 : 1;
@@ -427,7 +427,7 @@ exports.letsPlay = function(args, userID, userName, message, oneMore, customMess
 	var game = util.getTargetFromArgs(args, gameIdx).replace(/:/g, '');
 	const gameUserData = getGameUserData(game, 0.3);
 	var usersWhoPlay = gameUserData.users;
-	var msg = `↪️ **${userName}**: `;
+	var msg = '';
 
 	logger.info(`Lets Play ${game} - ${inspect(gameUserData)}`);
 
@@ -448,7 +448,8 @@ exports.letsPlay = function(args, userID, userName, message, oneMore, customMess
 
 		msg += ` ${util.mentionUser(user.id)}`;
 	});
-	bot.getScrubsChannel().send(msg);
+
+	util.sendAuthoredMessage(msg, userID, c.SCRUBS_CHANNEL_ID);
 };
 
 exports.maybeCallLetsPlay = function(message) {
@@ -457,7 +458,7 @@ exports.maybeCallLetsPlay = function(message) {
 	if (message.author.bot || message.content !== '' || message.attachments.size !== 0
 		|| message.type !== 'DEFAULT' || !game) { return; }
 
-	exports.letsPlay(['', game], message.member.id, util.getNick(message.member.id), message);
+	exports.letsPlay(['', game], message.member.id, message);
 };
 
 function determineUpdatedUsersWhoPlay(usersWhoPlay, userID, role, isRemoval) {
@@ -954,25 +955,24 @@ function maybeGetImageFromContent(content) {
 exports.mentionGroup = function(groupName, args, message, channel, userID) {
 	const customMessage = util.getTargetFromArgs(args, 2);
 	const { group, name } = util.getGroup(groupName);
-	const nickName = util.getNick(userID);
 
 	if (!group) {
 		//If no group found and called from bot spam or scrubs channel, trigger a call to letsPlay with groupName
 		if (c.BOT_SPAM_CHANNEL_ID === channel.id || c.SCRUBS_CHANNEL_ID === channel.id) {
 			const letsPlayArgs = ['lets-play', groupName];
-			exports.letsPlay(letsPlayArgs, userID, nickName, message, false, customMessage);
+			exports.letsPlay(letsPlayArgs, userID, message, false, customMessage);
 		} else { //If no group found and called from any other channel, trigger a call to mentionChannelsPowerUsers
-			util.mentionChannelsPowerUsers(channel, nickName, customMessage);
+			util.mentionChannelsPowerUsers(channel, customMessage, userID);
 		}
 	} else if (Array.isArray(group)) { //Mention the group of users retrieved from getGroup
-		var msg = `↪️ **${nickName}**: \`@${name}\` ${customMessage}`;
+		var msg = `\`@${name}\` ${customMessage}`;
 		group.forEach((groupMemberID) => {
 			msg += ` ${util.mentionUser(groupMemberID)}`;
 		});
-		bot.getScrubsChannel().send(msg);
+		util.sendAuthoredMessage(msg, userID, c.SCRUBS_CHANNEL_ID);
 	} else { //Trigger a call to letsPlay with title retrieved from getGroup
 		const letsPlayArgs = ['lets-play', ...group.split(' ')];
-		exports.letsPlay(letsPlayArgs, userID, nickName, message, false, customMessage);
+		exports.letsPlay(letsPlayArgs, userID, message, false, customMessage);
 	}
 };
 

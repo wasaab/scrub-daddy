@@ -9,7 +9,7 @@ var c = require('../const.js');
 
 const { getNick, getTargetFromArgs, getIdFromMention,
 	exportJson, mentionUser, mentionChannel, getRand, capitalizeFirstLetter, lock, isLocked } = require('./baseUtil.js');
-const { sendDynamicMessage, sendEmbedMessage, log, getUserIDToColor } = require('./messagingUtil.js');
+const { sendAuthoredMessage, sendDynamicMessage, sendEmbedMessage, log, getUserIDToColor } = require('./messagingUtil.js');
 
 var config = require('../../resources/data/config.json');
 var groups = require('../../resources/data/groups.json');
@@ -378,11 +378,11 @@ function determinePowerUsers(messages) {
  * Mentions the power users of the channel with a custom message.
  *
  * @param {Object} channel - channel to mention power users of
- * @param {String} nickName - nickname of calling user
  * @param {String} customMessage - message to send to power users
+ * @param {String} userID - the id of the user to send message as
  */
-function mentionChannelsPowerUsers(channel, nickName, customMessage) {
-	var msg = `↪️ **${nickName}**: @${channel} ${customMessage}`;
+function mentionChannelsPowerUsers(channel, customMessage, userID) {
+	var msg = `@${channel} ${customMessage}`;
 
 	channel.fetchMessages({limit: 100})
 	.then((firstHundredMessages) => {
@@ -399,7 +399,7 @@ function mentionChannelsPowerUsers(channel, nickName, customMessage) {
 				msg += ` ${mentionUser(powerUserID)}`;
 			});
 
-			channel.send(msg);
+			sendAuthoredMessage(msg, userID, channel.id);
 		});
 	});
 }

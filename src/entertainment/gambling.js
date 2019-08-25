@@ -1375,7 +1375,7 @@ function finalizeInvestment(userEntry, stock, shares, stockPrice, cost, userID) 
             netArmyChange: 0
         };
     } else {
-        stockInfo.shares = stockInfo.shares + shares
+        stockInfo.shares = stockInfo.shares + shares;
         stockInfo.currentPrice = stockPrice;
     }
 

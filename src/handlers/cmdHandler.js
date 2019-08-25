@@ -62,7 +62,7 @@ exports.handle = function(message) {
 		message.delete();
 	}
 	function oneMoreCalled() {
-		games.letsPlay(args, userID, user, message, true);
+		games.letsPlay(args, userID, message, true);
 	}
 	function blackjackCalled() {
 		blackjack.checkUserData(userID, user, args);
@@ -229,7 +229,7 @@ exports.handle = function(message) {
 		util.removeFromReviewRole(message.member, message.guild.roles);
 	}
 	function letsPlayCalled() {
-		games.letsPlay(args, userID, user, message);
+		games.letsPlay(args, userID, message);
 	}
 	function listCalled() {
 		if (args.length > 2) {
