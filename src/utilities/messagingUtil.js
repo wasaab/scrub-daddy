@@ -75,7 +75,7 @@ function sendAuthoredMessage(description, userID, channelID) {
 		author.username = '·' + author.username;
 	}
 
-	channel.createWebhook("MessagesBackup", author.avatarURL).then((webhook) => {
+	channel.createWebhook("AuthoredMsg", author.avatarURL).then((webhook) => {
 		webhook.send(description, author).catch(log);
 	}).catch(log);
 }
@@ -265,6 +265,28 @@ function deleteQuoteTipMsg() {
 	quoteTipMsg.delete();
 }
 
+function finalizeQuoteAfterTimeout() {
+	setTimeout(() => {
+		deleteQuoteTipMsg();
+		unLock('quoteUser');
+		exportQuotes();
+	}, 15500);
+}
+
+function hasQuoteReaction(quotingUserID) {
+	return (reaction, user) => (reaction.emoji.name === 'quoteReply' || reaction.emoji.name === 'quoteSave')
+		&& user.id === quotingUserID;
+}
+
+function outputQuoteTip(ogMessage) {
+	ogMessage.channel.send('**Add Reaction(s) to The Desired Messages**\n' +
+		'Use <:quoteReply:425051478986719233> to include their quote at the top of your next message.\n' +
+		'Use <:quoteSave:425051557952749569> to save the quote to the quote list for that user.')
+		.then((msgSent) => {
+			quoteTipMsg = msgSent;
+		});
+}
+
 /**
  * Quotes a user.
  *
@@ -277,61 +299,57 @@ function quoteUser(ogMessage, quotedUserID, quotingUserID, channelID) {
 	if (isLocked()) { return; }
 
 	lock();
-	setTimeout(() => {
-		deleteQuoteTipMsg();
-		unLock('quoteUser');
-		exportQuotes();
-	}, 15500);
+	finalizeQuoteAfterTimeout();
 
-	const numMessagesToCheck = quotedUserID ? 50 : 20;
 	const channel = bot.getClient().channels.find('id', channelID);
-	const quoteableMessages = channel.messages.last(numMessagesToCheck);
-	ogMessage.channel.send('**Add Reaction(s) to The Desired Messages**\n' +
-	'Use :quoteReply: to include their quote at the top of your next message.\n' +
-	'Use :quoteSave: to save the quote to the quote list for that user.')
-	.then((msgSent) => {
-		quoteTipMsg = msgSent;
-	});
+	var quoteableMessages = channel.messages.last(50);
+
+	outputQuoteTip(ogMessage);
 
 	if (quotedUserID) {
 		quotedUserID = getIdFromMention(quotedUserID);
+
 		if (!getNick(quotedUserID)) { return; }
-		quoteableMessages.filter((message) => {
-			return message.member.id === quotedUserID;
-		}).reverse().slice(0, 15);
+
+		quoteableMessages = quoteableMessages.filter((message) => message.member.id === quotedUserID)
+			.reverse().slice(0, 20);
 	}
 
-	const filter = (reaction, user) => (reaction.emoji.name === 'quoteReply' || reaction.emoji.name === 'quoteSave')
-		&& user.id === quotingUserID;
+	awaitQuoteReactions(quoteableMessages, quotingUserID);
+}
+
+function awaitQuoteReactions(quoteableMessages, quotingUserID) {
+	const filter = hasQuoteReaction(quotingUserID);
+
 	quoteableMessages.forEach((message) => {
-		message.awaitReactions(filter, { time: 15000, max: 2})
-		.then((collected) => {
-			logger.info(`Collected ${collected.size} reactions: ${inspect(collected)}`);
-			var replyQuotes = quotingUserIDToQuotes[quotingUserID] || [];
-			collected.forEach((reaction) => {
-				const quote = {
-					quotedUserID: message.member.id,
-					message: message.content,
-					time: message.createdTimestamp
-				};
-				if (reaction.emoji.name === 'quoteReply') {
-					replyQuotes.push(quote);
-					quotingUserIDToQuotes[quotingUserID] = replyQuotes;
-				} else {
-					quotes.push(quote);
-				}
+		message.awaitReactions(filter, { time: 15000, max: 2 })
+			.then((collected) => {
+				saveQuote(collected, quotingUserID, message);
+			})
+			.catch((err) => {
+				logger.error(`Add Quote Error: ${err}`);
 			});
-		})
-		.catch((err) => {
-			logger.error(`Add Role Error: ${err}`);
-		});
 	});
 }
 
-function maybeReplicateLol(message) {
-	if (!(/^l(ol)+$/i).test(message.content) || message.channel.id === c.LOL_CHANNEL_ID) { return; }
+function saveQuote(collected, quotingUserID, message) {
+	var replyQuotes = quotingUserIDToQuotes[quotingUserID] || [];
+	const quote = {
+		quotedUserID: message.member.id,
+		message: message.content,
+		time: message.createdTimestamp
+	};
 
-	sendAuthoredMessage(message.content, message.author.id, c.LOL_CHANNEL_ID);
+	logger.info(`Collected ${collected.size} reactions: ${inspect(collected)}`);
+
+	collected.forEach((reaction) => {
+		if (reaction.emoji.name === 'quoteReply') {
+			replyQuotes.push(quote);
+			quotingUserIDToQuotes[quotingUserID] = replyQuotes;
+		} else {
+			quotes.push(quote);
+		}
+	});
 }
 
 /**
@@ -344,23 +362,48 @@ function getQuotes(quoteTarget, userID) {
 	var targetName = 'Everyone';
 	var targetQuotes = quotes;
 	var fields = [];
+
 	if (isMention(quoteTarget)) {
 		const targetID = getIdFromMention(quoteTarget);
+
 		targetName = getNick(targetID);
-		targetQuotes = quotes.filter((quote) => { return quote.quotedUserID === targetID; });
+		targetQuotes = quotes.filter((quote) => quote.quotedUserID === targetID);
 		targetQuotes.forEach((quote) => {
 			fields.push(buildField(moment(quote.time).format(c.SHORT_DATE_FORMAT), quote.message, 'false'));
 		});
 	} else {
 		targetQuotes.forEach((quote) => {
-			fields.push(buildField(getNick(quote.quotedUserID), `${quote.message}\n	— ${moment(quote.time).format(c.SHORT_DATE_FORMAT)}`, 'false'));
+			fields.push(buildField(getNick(quote.quotedUserID),
+				`${quote.message}\n	— ${moment(quote.time).format(c.SHORT_DATE_FORMAT)}`, 'false'));
 		});
 	}
+
 	if (fields.length > 0) {
 		sendEmbedFieldsMessage(`Quotes From ${targetName}`, fields, userID);
 	} else {
 		sendEmbedMessage('404 Quotes Not Found', `I guess ${targetName} isn't very quoteworthy.`, userID);
 	}
+}
+
+function replaceRoleMentionsWithNames(quote) {
+	const roleMentions = quote.message.match(/<@&[0-9]*>/g);
+
+	if (!roleMentions) { return; }
+
+	roleMentions.forEach((mention) => {
+		const role = bot.getServer().roles.find('id', getIdFromMention(mention)).name;
+		quote.message = quote.message.replace(mention, role);
+	});
+}
+
+function replaceUserMentionsWithNames(quote) {
+	const userMentions = quote.message.match(/<@![0-9]*>/g);
+
+	if (!userMentions) { return; }
+
+	userMentions.forEach((mention) => {
+		quote.message = quote.message.replace(mention, getNick(getIdFromMention(mention)));
+	});
 }
 
 /**
@@ -371,29 +414,28 @@ function getQuotes(quoteTarget, userID) {
 function maybeInsertQuotes(message) {
 	const block = '```';
 	const replyQuotes = quotingUserIDToQuotes[message.author.id];
-	if (!replyQuotes) { return; }
 	var quoteBlocks = '';
+
+	if (!replyQuotes) { return; }
+
 	replyQuotes.forEach((quote) => {
 		const author = getNick(quote.quotedUserID);
 		const time = moment(quote.time).format(c.SHORT_DATE_FORMAT);
-		const userMentions = quote.message.match(/<@![0-9]*>/g);
-		if (userMentions) {
-			userMentions.forEach((mention) => {
-				quote.message = quote.message.replace(mention, getNick(getIdFromMention(mention)));
-			});
-		}
-		const roleMentions = quote.message.match(/<@&[0-9]*>/g);
-		if (roleMentions) {
-			roleMentions.forEach((mention) => {
-				const role = message.guild.roles.find('id', getIdFromMention(mention)).name;
-				quote.message = quote.message.replace(mention, role);
-			});
-		}
+
+		replaceUserMentionsWithNames(quote);
+		replaceRoleMentionsWithNames(quote);
 		quoteBlocks += `${block} ${quote.message}\n	— ${author}, ${time}${block}\n`;
 	});
+
 	message.delete();
-	message.channel.send(`${quoteBlocks}**${getNick(message.member.id)}** : ${message.content}`);
+	sendAuthoredMessage(`${quoteBlocks}${message.content}`, message.member.id, message.channel.id);
 	quotingUserIDToQuotes[message.author.id] = null;
+}
+
+function maybeReplicateLol(message) {
+	if (!(/^l(ol)+$/i).test(message.content) || message.channel.id === c.LOL_CHANNEL_ID) { return; }
+
+	sendAuthoredMessage(message.content, message.author.id, c.LOL_CHANNEL_ID);
 }
 
 /**

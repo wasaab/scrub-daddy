@@ -284,7 +284,7 @@ exports.handle = function(message) {
 		gambling.outputUserStockPortfolio(targetUser);
 	}
 	function quoteCalled() {
-		if (!util.isMention(args[1])) { return; }
+		if (args[1] && !util.isMention(args[1])) { return; }
 
 		util.quoteUser(message, args[1], userID, channelID);
 	}
