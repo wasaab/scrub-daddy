@@ -888,10 +888,14 @@ function sendSunkenSailorMessage(user, isSunken) {
 
 exports.sunkenSailor = function(callingMember) {
 	if (!callingMember.voiceChannel) { return; }
+
 	var players = callingMember.voiceChannel.members.array();
+
 	if (players.length < 2) { return; }
+
 	util.shuffleArray(players);
-	util.sendEmbedMessage('Sunken Sailor Round Started', 'Feel free to join in https://aggie.io/c_ut33ka. You must be in the voice channel to participate.');
+	util.sendEmbedMessage('Sunken Sailor Round Started',
+		'Feel free to join in https://aggie.io/c_ut33ka. You must be in the voice channel to participate.');
 	var nouns = fs.readFileSync('./resources/data/nouns.json'); //585 nouns
 	nouns = JSON.parse(nouns);
 	const secretWord = nouns[util.getRand(0, 585)];
@@ -917,24 +921,23 @@ exports.sunkenSailor = function(callingMember) {
  * @param {Number} minReactions - minimum reactions required to include msg
  * @param {Number} sampleSize - number of messages to scan
  */
-function getRandomQuotes(channel, minLength, minReactions, sampleSize) {
-	if (channel) {
-		channel = bot.getClient().channels.find('name', channel);
-	}
-	channel = channel || bot.getScrubsChannel();
-	minLength = minLength || 15;
-	minReactions = minReactions || 0;
-	sampleSize = sampleSize || 100;
+function getRandomQuotes(channel, minLength=15, minReactions=0, sampleSize=100) {
+	channel = bot.getServer().channels.find('name', channel) || bot.getScrubsChannel();
+
 	return channel.fetchMessages({limit: sampleSize})
-	.then((foundMessages) => {
-		var matchingQuotes = foundMessages.array().filter((message) => {
-			return message.content && message.content.length >= minLength
-				&& message.reactions.size >= minReactions
-				&& !message.author.bot;
+		.then((foundMessages) => {
+			var matchingQuotes = foundMessages.array().filter(isQuotableMsg(minLength, minReactions));
+
+			util.shuffleArray(matchingQuotes);
+
+			return matchingQuotes.slice(0,5);
 		});
-		util.shuffleArray(matchingQuotes);
-		return matchingQuotes.slice(0,5);
-	});
+}
+
+function isQuotableMsg(minLength, minReactions) {
+	return (message) => message.content && message.content.length >= minLength
+		&& message.reactions.size >= minReactions
+		&& !message.author.bot;
 }
 
 function maybeGetImageFromContent(content) {

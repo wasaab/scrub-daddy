@@ -450,7 +450,7 @@ exports.rate = function(targetCategory, rating, args, channel, userID) {
  * @param {String} userID - id of user requesting info
  */
 exports.ratingInfo = function(args, userID) {
-	const channel = bot.getClient().channels.find('id', c.RATINGS_CHANNEL_ID);
+	const channel = bot.getServer().channels.find('id', c.RATINGS_CHANNEL_ID);
 	const targetTitle = util.getTargetFromArgs(args, 1);
 	const { title, rating, category, isVerified } = getRating(targetTitle);
 	if (!title) { return titleNotFound(targetTitle, channel, userID); }
@@ -512,7 +512,7 @@ exports.rename = function(args, userID, channel) {
  * Updates the 3rd party ratings for all titles.
  */
 exports.updateThirdPartyRatings = function(isCalledByStartup) {
-	const channel = bot.getClient().channels.find('id', c.RATINGS_CHANNEL_ID);
+	const channel = bot.getServer().channels.find('id', c.RATINGS_CHANNEL_ID);
 	const categories =  ['tv', 'movies'];
 	var titleToPartialTitleMatch = {
 		movies: {

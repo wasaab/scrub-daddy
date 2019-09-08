@@ -23,7 +23,7 @@ var alreadyVoted = {};								//map of targetConcat to array of people who have 
  * @param {String} taskName - the name of the task/channel to move
  */
 function maybeMoveTaskToInProgress(taskName) {
-	const taskChannel = bot.getClient().channels.find('name', taskName);
+	const taskChannel = bot.getServer().channels.find('name', taskName);
 	if (taskChannel) {
 		taskChannel.setParent(c.CATEGORY_ID['In Progress']);
 		taskChannel.send('The scrubs have spoken! Implement this feature next.');

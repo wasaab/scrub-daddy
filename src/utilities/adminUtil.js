@@ -81,7 +81,7 @@ function maybeBanSpammer(message) {
  * @param {Object} channelID - the id of the channel to allow the user to post in
  */
 function unBanSpammer(userID, channelID) {
-	const channel = bot.getClient().channels.find('id', channelID);
+	const channel = bot.getServer().channels.find('id', channelID);
 	if (!channel) { return; }
 
 	channel.overwritePermissions(userID, {

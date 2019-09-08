@@ -289,10 +289,12 @@ function leaveTempChannel(channel, userID) {
 }
 
 function determineChannelsLeftByUser(userID) {
-	return bot.getClient().channels.filter((channel) => {
-		const permissionOverwrites = channel.permissionOverwrites.find('id', userID);
+	return bot.getServer().channels.filter((channel) => {
+		const permOverwrites = channel.permissionOverwrites;
 
-		return c.LEFT_CHANNEL_PERMISSION === get(permissionOverwrites, 'deny');
+		if (!permOverwrites) { return false; }
+
+		return c.LEFT_CHANNEL_PERMISSION === get(permOverwrites.find('id', userID), 'deny');
 	});
 }
 

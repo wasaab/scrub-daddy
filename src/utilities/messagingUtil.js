@@ -119,7 +119,7 @@ function sendEmbedMessage(title, description, userID, image, thumbnail, footer, 
 }
 
 function sendMessageToChannel(message, channelID) {
-	const channel = channelID ? bot.getClient().channels.find('id', channelID) : bot.getBotSpam();
+	const channel = channelID ? bot.getServer().channels.find('id', channelID) : bot.getBotSpam();
 
 	return channel.send(new Discord.RichEmbed(message))
 		.then((msgSent) => msgSent)
@@ -301,7 +301,7 @@ function quoteUser(ogMessage, quotedUserID, quotingUserID, channelID) {
 	lock();
 	finalizeQuoteAfterTimeout();
 
-	const channel = bot.getClient().channels.find('id', channelID);
+	const channel = bot.getServer().channels.find('id', channelID);
 	var quoteableMessages = channel.messages.last(50);
 
 	outputQuoteTip(ogMessage);
