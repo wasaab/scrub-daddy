@@ -346,6 +346,11 @@ function createGroup(groupName, args, userID) {
 	exportJson(groups, 'groups');
 }
 
+function modifyGroup(groupName, group) {
+	groups[groupName] = group;
+	exportJson(groups, 'groups');
+}
+
 /**
  * Gets an array of the keys, sorted by their values (descending).
  *
@@ -583,6 +588,7 @@ exports.isChannelOwner = isChannelOwner;
 exports.leaveTempChannel = leaveTempChannel;
 exports.maybeGetAlias = maybeGetAlias;
 exports.mentionChannelsPowerUsers = mentionChannelsPowerUsers;
+exports.modifyGroup = modifyGroup;
 exports.outputAliases = outputAliases;
 exports.outputTempChannelsLeftByUser = outputTempChannelsLeftByUser;
 exports.rejoinTempChannel = rejoinTempChannel;

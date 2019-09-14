@@ -397,6 +397,11 @@ exports.handle = function(message) {
 		gambling.rock(userID);
 		message.delete();
 	}
+	function roundRobinCalled() {
+		if (!args[1]) { return; }
+
+		games.roundRobin(args[1]);
+	}
 	function sbCalled() {
 		if (!config.soundBytesEnabled) { return; }
 
@@ -603,6 +608,7 @@ exports.handle = function(message) {
 		'review-messages': reviewMessagesCalled,
 		'revive': reviveCalled,
 		'rock': rockCalled,
+		'round-robin': roundRobinCalled,
 		'sb': sbCalled,
 		'sb-add': addSBCalled,
 		'scrub-box': scrubBoxCalled,

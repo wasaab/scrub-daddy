@@ -979,6 +979,18 @@ exports.mentionGroup = function(groupName, args, message, channel, userID) {
 	}
 };
 
+exports.roundRobin = function(groupName) {
+	const { group, name } = util.getGroup(groupName);
+
+	if (!group) { return; }
+
+	const winningUser = group.shift();
+
+	group.push(winningUser);
+	util.modifyGroup(name, group);
+	util.sendEmbedMessage('Round Robin', `${util.mentionUser(winningUser)} you're up!`, winningUser);
+};
+
 exports.splitGroup = function(callingMember) {
 	if (!callingMember.voiceChannel) { return; }
 

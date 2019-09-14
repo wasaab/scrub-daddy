@@ -104,6 +104,7 @@ module.exports = {
     leaveTempChannel: utils.userUtil.leaveTempChannel,
     maybeGetAlias: utils.userUtil.maybeGetAlias,
     mentionChannelsPowerUsers: utils.userUtil.mentionChannelsPowerUsers,
+    modifyGroup: utils.userUtil.modifyGroup,
     outputAliases: utils.userUtil.outputAliases,
     outputTempChannelsLeftByUser: utils.userUtil.outputTempChannelsLeftByUser,
     rejoinTempChannel: utils.userUtil.rejoinTempChannel,
