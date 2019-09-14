@@ -400,7 +400,7 @@ exports.handle = function(message) {
 	function roundRobinCalled() {
 		if (!args[1]) { return; }
 
-		games.roundRobin(args[1]);
+		games.roundRobin(args[1], userID);
 	}
 	function sbCalled() {
 		if (!config.soundBytesEnabled) { return; }

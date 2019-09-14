@@ -979,10 +979,10 @@ exports.mentionGroup = function(groupName, args, message, channel, userID) {
 	}
 };
 
-exports.roundRobin = function(groupName) {
+exports.roundRobin = function(groupName, userID) {
 	const { group, name } = util.getGroup(groupName);
 
-	if (!group) { return; }
+	if (!group || !group.includes(userID)) { return; }
 
 	const winningUser = group.shift();
 
