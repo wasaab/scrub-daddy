@@ -642,7 +642,7 @@ exports.delete = function(args, channel, userID) {
 	//If not admin and the user is not the only reviewer of the title
 	if (!util.isAdmin(userID) && (!rating.reviews[userID] || Object.keys(rating.reviews).length !== 1)) {
 		return util.sendEmbedMessage(`Deletion Not Authorized`, `"${title}" can not be deleted, ` +
-			`dexcept by ${util.mentionUser(c.K_ID)},` + ' as you are not the sole reviewer of this title.',
+			`except by ${util.mentionUser(c.K_ID)},` + ' as you are not the sole reviewer of this title.',
 			userID, null, null, null, channel.id);
 	}
 
