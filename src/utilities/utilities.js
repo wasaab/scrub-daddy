@@ -63,6 +63,7 @@ module.exports = {
     getScrubIdToNick: utils.baseUtil.getScrubIdToNick,
     getTargetFromArgs: utils.baseUtil.getTargetFromArgs,
     getTrueDisplayName: utils.baseUtil.getTrueDisplayName,
+    handleAllPromises: utils.baseUtil.handleAllPromises,
     isLocked: utils.baseUtil.isLocked,
     isMention: utils.baseUtil.isMention,
     lock: utils.baseUtil.lock,

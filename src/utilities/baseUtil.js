@@ -95,6 +95,21 @@ function exportJson(content, fileName) {
 }
 
 /**
+ * Waits for all promises to resolve and marks them with success or failure.
+ *
+ * @param {Promise[]} promises - the promises to handle
+ */
+function handleAllPromises(promises) {
+    const toResultObject = (promise) => {
+        return promise
+            .then(result => ({ success: true, result }))
+            .catch(error => ({ success: false, error }));
+    };
+
+    return Promise.all(promises.map(toResultObject));
+}
+
+/**
  * Updates the member list and scrubIDtoNick.
  */
 function updateMembers() {
@@ -273,6 +288,7 @@ exports.getRand = getRand;
 exports.getScrubIdToNick = () => scrubIdToNick;
 exports.getTargetFromArgs = getTargetFromArgs;
 exports.getTrueDisplayName = getTrueDisplayName;
+exports.handleAllPromises = handleAllPromises;
 exports.isLocked = isLocked;
 exports.isMention = isMention;
 exports.lock = lock;

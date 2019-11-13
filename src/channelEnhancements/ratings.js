@@ -330,13 +330,7 @@ function getThirdPartyRatingsForCategory(category, site) {
 		}
 	});
 
-	const toResultObject = (promise) => {
-		return promise
-			.then(result => ({ success: true, result }))
-			.catch(error => ({ success: false, error }));
-	};
-
-	return Promise.all(promises.map(toResultObject));
+	return util.handleAllPromises(promises);
 }
 
 /**
