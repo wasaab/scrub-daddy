@@ -59,6 +59,15 @@ function getRand(min, max) {
 	return Math.floor(Math.random() * (max - min)) + min;
 }
 
+/**
+ * Creates a deep clone of the provided object.
+ *
+ * @param {Object} target - object to clone
+ */
+function deepClone(target) {
+	return JSON.parse(JSON.stringify(target));
+}
+
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         let j = Math.floor(Math.random() * (i + 1));
@@ -253,6 +262,7 @@ function getTrueDisplayName(nickname) {
 exports.buildField = buildField;
 exports.capitalizeFirstLetter = capitalizeFirstLetter;
 exports.compareFieldValues = compareFieldValues;
+exports.deepClone = deepClone;
 exports.exportJson = exportJson;
 exports.formatAsBoldCodeBlock = formatAsBoldCodeBlock;
 exports.getAvatar = getAvatar;

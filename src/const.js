@@ -318,6 +318,15 @@ module.exports = {
 			stocksNetArmyChange: 0
 		},
 	},
+	THIRD_PARTY_RATINGS: {
+		movies: {
+			rt: {},
+			imdb: {}
+		},
+		tv: {
+			imdb: {}
+		}
+	},
 	Clubs: ['https://i.imgur.com/o7m74ae.png', 'https://i.imgur.com/s15mB52.png', 'https://i.imgur.com/8zKQuRh.png?1', 'https://i.imgur.com/cCGAnwz.png',
 		'https://i.imgur.com/aw8SjKM.png', 'https://i.imgur.com/fDYMBkl.png','https://i.imgur.com/9GdN1xf.png', 'https://i.imgur.com/KT1weaO.png',
 		'https://i.imgur.com/qt9QC39.png','https://i.imgur.com/Z13JEy5.png', 'https://i.imgur.com/ihire3h.png', 'https://i.imgur.com/YghMO9j.png', 'https://i.imgur.com/LzMzKTB.png'],

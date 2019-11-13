@@ -52,6 +52,7 @@ module.exports = {
     buildField: utils.baseUtil.buildField,
     capitalizeFirstLetter: utils.baseUtil.capitalizeFirstLetter,
     compareFieldValues: utils.baseUtil.compareFieldValues,
+    deepClone: utils.baseUtil.deepClone,
     exportJson: utils.baseUtil.exportJson,
     formatAsBoldCodeBlock: utils.baseUtil.formatAsBoldCodeBlock,
     getAvatar: utils.baseUtil.getAvatar,
