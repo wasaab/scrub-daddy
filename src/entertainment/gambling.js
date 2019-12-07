@@ -1063,6 +1063,7 @@ exports.maybeResetNames = function() {
     if (lockedIdToLockInfo === {}) { return; }
 
     const server = bot.getServer();
+    var isRenameExpired = false;
 
     for (var targetID in lockedIdToLockInfo) {
         const lockInfo = lockedIdToLockInfo[targetID];
@@ -1070,14 +1071,11 @@ exports.maybeResetNames = function() {
 
         if (!target || moment().isAfter(moment(lockInfo.unlockTime))) {
             if (target) {
-                maybeRename(lockInfo.type, target, lockInfo.oldName)
-                    .then(() => {
-                        updateRenamedList(lockInfo.oldName);
-                    });
+                maybeRename(lockInfo.type, target, lockInfo.oldName);
             }
 
             delete loot.lockedIdToLockInfo[targetID];
-            util.exportJson(loot, 'loot');
+            isRenameExpired = true;
             continue;
         }
 
@@ -1087,38 +1085,42 @@ exports.maybeResetNames = function() {
 
         maybeRename(lockInfo.type, target, lockInfo.newName);
     }
+
+    if (isRenameExpired) {
+        util.exportJson(loot, 'loot');
+        updateRenamedList();
+    }
 };
 
-function updateRenamedList(oldName, newName, endTime) {
+function buildUpdatedRenameMsg() {
+    const lockIdToInfo = loot.lockedIdToLockInfo;
+    var lockedIds = Object.keys(lockIdToInfo);
+    var renamesMsg = '';
+
+    if (0 === lockedIds.length) {
+        renamesMsg = c.NO_RENAMES_MSG;
+    } else {
+        lockedIds = lockedIds.sort((a, b) => lockIdToInfo[a].unlockTime - lockIdToInfo[b].unlockTime);
+
+        lockedIds.forEach((lockedId) => {
+            const { oldName, newName, unlockTime } = lockIdToInfo[lockedId];
+            const formattedEndTime = moment(unlockTime).format(c.MDY_HM_DATE_TIME_FORMAT);
+
+            renamesMsg += `${oldName} = ${newName} \`${formattedEndTime}\`\n`;
+        });
+    }
+
+    return new Discord.RichEmbed({
+        color: 0xffff00,
+        title: 'Renaming - End Time',
+        description: renamesMsg
+    });
+}
+
+function updateRenamedList() {
     bot.getBotSpam().fetchMessage(c.RENAMED_LIST_MSG_ID)
         .then((message) => {
-            const oldEmbed = message.embeds[0];
-            var description;
-
-            if (!newName) { // remove renaming
-                const oldRenameRegex = new RegExp(`${oldName} =.*$`, 'gm');
-                description = oldEmbed.description.replace(oldRenameRegex, '');
-
-                if (description === '') {
-                    description = c.NO_RENAMES_MSG;
-                }
-            } else { // Add renaming
-                var baseDesc = oldEmbed.description || '';
-
-                if (baseDesc.includes(c.NO_RENAMES_MSG)) {
-                    baseDesc = '';
-                }
-
-                description = `${baseDesc}\n${oldName} = ${newName} \`${endTime}\`\n`;
-            }
-
-            const updatedMsg = new Discord.RichEmbed({
-                color: 0xffff00,
-                title: 'Renaming - End Time',
-                description: description
-            });
-
-            message.edit('', updatedMsg);
+            message.edit('', buildUpdatedRenameMsg());
         })
         .catch((err) => {
             logger.error(`Edit Renamed List Msg Error: ${err}`);
@@ -1157,7 +1159,7 @@ exports.renameUserRoleOrChannel = function(type, targetID, args, tierNumber, use
             util.exportJson(loot, 'loot');
             util.sendEmbedMessage(`${formattedType} Renamed`,
                 `Thou shalt be called ${util[`mention${mentionType}`](targetID)} until \`${formattedEndTime}\``, userID);
-            updateRenamedList(oldName, name, formattedEndTime);
+            updateRenamedList();
         })
         .catch((err) => {
             logger.error(`Edit Name Error: ${err}`);
