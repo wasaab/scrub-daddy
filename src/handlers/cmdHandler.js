@@ -320,7 +320,7 @@ exports.handle = function(message) {
 	function ratingsCalled() {
 		if (args.length < 3) { return; }
 
-		ratings.outputRatings(Number(args[1]), args[2], args[3]);
+		ratings.outputOrUpdateRatings(Number(args[1]), args[2], args[3]);
 		message.delete();
 	}
 	function refreshRatingsCalled() {

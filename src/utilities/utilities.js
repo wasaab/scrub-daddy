@@ -6,6 +6,9 @@ const utils = {
     userUtil: require('./userUtil.js')
 };
 
+/**
+ * Builds the updated export json for the util mixin.
+ */
 function buildExports() { //eslint-disable-line
     var result = '';
 
@@ -20,6 +23,8 @@ function buildExports() { //eslint-disable-line
     console.log(result); //eslint-disable-line
 }
 
+
+// VS Code workaround to retain JSDoc tooltips and autocomplete for mixins.
 module.exports = {
     addMessageToReviewQueue: utils.adminUtil.addMessageToReviewQueue,
     backupJson: utils.adminUtil.backupJson,

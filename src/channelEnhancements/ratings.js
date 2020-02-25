@@ -654,6 +654,9 @@ exports.delete = function(args, channel, userID) {
 	updateExternalRatingsJson();
 };
 
+/**
+ * Converts the ratings to table data to be used with a bootstrap table.
+ */
 function convertRatingsToTableData() {
 	const categories = ['tv', 'movies'];
 	var tableData = [];
@@ -666,6 +669,12 @@ function convertRatingsToTableData() {
 	return tableData;
 }
 
+/**
+ * Converts a rating category to bootstrap table data.
+ *
+ * @param {String} category - tv or movie
+ * @param {Boolean} isVerified - whether or not the ratings are verified
+ */
 function convertRatingsCategoryToTableData(category, isVerified) {
 	const reviewsInCategory = isVerified ? ratings[category] : ratings.unverified[category];
 	var tableData = [];
@@ -698,6 +707,9 @@ function convertRatingsCategoryToTableData(category, isVerified) {
 	return tableData;
 }
 
+/**
+ * Updates the externally hosted ratings json file, to be used with a bootstrap table.
+ */
 function updateExternalRatingsJson() {
 	const tableData = convertRatingsToTableData();
 	var options= {
