@@ -461,7 +461,7 @@ module.exports = {
 	MOVIES_EMOJI: '📀',
 	TRASH_REACTION: 'trashcan:427231130241204224',
 	DELETE_REACTION: 'delete:567030275054239754',
-	SCRUBBING_BUBBLE_EMOJI: '<:Robert:612348910173945856>',
+	SCRUBBING_BUBBLE_EMOJI: '<:ScrubbingBubble:567548883085819904>',
 	TAG_TO_TEXT: {
         '🔵' : ['estoril', ' blue ', 'ebii', ' eb ', ' eb2 '],
         '🔴': ['melbourne', ' red ', ' mr '],

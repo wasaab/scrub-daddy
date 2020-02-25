@@ -75,17 +75,17 @@ exports.dischargeScrubBubble = function(numBubbles, userID) {
 
     dropped += numBubbles;
     var droppedImg = dropped;
-    var msg = 'Robert\nhas';
+    var msg = 'Bubble\nhas';
 
     if (dropped > 1) {
-        msg = 'Roberts\nhave';
+        msg = 'Bubbles\nhave';
         if (dropped > 21) {
             droppedImg = 21;
         }
     }
 
-    const title = `**${dropped} ${msg} arrived for duty!**`;
-    const thisMessage = util.sendEmbedMessage(null, title, userID, 'https://cdn.discordapp.com/emojis/446498238699143168.png?v=1', true);
+    const title = `**${dropped} Scrubbing ${msg} arrived for duty!**`;
+    const thisMessage = util.sendEmbedMessage(null, title, userID, c.BUBBLE_IMAGES[droppedImg-1], true);
 
     exports.maybeDeletePreviousMessage(thisMessage);
 };
@@ -164,7 +164,7 @@ function addToArmy(userID, amount) {
 }
 
 function getArmyGrownMessage(amount) {
-    return `Your Robert army has grown by ${util.formatAsBoldCodeBlock(amount)}!`;
+    return `Your Scrubbing Bubbles army has grown by ${util.formatAsBoldCodeBlock(amount)}!`;
 }
 
 function getArmySizeMsg(userID) {
@@ -600,9 +600,9 @@ function betClean(userID, bet, type) {
     if (!wallet || wallet.armySize < bet ) {
         msg = 'Your army is nonexistent.';
         if (wallet && wallet.armySize > 0) {
-            msg = `Your ${wallet.armySize} Robert${util.maybeGetPlural(wallet.armySize)} would surely perish.`;
+            msg = `Your ${wallet.armySize} soldier${util.maybeGetPlural(wallet.armySize)} would surely perish.`;
         }
-        const description = `${util.mentionUser(userID)}  You do not have enough Roberts to clean the bathroom. ${msg}`;
+        const description = `${util.mentionUser(userID)}  You do not have enough Scrubbing Bubbles to clean the bathroom. ${msg}`;
         util.sendEmbedMessage(null, description, userID);
     } else {
         var img = '';
@@ -612,12 +612,12 @@ function betClean(userID, bet, type) {
             const payout = bet*2;
 
             img = c.CLEAN_WIN_IMG;
-            msg = `Congrats, your auxiliary army gained ${util.formatAsBoldCodeBlock(bet)} Roberts after cleaning the bathroom and conquering the land!`;
+            msg = `Congrats, your auxiliary army gained ${util.formatAsBoldCodeBlock(bet)} Scrubbing Bubbles after cleaning the bathroom and conquering the land!`;
             addToArmy(userID, payout);
             addToGamblingStats(payout, userID, true);
         } else {
             img = c.CLEAN_LOSE_IMG;
-            msg = `Sorry bud, you lost ${util.formatAsBoldCodeBlock(bet)} Robert${util.maybeGetPlural(bet)} in the battle.`;
+            msg = `Sorry bud, you lost ${util.formatAsBoldCodeBlock(bet)} Scrubbing Bubble${util.maybeGetPlural(bet)} in the battle.`;
 
             addToGamblingStats(bet, userID, false);
         }
@@ -658,7 +658,7 @@ function outputUserGamblingData(userID, args) {
     var description = '';
 
     if (args[0] === 'army') {
-        description = `${util.mentionUser(userID)}${msg} army is ${util.formatAsBoldCodeBlock(armySize)} Robert${util.maybeGetPlural(armySize)} strong!`;
+        description = `${util.mentionUser(userID)}${msg} army is ${util.formatAsBoldCodeBlock(armySize)} Scrubbing Bubble${util.maybeGetPlural(armySize)} strong!`;
     } else {
         const userStats = userEntry.stats;
 
@@ -720,7 +720,7 @@ exports.armyRanks = function(userID) {
         fields.push(util.buildField(scrubIDToNick[id], ledger[id].armySize));
     }
     fields.sort(util.compareFieldValues);
-    util.sendEmbedFieldsMessage('Robert Army Sizes', fields, userID);
+    util.sendEmbedFieldsMessage('Scrubbing Bubbles Army Sizes', fields, userID);
 };
 
 /**
