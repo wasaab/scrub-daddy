@@ -1,10 +1,6 @@
 # scrub-daddy
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/8f59c3e85df049d3bd319a21576f37c4)](https://www.codacy.com/app/Scrubs/scrub-daddy?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=wasaab/scrub-daddy&amp;utm_campaign=Badge_Grade)
 
-[Update Log](https://boostlog.io/@wasaab/scrub-daddy-update-log-5ad3d7f547018500491f3bde)
-
-[Public Beta Release](https://github.com/wasaab/scrub-daddy/tree/public-release-2)
-
 Discord bot with the following 90 commands:
 
 1. Voting
