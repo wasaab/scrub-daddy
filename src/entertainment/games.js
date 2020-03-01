@@ -1,7 +1,7 @@
 var inspect = require('util-inspect');
 var txtgen = require('txtgen');
 var moment = require('moment');
-var gUrl = require( 'google-url' );
+var GoogleUrl = require( 'google-url' );
 var Fuse = require('fuse.js');
 var get = require('lodash.get');
 var fs = require('fs');
@@ -776,7 +776,7 @@ exports.setDynamicGameChannels = function(channels) {
  * Sets the user's streaming url for use with toggle-streaming.
  */
 exports.setStreamingUrl = function(member, url) {
-	var shortener = new gUrl({key: priv.googleUrlApiKey});
+	var shortener = new GoogleUrl({key: priv.googleUrlApiKey});
 	shortener.shorten(url, function(err, shortUrl) {
 		if (shortUrl) {
 			userIDToStreamingUrl[member.id] = shortUrl;

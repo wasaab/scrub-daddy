@@ -19,7 +19,7 @@ var previousTip = {};
  * Schedules a recurring scan of voice channels.
  */
 function scheduleRecurringVoiceChannelScan() {
-	(function(){
+	(function(){ //eslint-disable-line
 		var client = bot.getClient();
 		prizes.maybeResetNames();
 		games.maybeUpdateChannelNames();
