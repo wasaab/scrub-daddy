@@ -3,6 +3,8 @@ var Discord = require('discord.js');
 var get = require('lodash.get');
 
 var gambling = require('./entertainment/gambling.js');
+var prizes = require('./entertainment/prizes.js');
+var stocks = require('./entertainment/stocks.js');
 var games = require('./entertainment/games.js');
 var cars = require('./channelEnhancements/cars.js');
 var util = require('./utilities/utilities.js');
@@ -19,7 +21,7 @@ var previousTip = {};
 function scheduleRecurringVoiceChannelScan() {
 	(function(){
 		var client = bot.getClient();
-		gambling.maybeResetNames();
+		prizes.maybeResetNames();
 		games.maybeUpdateChannelNames();
 		games.maybeChangeAudioQuality(client.channels);
 		util.handleMuteAndDeaf(client.channels);
@@ -50,8 +52,7 @@ exports.scheduleRecurringJobs = function() {
 	scheduleRecurringExport();	// Every 70 seconds
 	clearTimesheetAtFiveAM();	// 5 AM
 	updateBansAtEightAmAndPM(); // 8 AM/PM
-	crawlCarForumAtFivePM();	// 5 PM
-	maybeUpdateStocksBeforeSixPM();		// 6 PM
+	crawlCarForumAndUpdateStocksAtFivePM();	// 5 PM
 	outputTipAndUpdateInvitesAtTenAMFivePMAndElevenPM(); // 10 AM, 5 PM, 11 PM
 	activateRainbowRole();
 	maybeScheduleReviewJob();
@@ -59,12 +60,12 @@ exports.scheduleRecurringJobs = function() {
 };
 
 exports.scheduleLotto = function() {
-	schedule.scheduleJob(new Date(config.lottoTime), gambling.endLotto);
+	schedule.scheduleJob(new Date(config.lottoTime), prizes.endLotto);
 
 	var lottoCountdownRule = new schedule.RecurrenceRule();
 
 	lottoCountdownRule.mintue = 0;
-	schedule.scheduleJob(lottoCountdownRule, gambling.updateLottoCountdown);
+	schedule.scheduleJob(lottoCountdownRule, prizes.updateLottoCountdown);
 };
 
 function maybeScheduleLottoEnd() {
@@ -77,21 +78,16 @@ function activateRainbowRole() {
 	util.updateRainbowRoleColor();
 }
 
-function maybeUpdateStocksBeforeSixPM() {
+function maybeUpdateStocks(updateStocksRule) {
 	if (util.isDevEnv()) {	return; }
 
 	const stockToInfo = get(gambling.getLedger(), `[${c.SCRUB_DADDY_ID}].stocks.stockToInfo`);
 
 	if (!stockToInfo) { return; }
 
-	const minsPriorToSix = Math.floor(Object.keys(stockToInfo).length / 5);
-	var updateStocksRule = new schedule.RecurrenceRule();
-
 	updateStocksRule.dayOfWeek = new schedule.Range(1, 5);
-	updateStocksRule.hour = 17; // 5pm
-	updateStocksRule.minute = 60 - minsPriorToSix;
 
-	schedule.scheduleJob(updateStocksRule, gambling.updateStocks);
+	schedule.scheduleJob(updateStocksRule, stocks.updateStocks);
 }
 
 function outputTipAndUpdateInvitesAtTenAMFivePMAndElevenPM() {
@@ -132,17 +128,19 @@ function scheduleHourlyJobs() {
 	schedule.scheduleJob(hourlyJobsRule, function () {
 		util.updateMembers();
 		util.messageCatFactsSubscribers();
-		gambling.maybeRemoveRainbowRoleFromUsers();
+		prizes.maybeRemoveRainbowRoleFromUsers();
 		games.maybeOutputCountOfGamesBeingPlayed(util.getMembers(), c.SCRUB_DADDY_ID);
 	});
 }
 
-function crawlCarForumAtFivePM() {
+function crawlCarForumAndUpdateStocksAtFivePM() {
 	var crawlCarForumRule = new schedule.RecurrenceRule();
 
 	crawlCarForumRule.hour = 17; // 5pm
 	crawlCarForumRule.minute = 0;
 	schedule.scheduleJob(crawlCarForumRule, cars.crawlCarForum);
+
+	maybeUpdateStocks(crawlCarForumRule);
 }
 
 function updateBansAtEightAmAndPM() {

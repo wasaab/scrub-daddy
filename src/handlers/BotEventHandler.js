@@ -9,6 +9,7 @@ var cmdHandler = require('./cmdHandler.js');
 var scheduler = require('../scheduler.js');
 var gambling = require('../entertainment/gambling.js');
 var ratings = require('../channelEnhancements/ratings.js');
+var prizes = require('../entertainment/prizes.js');
 var games = require('../entertainment/games.js');
 var cars = require('../channelEnhancements/cars.js');
 
@@ -37,7 +38,7 @@ module.exports = class BotEventHandler {
                 games.maybeCallLetsPlay(message);
                 util.maybeInsertQuotes(message);
                 util.maybeBanSpammer(message);
-                gambling.checkForMagicWords(message);
+                prizes.checkForMagicWords(message);
             }
         });
 
@@ -122,7 +123,7 @@ module.exports = class BotEventHandler {
 
             ratings.updateThirdPartyRatings(true);
             games.updatePlayingStatus();
-            gambling.updateLottoCountdown();
+            prizes.updateLottoCountdown();
             util.sendEmbedMessage('B A C K⠀O N L I N E !', null, null, c.ONLINE_IMG);
         });
 
@@ -135,8 +136,8 @@ module.exports = class BotEventHandler {
         });
     }
 
-    setChannels() {
-        const server = this.client.guilds.find('id', priv.serverID);
+    setChannels(server) {
+        server = server || this.client.guilds.find('id', priv.serverID);
 
         bot.setServer(server);
         bot.setBotSpam(server.channels.find('id', c.BOT_SPAM_CHANNEL_ID));

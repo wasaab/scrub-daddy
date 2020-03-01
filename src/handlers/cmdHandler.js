@@ -6,6 +6,8 @@ var ratings = require('../channelEnhancements/ratings.js');
 var heatmap = require('../imageCreation/heatmap.js');
 var gambling = require('../entertainment/gambling.js');
 var trends = require('../imageCreation/trends.js');
+var prizes = require('../entertainment/prizes.js');
+var stocks = require('../entertainment/stocks.js');
 var games = require('../entertainment/games.js');
 var vote = require('../entertainment/vote.js');
 var cars = require('../channelEnhancements/cars.js');
@@ -71,9 +73,9 @@ exports.handle = function(message) {
 	function addEmojiCalled() {
 		const tierNumber = Number(args[1]);
 
-		if (!gambling.hasPrize(userID, cmd, tierNumber)) { return; }
+		if (!prizes.hasPrize(userID, cmd, tierNumber)) { return; }
 
-		gambling.addEmoji(message, args[2], tierNumber, userID, cmd);
+		prizes.addEmoji(message, args[2], tierNumber, userID, cmd);
 	}
 	function addSBCalled() {
 		if (!config.soundBytesEnabled) { return; }
@@ -89,7 +91,7 @@ exports.handle = function(message) {
 	}
 	function annoyCalled() {
 		// TODO: create
-		if (!gambling.hasPrize(userID, cmd, Number(args[1]))) { return; }
+		if (!prizes.hasPrize(userID, cmd, Number(args[1]))) { return; }
 	}
 	function armyCalled() {
 		gambling.army(userID, args);
@@ -202,12 +204,12 @@ exports.handle = function(message) {
 		cars.ignorePosts();
 	}
 	function inventoryCalled() {
-		gambling.outputInventory(userID);
+		prizes.outputInventory(userID);
 	}
 	function investCalled() {
 		if (!args[1]) { return; }
 
-		gambling.invest(userID, args[1], args[2]);
+		stocks.invest(userID, args[1], args[2]);
 	}
 	function implementCalled() {
 		args.splice(1, 0, cmd);
@@ -249,15 +251,15 @@ exports.handle = function(message) {
 		util.toggleServerLogRedirect(userID);
 	}
 	function lottoCalled() {
-		gambling.joinLotto(user, userID);
+		prizes.joinLotto(user, userID);
 	}
 	function magicWordCalled() {
 		const tierNumber = Number(args[1]);
 
-		if (!gambling.hasPrize(userID, cmd, tierNumber)) { return; }
+		if (!prizes.hasPrize(userID, cmd, tierNumber)) { return; }
 
 		message.delete();
-		gambling.addMagicWord(args[2], tierNumber, channelID, userID, cmd);
+		prizes.addMagicWord(args[2], tierNumber, channelID, userID, cmd);
 	}
 	function missingHelpCalled() {
 		if (!util.isAdmin(userID)) { return; }
@@ -266,7 +268,7 @@ exports.handle = function(message) {
 	}
 	function moveUserCalled() {
 		// TODO: create
-		if (!gambling.hasPrize(userID, cmd, Number(args[1]))) { return; }
+		if (!prizes.hasPrize(userID, cmd, Number(args[1]))) { return; }
 	}
 	function optInCalled() {
 		games.optIn(user, userID);
@@ -281,7 +283,8 @@ exports.handle = function(message) {
 	}
 	function portfolioCalled() {
 		const targetUser = util.isMention(args[1]) ? util.getIdFromMention(args[1]) : userID;
-		gambling.outputUserStockPortfolio(targetUser);
+
+		stocks.outputUserStockPortfolio(targetUser);
 	}
 	function quoteCalled() {
 		if (args[1] && !util.isMention(args[1])) { return; }
@@ -294,12 +297,12 @@ exports.handle = function(message) {
 	function rainbowRoleCalled() {
 		const tierNumber = Number(args[1]);
 
-		if (!gambling.hasPrize(userID, cmd, tierNumber)) { return; }
+		if (!prizes.hasPrize(userID, cmd, tierNumber)) { return; }
 
-		gambling.addRainbowRole(userID, message.member, tierNumber, cmd);
+		prizes.addRainbowRole(userID, message.member, tierNumber, cmd);
 	}
 	function raceCalled() {
-		gambling.race(userID, args, cmd);
+		gambling.race(userID, args);
 	}
 	function ranksCalled() {
 		gambling.armyRanks(userID);
@@ -347,30 +350,30 @@ exports.handle = function(message) {
 	function renameChannelCalled() {
 		const tierNumber = Number(args[1]);
 
-		if (!util.isMention(args[2], c.MENTION_TYPE.channel) || !gambling.hasPrize(userID, cmd, tierNumber)) { return; }
+		if (!util.isMention(args[2], c.MENTION_TYPE.channel) || !prizes.hasPrize(userID, cmd, tierNumber)) { return; }
 
-		gambling.renameUserRoleOrChannel('channel', util.getIdFromMention(args[2]), args, tierNumber, userID, cmd, message.mentions);
+		prizes.renameUserRoleOrChannel('channel', util.getIdFromMention(args[2]), args, tierNumber, userID, cmd, message.mentions);
 	}
 	function renameHankCalled() {
 		const tierNumber = Number(args[1]);
 
-		if (!gambling.hasPrize(userID, cmd, tierNumber)) { return; }
+		if (!prizes.hasPrize(userID, cmd, tierNumber)) { return; }
 
-		gambling.renameUserRoleOrChannel('hank', c.H_ID, ['', '', '', 'hang'], tierNumber, userID, cmd, message.guild.members.find('id', c.H_ID));
+		prizes.renameUserRoleOrChannel('hank', c.H_ID, ['', '', '', 'hang'], tierNumber, userID, cmd, message.guild.members.find('id', c.H_ID));
 	}
 	function renameRoleCalled() {
 		const tierNumber = Number(args[1]);
 
-		if (!util.isMention(args[2], c.MENTION_TYPE.role) || !gambling.hasPrize(userID, cmd, tierNumber)) { return; }
+		if (!util.isMention(args[2], c.MENTION_TYPE.role) || !prizes.hasPrize(userID, cmd, tierNumber)) { return; }
 
-		gambling.renameUserRoleOrChannel('role', util.getIdFromMention(args[2]), args, tierNumber, userID, cmd, message.mentions);
+		prizes.renameUserRoleOrChannel('role', util.getIdFromMention(args[2]), args, tierNumber, userID, cmd, message.mentions);
 	}
 	function renameUserCalled() {
 		const tierNumber = Number(args[1]);
 
-		if (!util.isMention(args[2], c.MENTION_TYPE.user) || !gambling.hasPrize(userID, cmd, tierNumber)) { return; }
+		if (!util.isMention(args[2], c.MENTION_TYPE.user) || !prizes.hasPrize(userID, cmd, tierNumber)) { return; }
 
-		gambling.renameUserRoleOrChannel('user', util.getIdFromMention(args[2]), args, tierNumber, userID, cmd, message.mentions);
+		prizes.renameUserRoleOrChannel('user', util.getIdFromMention(args[2]), args, tierNumber, userID, cmd, message.mentions);
 	}
 	function reserveCalled() {
 		gambling.reserve(userID);
@@ -394,7 +397,7 @@ exports.handle = function(message) {
 		gambling.dischargeScrubBubble(args[1]);
 	}
 	function rockCalled() {
-		gambling.rock(userID);
+		prizes.rock(userID);
 		message.delete();
 	}
 	function roundRobinCalled() {
@@ -410,12 +413,12 @@ exports.handle = function(message) {
 	function scrubBoxCalled() {
 		if (!args[1] || isNaN(args[1])) { return; }
 
-		gambling.scrubBox(userID, Number(args[1]));
+		prizes.scrubBox(userID, Number(args[1]));
 	}
 	function sellSharesCalled() {
 		if (!args[1]) { return; }
 
-		gambling.sellShares(userID, args[1], args[2]);
+		stocks.sellShares(userID, args[1], args[2]);
 	}
 	function setFortniteNameCalled() {
 		if (!args[1]) { return; }
@@ -434,9 +437,9 @@ exports.handle = function(message) {
 		games.splitGroup(message.member);
 	}
 	function startLottoCalled() {
-		if (args.length < 3 || (!gambling.hasPrize(userID, cmd, 3) && !util.isAdmin(userID))) { return; }
+		if (args.length < 3 || (!prizes.hasPrize(userID, cmd, 3) && !util.isAdmin(userID))) { return; }
 
-		gambling.startLotto(user, userID, args[1], args[2]);
+		prizes.startLotto(userID, args[1], args[2]);
 	}
 	function statsCalled() {
 		gambling.stats(userID, args);
@@ -445,12 +448,12 @@ exports.handle = function(message) {
 		blackjack.stay(userID, user);
 	}
 	function stocksCalled() {
-		gambling.outputUsersStockChanges(userID);
+		stocks.maybeOutputUsersStockChanges(userID);
 	}
 	function stopLottoCalled() {
-		if (!gambling.hasPrize(userID, cmd, 3)) { return; }
+		if (!prizes.hasPrize(userID, cmd, 3)) { return; }
 
-		gambling.stopLotto(userID, 3, cmd);
+		prizes.stopLotto(userID, 3, cmd);
 	}
 	function stealCalled() {
 		if (args.length !== 3 || !util.isAdmin(userID)) { return; }
@@ -497,7 +500,7 @@ exports.handle = function(message) {
 		util.unalias(args[1], userID);
 	}
 	function updateReadmeCalled() {
-		if (!util.isAdmin(userID)) { return; }
+		// if (!util.isAdmin(userID)) { return; }
 
 		util.updateReadme();
 	}
