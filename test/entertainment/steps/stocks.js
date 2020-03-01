@@ -5,6 +5,13 @@ const get = require('lodash.get');
 const testUtil = require('../../configuration/testUtil.js');
 const gambling = require('../../../src/entertainment/gambling.js');
 
+/**
+ * Builds a mock stock api response.
+ *
+ * @param {String} symbol stock's symbol
+ * @param {String} price price of the stock
+ * @param {string} dailyChange daily change of stock
+ */
 function buildStockMock(symbol, price, dailyChange) {
     return JSON.stringify({
         'Global Quote': {
