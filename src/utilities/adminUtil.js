@@ -214,7 +214,7 @@ function listBackups() {
  */
 function updateReadme() {
 	var result = '';
-	var cmdCount = 0;
+	var cmdCount = c.ADMIN_COMMANDS.split('+').length;
 
 	c.HELP_CATEGORIES.forEach((category) => {
 		result += `\n1. ${category.name.split('`').join('')}\n`;
@@ -224,7 +224,8 @@ function updateReadme() {
 		});
 	});
 
-	result = `# scrub-daddy\n${c.CODACY_BADGE}\n\n${c.UPDATE_LOG_LINK}\n\nDiscord bot with the following ${cmdCount} commands:\n${result}\n\n${c.ADMIN_COMMANDS}`;
+	result = `# scrub-daddy\n${c.CODACY_BADGE}\n\n` +
+		`Personal Discord bot with the following ${cmdCount} commands:\n${result}\n\n${c.ADMIN_COMMANDS}`;
 	fs.writeFile('README.md', result, 'utf8', log);
 }
 

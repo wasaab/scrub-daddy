@@ -9,6 +9,7 @@ var rp = require('request-promise');
 var c = require('../const.js');
 var bot = require('../bot.js');
 var util = require('../utilities/utilities.js');
+var testUtil = require('../../test/configuration/testUtil.js');
 var logger = require('../logger.js').botLogger;
 var priv = require('../../../private.json');
 var optedInUsers = require('../../resources/data/optedIn.json');		//users that have opted in to playtime tracking
@@ -46,15 +47,17 @@ exports.clearTimeSheet = function() {
 function getGameNameAndTarget(args) {
 	var game = '';
 	var target = '';
+
 	for (var i=1; i < args.length; i++) {
 		if (args[i].indexOf('<') === 0) {
 			target = args[i];
 			break;
 		}
+
 		game += ` ${args[i]}`;
 	}
-	const result = {game : game, target : target};
-	return result;
+
+	return { game : game.substr(1), target : target};
 }
 
 /**
@@ -72,6 +75,11 @@ function updateHeatMap(logTime, playerCount) {
 	util.exportJson(heatMapData, 'rawHeatMapData');
 }
 
+/**
+ * Gets the data of games currently being played by the provided users.
+ *
+ * @param {Object[]} players group of players to get games of
+ */
 function getGamesBeingPlayedData(players) {
 	var games = [];
 	var max = 0;
@@ -95,6 +103,13 @@ function getGamesBeingPlayedData(players) {
     return { games: games, winner: winner, total: total, max: max };
 }
 
+/**
+ * Updates history of games played and player count.
+ *
+ * @param {Number} time time of update in ms since epoch
+ * @param {Number} total total number of players
+ * @param {Object[]} games games being played
+ */
 function determinePlayingFieldsAndUpdateHistory(time, total, games) {
 	var fields = [];
 	var gamesLog = {
@@ -142,6 +157,9 @@ exports.maybeOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
 	}
 };
 
+/**
+ * Updates the bot's playing status.
+ */
 exports.updatePlayingStatus = function() {
 	var { winner, max } = getGamesBeingPlayedData(util.getMembers());
 	if (winner === '') {
@@ -159,17 +177,14 @@ exports.updatePlayingStatus = function() {
  * @param {Object} currentlyPlaying - the game finished or currently being played
  */
 function getTimePlayed(currentlyPlaying) {
-	var startOfDay = new Date();
-	startOfDay.setHours(5,0,0,0);
-	var utcSeconds = Number(currentlyPlaying.start) / 1000;
-	var startedPlaying = new Date(0); // The 0 there is the key, which sets the date to the epoch
-	startedPlaying.setUTCSeconds(utcSeconds);
-	var currentTime = new Date();
-	if (startedPlaying < startOfDay) {
-		startedPlaying = startOfDay;
+	const dayStartTime = moment().startOf('day').add(5, 'hours');
+	var playStartTime = moment(currentlyPlaying.start);
+
+	if (playStartTime.isBefore(dayStartTime) && moment().isAfter(dayStartTime)) {
+		playStartTime = dayStartTime;
 	}
-	var hoursPlayed = Math.abs(currentTime - startedPlaying) / 36e5;
-	return hoursPlayed;
+
+	return Math.abs(moment().diff(playStartTime, 'hours', true));
 }
 
 /**
@@ -179,12 +194,14 @@ function getTimePlayed(currentlyPlaying) {
  * @param {String} gameName - name of the game to get playtime of
  */
 function getUsersPlaytimeForGame(userID, gameName) {
-	if (!timeSheet[userID]) {
+	const userEntry = timeSheet[userID];
+
+	if (!userEntry) {
 		return 0;
 	}
 
-	var playtime = timeSheet[userID][gameName];
-	var currentlyPlaying = timeSheet[userID]['playing'];
+	var playtime = userEntry[gameName];
+	var currentlyPlaying = userEntry['playing'];
 
 	//if the target user is currently playing the game
 	if (playtime && currentlyPlaying && currentlyPlaying.name === gameName) {
@@ -206,11 +223,13 @@ function getCumulativeTimePlayed(gameName, target) {
 		gameToTime : {}
 	};
 	var userToTimes = timeSheet;
+
 	//if a target is provided get cumulative time played of their games
 	if (target !== '') {
 		userToTimes = {};
 		userToTimes[target] = timeSheet[target];
 	}
+
 	for (var userID in userToTimes) {
 		//get time of all games
 		if (gameName === '') {
@@ -229,7 +248,8 @@ function getCumulativeTimePlayed(gameName, target) {
 				}
 			}
 		} else {
-			var timePlayed = getUsersPlaytimeForGame(userID, gameName);
+			const timePlayed = getUsersPlaytimeForGame(userID, gameName);
+
 			if (timePlayed) {
 				cumulativeTimePlayed.total += timePlayed;
 			}
@@ -279,9 +299,7 @@ function outputCumulativeTimePlayed(timePlayedData, userID) {
  * @param {String[]} args - input arguments from the user
  */
 exports.maybeOutputTimePlayed = function(args, userID) {
-	const nameAndTargetData = getGameNameAndTarget(args);
-	var target = nameAndTargetData.target;
-	var game = nameAndTargetData.game;
+	var { game, target} = getGameNameAndTarget(args);
 
 	logger.info(`Time Called - game: ${game} target: ${target}`);
 	if (target !== '' && !isOptedIn(target)) {
@@ -347,6 +365,11 @@ function buildWhoPlaysFields(usersWhoPlay) {
 	return fields;
 }
 
+/**
+ * Outputs list users who play the same games as the provided user and last time played.
+ *
+ * @param {String} userID id of user to get shared games for
+ */
 function whoPlaysUsersGames(userID) {
 	//get the games played by userID that at least 1 other person plays
 	var sharedGames = gamesPlayed.filter((game) => {
@@ -396,6 +419,12 @@ exports.whoPlays = function(args, userID) {
 	}
 };
 
+/**
+ * Excludes the provided user from who-plays based on role membership and last time played.
+ *
+ * @param {Boolean} allFlagProvided whether or not the user added the all flag
+ * @param {Object} user user to consider excluding
+ */
 function shouldExcludeUserFromLetsPlay(allFlagProvided, user) {
 	return !allFlagProvided && (user.role === c.SUPER_SCRUBS_ROLE_ID || !user.time
 		|| moment().diff(moment(user.time), 'days') > 8);
@@ -452,6 +481,11 @@ exports.letsPlay = function(args, userID, message, oneMore, customMessage) {
 	util.sendAuthoredMessage(msg, userID, c.SCRUBS_CHANNEL_ID);
 };
 
+/**
+ * Calls lets play if the discord game invitiation was sent by a user.
+ *
+ * @param {Object} message message sent by user
+ */
 exports.maybeCallLetsPlay = function(message) {
 	const game = get(message, 'member.presence.game.name');
 
@@ -461,6 +495,14 @@ exports.maybeCallLetsPlay = function(message) {
 	exports.letsPlay(['', game], message.member.id, message);
 };
 
+/**
+ * Determines the updated users who play a game.
+ *
+ * @param {Object{}} usersWhoPlay users who play the game
+ * @param {String} userID id of calling user
+ * @param {Object} role target role
+ * @param {Boolean} isRemoval whether or not this is a remove user call
+ */
 function determineUpdatedUsersWhoPlay(usersWhoPlay, userID, role, isRemoval) {
 	if (!usersWhoPlay) {
 		usersWhoPlay = [{ id: userID, time: moment().valueOf(), role: role.id }];
@@ -500,6 +542,11 @@ function updateWhoPlays(userID, role, game, isRemoval) {
 	}
 }
 
+/**
+ * Removes a player from the list of user who play a game.
+ *
+ * @param {String[]} args arguments provided to the command
+ */
 exports.removePlayer = function(args) {
 	updateWhoPlays(util.getIdFromMention(args[1]), { id: 'Temp Role' }, util.getTargetFromArgs(args, 2), true);
 };
@@ -547,7 +594,7 @@ exports.updateTimesheet = function(user, userID, highestRole, oldGame, newGame) 
 	}
 	//started playing a game
 	if (newGame) {
-		gameToTime['playing'] = {name : newGame, start : new Date().getTime()};
+		gameToTime['playing'] = {name : newGame, start : getCurrentTimeMillis()};
 		if (!gameToTime[newGame]) {
 			gameToTime[newGame] = 0;
 		}
@@ -558,12 +605,21 @@ exports.updateTimesheet = function(user, userID, highestRole, oldGame, newGame) 
 };
 
 /**
+ * Gets the current time in milliseconds.
+ */
+function getCurrentTimeMillis() {
+	return testUtil.isTestRun() ? testUtil.getMockCurrentTime() : new Date().getTime();
+}
+
+/**
  * Waits for the provided number of seconds and then sends a scrub daddy fact.
  *
  * @param {Number} attempts - loop iterator
  * @param {Number} seconds - duration of each loop
  */
 function waitAndSendScrubDaddyFact(attempts, seconds, userID) {
+	if (testUtil.isTestRun()) { return; }
+
 	setTimeout(() => {
 		if (attempts === seconds) {
 			const title = '➕ You are now subscribed to Scrub Daddy Facts!';
@@ -575,6 +631,13 @@ function waitAndSendScrubDaddyFact(attempts, seconds, userID) {
 		}
 	}, 1000);
 }
+
+/**
+ * Opts all users out of playtime tracking.
+ */
+exports.optOutAllUsers = function() {
+	optedInUsers = [];
+};
 
 /**
  * opts a user into playtime tracking
@@ -775,6 +838,9 @@ exports.maybeUpdateNickname = function(member, game) {
 	}
 };
 
+/**
+ * Outputs help for the fortnite stats commands.
+ */
 exports.outputFortniteHelp = function () {
 	var possibleStats = '';
 	c.STATS.forEach((stat) => {
@@ -879,6 +945,12 @@ exports.setFortniteName = function(userID, args) {
 	util.exportJson(userIDToFortniteUserName, 'fortniteUserData');
 };
 
+/**
+ * Sends the sunken sailor message to a user via DM.
+ *
+ * @param {Object} user user to send dm to
+ * @param {Boolean} isSunken whether or not they are the sunken sailor
+ */
 function sendSunkenSailorMessage(user, isSunken) {
 	user.createDM()
 	.then((dm) => {
@@ -886,6 +958,11 @@ function sendSunkenSailorMessage(user, isSunken) {
 	});
 }
 
+/**
+ * Starts a game of sunken sailor.
+ *
+ * @param {Object} callingMember member starting the game
+ */
 exports.sunkenSailor = function(callingMember) {
 	if (!callingMember.voiceChannel) { return; }
 
@@ -934,12 +1011,23 @@ function getRandomQuotes(channel, minLength=15, minReactions=0, sampleSize=100) 
 		});
 }
 
+/**
+ * Determines if a message is quoteable, based on length and reactions.
+ *
+ * @param {Number} minLength min length of required
+ * @param {Number} minReactions min reaction required
+ */
 function isQuotableMsg(minLength, minReactions) {
 	return (message) => message.content && message.content.length >= minLength
 		&& message.reactions.size >= minReactions
 		&& !message.author.bot;
 }
 
+/**
+ * Gets the image from the message contents if found.
+ *
+ * @param {String} content content of message
+ */
 function maybeGetImageFromContent(content) {
 	const images = content.match(/\bhttps?:\/\/\S+\.(png|jpeg|jpg|gif)(\s|$)/gi);
 	if (!images) { return null; }
@@ -979,6 +1067,12 @@ exports.mentionGroup = function(groupName, args, message, channel, userID) {
 	}
 };
 
+/**
+ * Outputs the next user in the group. Used for determining turn.
+ *
+ * @param {String} groupName name of group to pick next user ffrom
+ * @param {String} userID id of calling user
+ */
 exports.roundRobin = function(groupName, userID) {
 	const { group, name } = util.getGroup(groupName);
 
@@ -991,6 +1085,11 @@ exports.roundRobin = function(groupName, userID) {
 	util.sendEmbedMessage('Round Robin', `${util.mentionUser(winningUser)} you're up!`, winningUser);
 };
 
+/**
+ * Outputs a random splitting of the users in the same voice channel. Used for determining teams.
+ *
+ * @param {Object} callingMember member who called the command
+ */
 exports.splitGroup = function(callingMember) {
 	if (!callingMember.voiceChannel) { return; }
 
@@ -1005,6 +1104,9 @@ exports.splitGroup = function(callingMember) {
 	util.sendEmbedMessage('Randomized Group Split', turnOrderMsg);
 };
 
+/**
+ * End a game of who said.
+ */
 function endWhoSaidGame() {
 	var fields =[];
 	for(var userID in whoSaidScore) {
@@ -1016,6 +1118,12 @@ function endWhoSaidGame() {
 	util.unLock('startWhoSaidGame');
 }
 
+/**
+ * Starts a round of who said.
+ *
+ * @param {Object} quote quote to guess author of
+ * @param {Number} round round number
+ */
 function startWhoSaidRound(quote, round) {
 	if (!quote.content) { return; }
 	util.sendEmbedMessage(`Who Said - Round ${round}`, `Who said "${quote.content}"?`, null, maybeGetImageFromContent(quote.content));
@@ -1026,6 +1134,12 @@ function startWhoSaidRound(quote, round) {
 	return bot.getBotSpam().awaitMessages(filter, { max: 1, time: 30000, errors: ['time'] });
 }
 
+/**
+ * Game loop for who said.
+ *
+ * @param {Object[]} randomQuotes random quote to guess author of
+ * @param {Number} round round number
+ */
 function whoSaidGameLoop(randomQuotes, round) {
 	if (round === 6) {
 		endWhoSaidGame();

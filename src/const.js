@@ -298,7 +298,6 @@ module.exports = {
 		rocksDropped: 0,
 		player:{},
 		dealer: {},
-		stockToInfo: {},
 		stats: {
 			recordArmy: 0,
 			mostBet: 0,

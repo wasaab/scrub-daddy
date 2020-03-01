@@ -35,6 +35,7 @@ function help(userID) {
  */
 function outputHelpForCommand(cmd, userID) {
 	if (!cmd) { return; }
+
 	c.HELP_CATEGORIES.forEach((category) => {
 		category.fields.forEach((command) => {
 			if (command.name.substring(1).startsWith(cmd)) {

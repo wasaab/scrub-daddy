@@ -27,7 +27,7 @@ var channel;
  * @param {String} match - the words that matched the keywords
  * @param {String} url - url of matching classified listing
  */
-function notify(userID, keywords, match, url) {
+function notify(userID, keywords, match, url) { //eslint-disable-line
     util.getMembers()
         .find('id', userID)
         .createDM()
@@ -314,9 +314,10 @@ function getPostInfo(titles, times, i, forumID) {
 /**
  * Converts the target node list to an array.
  *
+ * @param {Object} document - the document of the page being scraped
  * @param {String} selector - selector to find element with
  */
-function getNodeListAsArray(selector) {
+function getNodeListAsArray(document, selector) {
     return [].slice.call(document.querySelectorAll(selector)).reverse();
 }
 
@@ -327,8 +328,8 @@ function getNodeListAsArray(selector) {
  * @param {String} forumID - the id of the forum to scrape posts in
  */
 function scrapeTitlesAndTimestamps(document, forumID) {
-    var titles = getNodeListAsArray(`#threadbits_forum_${forumID} a[id^='thread_title']`);
-    const lastPostTimes = getNodeListAsArray(`#threadbits_forum_${forumID} .time`);
+    var titles = getNodeListAsArray(document, `#threadbits_forum_${forumID} a[id^='thread_title']`);
+    const lastPostTimes = getNodeListAsArray(document, `#threadbits_forum_${forumID} .time`);
 
     titles = titles.filter((title, i) => {
         if (forumData.ignoredPosts.includes(title.getAttribute('href'))) {
