@@ -1,7 +1,7 @@
 var moment = require('moment');
 var path = require('path');
-var d3Node = require('d3-node');
-var { d3, document } = new d3Node();
+var D3Node = require('d3-node');
+var { d3, document } = new D3Node();
 var c = require('../const.js');
 var util = require('../utilities/utilities.js');
 var imgConverter = require('./imageConverter.js');
@@ -26,7 +26,6 @@ function createSvgCanvas() {
                 .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 }
 
-
 function generateGraph(userID, countKey, targetGames) {
     svg = createSvgCanvas();
     const filePath = path.join(__dirname.slice(3), '../../resources', 'data', 'gameHistory.json');
@@ -50,8 +49,6 @@ function generateGraph(userID, countKey, targetGames) {
         } else if (!targetGames) {
             dataNest = dataNest.filter((entriesForGame) => entriesForGame.values.length > 200);
         }
-
-        // console.log(dataNest);
 
         appendLinesAndLegend(dataNest, countKey);
         appendXAxis();

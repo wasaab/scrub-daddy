@@ -63,7 +63,7 @@ function determineTitle(original) {
 	const lowers = ['A', 'An', 'The', 'And', 'But', 'Or', 'For', 'Nor', 'As', 'At',
 	'By', 'For', 'From', 'In', 'Into', 'Near', 'Of', 'On', 'Onto', 'To', 'With'];
 
-	for (var i = 0, j = lowers.length; i < j; i++) {
+	for (let i = 0, j = lowers.length; i < j; i++) {
 		title = title.replace(new RegExp('\\s' + lowers[i] + '\\s', 'g'),
 		function(txt) {
 			return txt.toLowerCase();
@@ -72,7 +72,7 @@ function determineTitle(original) {
 
 	// Certain words such as initialisms or acronyms should be left uppercase
 	const uppers = ['Id', 'Tv'];
-	for (i = 0, j = uppers.length; i < j; i++) {
+	for (let i = 0, j = uppers.length; i < j; i++) {
 		title = title.replace(new RegExp('\\b' + uppers[i] + '\\b', 'g'),
 		uppers[i].toUpperCase());
 	}

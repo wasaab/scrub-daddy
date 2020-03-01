@@ -33,7 +33,7 @@ function scheduleRecurringVoiceChannelScan() {
  * Schedules a recurring export of json files.
  */
 function scheduleRecurringExport() {
-	(function(){
+	(function(){ //eslint-disable-line
 		games.exportTimeSheetAndGameHistory();
 		gambling.exportLedger();
 		setTimeout(arguments.callee, 70000);

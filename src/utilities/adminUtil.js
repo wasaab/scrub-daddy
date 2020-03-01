@@ -103,7 +103,7 @@ function maybeUnbanSpammers() {
 	for (var userID in bannedUserIDToBans) {
 		const bans = bannedUserIDToBans[userID];
 		const now = moment();
-		bans.forEach((ban) => {
+		bans.forEach((ban) => { //eslint-disable-line
 			if (now.diff(ban.time, 'days') >= ban.days) {
 				unBanSpammer(userID, ban.channelID);
 			}
@@ -196,7 +196,7 @@ function isDevEnv() {
 function listBackups() {
 	var timestamps = [];
 	var filesMsg = '';
-	fs.readdirSync('../jsonBackups/').forEach(file => {
+	fs.readdirSync('../jsonBackups/').forEach((file) => {
 		const time = moment(file.split('.')[0],'M[-]D[-]YY[@]h[-]mm[-]a');
 		timestamps.push(time.valueOf());
 	});

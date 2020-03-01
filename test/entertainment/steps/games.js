@@ -20,9 +20,9 @@ When('{int} players play {float} hours of {string}', function (int, float, strin
 
     members.forEach((member) => {
         testUtil.setMockCurrentTime(startPlayingTime);
-        games.updateTimesheet(member.displayName, member.id, 'Beyond', undefined, string);
+        games.updateTimesheet(member.displayName, member.id, 'Beyond', null, string);
         testUtil.setMockCurrentTime(stopPlayingTime.valueOf());
-        games.updateTimesheet(member.displayName, member.id, 'Beyond', string, undefined);
+        games.updateTimesheet(member.displayName, member.id, 'Beyond', string, null);
     });
 });
 

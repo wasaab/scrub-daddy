@@ -188,7 +188,7 @@ function maybeUpdateDynamicMessage(selectedReactions, msg, userID, results, sele
 	const footer = msg.embeds[0].footer;
 	if (footer) {
 		newMsg.footer = {
-			icon_url: footer.iconURL,
+			icon_url: footer.iconURL, //eslint-disable-line
 			text: footer.text
 		};
 	}
@@ -226,7 +226,7 @@ function addInitialNumberReactions(msg, number, max) {
  */
 function sendDynamicMessage(userID, selectionType, results, homePage) {
     const footer = {
-		icon_url: c.INFO_IMG,
+		icon_url: c.INFO_IMG, //eslint-disable-line
 		text: `Click a reaction below to select a ${selectionType}.`
 	};
 	var msg;

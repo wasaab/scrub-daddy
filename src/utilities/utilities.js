@@ -14,7 +14,7 @@ function buildExports() { //eslint-disable-line
 
     for (var subUtil in utils) {
         result += '\n';
-        Object.keys(utils[subUtil]).forEach((funcName) => {
+        Object.keys(utils[subUtil]).forEach((funcName) => { //eslint-disable-line
             result += `${funcName}: utils.${subUtil}.${funcName},\n`;
         });
     }

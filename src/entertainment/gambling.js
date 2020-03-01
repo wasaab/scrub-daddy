@@ -469,7 +469,7 @@ function buildRaceProgressUpdates() {
     const race = ledger[c.SCRUB_DADDY_ID].race;
     const userIds = Object.keys(race.userIdToEmoji);
     const numRacers = userIds.length;
-    const crabId = Object.keys(race.userIdToEmoji).find(key => race.userIdToEmoji[key] === '🦀');
+    const crabId = Object.keys(race.userIdToEmoji).find((key) => race.userIdToEmoji[key] === '🦀');
 
     var newProgress;
     var movingUserId;

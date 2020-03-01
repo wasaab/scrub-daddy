@@ -346,7 +346,7 @@ exports.maybeOutputUsersStockChanges = function(userID) {
 function buildArmyChangeFooterAndGraphEmoji(netArmyChange) {
     const graphEmoji = netArmyChange >= 0 ? '📈' : '📉';
     const footer = {
-        icon_url: c.BUBBLE_IMAGES[0],
+        icon_url: c.BUBBLE_IMAGES[0], //eslint-disable-line
         text: `${determineChangeSymbol(netArmyChange)}${netArmyChange}`
     };
 

@@ -55,7 +55,7 @@ const format = winston.format((info) => {
 	return info;
 });
 
-const logger = new winston.createLogger({
+const logger = winston.createLogger({
 	levels: {
 		error: 0,
 		warn: 1,

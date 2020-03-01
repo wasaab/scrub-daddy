@@ -102,8 +102,8 @@ function exportJson(content, fileName) {
 function handleAllPromises(promises) {
     const toResultObject = (promise) => {
         return promise
-            .then(result => ({ success: true, result }))
-            .catch(error => ({ success: false, error }));
+            .then((result) => ({ success: true, result }))
+            .catch((error) => ({ success: false, error }));
     };
 
     return Promise.all(promises.map(toResultObject));
