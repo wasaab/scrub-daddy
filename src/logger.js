@@ -1,6 +1,7 @@
 const moment = require('moment');
 const winston = require('winston');
 const Transport = require('winston-transport');
+const isTestRun = process.argv.includes('test/**/?(**)/*.js');
 
 /**
  * Console logger.
@@ -59,10 +60,11 @@ const logger = new winston.createLogger({
 		error: 0,
 		warn: 1,
 		info: 2,
-		cmd: 3
+		cmd: 3,
+		send: 4
 	},
 	format: format(),
-	transports: [ new ConsoleTransport({ level: 'cmd' }) ]
+	transports: [ new ConsoleTransport({ level: isTestRun ? 'send' : 'cmd' }) ]
 });
 
 exports.botLogger = logger;

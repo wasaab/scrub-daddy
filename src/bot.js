@@ -1,9 +1,8 @@
-var Discord = require('discord.js');
-var priv = require('../../private.json');
+const Discord = require('discord.js');
+const priv = require('../../private.json');
+const BotEventHandler = require('./handlers/BotEventHandler.js');
 var client = new Discord.Client();
-var BotEventHandler = require('./handlers/BotEventHandler.js');
 const eventHandler = new BotEventHandler(client);
-
 var server;
 var botSpam;
 var scrubsChannel;
@@ -58,5 +57,18 @@ exports.setServer = function(botServer) {
 	server = botServer;
 };
 
-eventHandler.createEventHandlers();
-client.login(priv.token);
+/**
+ * Starts the bot if not a test run, otherwise mocks the server.
+ */
+function maybeStartBot() {
+	const testUtil = require('../test/configuration/testUtil.js');
+
+	if (testUtil.isTestRun()) {
+		testUtil.mockServer(eventHandler);
+	} else {
+		eventHandler.createEventHandlers();
+		client.login(priv.token);
+	}
+}
+
+maybeStartBot();

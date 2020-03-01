@@ -1,11 +1,13 @@
 {
   "name": "scrub-daddy",
   "version": "2.0.1",
-  "description": "The scrubbiest bot of all time.",
+  "description": "A Discord bot focused on gamers",
   "main": "bot.js",
   "author": "Kent",
   "dependencies": {
     "backup": "^1.1.0",
+    "chai": "^4.2.0",
+    "cucumber": "^6.0.5",
     "d3-node": "^1.1.1",
     "discord.js": "~11.3.2",
     "ffmpeg-binaries": "^3.2.2-3",
@@ -34,6 +36,7 @@
     "lebab": "^2.7.7"
   },
   "scripts": {
-    "start": "node ./src/run.js"
+    "start": "node ./src/run.js",
+    "test": "sh ./node_modules/.bin/cucumber-js test/**/features/*.feature --require test/**/?(**)/*.js --format ./test/configuration/inlineCucumberFormatter.js"
   }
 }
