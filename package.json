@@ -26,7 +26,7 @@
     "request-promise": "^4.2.2",
     "svg-to-png": "^3.1.2",
     "tinycolor2": "^1.4.1",
-    "txtgen": "^2.0.1",
+    "txtgen": "^2.2.3",
     "util-inspect": "^0.1.8",
     "winston": "~3.2.1",
     "winston-transport": "^3.0.1",

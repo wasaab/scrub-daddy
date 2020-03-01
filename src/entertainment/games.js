@@ -954,8 +954,49 @@ exports.setFortniteName = function(userID, args) {
 function sendSunkenSailorMessage(user, isSunken) {
 	user.createDM()
 	.then((dm) => {
-		dm.send(txtgen.sentence(isSunken));
+		dm.send(generateSunkenSailorSentence(isSunken));
 	});
+}
+
+/**
+ * Generates the sunken sailor sentence templates.
+ *
+ * @param {String} secretWord secret word to include in sentence
+ */
+function generateSunkenSailerSentenceTemplates(secretWord) {
+    const nounArg = '{{noun}}';
+    var originalSentenceTemplates = txtgen.getTemplates();
+
+	var nounSentenceTemplates = [];
+	var sunkenSentenceTemplate;
+
+    util.shuffleArray(originalSentenceTemplates);
+
+    originalSentenceTemplates.forEach((template) => {
+        if (template.includes(nounArg)) {
+            nounSentenceTemplates.push(template.replace(nounArg, `**${secretWord}**`));
+        } else if (!sunkenSentenceTemplate) {
+            sunkenSentenceTemplate = template;
+        }
+    });
+
+	txtgen.setTemplates(nounSentenceTemplates);
+
+	return { nounTemplate: nounSentenceTemplates, sunkenTemplate: sunkenSentenceTemplate };
+}
+
+/**
+ * Generates a sunken sailor sentence.
+ *
+ * @param {Boolean} isSunken whether or not the user is the sunken sailor
+ * @param {Object} template sentence template for nouns or sunken
+ */
+function generateSunkenSailorSentence(isSunken, template) {
+    const templates = isSunken ? [template.sunkenTemplate] : template.nounTemplate;
+
+    txtgen.setTemplates(templates);
+
+    return txtgen.sentence();
 }
 
 /**
@@ -976,12 +1017,12 @@ exports.sunkenSailor = function(callingMember) {
 	var nouns = fs.readFileSync('./resources/data/nouns.json'); //585 nouns
 	nouns = JSON.parse(nouns);
 	const secretWord = nouns[util.getRand(0, 585)];
-	txtgen.generateSunkenSailerSentenceTemplates(secretWord);
+	const template = generateSunkenSailerSentenceTemplates(secretWord);
 
 	for (var i = 0; i < players.length - 1; i++) {
-		sendSunkenSailorMessage(players[i], false);
+		sendSunkenSailorMessage(players[i], false, template);
 	}
-	sendSunkenSailorMessage(players[players.length - 1], true);
+	sendSunkenSailorMessage(players[players.length - 1], true, template);
 	util.shuffleArray(players);
 	var turnOrderMsg = '';
 	players.forEach((player, index) => {
