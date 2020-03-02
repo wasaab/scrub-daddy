@@ -17,6 +17,9 @@ Discord bot using Node.js, focused on gamers, with 117 commands.
 + Games and gambling
 + Mention custom user groups or power users of a given channel
 + fuzzy search for all commands and names of things such as games and movie titles
++ The bot's playing status will show the game and player count of whichever game the majority of online users are playing.
++ Channels in the Dynamic Voice category will change their name to whichever game the majority of connected users are playing.
++ While you are connected to a voice channel and playing a game, the game's name will be abbreviated and added to the end of your nickname.
 
 ## Commands
 
@@ -179,3 +182,6 @@ Discord bot using Node.js, focused on gamers, with 117 commands.
 ![Who Plays](https://i.imgur.com/P13BmTn.png)
 
 ![Cumulative Hours Played](https://i.imgur.com/yClv3OC.png)
+
+### Games
+![Race](https://i.imgur.com/7PZmk24.gif)
