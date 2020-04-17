@@ -111,7 +111,7 @@ exports.invest = function(userID, stockName, desiredShares, numBubbles) {
             }
 
             if (numBubbles) {
-                if (numBubbles < stockPrice) {
+                if (numBubbles < stockPrice || !gambling.isAbleToAffordBet(userID, Math.ceil(stockPrice))) {
                     return outputUnableToAffordStockMessage(userID, Math.ceil(stockPrice), 1, stock);
                 }
     
