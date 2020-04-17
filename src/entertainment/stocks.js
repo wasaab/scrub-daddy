@@ -79,15 +79,22 @@ function buildInvestmentArgs(shares, stock, userID) {
     return { userEntry, shares, stock };
 }
 
+function outputUnableToAffordStockMessage(userID, cost, shares, stock) {
+    return util.sendEmbedMessage('📈 Unable to Afford Stock',
+        `${util.mentionUser(userID)} you will need ${util.formatAsBoldCodeBlock(cost)} Scrubbing Bubbles` +
+        ` to purchase ${util.formatAsBoldCodeBlock(shares)} shares of ${util.formatAsBoldCodeBlock(stock)} stock.`, userID);
+}
+
 /**
  * Invests in a stock.
  *
  * @param {String} userID id of user investing
  * @param {String} stockName stock being invested in
  * @param {String} desiredShares number of shares desired
+ * @param {Number} numBubbles number of scrubbing bubbles to invest
  */
-exports.invest = function(userID, stockName, desiredShares) {
-    const { userEntry, shares, stock } = buildInvestmentArgs(desiredShares, stockName, userID);
+exports.invest = function(userID, stockName, desiredShares, numBubbles) {
+    var { userEntry, shares, stock } = buildInvestmentArgs(desiredShares, stockName, userID);
 
     getStockUpdate(stock)
         .then((newStockInfo) => {
@@ -103,12 +110,18 @@ exports.invest = function(userID, stockName, desiredShares) {
                     `a stock that costs a minimum of ${util.formatAsBoldCodeBlock(c.MIN_STOCK_PRICE)} Scrubbing Bubbles per share.`);
             }
 
+            if (numBubbles) {
+                if (numBubbles < stockPrice) {
+                    return outputUnableToAffordStockMessage(userID, Math.ceil(stockPrice), 1, stock);
+                }
+    
+                shares = Math.floor(numBubbles / stockPrice);
+            }
+
             const cost = Math.ceil(stockPrice * shares);
 
             if (!gambling.isAbleToAffordBet(userID, cost)) {
-                return util.sendEmbedMessage('📈 Unable to Afford Stock',
-                    `${util.mentionUser(userID)} you will need ${util.formatAsBoldCodeBlock(cost)} Scrubbing Bubbles` +
-                    ` to purchase ${util.formatAsBoldCodeBlock(shares)} shares of ${util.formatAsBoldCodeBlock(stock)} stock.`, userID);
+                return outputUnableToAffordStockMessage(userID, cost, shares, stock);
             }
 
             finalizeInvestment(userEntry, stock, shares, stockPrice, cost, userID);

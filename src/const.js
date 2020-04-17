@@ -124,7 +124,7 @@ module.exports = {
 	HELP_CATEGORIES_PROMPT: [
 		{ name: '1) `Voting`', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
 		{ name: '2) `Scrubbing Bubbles`', value: '`enlist`	`discharge`	`give`	`reserve`	`clean`		`race`	`21`	`hit`	`stay`'
-			+ '	`invest`	`sell-shares`	`stocks`	`portfolio`	`army`	`ranks`	`stats`	`who-said`	`sunken-sailor`	`add-emoji`	`magic-word`'
+			+ '	`invest`	`invest-scrubbles`	`sell-shares`	`stocks`	`portfolio`	`army`	`ranks`	`stats`	`who-said`	`sunken-sailor`	`add-emoji`	`magic-word`'
 			+ '	`rename-hank`	`rename-channel`	`rename-role`	`rename-user`	`scrub-box`		`inventory`	`start-lotto`	`stop-lotto`', inline: 'false'},
 		{ name: '3) `Time Played`', value: '`time`	`opt-in`	`heatmap`', inline: 'false'},
 		{ name: '4) `Gaming`', value: '`playing`	`who-plays`	`lets-play`	`1-more`	`p`	`split-group`	`trends`	`total-trends`'
@@ -164,7 +164,8 @@ module.exports = {
 				{ name: '.ranks', value: '`outputs the army size of every user.`', inline: 'false'},
 				{ name: '.stats', value: '`outputs your clean stats.`', inline: 'false'},
 				{ name: '.stats <`@user`>', value: '`outputs the user\'s clean stats.`', inline: 'false'},
-				{ name: '.invest <`stock`> <`shares`>', value: '`to invest Scrubbing Bubbles in a stock. Cost is 1-1 with real world price.`', inline: 'false'},
+				{ name: '.invest <`stock`> <`shares`>', value: '`to invest in shares of a stock. Cost is 1-1 with real world price.`', inline: 'false'},
+				{ name: '.invest-scrubbles <`stock`> <`numBubbles`>', value: '`to invest the provided # of Scrubbing Bubbles in a stock. Cost is 1-1 with real world price.`', inline: 'false'},
 				{ name: '.sell-shares <`stock`> <`shares`>', value: '`to sell shares in a stock`', inline: 'false'},
 				{ name: '.stocks', value: '`to see how your stocks are doing today`', inline: 'false'},
 				{ name: '.portfolio', value: '`to see how your stocks have done over time`', inline: 'false'},
@@ -368,7 +369,7 @@ module.exports = {
 		{
 			color: 0xffff00,
 			title: '💡 New Commands',
-			description: '`invest`	`sell-shares`	`stocks`	`portfolio`	`race`	`reserve`	`scrub-box`	`inventory`	`split-group`',
+			description: '`invest-scrubbles`',
 			image: {
 				url: 'https://media3.giphy.com/media/UGxfEt5POsukg/giphy.gif'
 			}
@@ -402,7 +403,7 @@ module.exports = {
 		'fav-sb', 'fortnite-leaderboard', 'fortnite-stats',
 		'give',
 		'h', 'heatmap', 'help', 'hit',
-		'ignore-posts', 'implement', 'inventory', 'invest','issue',
+		'ignore-posts', 'implement', 'inventory', 'invest', 'invest-scrubbles', 'issue',
 		'join-review-team',
 		'list', 'leave-temp', 'leave-review-team', 'lets-play', 'list-backups', 'log', 'lotto',
 		'magic-word', 'missing-help', 'move-user',

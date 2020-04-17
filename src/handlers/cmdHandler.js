@@ -211,6 +211,11 @@ exports.handle = function(message) {
 
 		stocks.invest(userID, args[1], args[2]);
 	}
+	function investScrubblesCalled() {
+		if (args.length < 3 || isNaN(args[2])) { return; }
+
+		stocks.invest(userID, args[1], null, Number(args[2]));
+	}
 	function implementCalled() {
 		args.splice(1, 0, cmd);
 		vote.conductVote(user, userID, args, c.VOTE_TYPE.CUSTOM);
@@ -571,6 +576,7 @@ exports.handle = function(message) {
 		'ignore-posts': ignorePostsCalled,
 		'inventory': inventoryCalled,
 		'invest': investCalled,
+		'invest-scrubbles': investScrubblesCalled,
 		'implement': implementCalled,
 		'issue': issueOrFeatureCalled,
 		'join-review-team': joinReviewTeamCalled,
