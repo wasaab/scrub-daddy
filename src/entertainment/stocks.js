@@ -536,7 +536,7 @@ function buildPortfolioTableBody(userStockToInfo) {
 function buildColumn(text, columnLength, isLastColumn) {
     var padding = '';
 
-    if (text > columnLength) {
+    if (text.length > columnLength) {
         text = text.slice(0, columnLength);
     } else {
         padding = ' '.repeat(columnLength - text.length);
