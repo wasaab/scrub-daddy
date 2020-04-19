@@ -19,13 +19,13 @@ var previousTip = {};
  * Schedules a recurring scan of voice channels.
  */
 function scheduleRecurringVoiceChannelScan() {
-	(function(){ //eslint-disable-line
+	(function scan(){ //eslint-disable-line
 		var client = bot.getClient();
 		prizes.maybeResetNames();
 		games.maybeUpdateChannelNames();
 		games.maybeChangeAudioQuality(client.channels);
 		util.handleMuteAndDeaf(client.channels);
-		setTimeout(arguments.callee, 60000);
+		setTimeout(scan, 60000);
 	})();
 }
 
@@ -33,10 +33,10 @@ function scheduleRecurringVoiceChannelScan() {
  * Schedules a recurring export of json files.
  */
 function scheduleRecurringExport() {
-	(function(){ //eslint-disable-line
+	(function exportLoop(){ //eslint-disable-line
 		games.exportTimeSheetAndGameHistory();
 		gambling.exportLedger();
-		setTimeout(arguments.callee, 70000);
+		setTimeout(exportLoop, 70000);
 	})();
 }
 

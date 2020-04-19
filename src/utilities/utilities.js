@@ -103,6 +103,7 @@ module.exports = {
     addInvitedByRole: utils.userUtil.addInvitedByRole,
     addToList: utils.userUtil.addToList,
     addToReviewRole: utils.userUtil.addToReviewRole,
+    clearRainbowRoleUpdateInterval: utils.userUtil.clearRainbowRoleUpdateInterval,
     createAlias: utils.userUtil.createAlias,
     createChannelInCategory: utils.userUtil.createChannelInCategory,
     createGroup: utils.userUtil.createGroup,

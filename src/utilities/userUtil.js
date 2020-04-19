@@ -18,6 +18,7 @@ var catFacts = require('../../resources/data/catfacts.json');
 var userIDToAliases = require('../../resources/data/aliases.json');
 
 var inviterToUses = {};
+var updateRainbowRoleInterval;
 
 function getCurrServerInvites() {
 	return bot.getServer().fetchInvites();
@@ -483,12 +484,18 @@ function updateRainbowRoleColor() {
 	if (!rainbowRole || isLocked() || rainbowRole.members.array().length === 0) { return; }
 
 	lock();
-	setInterval(() => {
+	updateRainbowRoleInterval = setInterval(() => {
 		rainbowRole.setColor(getIntFromTinyColor(tinycolor.random()))
 			.catch((err) => {
 				logger.error(`Update Rainbow Role Color Error:${err}`);
 			});
-	}, 2000);
+	}, 120000);
+}
+
+function clearRainbowRoleUpdateInterval() {
+	if (!updateRainbowRoleInterval) { return; }
+
+	clearInterval(updateRainbowRoleInterval);
 }
 
 function replaceOrAddColorRole(color, hex, targetUser) {
@@ -579,6 +586,7 @@ function setUserColor(targetColor, user) {
 exports.addInvitedByRole = addInvitedByRole;
 exports.addToList = addToList;
 exports.addToReviewRole = addToReviewRole;
+exports.clearRainbowRoleUpdateInterval = clearRainbowRoleUpdateInterval;
 exports.createAlias = createAlias;
 exports.createChannelInCategory = createChannelInCategory;
 exports.createGroup = createGroup;

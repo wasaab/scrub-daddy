@@ -548,6 +548,11 @@ exports.maybeRemoveRainbowRoleFromUsers = function() {
             util.exportJson(loot, 'loot');
         }
     });
+
+    if (0 !== rainbowRole.members.array().length) { return; }
+
+    logger.info('No users with rainbow role. Clearing color update interval.')
+    util.clearRainbowRoleUpdateInterval();
 };
 
 /**
