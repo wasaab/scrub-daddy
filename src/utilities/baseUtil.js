@@ -31,8 +31,8 @@ function buildField(name, value, inline) {
  * @param {Object} b - second field
  */
 function compareFieldValues(a,b) {
-	const aNum = Number(a.value.toString().replace(',', ''));
-	const bNum = Number(b.value.toString().replace(',', ''));
+	const aNum = Number(a.value.toString().replace(/,/g, ''));
+	const bNum = Number(b.value.toString().replace(/,/g, ''));
 
 	if ( aNum > bNum) {
 		return -1;
