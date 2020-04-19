@@ -534,11 +534,16 @@ function buildPortfolioTableBody(userStockToInfo) {
  * @param {Boolean} isLastColumn whether or not it is the last column being built
  */
 function buildColumn(text, columnLength, isLastColumn) {
+    var padding = '';
+
     if (text > columnLength) {
         text = text.slice(0, columnLength);
+    } else {
+        padding = ' '.repeat(columnLength - text.length);
     }
 
-    return isLastColumn ? `${text}\n` : `${text}${' '.repeat(columnLength - text.length)}${c.TABLE_COL_SEPARATOR}`;
+
+    return isLastColumn ? `${text}\n` : `${text}${padding}${c.TABLE_COL_SEPARATOR}`;
 }
 
 /**
