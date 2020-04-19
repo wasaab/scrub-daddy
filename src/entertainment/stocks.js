@@ -499,7 +499,7 @@ exports.outputUserStockPortfolio = function(userID) {
  * @param {Object} userStockToInfo map of stock user owns to info on it
  */
 function buildPortfolioTableBody(userStockToInfo) {
-    var { output, columnLengths } = buildTableHeader(['Stock', 'Shares         ', 'Init $', 'Curr $', 'Net Army Change']);
+    var { output, columnLengths } = buildTableHeader(['Stock', 'Shares        ', 'Init$', 'Curr$', 'Net Army Change   ']);
     var netArmyChange = 0;
     var totalValue = 0;
     var totalPriceDiff = 0;
