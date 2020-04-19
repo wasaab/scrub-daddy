@@ -124,7 +124,7 @@ module.exports = {
 	HELP_CATEGORIES_PROMPT: [
 		{ name: '1) `Voting`', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
 		{ name: '2) `Scrubbing Bubbles`', value: '`enlist`	`discharge`	`give`	`reserve`	`clean`		`race`	`21`	`hit`	`stay`'
-			+ '	`invest`	`invest-scrubbles`	`sell-shares`	`stocks`	`portfolio`	`army`	`ranks`	`stats`	`who-said`	`sunken-sailor`	`add-emoji`	`magic-word`'
+			+ '	`invest`	`invest-scrubbles`	`sell-shares`	`stocks`	`portfolio`	`worth`	`army`	`ranks`	`stats`	`who-said`	`sunken-sailor`	`add-emoji`	`magic-word`'
 			+ '	`rename-hank`	`rename-channel`	`rename-role`	`rename-user`	`scrub-box`		`inventory`	`start-lotto`	`stop-lotto`', inline: 'false'},
 		{ name: '3) `Time Played`', value: '`time`	`opt-in`	`heatmap`', inline: 'false'},
 		{ name: '4) `Gaming`', value: '`playing`	`who-plays`	`lets-play`	`1-more`	`p`	`split-group`	`trends`	`total-trends`'
@@ -161,6 +161,8 @@ module.exports = {
 				{ name: '.stay', value: '`to stay in blackjack.`', inline: 'false'},
 				{ name: '.army', value: '`retrieves the size of your army.`', inline: 'false'},
 				{ name: '.army <`@user`>', value: '`retrieves the size of the user\'s army.`', inline: 'false'},
+				{ name: '.worth', value: '`retrieves your net worth (army + stock portfolio).`', inline: 'false'},
+				{ name: '.worth <`@user`>', value: '`retrieves the user\'s net worth (army + stock portfolio).`', inline: 'false'},
 				{ name: '.ranks', value: '`outputs the army size of every user.`', inline: 'false'},
 				{ name: '.stats', value: '`outputs your clean stats.`', inline: 'false'},
 				{ name: '.stats <`@user`>', value: '`outputs the user\'s clean stats.`', inline: 'false'},
@@ -369,7 +371,7 @@ module.exports = {
 		{
 			color: 0xffff00,
 			title: '💡 New Commands',
-			description: '`invest-scrubbles`',
+			description: '`worth`	`invest-scrubbles`',
 			image: {
 				url: 'https://media3.giphy.com/media/UGxfEt5POsukg/giphy.gif'
 			}
@@ -412,11 +414,10 @@ module.exports = {
 		'quote', 'quotes',
 		'race', 'rainbow-role', 'ranks', 'rate', 'ratings', 'rating-info', 'refresh-ratings', 'rejoin-temp', 'remove-player', 'rename', 'rename-channel', 'rename-hank', 'rename-role', 'rename-user', 'reserve', 'restart', 'restore', 'review-messages', 'revive', 'rock', 'round-robin',
 		'sb', 'sb-add', 'scrub-box', 'sell-shares','set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'split-group', 'start-lotto', 'stats', 'stay', 'steal', 'steal-all', 'stocks', 'stop-lotto', 'subscribe-catfacts', 'sunken-sailor',
-		'temp', 'time', 'tips', 'toggle-streaming',
+		'temp', 'test', 'time', 'tips', 'toggle-streaming', 'trends', 'total-trends',
 		'unalias', 'update-readme',
 		'volume', 'vote', 'voteban', 'voteinfo', 'votekick',
-		'who-plays', 'who-said',
-		'test', 'trends', 'total-trends'
+		'who-plays', 'who-said', 'worth'
 	],
 	GLOBAL_COMMANDS: ['@', 'cars', 'change-category', 'delete', 'delete-rating', 'ignore-posts',
 		'leave-temp', 'magic-word', 'quote', 'rate', 'rename', 'refresh-ratings', 'rating-info'],

@@ -540,6 +540,9 @@ exports.handle = function(message) {
 	function whoSaidCalled() {
 		games.startWhoSaidGame(args[1], args[2], args[3], args[4]);
 	}
+	function worthCalled() {
+		gambling.worth(userID, args);
+	}
 
 	var commandToHandler = {
 		'@' : mentionGroupCalled,
@@ -649,7 +652,8 @@ exports.handle = function(message) {
 		'voteinfo': voteinfoCalled,
 		'votekick': votekickCalled,
 		'who-plays': whoPlaysCalled,
-		'who-said': whoSaidCalled
+		'who-said': whoSaidCalled,
+		'worth': worthCalled,
 	};
 
 	if (args[1] === 'help') {
