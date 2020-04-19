@@ -345,7 +345,7 @@ exports.maybeOutputUsersStockChanges = function(userID) {
         const shares = userStockToInfo[stock].shares;
         const plural = util.maybeGetPlural(shares);
 
-        userStockToArmyChange[`${stock} (${shares} share${plural})`] = { armyChange: Math.ceil(armyChange * shares) };
+        userStockToArmyChange[`${stock} (${comma(shares)} share${plural})`] = { armyChange: Math.ceil(armyChange * shares) };
     }
 
     outputStockChanges(userStockToArmyChange, userID);
@@ -355,13 +355,21 @@ exports.maybeOutputUsersStockChanges = function(userID) {
  * Builds the army change footer and graph emoji.
  *
  * @param {Number} netArmyChange net army change from stock investment
+ * @param {Number} totalValue total scrubble value of all stocks
+ * @param {Number} totalPriceDiff total difference in stock prices between init and curr
  */
-function buildArmyChangeFooterAndGraphEmoji(netArmyChange) {
+function buildArmyChangeFooterAndGraphEmoji(netArmyChange, totalValue, totalPriceDiff) {
     const graphEmoji = netArmyChange >= 0 ? '📈' : '📉';
     const footer = {
         icon_url: c.BUBBLE_IMAGES[0], //eslint-disable-line
-        text: `${determineChangeSymbol(netArmyChange)}${netArmyChange}`
+        text: `${determineChangeSymbol(netArmyChange)}${comma(netArmyChange)}`
     };
+
+    if (totalValue) {
+        footer.text = `Value: ${comma(totalValue)}       `
+            + `Price Diff: ${determineChangeSymbol(totalPriceDiff)}${comma(totalPriceDiff)}       `
+            + `Army Change: ${footer.text}       `;
+    }
 
     return { graphEmoji, footer };
 }
@@ -391,7 +399,7 @@ function buildStockChangeFieldsAndDetermineChange(stockToInfo) {
 
         netArmyChange += armyChange;
         changeFields.push(util.buildField(stock,
-            `${changeSymbol}${armyChange} ${c.SCRUBBING_BUBBLE_EMOJI}${util.maybeGetPlural(armyChange)}`));
+            `${changeSymbol}${comma(armyChange)} ${c.SCRUBBING_BUBBLE_EMOJI}${util.maybeGetPlural(armyChange)}`));
     }
 
     return { netArmyChange: netArmyChange, stockChangeFields: changeFields };
@@ -404,6 +412,15 @@ function buildStockChangeFieldsAndDetermineChange(stockToInfo) {
  */
 function determineChangeSymbol(armyChange) {
     return armyChange > 0 ? '+' : '';
+}
+
+/**
+ * Comma separates a number.
+ * 
+ * @param {Number} num the number to comma separate
+ */
+function comma(num) {
+    return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
 }
 
 /**
@@ -478,8 +495,8 @@ exports.outputUserStockPortfolio = function(userID) {
         return outputStockPortfolioNotFoundMsg(userID);
     }
 
-    var { netArmyChange, output } = buildPortfolioTableBody(userStockToInfo);
-    const { graphEmoji, footer } = buildArmyChangeFooterAndGraphEmoji(netArmyChange);
+    var { netArmyChange, totalValue, totalPriceDiff, output } = buildPortfolioTableBody(userStockToInfo);
+    const { graphEmoji, footer } = buildArmyChangeFooterAndGraphEmoji(netArmyChange, totalValue, totalPriceDiff);
 
     util.sendEmbedMessage(`${graphEmoji} ${util.getNick(userID)}'s Scrubble Stock Portfolio`,
         output, userID, null, null, footer);
@@ -491,8 +508,10 @@ exports.outputUserStockPortfolio = function(userID) {
  * @param {Object} userStockToInfo map of stock user owns to info on it
  */
 function buildPortfolioTableBody(userStockToInfo) {
-    var { output, columnLengths } = buildTableHeader(['Stock', 'Shares', 'Init. Price', 'Curr. Price', 'Net Army Change']);
+    var { output, columnLengths } = buildTableHeader(['Stock', 'Shares     ', 'Init $', 'Curr $', 'Net Army Change']);
     var netArmyChange = 0;
+    var totalValue = 0;
+    var totalPriceDiff = 0;
 
     Object.keys(userStockToInfo).sort().forEach((stock) => {
         const stockInfo = userStockToInfo[stock];
@@ -502,16 +521,18 @@ function buildPortfolioTableBody(userStockToInfo) {
         const armyChange = `${determineChangeSymbol(stockInfo.netArmyChange)}${stockInfo.netArmyChange}`;
 
         netArmyChange += stockInfo.netArmyChange;
+        totalValue += shares * currentPrice;
+        totalPriceDiff += currentPrice - initialPrice;
         output += buildColumn(stock, columnLengths[0])
-            + buildColumn(shares, columnLengths[1])
-            + buildColumn(initialPrice, columnLengths[2])
-            + buildColumn(currentPrice, columnLengths[3])
-            + buildColumn(armyChange, columnLengths[4], true);
+            + buildColumn(comma(shares), columnLengths[1])
+            + buildColumn(comma(initialPrice), columnLengths[2])
+            + buildColumn(comma(currentPrice), columnLengths[3])
+            + buildColumn(comma(armyChange), columnLengths[4], true);
     });
 
     output += '```**';
 
-    return { netArmyChange, output };
+    return { netArmyChange, totalValue, totalPriceDiff, output };
 }
 
 /**
