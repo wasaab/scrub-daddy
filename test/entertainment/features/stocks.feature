@@ -19,6 +19,25 @@ Feature: Handle Stocks Commands
         | a            | 1           | 100             | 0             |
         | ^            | 1           | 100             | 0             |
 
+    Scenario Outline: Invest Scrubbing Bubbles in a stock
+        Given I have <initialArmySize> soldiers in my army
+        And 1 share of "TEST" stock costs "100.0000"
+        When I call ".invest-scrubbles TEST <scrubbles>"
+        Then I should have an army size of <finalArmySize>
+        And I should have <finalShares> shares of "TEST" stock
+
+    Examples:
+        | scrubbles    | finalShares | initialArmySize | finalArmySize |
+        | 0            | 1           | 100             | 0             |
+        | 99           | 0           | 100             | 100           |
+        | 100          | 1           | 100             | 0             |
+        | 200          | 2           | 300             | 100           |
+        | 299          | 0           | 100             | 100           |
+        |              | 0           | 12345           | 12345         |
+        |              | 0           | 0               | 0             |
+        | a            | 0           | 100             | 100           |
+        | ^            | 0           | 100             | 100           |
+
     Scenario Outline: Sell shares of a stock
         Given I have <initialArmySize> soldiers in my army
         And 1 share of "TEST" stock costs "100.0000"
