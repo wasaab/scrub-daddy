@@ -31,8 +31,8 @@ function buildField(name, value, inline) {
  * @param {Object} b - second field
  */
 function compareFieldValues(a,b) {
-	const aNum = Number(a.value);
-	const bNum = Number(b.value);
+	const aNum = Number(a.value.toString().replace(',', ''));
+	const bNum = Number(b.value.toString().replace(',', ''));
 
 	if ( aNum > bNum) {
 		return -1;
@@ -149,6 +149,15 @@ function maybeGetPlural(count) {
 	}
 
     return '';
+}
+
+/**
+ * Comma separates a number.
+ * 
+ * @param {Number} num the number to comma separate
+ */
+function comma(num) {
+    return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
 }
 
 function formatAsBoldCodeBlock(text) {
@@ -276,6 +285,7 @@ function getTrueDisplayName(nickname) {
 
 exports.buildField = buildField;
 exports.capitalizeFirstLetter = capitalizeFirstLetter;
+exports.comma = comma;
 exports.compareFieldValues = compareFieldValues;
 exports.deepClone = deepClone;
 exports.exportJson = exportJson;

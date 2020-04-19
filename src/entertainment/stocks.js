@@ -40,7 +40,7 @@ function finalizeInvestment(userEntry, stock, shares, stockPrice, cost, userID) 
 
     userEntry.armySize -= cost;
     util.sendEmbedMessage('📈 Solid Investment', `${util.mentionUser(userID)} your investment of ` +
-        `${util.formatAsBoldCodeBlock(cost)} Scrubbing Bubbles for ${util.formatAsBoldCodeBlock(shares)}` +
+        `${util.formatAsBoldCodeBlock(util.comma(cost))} Scrubbing Bubbles for ${util.formatAsBoldCodeBlock(util.comma(shares))}` +
         ` shares of ${util.formatAsBoldCodeBlock(stock)} stock has been processed. ${gambling.getArmySizeMsg(userID)}\n` +
         'Your army will grow or shrink daily by `2 * ⌈stock close price - stock open price⌉ * #shares`.' +
         ' See this calculated daily change by calling `.stocks`', userID);
@@ -81,8 +81,8 @@ function buildInvestmentArgs(shares, stock, userID) {
 
 function outputUnableToAffordStockMessage(userID, cost, shares, stock) {
     return util.sendEmbedMessage('📈 Unable to Afford Stock',
-        `${util.mentionUser(userID)} you will need ${util.formatAsBoldCodeBlock(cost)} Scrubbing Bubbles` +
-        ` to purchase ${util.formatAsBoldCodeBlock(shares)} shares of ${util.formatAsBoldCodeBlock(stock)} stock.`, userID);
+        `${util.mentionUser(userID)} you will need ${util.formatAsBoldCodeBlock(util.comma(cost))} Scrubbing Bubbles` +
+        ` to purchase ${util.formatAsBoldCodeBlock(util.comma(shares))} shares of ${util.formatAsBoldCodeBlock(stock)} stock.`, userID);
 }
 
 /**
@@ -345,7 +345,7 @@ exports.maybeOutputUsersStockChanges = function(userID) {
         const shares = userStockToInfo[stock].shares;
         const plural = util.maybeGetPlural(shares);
 
-        userStockToArmyChange[`${stock} (${comma(shares)} share${plural})`] = { armyChange: Math.ceil(armyChange * shares) };
+        userStockToArmyChange[`${stock} (${util.comma(shares)} share${plural})`] = { armyChange: Math.ceil(armyChange * shares) };
     }
 
     outputStockChanges(userStockToArmyChange, userID);
@@ -362,12 +362,12 @@ function buildArmyChangeFooterAndGraphEmoji(netArmyChange, totalValue, totalPric
     const graphEmoji = netArmyChange >= 0 ? '📈' : '📉';
     const footer = {
         icon_url: c.BUBBLE_IMAGES[0], //eslint-disable-line
-        text: `${determineChangeSymbol(netArmyChange)}${comma(netArmyChange)}`
+        text: `${determineChangeSymbol(netArmyChange)}${util.comma(netArmyChange)}`
     };
 
     if (totalValue) {
-        footer.text = `Value: ${comma(totalValue)}       `
-            + `Price Diff: ${determineChangeSymbol(totalPriceDiff)}${comma(totalPriceDiff)}       `
+        footer.text = `Value: ${util.comma(totalValue)}       `
+            + `Price Diff: ${determineChangeSymbol(totalPriceDiff)}${util.comma(totalPriceDiff)}       `
             + `Army Change: ${footer.text}       `;
     }
 
@@ -399,7 +399,7 @@ function buildStockChangeFieldsAndDetermineChange(stockToInfo) {
 
         netArmyChange += armyChange;
         changeFields.push(util.buildField(stock,
-            `${changeSymbol}${comma(armyChange)} ${c.SCRUBBING_BUBBLE_EMOJI}${util.maybeGetPlural(armyChange)}`));
+            `${changeSymbol}${util.comma(armyChange)} ${c.SCRUBBING_BUBBLE_EMOJI}${util.maybeGetPlural(armyChange)}`));
     }
 
     return { netArmyChange: netArmyChange, stockChangeFields: changeFields };
@@ -412,15 +412,6 @@ function buildStockChangeFieldsAndDetermineChange(stockToInfo) {
  */
 function determineChangeSymbol(armyChange) {
     return armyChange > 0 ? '+' : '';
-}
-
-/**
- * Comma separates a number.
- * 
- * @param {Number} num the number to comma separate
- */
-function comma(num) {
-    return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
 }
 
 /**
@@ -524,10 +515,10 @@ function buildPortfolioTableBody(userStockToInfo) {
         totalValue += shares * currentPrice;
         totalPriceDiff += currentPrice - initialPrice;
         output += buildColumn(stock, columnLengths[0])
-            + buildColumn(comma(shares), columnLengths[1])
-            + buildColumn(comma(initialPrice), columnLengths[2])
-            + buildColumn(comma(currentPrice), columnLengths[3])
-            + buildColumn(comma(armyChange), columnLengths[4], true);
+            + buildColumn(util.comma(shares), columnLengths[1])
+            + buildColumn(util.comma(initialPrice), columnLengths[2])
+            + buildColumn(util.comma(currentPrice), columnLengths[3])
+            + buildColumn(util.comma(armyChange), columnLengths[4], true);
     });
 
     output += '```**';

@@ -56,6 +56,7 @@ module.exports = {
 
     buildField: utils.baseUtil.buildField,
     capitalizeFirstLetter: utils.baseUtil.capitalizeFirstLetter,
+    comma: utils.baseUtil.comma,
     compareFieldValues: utils.baseUtil.compareFieldValues,
     deepClone: utils.baseUtil.deepClone,
     exportJson: utils.baseUtil.exportJson,

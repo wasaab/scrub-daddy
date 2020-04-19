@@ -175,7 +175,7 @@ exports.addToArmy = function(userID, amount) {
  * @param {number} amount amount army has grown by
  */
 function getArmyGrownMessage(amount) {
-    return `Your Scrubbing Bubbles army has grown by ${util.formatAsBoldCodeBlock(amount)}!`;
+    return `Your Scrubbing Bubbles army has grown by ${util.formatAsBoldCodeBlock(util.comma(amount))}!`;
 }
 
 /**
@@ -184,7 +184,7 @@ function getArmyGrownMessage(amount) {
  * @param {String} userID id of user to get army size of
  */
 exports.getArmySizeMsg = function(userID) {
-    return `You now have an army of ${util.formatAsBoldCodeBlock(ledger[userID].armySize)}.`;
+    return `You now have an army of ${util.formatAsBoldCodeBlock(util.comma(ledger[userID].armySize))}.`;
 };
 
 /**
@@ -834,7 +834,7 @@ function outputUserGamblingData(userID, args) {
     var description = '';
 
     if (args[0] === 'army') {
-        description = `${util.mentionUser(userID)}${msg} army is ${util.formatAsBoldCodeBlock(armySize)}` +
+        description = `${util.mentionUser(userID)}${msg} army is ${util.formatAsBoldCodeBlock(util.comma(armySize))}` +
             ` Scrubbing Bubble${util.maybeGetPlural(armySize)} strong!`;
     } else {
         const userStats = userEntry.stats;
@@ -876,11 +876,13 @@ exports.stats = function (userID, args) {
 exports.armyRanks = function(userID) {
     var fields = [];
     const scrubIDToNick = util.getScrubIdToNick();
+
     for (var id in ledger) {
         if (id === c.SCRUB_DADDY_ID) { continue; }
 
-        fields.push(util.buildField(scrubIDToNick[id], ledger[id].armySize));
+        fields.push(util.buildField(scrubIDToNick[id], util.comma(ledger[id].armySize)));
     }
+
     fields.sort(util.compareFieldValues);
     util.sendEmbedFieldsMessage('Scrubbing Bubbles Army Sizes', fields, userID);
 };
