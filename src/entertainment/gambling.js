@@ -836,7 +836,7 @@ function outputUserGamblingData(userID, args) {
     if (args[0] === 'army') {
         description = `${util.mentionUser(userID)}${msg} army is ${util.formatAsBoldCodeBlock(util.comma(armySize))}` +
             ` Scrubbing Bubble${util.maybeGetPlural(armySize)} strong!`;
-    } if (args[0] === 'worth') {
+    } else if (args[0] === 'worth') {
         description = `${util.mentionUser(userID)}${msg} net worth is ` +
             `${util.formatAsBoldCodeBlock(util.comma(determineNetWorth(armySize, userEntry)))} Scrubbing Bubbles!`
     } else {
@@ -987,11 +987,14 @@ exports.fakeStealAll = function() {
 
 function determineNetWorth(armySize, userEntry) {
     var netWorth = armySize;
-    if (userEntry.stockToInfo && Object.keys(stockToInfo).length !== 0) {
+
+    if (userEntry.stockToInfo && Object.keys(userEntry.stockToInfo).length !== 0) {
         const totalStockValue = Object.values(userEntry.stockToInfo)
             .map((stock) => Math.ceil(stock.currentPrice) * stock.shares)
             .reduce((a, b) => a + b, 0);
+
         netWorth += totalStockValue;
     }
+
     return netWorth;
 }
