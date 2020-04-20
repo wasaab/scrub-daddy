@@ -12,8 +12,12 @@ XMLSerializer.prototype.serializeToString = function (node) {
     return xmlserializer.serializeToString(node);
 };
 
+function buildSvgFilePath(fileName) {
+    return path.join(imageDir, `${fileName}.svg`);
+}
+
 function convertSvgToPng(fileName) {
-    return svgToPng.convert(path.join(imageDir, `${fileName}.svg`), imageDir);
+    return svgToPng.convert(buildSvgFilePath(fileName), imageDir);
 }
 
 function getSVGString(svgNode) {
@@ -34,7 +38,11 @@ exports.writeSvgToFileAsPng = function(width, height, bgColor, fileName, svg) {
         + ` xmlns:xlink="http://www.w3.org/1999/xlink"><style xmlns="http://www.w3.org/1999/xhtml" type="text/css"/>`
         + `    <g transform="translate(30,50)"> ${svgString.split('type="text/css"></style>')[1]} </svg>`;
 
-    fs.writeFileSync(`./resources/images/${fileName}.svg`, svgString, 'utf8');
+    if (!fs.existsSync(imageDir)) {
+        fs.mkdirSync(imageDir);
+    }
+
+    fs.writeFileSync(buildSvgFilePath(fileName), svgString, 'utf8');
 
     return convertSvgToPng(fileName);
 };
