@@ -140,7 +140,7 @@ function getFormattedData(data) {
     });
 }
 function heatmapChart(dataFileName, userID) {
-    const filePath = path.join(__dirname.replace('c:\\', ''), '../../resources/data', dataFileName);
+    const filePath = path.join(__dirname.replace('c:\\', ''), '../../resources', 'data', dataFileName);
 
     d3.json(`file:///${filePath}`, (err, data) => {
         if (err || !data) { return; }
