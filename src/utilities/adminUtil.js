@@ -18,6 +18,7 @@ var logger = logUtil.botLogger;
 var DiscordServerTransport = logUtil.DiscordServerTransport;
 var reviewQueue = [];
 var muteAndDeafUserIDToTime = {};
+const backupBasePath = '../jsonBackups/';
 
 /**
  * Bans the user from posting in the provided channel for 2 days.
@@ -196,7 +197,7 @@ function isDevEnv() {
 function listBackups() {
 	var timestamps = [];
 	var filesMsg = '';
-	fs.readdirSync('../jsonBackups/').forEach((file) => {
+	fs.readdirSync(backupBasePath).forEach((file) => {
 		const time = moment(file.split('.')[0],'M[-]D[-]YY[@]h[-]mm[-]a');
 		timestamps.push(time.valueOf());
 	});
@@ -307,7 +308,7 @@ function restoreJsonFromBackup(backupTarget) {
 		backupTarget = config.lastBackup;
 	}
 
-	const backupPath = `../jsonBackups/${backupTarget}.backup`;
+	const backupPath = `${backupBasePath}${backupTarget}.backup`;
 	if (fs.existsSync(backupPath)) {
 		const tempDir = './resources/resources';
 		backup.restore(backupPath, './resources/');
@@ -329,11 +330,16 @@ function restoreJsonFromBackup(backupTarget) {
  */
 function backupJson(restart) {
 	const time = moment().format(c.BACKUP_DATE_FORMAT);
+	const backupPath = `${backupBasePath}${time}.backup`;
 	config.lastBackup = time;
-	exportJson(config, 'config');
-	backup.backup('./resources/data', `../jsonBackups/${time}.backup`);
 
-	const backupPath = `../jsonBackups/${time}.backup`;
+	exportJson(config, 'config');
+	
+	if (!fs.existsSync(backupBasePath)) {
+		fs.mkdirSync(backupBasePath);
+	}
+
+	backup.backup('./resources/data', backupPath);
 	waitForFileToExist(time, backupPath, 2000, restart);
 }
 

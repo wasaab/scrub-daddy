@@ -12,6 +12,7 @@ var games = require('../entertainment/games.js');
 var vote = require('../entertainment/vote.js');
 var cars = require('../channelEnhancements/cars.js');
 var blackjack = require('../entertainment/blackjack.js');
+var scheduler = require('../scheduler.js');
 var config = require('../../resources/data/config.json');
 var fuse = new Fuse(c.COMMANDS, {verbose: false});
 
@@ -341,6 +342,12 @@ exports.handle = function(message) {
 
 		util.rejoinTempChannel(userID, args[1]);
 	}
+	function remindMeCalled() {
+		if (args.length < 4 || isNaN(args[1])) { return; }
+
+		scheduler.createReminder(Number(args[1]), args[2],
+			util.getTargetFromArgs(args, 3), userID, channelID, message);
+	}
 	function removePlayerCalled() {
 		if (!util.isAdmin(userID) || !util.isMention(args[1])) { return; }
 
@@ -424,6 +431,11 @@ exports.handle = function(message) {
 		if (!args[1]) { return; }
 
 		stocks.sellShares(userID, args[1], args[2]);
+	}
+	function setBirthdayCalled() {
+		if (!args[1]) { return; }
+
+		util.setBirthday(args[1], userID);
 	}
 	function setFortniteNameCalled() {
 		if (!args[1]) { return; }
@@ -608,6 +620,7 @@ exports.handle = function(message) {
 		'rating-info': ratingInfoCalled,
 		'refresh-ratings': refreshRatingsCalled,
 		'rejoin-temp': rejoinTempCalled,
+		'remind-me': remindMeCalled,
 		'remove-player': removePlayerCalled,
 		'rename': renameCalled,
 		'rename-channel': renameChannelCalled,
@@ -625,6 +638,7 @@ exports.handle = function(message) {
 		'sb-add': addSBCalled,
 		'scrub-box': scrubBoxCalled,
 		'sell-shares': sellSharesCalled,
+		'set-birthday': setBirthdayCalled,
 		'set-fortnite-name': setFortniteNameCalled,
 		'set-stream': setStreamCalled,
 		'shuffle-scrubs': shuffleScrubsCalled,

@@ -1,4 +1,5 @@
 var schedule = require('node-schedule');
+var moment = require('moment');
 var Discord = require('discord.js');
 var get = require('lodash.get');
 
@@ -12,6 +13,7 @@ var bot = require('./bot.js');
 var c = require('./const.js');
 
 var config = require('../resources/data/config.json');
+var reminders = require('../resources/data/reminders.json');
 const priv = require('../../private.json');
 var previousTip = {};
 
@@ -57,6 +59,7 @@ exports.scheduleRecurringJobs = function() {
 	activateRainbowRole();
 	maybeScheduleReviewJob();
 	maybeScheduleLottoEnd();
+	scheduleReminders();
 };
 
 exports.scheduleLotto = function() {
@@ -176,5 +179,42 @@ function maybeScheduleReviewJob() {
 	reviewRule[reviewJob.key3] = reviewJob.val3 - 3;
 	schedule.scheduleJob(reviewRule, function () {
 		bot.getBotSpam().send(`${c.REVIEW_ROLE} Upcoming Review. Reserve the room and fire up that projector.`);
+	});
+}
+
+exports.createReminder = function(timeAmount, timeUnit, message, userID, channelID, cmdMessage) {
+	const duration = moment.duration(timeAmount, timeUnit);
+	
+	if (!moment.isDuration(duration) || c.INVALID_DURATION_ISO === duration.toISOString()) {
+		cmdMessage.react('❌');
+		return; 
+	}
+	
+	const remindTime = moment().add(duration);
+	const reminder = {
+		time: remindTime.valueOf(),
+		message: message,
+		userID: userID,
+		channelID: channelID
+	};
+
+	reminders[reminders.length] = reminder;
+	util.exportJson(reminders, 'reminders');
+	scheduleReminder(reminder);
+	cmdMessage.react('✅');
+	cmdMessage.react('⏰');
+}
+
+function scheduleReminders() {
+	reminders.forEach(scheduleReminder);
+}
+
+function scheduleReminder(reminder, index) {
+	schedule.scheduleJob(moment(reminder.time).toDate(), () => {
+		const content = `⏰ Reminder - ${util.mentionUser(reminder.userID)}\n\`\`\`\n${reminder.message}\`\`\``;
+
+		util.sendAuthoredMessage(content, c.SCRUB_DADDY_ID, reminder.channelID);
+		reminders.splice(index, 1);
+		util.exportJson(reminders, 'reminders');
 	});
 }

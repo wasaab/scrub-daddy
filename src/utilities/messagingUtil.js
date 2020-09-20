@@ -7,7 +7,7 @@ var logger = require('../logger.js').botLogger;
 var bot = require('../bot.js');
 var c = require('../const.js');
 
-const { getNick, getAvatar, exportJson, capitalizeFirstLetter,
+const { getRand, getNick, getAvatar, exportJson, capitalizeFirstLetter,
 	lock, isLocked, isMention, unLock, getIdFromMention, buildField } = require('./baseUtil.js');
 
 var userIDToColor = require('../../resources/data/colors.json');
@@ -77,6 +77,7 @@ function sendAuthoredMessage(description, userID, channelID) {
 
 	channel.createWebhook("AuthoredMsg", author.avatarURL).then((webhook) => {
 		webhook.send(description, author).catch(log);
+		webhook.delete().catch(log);
 	}).catch(log);
 }
 
@@ -438,6 +439,15 @@ function maybeReplicateLol(message) {
 	sendAuthoredMessage(message.content, message.author.id, c.LOL_CHANNEL_ID);
 }
 
+function maybeReact(message) {
+	if (c.SCRUB_DADDY_ID === message.author.id || getRand(1, 21) > 3) { return; }
+
+	const reactions = bot.getServer().emojis.array()
+		.filter((emoji) => !emoji.name.toLowerCase().match(/delete|quote|over|rocket|world|fort|netflix|iron|heroes/));
+
+	message.react(reactions[getRand(0, reactions.length)]);
+}
+
 /**
  * Checks if the reactions include the delete reactions.
  *
@@ -504,6 +514,7 @@ exports.getUserIDToColor = () => userIDToColor;
 exports.getQuotes = getQuotes;
 exports.log = log;
 exports.maybeInsertQuotes = maybeInsertQuotes;
+exports.maybeReact = maybeReact;
 exports.maybeReplicateLol = maybeReplicateLol;
 exports.maybeUpdateDynamicMessage = maybeUpdateDynamicMessage;
 exports.quoteUser = quoteUser;

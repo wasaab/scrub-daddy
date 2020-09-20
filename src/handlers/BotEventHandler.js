@@ -38,6 +38,7 @@ module.exports = class BotEventHandler {
                 games.maybeCallLetsPlay(message);
                 util.maybeInsertQuotes(message);
                 util.maybeBanSpammer(message);
+                util.maybeReact(message);
                 prizes.checkForMagicWords(message);
             }
         });

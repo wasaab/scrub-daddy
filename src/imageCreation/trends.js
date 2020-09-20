@@ -6,6 +6,7 @@ var c = require('../const.js');
 var util = require('../utilities/utilities.js');
 var imgConverter = require('./imageConverter.js');
 
+const filePath = path.join(__dirname.replace('c:\\', ''), '../../resources/data/gameHistory.json');
 const fullSvgWidth = 1500;
 const fullSvgHeight = fullSvgWidth / 2;
 const margin = {top: 30, right: 20, bottom: 70, left: 50},
@@ -28,7 +29,6 @@ function createSvgCanvas() {
 
 function generateGraph(userID, countKey, targetGames) {
     svg = createSvgCanvas();
-    const filePath = path.join(__dirname.slice(3), '../../resources', 'data', 'gameHistory.json');
 
     d3.json(`file:///${filePath}`, function(err, rawLogs) {
         if (err || !rawLogs) { return; }

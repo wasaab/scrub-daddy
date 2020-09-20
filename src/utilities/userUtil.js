@@ -1,5 +1,6 @@
 var tinycolor = require('tinycolor2');
 var inspect = require('util-inspect');
+var moment = require('moment');
 var Fuse = require('fuse.js');
 var get = require('lodash.get');
 
@@ -7,8 +8,8 @@ var logger = require('../logger.js').botLogger;
 var bot = require('../bot.js');
 var c = require('../const.js');
 
-const { getNick, getTargetFromArgs, getIdFromMention,
-	exportJson, mentionUser, mentionChannel, getRand, capitalizeFirstLetter, lock, isLocked } = require('./baseUtil.js');
+const { getNick, getTargetFromArgs, getIdFromMention, exportJson, mentionUser, mentionChannel,
+	getRand, capitalizeFirstLetter, lock, isLocked, shuffleArray, formatAsBoldCodeBlock} = require('./baseUtil.js');
 const { sendAuthoredMessage, sendDynamicMessage, sendEmbedMessage, log, getUserIDToColor } = require('./messagingUtil.js');
 
 var config = require('../../resources/data/config.json');
@@ -16,6 +17,7 @@ var groups = require('../../resources/data/groups.json');
 var lists = require('../../resources/data/lists.json');
 var catFacts = require('../../resources/data/catfacts.json');
 var userIDToAliases = require('../../resources/data/aliases.json');
+var userIdToMetadata = require('../../resources/data/userMetadata.json');
 
 var inviterToUses = {};
 var updateRainbowRoleInterval;
@@ -583,6 +585,52 @@ function setUserColor(targetColor, user) {
 	exportColors(description, user, hex, color);
 }
 
+/**
+ * Sets the user's birthday.
+ * 
+ * @param {String} date the user's birthday in MM/DD format
+ * @param {String} userID id of the user setting their birthday
+ */
+function setBirthday(date, userID) {
+	const birthday = moment(date, c.MD_DATE_FORMAT);
+
+	if (!birthday.isValid()) {
+		sendEmbedMessage('🎂 Invalid Birthday',
+			'Birthday must be in MM/DD format.\ne.g. `.set-birthday 05/17`', userID);
+		return;
+	}
+
+	if (!userIdToMetadata[userID]) {
+		userIdToMetadata[userID] = { birthday: {} };
+	}
+
+	populateBirthdayMetadata(birthday, userIdToMetadata[userID]);
+
+	const formattedDay = formatAsBoldCodeBlock(birthday.format('MMMM Do'));
+	
+	sendEmbedMessage('🎂 Birthday Set',
+		`${mentionUser(userID)}, on ${formattedDay} your name will have cake!`, userID);
+	exportJson(userIdToMetadata, 'userMetadata');
+}
+
+/**
+ * Sets birthday and nickname to be given on that day in the user's metadata.
+ * 
+ * @param {moment} birthday the user's birthday
+ * @param {Object} userMetadata metadata on the user
+ */
+function populateBirthdayMetadata(birthday, userMetadata) {
+	const birthdayEmojis = ['🎂', '🍰', '🎂', '🎉', '🎊', '🎈', '🎂'];
+
+	shuffleArray(birthdayEmojis);
+
+	const nicknames = ['Boy', 'Girl', 'Cake', 'Boi', 'Grill'];
+	const nickname = `${birthdayEmojis[0]} Birthday ${nicknames[getRand(0, nicknames.length)]} ${birthdayEmojis[1]}`;
+
+	userMetadata.birthday = birthday.valueOf();
+	userMetadata.nickname = nickname;
+}
+
 exports.addInvitedByRole = addInvitedByRole;
 exports.addToList = addToList;
 exports.addToReviewRole = addToReviewRole;
@@ -601,6 +649,7 @@ exports.outputAliases = outputAliases;
 exports.outputTempChannelsLeftByUser = outputTempChannelsLeftByUser;
 exports.rejoinTempChannel = rejoinTempChannel;
 exports.removeFromReviewRole = removeFromReviewRole;
+exports.setBirthday = setBirthday;
 exports.setUserColor = setUserColor;
 exports.subscribeToCatFacts = subscribeToCatFacts;
 exports.showLists = showLists;

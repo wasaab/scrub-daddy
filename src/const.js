@@ -130,10 +130,10 @@ module.exports = {
 		{ name: '4) `Gaming`', value: '`playing`	`who-plays`	`lets-play`	`1-more`	`p`	`split-group`	`trends`	`total-trends`'
 			+ '	`fortnite-stats`	`fortnite-leaderboard`	`set-fortnite-name`', inline: 'false'},
 		{ name: '5) `Bot Issues, Feature Requests, and Help`', value: '`tips`	`issue`	`feature`	`implement`	`help`', inline: 'false'},
-		{ name: '6) `Roles & User Settings`', value: '`join-review`	`leave-review`	`color`	`shuffle-scrubs`	`set-stream`'
+		{ name: '6) `Roles & User Settings`', value: '`join-review`	`leave-review`	`color`	`shuffle-scrubs`	`set-birthday`	`set-stream`'
 			+ '	`toggle-streaming`	`alias`	`unalias`', inline: 'false'},
 		{ name: '7) `Soundbytes`', value: '`sb`	`add-sb`	`fav-sb`	`volume`', inline: 'false'},
-		{ name: '8) `Utilities`', value: '`temp`	`leave-temp`	`lotto`	`quote`	`quotes`	`create-list`	`list`	`create-group`'
+		{ name: '8) `Utilities`', value: '`temp`	`leave-temp`	`lotto`	`quote`	`quotes`	`create-list`	`list`	`create-group`	`remind-me`'
 			+ '	`@`	`subscribe-catfacts`	`catfacts`	`channels-left`	`rejoin-temp`	`ignore-posts`	`delete`', inline: 'false'},
 	],
 	HELP_CATEGORIES: [
@@ -237,6 +237,7 @@ module.exports = {
 				{ name: '.color <`colorName`>', value: '`to set your role/response color preference.`', inline: 'false'},
 				{ name: '.shuffle-scrubs', value: '`to randomize the first letter of every Srub\'s name.`', inline: 'false'},
 				{ name: '.shuffle-scrubs <`letter`>', value: '`to set the first letter of every Srub\'s name.`', inline: 'false'},
+				{ name: '.set-birthday <`MM/DD`>', value: '`to set your birthday and receive cake.`', inline: 'false'},
 				{ name: '.set-stream <`url`>', value: '`to set the url for either your stream or the stream you are watching.`', inline: 'false'},
 				{ name: '.toggle-streaming', value: '`to toggle your streaming state on/off, which will update your nickname.`', inline: 'false'},
 				{ name: '.alias <`alias`> <`command to call`>',
@@ -261,6 +262,7 @@ module.exports = {
 				{ name: '.temp <`text|voice`>', value: '`Creates a temp text/voice channel.`', inline: 'false'},
 				{ name: '.temp <`text|voice`> <`channel-title`>', value: '`Creates a voice/text channel with the provided title.`', inline: 'false'},
 				{ name: '.leave-temp', value: '`to leave the temp channel the command is called in.`', inline: 'false'},
+				{ name: '.remind-me <`#`> <`minutes|hours|days|etc`> <`message`>', value: '`to be reminded of something at the specified time.`', inline: 'false'},
 				{ name: '.lotto', value: '`to join the currently running Beyond lotto or get the time remaining.`', inline: 'false'},
 				{ name: '.quote', value: '`to quote and reply or save the quote, depending on which reaction you use (:quoteReply: or :quoteSave:).`', inline: 'false'},
 				{ name: '.quote <`@user`>',
@@ -371,7 +373,7 @@ module.exports = {
 		{
 			color: 0xffff00,
 			title: '💡 New Commands',
-			description: '`worth`	`invest-scrubbles`',
+			description: '`remind-me`	`set-birthday`	`worth`	`invest-scrubbles`',
 			image: {
 				url: 'https://media3.giphy.com/media/UGxfEt5POsukg/giphy.gif'
 			}
@@ -412,15 +414,15 @@ module.exports = {
 		'opt-in',
 		'p', 'playing', 'portfolio',
 		'quote', 'quotes',
-		'race', 'rainbow-role', 'ranks', 'rate', 'ratings', 'rating-info', 'refresh-ratings', 'rejoin-temp', 'remove-player', 'rename', 'rename-channel', 'rename-hank', 'rename-role', 'rename-user', 'reserve', 'restart', 'restore', 'review-messages', 'revive', 'rock', 'round-robin',
-		'sb', 'sb-add', 'scrub-box', 'sell-shares','set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'split-group', 'start-lotto', 'stats', 'stay', 'steal', 'steal-all', 'stocks', 'stop-lotto', 'subscribe-catfacts', 'sunken-sailor',
+		'race', 'rainbow-role', 'ranks', 'rate', 'ratings', 'rating-info', 'refresh-ratings', 'rejoin-temp', 'remind-me', 'remove-player', 'rename', 'rename-channel', 'rename-hank', 'rename-role', 'rename-user', 'reserve', 'restart', 'restore', 'review-messages', 'revive', 'rock', 'round-robin',
+		'sb', 'sb-add', 'scrub-box', 'sell-shares', 'set-birthday', 'set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'split-group', 'start-lotto', 'stats', 'stay', 'steal', 'steal-all', 'stocks', 'stop-lotto', 'subscribe-catfacts', 'sunken-sailor',
 		'temp', 'test', 'time', 'tips', 'toggle-streaming', 'trends', 'total-trends',
 		'unalias', 'update-readme',
 		'volume', 'vote', 'voteban', 'voteinfo', 'votekick',
 		'who-plays', 'who-said', 'worth'
 	],
 	GLOBAL_COMMANDS: ['@', 'cars', 'change-category', 'delete', 'delete-rating', 'ignore-posts',
-		'leave-temp', 'magic-word', 'quote', 'rate', 'rename', 'refresh-ratings', 'rating-info'],
+		'leave-temp', 'magic-word', 'quote', 'rate', 'remind-me', 'rename', 'refresh-ratings', 'rating-info'],
 	WHO_PLAYS_FUZZY_OPTIONS: {
 		shouldSort: true,
 		threshold: 0.3,
@@ -568,8 +570,10 @@ module.exports = {
 		channel: 'channel',
 		role: 'role'
 	},
+	INVALID_DURATION_ISO: 'P0D',
 	MDY_HM_DATE_TIME_FORMAT: 'M/DD/YY hh:mm A',
 	MDY_DATE_FORMAT: 'MM/DD/YY',
+	MD_DATE_FORMAT: 'MM/DD',
 	FULL_DATE_TIME_FORMAT: 'LLLL',
 	SHORT_DATE_FORMAT: 'l',
 	BACKUP_DATE_FORMAT: 'M[-]D[-]YY[@]h[-]mm[-]a',
