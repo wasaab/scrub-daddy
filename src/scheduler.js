@@ -22,11 +22,12 @@ var previousTip;
  */
 function scheduleRecurringVoiceChannelScan() {
 	(function scan(){ //eslint-disable-line
-		var client = bot.getClient();
+		const { channels } = bot.getClient();
+
 		prizes.maybeResetNames();
 		games.maybeUpdateChannelNames();
-		games.maybeChangeAudioQuality(client.channels);
-		util.handleMuteAndDeaf(client.channels);
+		games.maybeChangeAudioQuality(channels);
+		util.handleMuteAndDeaf(channels);
 		setTimeout(scan, 60000);
 	})();
 }
@@ -65,7 +66,7 @@ exports.scheduleRecurringJobs = function() {
 exports.scheduleLotto = function() {
 	schedule.scheduleJob(new Date(config.lottoTime), prizes.endLotto);
 
-	var lottoCountdownRule = new schedule.RecurrenceRule();
+	const lottoCountdownRule = new schedule.RecurrenceRule();
 
 	lottoCountdownRule.mintue = 0;
 	schedule.scheduleJob(lottoCountdownRule, prizes.updateLottoCountdown);
@@ -100,13 +101,12 @@ function maybeUpdateStocks(updateStocksRule) {
 function outputTipAndUpdateInvitesAtTenAMFivePMAndElevenPM() {
 	if (util.isDevEnv()) {	return; }
 
-	var firstRun = true;
 	var tipAndInvitesRule = new schedule.RecurrenceRule();
 	tipAndInvitesRule.hour = [10, 17, 23];
 	tipAndInvitesRule.minute = 0;
 
-	schedule.scheduleJob(tipAndInvitesRule, function () {
-		if (!firstRun && previousTip) {
+	schedule.scheduleJob(tipAndInvitesRule, () => {
+		if (previousTip) {
 			previousTip.delete();
 		}
 
@@ -117,7 +117,6 @@ function outputTipAndUpdateInvitesAtTenAMFivePMAndElevenPM() {
 			.then((message) => {
 				previousTip = message;
 			});
-		firstRun = false;
 	});
 }
 

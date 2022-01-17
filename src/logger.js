@@ -2,10 +2,7 @@ const moment = require('moment');
 const path = require('path');
 const { createLogger, format, transports } = require('winston');
 const Transport = require('winston-transport');
-
 const c = require('./const.js');
-
-const isTestRun = process.argv.includes('test/**/?(**)/*.js');
 
 /**
  * Discord server logger.
@@ -20,11 +17,9 @@ class DiscordServerTransport extends Transport {
 		this.format = discordLogFormat;
 	}
 
-	log(info, callback) {
-		const msg = info.message;
-
-		if (msg.length <= 2000) {
-			this.logChannel.send(msg);
+	log({ message }, callback) {
+		if (message <= 2000) {
+			this.logChannel.send(message);
 		}
 
 		callback();
@@ -42,7 +37,7 @@ function getTimestamp() {
 
 /**
  * Formats a log message using the info provided.
- * 
+ *
  * @param {Object} info log info
  */
 function formatLogMsg(info) {
@@ -50,7 +45,7 @@ function formatLogMsg(info) {
 }
 
 const logFormat = format.printf((info) => {
-	var formattedMessage = formatLogMsg(info);
+	let formattedMessage = formatLogMsg(info);
 
 	if (info.request) {
 		formattedMessage += ` | ${info.request.method} ${info.request.path}`;
@@ -67,6 +62,8 @@ const discordLogFormat = format.printf((info) => {
 
 	return info;
 });
+const isTestRun = process.argv.includes('test/**/?(**)/*.js');
+
 exports.logger = createLogger({
 	levels: {
 		error: 0,
