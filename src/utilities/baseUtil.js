@@ -34,7 +34,7 @@ function compareFieldValues(a,b) {
 	const aNum = Number(a.value.toString().replace(/,/g, ''));
 	const bNum = Number(b.value.toString().replace(/,/g, ''));
 
-	if ( aNum > bNum) {
+	if (aNum > bNum) {
 		return -1;
 	}
 
@@ -47,7 +47,7 @@ function compareFieldValues(a,b) {
 
 /**
  * Gets a random number between min and max.
- * The maximum is exclusive and the minimum is inclusive
+ * The the minimum is inclusive and the maximum is exclusive.
  *
  * @param {Number} min - the minimum
  * @param {Number} max - the maximum
@@ -57,6 +57,18 @@ function getRand(min, max) {
 	max = Math.floor(max);
 
 	return Math.floor(Math.random() * (max - min)) + min;
+}
+
+/**
+ * Determines if the provided number is an integer within the provided inclusive bounds.
+ *
+ * @param {number} num the number to check
+ * @param {number} min minimum bound (inclusive)
+ * @param {number} max maximum bound (inclusive)
+ * @returns {boolean} whether the integer is within the bounds
+ */
+ function isIntegerInBounds(num, min, max) {
+  return Number.isInteger(num) && num >= min && num <= max;
 }
 
 /**
@@ -70,8 +82,9 @@ function deepClone(target) {
 
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
-        let j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+			const j = Math.floor(Math.random() * (i + 1));
+
+      [array[i], array[j]] = [array[j], array[i]];
     }
 }
 
@@ -139,25 +152,37 @@ function getAvatar(userID) {
 }
 
 /**
- * returns an 's' iff count > 1.
+ * returns an 's' or 'es' iff count > 1.
  *
- * @param {number} count
+ * @param {Number} count count of thing to pluralize
+ * @param {String=} word the word to pluralize
  */
-function maybeGetPlural(count) {
-    if (count > 1 || count < -1) {
-        return 's';
+function maybeGetPlural(count, word) {
+	if (Math.abs(count) === 1) {
+		return word || '';
 	}
 
-    return '';
+	return word ? `${word}${getPluralEnding(word)}` : getPluralEnding(word);
+}
+
+/**
+ * returns an 's' or 'es' depending on what letters the word ends with
+ *
+ * @param {String} word the word to get the pluralized ending of
+ */
+function getPluralEnding(word) {
+	return new RegExp(/(ch|sh|s|x|z)$/).test(word) ? 'es' : 's';
 }
 
 /**
  * Comma separates a number.
- * 
+ *
  * @param {Number} num the number to comma separate
  */
 function comma(num) {
-    return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
+	if (null == num) { return; }
+
+    return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
 }
 
 function formatAsBoldCodeBlock(text) {
@@ -253,7 +278,7 @@ function isLocked(funcName) {
 function getTargetFromArgs(args, startIdx) {
 	var target = args[startIdx];
 
-	for (var i=startIdx+1; i < args.length; i++) {
+	for (var i = startIdx + 1; i < args.length; i++) {
 		target += ` ${args[i]}`;
 	}
 
@@ -295,10 +320,10 @@ exports.getIdFromMention = getIdFromMention;
 exports.getMembers = () => members;
 exports.getNick = getNick;
 exports.getRand = getRand;
-exports.getScrubIdToNick = () => scrubIdToNick;
 exports.getTargetFromArgs = getTargetFromArgs;
 exports.getTrueDisplayName = getTrueDisplayName;
 exports.handleAllPromises = handleAllPromises;
+exports.isIntegerInBounds = isIntegerInBounds;
 exports.isLocked = isLocked;
 exports.isMention = isMention;
 exports.lock = lock;

@@ -1,7 +1,9 @@
+var Discord = require('discord.js');
 var inspect = require('util-inspect');
+const { spawnSync } = require('child_process');
 var txtgen = require('txtgen');
 var moment = require('moment');
-var GoogleUrl = require( 'google-url' );
+var GoogleUrl = require('google-url');
 var Fuse = require('fuse.js');
 var get = require('lodash.get');
 var fs = require('fs');
@@ -10,7 +12,8 @@ var c = require('../const.js');
 var bot = require('../bot.js');
 var util = require('../utilities/utilities.js');
 var testUtil = require('../../test/configuration/testUtil.js');
-var logger = require('../logger.js').botLogger;
+const { logger } = require('../logger.js');
+const cmdHandler = require('../handlers/cmdHandler.js');
 var priv = require('../../../private.json');
 var optedInUsers = require('../../resources/data/optedIn.json');		//users that have opted in to playtime tracking
 var userIDToFortniteUserName = require('../../resources/data/fortniteUserData.json'); //map of Discord userID to Fortnite username
@@ -21,6 +24,7 @@ var timeSheet = require('../../resources/data/timeSheet.json');		//map of userID
 var heatMapData = require('../../resources/data/rawHeatMapData.json');	//Heat map data for every day-hour combo.
 var gameChannels = [];		//voice channels that change name based upon what the users are playing
 var whoSaidScore = {};
+const channelIdToIsBeingRenamed = {};
 
 /**
  * Exports the timesheet to a json file.
@@ -48,7 +52,7 @@ function getGameNameAndTarget(args) {
 	var game = '';
 	var target = '';
 
-	for (var i=1; i < args.length; i++) {
+	for (var i = 1; i < args.length; i++) {
 		if (args[i].indexOf('<') === 0) {
 			target = args[i];
 			break;
@@ -57,7 +61,7 @@ function getGameNameAndTarget(args) {
 		game += ` ${args[i]}`;
 	}
 
-	return { game : game.substr(1), target : target};
+	return { game: game.substr(1), target: target};
 }
 
 /**
@@ -87,12 +91,12 @@ function getGamesBeingPlayedData(players) {
 	var total = 0;
 
 	players.forEach((player) => {
-		const game = get(player, 'presence.game.name');
-		const status = get(player, 'presence.status');
+		const game = exports.determineActiveGameName(player);
+		const status = player.presence?.status;
 
-		if(game && !player.user.bot && player.highestRole.id !== c.PLEB_ROLE_ID && status !== 'idle') {
+		if (game && !player.user.bot && player.highestRole.id !== c.PLEB_ROLE_ID && status !== 'idle') {
 			games[game] = games[game] ? games[game] + 1 : 1;
-			if(games[game] > max) {
+			if (games[game] > max) {
 				max = games[game];
 				winner = game;
 			}
@@ -139,21 +143,18 @@ function determinePlayingFieldsAndUpdateHistory(time, total, games) {
  * unless called from recurring job, in which case it stores the result without outputting it.
  */
 exports.maybeOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
-    const { games, winner, total } = getGamesBeingPlayedData(scrubs);
+  const { games, winner, total } = getGamesBeingPlayedData(scrubs);
+  const time = moment();
 
-	var time = moment();
-	var fields = determinePlayingFieldsAndUpdateHistory(time, total, games);
+	if (userID === c.SCRUB_DADDY_ID) {
+		updateHeatMap(time, total);
+	} else {
+    const imageUrl = c.GAME_NAME_TO_IMG[winner] ?? c.THUMBS_UP_GIF;
+    const fields = determinePlayingFieldsAndUpdateHistory(time, total, games);
 
-	var imageUrl = c.THUMBS_UP_GIF;
-	if (c.GAME_NAME_TO_IMG[winner]) {
-		imageUrl = c.GAME_NAME_TO_IMG[winner];
-	}
-	if (userID !== c.SCRUB_DADDY_ID) {
 		util.sendEmbedMessage(`🏆 Winner - ${winner}`, null, userID, imageUrl);
 		fields.sort(util.compareFieldValues);
 		util.sendEmbedFieldsMessage(`🎮 Player Count - ${total}`, fields, userID);
-	} else {
-		updateHeatMap(time, total);
 	}
 };
 
@@ -162,12 +163,14 @@ exports.maybeOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
  */
 exports.updatePlayingStatus = function() {
 	var { winner, max } = getGamesBeingPlayedData(util.getMembers());
+
 	if (winner === '') {
 		winner = 'nothing';
 	}
 
 	const pplEmojiIdx = max > 5 ? 5 : max;
 	const newStatus = `${winner} - ${max} ${c.PPL_EMOJIS[pplEmojiIdx]}`;
+
 	bot.getClient().user.setPresence({ game: { name: newStatus } });
 };
 
@@ -201,7 +204,7 @@ function getUsersPlaytimeForGame(userID, gameName) {
 	}
 
 	var playtime = userEntry[gameName];
-	var currentlyPlaying = userEntry['playing'];
+	var currentlyPlaying = userEntry.playing;
 
 	//if the target user is currently playing the game
 	if (playtime && currentlyPlaying && currentlyPlaying.name === gameName) {
@@ -230,22 +233,23 @@ function getCumulativeTimePlayed(gameName, target) {
 		userToTimes[target] = timeSheet[target];
 	}
 
-	for (var userID in userToTimes) {
+	for (const userID in userToTimes) {
 		//get time of all games
 		if (gameName === '') {
-			var gameToTime = userToTimes[userID];
-			for (var game in gameToTime) {
-				if (game === 'playing') {
-					continue;
+			const gameToTime = userToTimes[userID];
+
+			for (const game in gameToTime) {
+				if (game === 'playing') { continue; }
+
+				const playtime = getUsersPlaytimeForGame(userID, game);
+
+				if (!playtime) { continue; }
+				if (!cumulativeTimePlayed.gameToTime[game]) {
+					cumulativeTimePlayed.gameToTime[game] = 0;
 				}
-				var playtime = getUsersPlaytimeForGame(userID, game);
-				if (playtime) {
-					if (!cumulativeTimePlayed.gameToTime[game]) {
-						cumulativeTimePlayed.gameToTime[game] = 0;
-					}
-					cumulativeTimePlayed.gameToTime[game] += playtime;
-					cumulativeTimePlayed.total += playtime;
-				}
+
+        cumulativeTimePlayed.gameToTime[game] += playtime;
+        cumulativeTimePlayed.total += playtime;
 			}
 		} else {
 			const timePlayed = getUsersPlaytimeForGame(userID, gameName);
@@ -284,10 +288,13 @@ function isOptedIn(user) {
 function outputCumulativeTimePlayed(timePlayedData, userID) {
 	var fields = [];
 	fields.push(util.buildField('All Games', timePlayedData.total.toFixed(1)));
+
 	for (var gameName in timePlayedData.gameToTime) {
-		var playtime = timePlayedData.gameToTime[gameName];
+		const playtime = timePlayedData.gameToTime[gameName];
+
 		fields.push(util.buildField(gameName, playtime.toFixed(1)));
 	}
+
 	fields.sort(util.compareFieldValues);
 	util.sendEmbedFieldsMessage('🕒 Cumulative Hours Played', fields, userID);
 	logger.info(`Cumulative Hours Played All Games: ${inspect(fields)}`);
@@ -302,8 +309,9 @@ exports.maybeOutputTimePlayed = function(args, userID) {
 	var { game, target} = getGameNameAndTarget(args);
 
 	logger.info(`Time Called - game: ${game} target: ${target}`);
+
 	if (target !== '' && !isOptedIn(target)) {
-		util.sendEmbedMessage(null,'I do not track that scrub\'s playtime.', userID);
+		util.sendEmbed({ description: 'I do not track that scrub\'s playtime.', userID });
 		logger.info(`${target} is not opted in.`);
 		return;
 	}
@@ -314,13 +322,13 @@ exports.maybeOutputTimePlayed = function(args, userID) {
 
 	var timePlayedData = getCumulativeTimePlayed(game,target);
 
-    if (Object.keys(timePlayedData.gameToTime).length !== 0) {
-        outputCumulativeTimePlayed(timePlayedData, userID);
+    if (Object.keys(timePlayedData.gameToTime).length === 0) {
+      const fields = [util.buildField(game, timePlayedData.total.toFixed(1))];
+
+      util.sendEmbedFieldsMessage('🕒 Hours Played', fields, userID);
+      logger.info(`Hours Played: ${inspect(fields)}`);
     } else {
-		var fields = [];
-		fields.push(util.buildField(game,timePlayedData.total.toFixed(1)));
-		util.sendEmbedFieldsMessage('🕒 Hours Played', fields, userID);
-		logger.info(`Hours Played: ${inspect(fields)}`);
+      outputCumulativeTimePlayed(timePlayedData, userID);
     }
 };
 
@@ -330,35 +338,34 @@ exports.maybeOutputTimePlayed = function(args, userID) {
  * @param {String} gameName - the game to find players of
  */
 function getGameUserData(gameName, fuzzyThreshold) {
-	var options = c.WHO_PLAYS_FUZZY_OPTIONS;
-	options.threshold = fuzzyThreshold;
-	var fuse = new Fuse(gamesPlayed, options);
-	var result = fuse.search(gameName);
-	if (result.length === 0) {return {};}
+	const options = { ...c.WHO_PLAYS_FUZZY_OPTIONS, threshold: fuzzyThreshold };
+	const fuse = new Fuse(gamesPlayed, options);
+	const [game] = fuse.search(gameName);
 
-	return result[0];
+	return game ?? {};
 }
 
 function buildWhoPlaysFields(usersWhoPlay) {
 	var fields = [];
+
     usersWhoPlay.sort((a, b) => {
-		if(isNaN(b.time - a.time)) {
+		if (isNaN(b.time - a.time)) {
 			return isNaN(a.time) ? 1 : -1;
 		}
 
 		return b.time - a.time;
 	});
 
-	const scrubIDToNick = util.getScrubIdToNick();
 	usersWhoPlay.forEach((user) => {
-		const lastPlayed = isNaN(user.time) ? 'N/A': moment(user.time).format(c.MDY_HM_DATE_TIME_FORMAT);
-		const name = scrubIDToNick[user.id];
+		const lastPlayed = isNaN(user.time) ? 'N/A' : moment(user.time).format(c.MDY_HM_DATE_TIME_FORMAT);
+		const name = util.getNick(user.id);
+
 		if (name) {
 			fields.push(util.buildField(name, `\`${lastPlayed}\``));
 		}
 	});
 
-    if(fields.length !== 2 && fields.length % 3 === 2) {
+    if (fields.length !== 2 && fields.length % 3 === 2) {
 		fields.push(util.buildField('\u200B', '\u200B'));
 	}
 
@@ -400,19 +407,27 @@ function whoPlaysUsersGames(userID) {
 
 /**
  * Outputs the users who play the provided game, as well as when they last played.
+ *
+ * @param {Object} message	message that called backup-json command
+ * @param {String[]} args	the arguments passed by the user
  */
-exports.whoPlays = function(args, userID) {
+exports.whoPlays = function(message, args) {
+	const userID = message.member.id;
+
 	if (!args[1]) {
 		whoPlaysUsersGames(userID);
 		return;
 	}
+
 	const game = util.getTargetFromArgs(args, 1);
 	const gameUserData = getGameUserData(game, 0.3);
+	const usersWhoPlay = gameUserData.users;
+
 	logger.info(`Who Plays ${game} - ${inspect(gameUserData)}`);
 
-	var usersWhoPlay = gameUserData.users;
 	if (usersWhoPlay) {
-		var fields = buildWhoPlaysFields(usersWhoPlay);
+		const fields = buildWhoPlaysFields(usersWhoPlay);
+
 		util.sendEmbedFieldsMessage(`Users Who Play ${gameUserData.title} / Last Time Played`, fields, userID);
 	} else {
 		util.sendEmbedMessage('Literally Nobody Plays That', 'We are all judging you now.', userID);
@@ -433,7 +448,7 @@ function shouldExcludeUserFromLetsPlay(allFlagProvided, user) {
 function maybeAddCurrPlayingToArgs(args, user, gameIdx) {
 	if (args.length !== gameIdx) { return; }
 
-	const currPlaying = get(user, 'presence.game.name');
+	const currPlaying = exports.determineActiveGameName(user);
 
 	if (currPlaying) {
 		args[gameIdx] = currPlaying;
@@ -444,7 +459,7 @@ function maybeAddCurrPlayingToArgs(args, user, gameIdx) {
  * @Mentions every user that plays the provided game, asking them if they want to play.
  */
 exports.letsPlay = function(args, userID, message, oneMore, customMessage) {
-	const emojis = message.guild.emojis;
+	const { emojis } = message.guild;
 	const allFlagProvided = '-all' === args[1];
 	const gameIdx = allFlagProvided ? 2 : 1;
 
@@ -468,7 +483,7 @@ exports.letsPlay = function(args, userID, message, oneMore, customMessage) {
 		const oneMoreMsg = oneMore ? 'We need **1** more for ' : '';
 		const punctuation = oneMore ? '!' : '?';
 
-		game = emojis.find('name',  util.capitalizeFirstLetter(game)) || game;
+		game = emojis.find('name', util.capitalizeFirstLetter(game)) || game;
 		msg += `${oneMoreMsg}${game}${punctuation}`;
 	}
 
@@ -487,7 +502,7 @@ exports.letsPlay = function(args, userID, message, oneMore, customMessage) {
  * @param {Object} message message sent by user
  */
 exports.maybeCallLetsPlay = function(message) {
-	const game = get(message, 'member.presence.game.name');
+	const game = message.member?.presence?.game?.name;
 
 	if (message.author.bot || message.content !== '' || message.attachments.size !== 0
 		|| message.type !== 'DEFAULT' || !game) { return; }
@@ -504,9 +519,7 @@ exports.maybeCallLetsPlay = function(message) {
  * @param {Boolean} isRemoval whether or not this is a remove user call
  */
 function determineUpdatedUsersWhoPlay(usersWhoPlay, userID, role, isRemoval) {
-	if (!usersWhoPlay) {
-		usersWhoPlay = [{ id: userID, time: moment().valueOf(), role: role.id }];
-	} else {
+	if (usersWhoPlay) {
 		const userEntryIdx = usersWhoPlay.map((player) => player.id).indexOf(userID);
 		const newEntry = { id: userID, time: moment().valueOf(), role: role.id };
 
@@ -517,6 +530,8 @@ function determineUpdatedUsersWhoPlay(usersWhoPlay, userID, role, isRemoval) {
 		} else {
 			usersWhoPlay.splice(userEntryIdx, 1, newEntry);
 		}
+	} else {
+    usersWhoPlay = [{ id: userID, time: moment().valueOf(), role: role.id }];
 	}
 
 	return usersWhoPlay;
@@ -525,20 +540,20 @@ function determineUpdatedUsersWhoPlay(usersWhoPlay, userID, role, isRemoval) {
 /**
  * Updates the games played for the provided user.
  */
-function updateWhoPlays(userID, role, game, isRemoval) {
-	if (!game) { return; }
+function updateWhoPlays(userID, role, gameName, isRemoval) {
+	if (!gameName) { return; }
 
-	const gameIdx = gamesPlayed.map((game) => game.title.toLowerCase()).indexOf(game.toLowerCase());
-	const gameUserData = getGameUserData(game, 0);
-	var usersWhoPlay = determineUpdatedUsersWhoPlay(gameUserData.users, userID, role, isRemoval);
+	const game = gamesPlayed.find(({ title }) => title.toLowerCase() === gameName.toLowerCase());
+	const gameUserData = getGameUserData(gameName, 0);
+	const usersWhoPlay = determineUpdatedUsersWhoPlay(gameUserData.users, userID, role, isRemoval);
 
-	if (gameIdx === -1) {
+	if (game) {
+    game.users = usersWhoPlay;
+  } else {
 		gamesPlayed.push({
-			title: game,
+			title: gameName,
 			users: usersWhoPlay
 		});
-	} else {
-		gamesPlayed[gameIdx].users = usersWhoPlay;
 	}
 }
 
@@ -559,13 +574,13 @@ exports.removePlayer = function(args) {
  * @param {userName} userName - name of the user whos playtime is being updated
  */
 function getUpdatedGameToTime(gameToTime, userName) {
-	var currentlyPlaying = gameToTime['playing'];
+	var currentlyPlaying = gameToTime.playing;
 
 	if (currentlyPlaying) {
 		var hoursPlayed = getTimePlayed(currentlyPlaying);
 		logger.info(`Presence Update - ${userName} finished a ${hoursPlayed.toFixed(4)}hr session of ${currentlyPlaying.name}`);
 		gameToTime[currentlyPlaying.name] += hoursPlayed;
-		gameToTime['playing'] = null;
+		gameToTime.playing = null;
 	}
 	return gameToTime;
 }
@@ -594,7 +609,7 @@ exports.updateTimesheet = function(user, userID, highestRole, oldGame, newGame) 
 	}
 	//started playing a game
 	if (newGame) {
-		gameToTime['playing'] = {name : newGame, start : getCurrentTimeMillis()};
+		gameToTime.playing = {name : newGame, start : getCurrentTimeMillis()};
 		if (!gameToTime[newGame]) {
 			gameToTime[newGame] = 0;
 		}
@@ -623,11 +638,11 @@ function waitAndSendScrubDaddyFact(attempts, seconds, userID) {
 	setTimeout(() => {
 		if (attempts === seconds) {
 			const title = '➕ You are now subscribed to Scrub Daddy Facts!';
-			const imgUrl = c.SCRUB_DADDY_FACT;
-			util.sendEmbedMessage(title, null, userID, imgUrl);
-			return;
+			const image = c.SCRUB_DADDY_FACT;
+
+			util.sendEmbed({title, userID, image});
 		} else {
-			waitAndSendScrubDaddyFact(attempts+1, seconds);
+			waitAndSendScrubDaddyFact(attempts + 1, seconds);
 		}
 	}, 1000);
 }
@@ -645,25 +660,26 @@ exports.optOutAllUsers = function() {
  * @param {String} user - the name of the user to opt in
  * @param {String} userID - the ID of the user to opt in
  */
-exports.optIn = function(user, userID) {
+exports.optIn = function(userID) {
+	const userName = util.getNick(userID);
+
 	if (optedInUsers.includes(userID)) {
-		util.sendEmbedMessage(`You are already opted-in ${user}`, `Pray I do not opt you in further.`, userID);
+		util.sendEmbedMessage(
+			`You are already opted-in ${userName}`,
+			`Pray I do not opt you in further.`,
+			userID
+		);
 		return;
 	}
-	optedInUsers.push(userID);
+
 	var fields = [];
-	fields.push(util.buildField(user, '👀 I\'m watching you.'));
+
+	optedInUsers.push(userID);
+	fields.push(util.buildField(userName, '👀 I\'m watching you.'));
 	util.sendEmbedFieldsMessage('👀 YOU ARE BEING WATCHED', fields, userID);
 	waitAndSendScrubDaddyFact(0, 5, userID);
-	logger.info(`${user} (${userID}) has opted into time`);
+	logger.info(`${userName} (${userID}) has opted into time`);
 	util.exportJson(optedInUsers, 'optedIn');
-};
-
-/**
- * Asks Scrubs if they want to play pubg.
- */
-exports.askToPlayPUBG = function() {
-	bot.getScrubsChannel().send(`${util.mentionRole(c.SCRUBS_ROLE_ID)}  ${c.GREETINGS[util.getRand(0, c.GREETINGS.length)]} tryna play some ${c.PUBG_ALIASES[util.getRand(0, c.PUBG_ALIASES.length)]}?`);
 };
 
 /**
@@ -676,20 +692,25 @@ function determineMajorityGame(voiceChannel) {
 	const majority = voiceChannel.members.size / 2;
 	var gameToCount = {};
 	var result = null;
+
 	voiceChannel.members.some((member) => {
-		const game = get(member, 'presence.game.name');
-		if (game) {
-			if (!gameToCount[game]) {
-				gameToCount[game] = 1;
-			} else {
-				gameToCount[game]++;
-			}
-			if (gameToCount[game] > majority) {
-				game.indexOf( 'B' ) === 0 ? result = game.replace( 'B', '🅱️' ) : result = game;
-				return true;
-			}
+		const game = exports.determineActiveGameName(member);
+
+		if (!game) { return false; }
+
+		if (gameToCount[game]) {
+			gameToCount[game]++;
+		} else {
+			gameToCount[game] = 1;
+		}
+
+		if (gameToCount[game] > majority) {
+			result = game.replace('B', '🅱️');
+
+			return true;
 		}
 	});
+
 	return result;
 }
 
@@ -700,10 +721,36 @@ function determineMajorityGame(voiceChannel) {
  */
 function resetChannelName(voiceChannel) {
 	const defaultName = c.GAME_CHANNEL_NAMES[voiceChannel.id];
-	if (voiceChannel.name !== defaultName) {
-		logger.info(`Resetting Channel Name - ${voiceChannel.name} -> ${defaultName}`);
-		voiceChannel.setName(defaultName);
-	}
+
+	if (voiceChannel.name === defaultName) { return; }
+
+	logger.info(`Resetting Channel Name - ${voiceChannel.name} -> ${defaultName}`);
+	voiceChannel.setName(defaultName);
+}
+
+/**
+ * Sets the provided channel's name to the game being played by the
+ * majority of users in the channel.
+ *
+ * @param {Object} channel - the voice channel to set name of
+ * @param {String} majorityGame - the name of the game played by majority of users
+ */
+function setChannelNameToMajorityGame(channel, majorityGame) {
+	const fuse = new Fuse([channel.name], c.CHANNEL_NAME_FUZZY_OPTIONS);
+
+	// only rename if the name is not already up to date
+	if (fuse.search(`▶ ${majorityGame}`).length !== 0 || channelIdToIsBeingRenamed[channel.id]) { return; }
+
+	const updateNameLogMsg = `Updating Channel Name - ${channel.name} -> ▶ ${majorityGame}`;
+
+	channelIdToIsBeingRenamed[channel.id] = true;
+	logger.info(updateNameLogMsg);
+	channel.setName(`▶ ${majorityGame}`)
+		.then(() => {
+			logger.info(`FINISHED ${updateNameLogMsg}`);
+			channelIdToIsBeingRenamed[channel.id] = false;
+		})
+		.catch(util.log);
 }
 
 /**
@@ -712,54 +759,56 @@ function resetChannelName(voiceChannel) {
  */
 exports.maybeUpdateChannelNames = function() {
 	gameChannels.forEach((channel) => {
-		if (channel.members.length !== 0) {
-			const majorityGame = determineMajorityGame(channel);
-			var fuse = new Fuse([channel.name], c.CHANNEL_NAME_FUZZY_OPTIONS);
-			//only rename if the name is not already up to date
-			if (fuse.search(`▶ ${majorityGame}`).length === 0) {
-				if (majorityGame) {
-					logger.info(`Updating Channel Name - ${channel.name} -> ▶ ${majorityGame}`);
-					channel.setName(`▶ ${majorityGame}`);
-				} else {
-					resetChannelName(channel);
-				}
-			}
-		} else {
+		if (channel.members.size === 0) {
 			resetChannelName(channel);
+			return;
 		}
+
+		const majorityGame = determineMajorityGame(channel);
+
+		if (!majorityGame) {
+			resetChannelName(channel);
+			return;
+		}
+
+		setChannelNameToMajorityGame(channel, majorityGame);
 	});
 };
 
 /**
-* Raises audio quality for channels with only beyond members. Vice versa for all others.
-*
-* @param {Object[]} channels - the server's channels
-*/
+ * Raises audio quality for channels with only beyond members. Vice versa for all others.
+ *
+ * @param {Object[]} channels - the server's channels
+ */
 exports.maybeChangeAudioQuality = function(channels) {
 	channels.forEach((channel) => {
-		if (channel.type === "voice") {
-			const memberCount = get(channel, 'members.size');
-			if (memberCount) {
-				const beyondCount = channel.members.array().filter((member) => {
-					return get(member, 'hoistRole.id') === c.BEYOND_ROLE_ID || member.selfDeaf;
-				}).length;
-				if (memberCount === beyondCount && channel.bitrate !== c.MAX_BITRATE) {
-					channel.setBitrate(c.MAX_BITRATE)
-					.then(logger.info(`Raising Channel Bitrate - ${channel.name}`))
-					.catch((err) => {
-						logger.error(`Add Role Error: ${err}`);
-					});
-				} else if (channel.bitrate === c.MAX_BITRATE && memberCount !== beyondCount) {
-					channel.setBitrate(c.MIN_BITRATE)
-					.then(logger.info(`Lowering Channel Bitrate - ${channel.name}`))
-					.catch((err) => {
-						logger.error(`Add Role Error: ${err}`);
-					});
-				}
-			}
+		if (channel.type !== "voice") { return; }
+
+		const memberCount = channel.members?.size;
+
+		if (!memberCount) { return; }
+
+		const beyondCount = channel.members.array()
+			.filter((member) => member.roles.find('id', c.BEYOND_ROLE_ID) || member.selfDeaf)
+			.length;
+
+		if (memberCount === beyondCount && channel.bitrate !== c.MAX_BITRATE) {
+			setAudioQuality(channel, c.MAX_BITRATE);
+		} else if (channel.bitrate === c.MAX_BITRATE && memberCount !== beyondCount) {
+			setAudioQuality(channel, c.MIN_BITRATE);
 		}
 	});
 };
+
+function setAudioQuality(channel, bitrate) {
+	const actionMsg = bitrate === c.MAX_BITRATE ? 'Raising' : 'Lowering';
+
+	channel.setBitrate(bitrate)
+		.then(logger.info(`${actionMsg} Channel Bitrate - ${channel.name}`))
+		.catch((err) => {
+			logger.error(`set VC bitrate error: ${err}`);
+		});
+}
 
 /**
  * Populates the array of dynamic voice channels.
@@ -776,13 +825,21 @@ exports.setDynamicGameChannels = function(channels) {
  * Sets the user's streaming url for use with toggle-streaming.
  */
 exports.setStreamingUrl = function(member, url) {
-	var shortener = new GoogleUrl({key: priv.googleUrlApiKey});
-	shortener.shorten(url, function(err, shortUrl) {
-		if (shortUrl) {
-			userIDToStreamingUrl[member.id] = shortUrl;
-			util.exportJson(userIDToStreamingUrl, 'streaming');
-			util.sendEmbedMessage(`Stream Url Set For ${util.getNick(member.id)}`, `Your stream can be watched at ${shortUrl}`);
-		}
+	const shortener = new GoogleUrl({key: priv.googleUrlApiKey});
+
+	shortener.shorten(url, (err, shortUrl) => {
+    if (!shortUrl) { return; }
+    if (err) {
+      logger.error('Failed to shorten url: ', err);
+      return;
+    }
+
+    userIDToStreamingUrl[member.id] = shortUrl;
+    util.exportJson(userIDToStreamingUrl, 'streaming');
+    util.sendEmbedMessage(
+      `Stream Url Set For ${util.getNick(member.id)}`,
+      `Your stream can be watched at ${shortUrl}`
+    );
 	});
 
 };
@@ -804,6 +861,19 @@ exports.toggleStreaming = function(member) {
 };
 
 /**
+ * Determines the active game of the provided member.
+ *
+ * @param {Object} member - the member to determine the game of
+ */
+exports.determineActiveGameName = function(member) {
+	const gameName = member.presence?.game?.name;
+
+	if (c.CUSTOM_STATUS === gameName) { return; }
+
+	return gameName;
+};
+
+/**
  * Updates the provided users nickname to contain the game they
  * just started playing.
  *
@@ -812,7 +882,7 @@ exports.toggleStreaming = function(member) {
  */
 exports.maybeUpdateNickname = function(member, game) {
 	const nameTokens = member.displayName.split(' ▫ ');
-	const status = get(member, 'presence.status');
+	const status = member.presence?.status;
 
 	if (game && member.voiceChannel && status !== 'idle') {
 		logger.info(`${nameTokens[0]} is playing ${game}`);
@@ -823,18 +893,16 @@ exports.maybeUpdateNickname = function(member, game) {
 		var nick = `${nameTokens[0]} ▫ `;
 		gameTokens.forEach((token) => {
 			var firstChar = token.charAt(0).toUpperCase();
-			if (!/[a-zA-Z0-9]/.test(firstChar)) {
+			if (!(/[a-zA-Z0-9]/).test(firstChar)) {
 				firstChar = token;
 			}
 			nick += c.ENCLOSED_CHARS[firstChar] || firstChar;
 		});
 		logger.info(`Updating Nickname - ${member.displayName} -> ${nick}`);
 		member.setNickname(nick);
-	} else {
-		if (nameTokens[1]) {
-			logger.info(`Updating Nickname - ${member.displayName} -> ${nameTokens[0]}`);
-			member.setNickname(nameTokens[0]);
-		}
+	} else if (nameTokens[1]) {
+    logger.info(`Updating Nickname - ${member.displayName} -> ${nameTokens[0]}`);
+    member.setNickname(nameTokens[0]);
 	}
 };
 
@@ -860,31 +928,33 @@ exports.getFortniteStats = function(gameMode, stat, callingUserID, fortniteUserN
 		options.uri += fortniteUserName || userIDToFortniteUserName[userID];
 		options.uri = encodeURI(options.uri);
 
-		rp(options)
-		.then(function (response) {
+		rp(options).then(function (response) {
 			const player = JSON.parse(response);
+
 			if (gameMode && c.GAME_MODE_TO_KEY[gameMode.toLowerCase()]) {
-				if (gameMode !== 'all') {
-					const statKeyBase = `${c.GAME_MODE_TO_KEY[gameMode.toLowerCase()]}.${stat}`;
-					const label = get(player, `${statKeyBase}.label`);
-					const value = get(player, `${statKeyBase}.displayValue`);
-					const percentile = get(player, `${statKeyBase}.percentile`);
-					const gameModeTitle = util.capitalizeFirstLetter(gameMode);
-					if (fortniteUserName) {
-						const title = `Fortnite ${gameModeTitle} ${label} for ${fortniteUserName}`;
-						util.sendEmbedMessage(title, `${value}\nTop ${percentile}% in the world`, callingUserID);
-					} else if (label) {
-						fields.push(util.buildField(util.getNick(userID), value));
-						if (!statTitleLabel) {
-							statTitleLabel = label;
-						}
-					}
-				} else {
-					var allFields = [];
+				if (gameMode === 'all') {
+          var allFields = [];
+
 					get(player, c.GAME_MODE_TO_KEY[gameMode.toLowerCase()]).forEach((category) => {
 						allFields.push(util.buildField(category.key, category.value));
 					});
 					util.sendEmbedFieldsMessage(`Fortnite Lifetime Stats for ${util.getNick(userID)}`, allFields, callingUserID);
+				} else {
+					const statKeyBase = `${c.GAME_MODE_TO_KEY[gameMode.toLowerCase()]}.${stat}`;
+					const { label, displayValue, percentile } = player[statKeyBase];
+					const gameModeTitle = util.capitalizeFirstLetter(gameMode);
+
+					if (fortniteUserName) {
+						const title = `Fortnite ${gameModeTitle} ${label} for ${fortniteUserName}`;
+
+						util.sendEmbedMessage(title, `${displayValue}\nTop ${percentile}% in the world`, callingUserID);
+					} else if (label) {
+						fields.push(util.buildField(util.getNick(userID), displayValue));
+
+						if (!statTitleLabel) {
+							statTitleLabel = label;
+						}
+					}
 				}
 			}
 		})
@@ -908,7 +978,7 @@ exports.getFortniteStats = function(gameMode, stat, callingUserID, fortniteUserN
 	var statTitleLabel;
 	const baseUri = 'http://api.fortnitetracker.com/v1/profile/pc/';
 
-	var options= {
+	var options = {
 		uri: baseUri,
 		method: 'GET',
 		headers: {
@@ -923,7 +993,11 @@ exports.getFortniteStats = function(gameMode, stat, callingUserID, fortniteUserN
 			fortniteUserName = matchedName;
 			requestStats();
 		} else {
-			util.sendEmbedMessage('Fortnite Stats Lookup Error', 'The provided user does not have their Fortnite account linked to Scrub Daddy.', callingUserID);
+			util.sendEmbedMessage(
+				'Fortnite Stats Lookup Error',
+				'The provided user does not have their Fortnite account linked to Scrub Daddy.',
+				callingUserID
+			);
 		}
 	} else {
 		requestStats(userIDs.pop());
@@ -1012,8 +1086,10 @@ exports.sunkenSailor = function(callingMember) {
 	if (players.length < 2) { return; }
 
 	util.shuffleArray(players);
-	util.sendEmbedMessage('Sunken Sailor Round Started',
-		'Feel free to join in https://aggie.io/c_ut33ka. You must be in the voice channel to participate.');
+	util.sendEmbedMessage(
+		'Sunken Sailor Round Started',
+		`Feel free to join in https://aggie.io/${priv.aggieIoRoomId}. You must be in the voice channel to participate.`
+	);
 	var nouns = fs.readFileSync('./resources/data/nouns.json'); //585 nouns
 	nouns = JSON.parse(nouns);
 	const secretWord = nouns[util.getRand(0, 585)];
@@ -1039,7 +1115,7 @@ exports.sunkenSailor = function(callingMember) {
  * @param {Number} minReactions - minimum reactions required to include msg
  * @param {Number} sampleSize - number of messages to scan
  */
-function getRandomQuotes(channel, minLength=15, minReactions=0, sampleSize=100) {
+function getRandomQuotes(channel, minLength = 15, minReactions = 0, sampleSize = 100) {
 	channel = bot.getServer().channels.find('name', channel) || bot.getScrubsChannel();
 
 	return channel.fetchMessages({limit: sampleSize})
@@ -1078,23 +1154,24 @@ function maybeGetImageFromContent(content) {
 /**
  * Mentions a group of users with a custom message.
  *
- * @param {String} groupName - name of the group to mention
- * @param {String[]} args - arguments passed to command
- * @param {Object} message - the message command was sent in
- * @param {Object} channel - channel command was sent in
- * @param {String} userID - id of the user
+ * @param {Object} message	message that called mention group command
+ * @param {String[]} args	the arguments passed by the user
  */
-exports.mentionGroup = function(groupName, args, message, channel, userID) {
+exports.mentionGroup = function(message, args) {
+	if (args.length < 2) { return; }
+
+	const userID = message.member.id;
+	const groupName = args[1];
 	const customMessage = util.getTargetFromArgs(args, 2);
 	const { group, name } = util.getGroup(groupName);
 
 	if (!group) {
 		//If no group found and called from bot spam or scrubs channel, trigger a call to letsPlay with groupName
-		if (c.BOT_SPAM_CHANNEL_ID === channel.id || c.SCRUBS_CHANNEL_ID === channel.id) {
+		if (c.BOT_SPAM_CHANNEL_ID === message.channel.id || c.SCRUBS_CHANNEL_ID === message.channel.id) {
 			const letsPlayArgs = ['lets-play', groupName];
 			exports.letsPlay(letsPlayArgs, userID, message, false, customMessage);
 		} else { //If no group found and called from any other channel, trigger a call to mentionChannelsPowerUsers
-			util.mentionChannelsPowerUsers(channel, customMessage, userID);
+			util.mentionChannelsPowerUsers(message.channel, customMessage, userID);
 		}
 	} else if (Array.isArray(group)) { //Mention the group of users retrieved from getGroup
 		var msg = `\`@${name}\` ${customMessage}`;
@@ -1106,12 +1183,14 @@ exports.mentionGroup = function(groupName, args, message, channel, userID) {
 		const letsPlayArgs = ['lets-play', ...group.split(' ')];
 		exports.letsPlay(letsPlayArgs, userID, message, false, customMessage);
 	}
+
+	message.delete();
 };
 
 /**
  * Outputs the next user in the group. Used for determining turn.
  *
- * @param {String} groupName name of group to pick next user ffrom
+ * @param {String} groupName name of group to pick next user from
  * @param {String} userID id of calling user
  */
 exports.roundRobin = function(groupName, userID) {
@@ -1149,8 +1228,9 @@ exports.splitGroup = function(callingMember) {
  * End a game of who said.
  */
 function endWhoSaidGame() {
-	var fields =[];
-	for(var userID in whoSaidScore) {
+	var fields = [];
+
+	for (var userID in whoSaidScore) {
 		fields.push(util.buildField(util.getNick(userID), whoSaidScore[userID]));
 	}
 
@@ -1167,11 +1247,16 @@ function endWhoSaidGame() {
  */
 function startWhoSaidRound(quote, round) {
 	if (!quote.content) { return; }
-	util.sendEmbedMessage(`Who Said - Round ${round}`, `Who said "${quote.content}"?`, null, maybeGetImageFromContent(quote.content));
 
-	const filter = (m) => {
-		if (m.content === util.mentionUser(quote.author.id) || m.content === util.getNick(quote.member.id)) { return m; }
-	};
+	util.sendEmbed({
+		title: `Who Said - Round ${round}`,
+		description: `Who said "${quote.content}"?`,
+		image: maybeGetImageFromContent(quote.content)
+	});
+
+	const filter = (msg) => msg.content === util.mentionUser(quote.author.id)
+		|| msg.content === util.getNick(quote.member.id);
+
 	return bot.getBotSpam().awaitMessages(filter, { max: 1, time: 30000, errors: ['time'] });
 }
 
@@ -1191,13 +1276,17 @@ function whoSaidGameLoop(randomQuotes, round) {
     startWhoSaidRound(selectedQuote, round)
     .then((answers) => {
 		const roundWinner = answers.array()[0].member;
-		util.sendEmbedMessage(`Congrats ${util.getNick(roundWinner.id)}`,
-		`You're correct! **${util.getNick(selectedQuote.author.id)}**\nsaid that on \`${moment(selectedQuote.createdTimestamp).format(c.FULL_DATE_TIME_FORMAT)}\``);
+		const quoteCreatedTime = moment(selectedQuote.createdTimestamp).format(c.FULL_DATE_TIME_FORMAT);
+
+		util.sendEmbedMessage(
+			`Congrats ${util.getNick(roundWinner.id)}`,
+			`You're correct! **${util.getNick(selectedQuote.author.id)}**\nsaid that on \`${quoteCreatedTime}\``
+		);
 		whoSaidScore[roundWinner.id] = whoSaidScore[roundWinner.id] ? whoSaidScore[roundWinner.id] + 1 : 1;
 		whoSaidGameLoop(randomQuotes, round + 1);
 	})
     .catch(() => {
-		logger.info((`After 30 seconds, there were no responses for Who Said.`));
+		logger.info(`After 30 seconds, there were no responses for Who Said.`);
 		util.sendEmbedMessage('Reponse Timed Out', 'Nobody wins this round! 😛');
 		whoSaidGameLoop(randomQuotes, round + 1);
     });
@@ -1221,4 +1310,172 @@ exports.startWhoSaidGame = function(channel, minLength, minReactions, sampleSize
 		if (!randomQuotes || randomQuotes.length === 0) { return; }
 		whoSaidGameLoop(randomQuotes, 1);
 	});
+};
+
+/**
+ * Builds the updated ark server status.
+ *
+ * @param {Object} pinnedStatusMsg - pinned msg with server status
+ * @param {String} serverEvent - the event sent by the server
+ * @param {Boolean} isPlayerCountUpdate - whether or not the update for for player count
+ * @returns {String} the updated status
+ */
+function buildUpdatedArkServerStatus(pinnedStatusMsg, serverEvent, isPlayerCountUpdate) {
+	const status = isPlayerCountUpdate ? pinnedStatusMsg.embeds[0].description.split('⠀')[0] : serverEvent;
+	const playerCount = isPlayerCountUpdate ? Number(serverEvent) : 0;
+	const playerCountLabel = util.maybeGetPlural(playerCount, 'player').toUpperCase();
+
+	return `${status}⠀⠀| ⠀⠀${c.REACTION_NUMBERS[playerCount]}⠀**${playerCountLabel}**`;
+}
+
+/**
+ * Updates the ark server status if the message is from the server's webhookID
+ *
+ * @param {Object} message - the message to check for a status update
+ */
+exports.maybeUpdateArkServerStatus = function(message) {
+	if (message.webhookID !== c.ARK_SERVER_WEBHOOK_ID) { return; }
+
+	const serverEvent = message.content.split(' ').pop();
+	const isPlayerCountUpdate = !isNaN(serverEvent);
+	const statusColor = c.ARK_SERVER_STATUS_TO_COLOR[serverEvent];
+
+	if (isPlayerCountUpdate) {
+		message.delete();
+	} else if (!statusColor) {
+		return;
+	}
+
+	message.channel.fetchMessage(c.ARK_SERVER_STATUS_MSG_ID)
+		.then((pinnedStatusMsg) => {
+			const updatedStatus = buildUpdatedArkServerStatus(pinnedStatusMsg, serverEvent, isPlayerCountUpdate);
+			const updatedMsg = new Discord.RichEmbed({
+				color: isPlayerCountUpdate ? pinnedStatusMsg.embeds[0].color : statusColor,
+				title: pinnedStatusMsg.embeds[0].title,
+				description: updatedStatus,
+				timestamp: new Date()
+			});
+
+			pinnedStatusMsg.edit('', updatedMsg)
+				.catch((err) => {
+					logger.error(`Edit Ark Server Status Msg Error: ${err}`);
+				});
+
+			const updateTime = moment().format(c.DAY_HM_DATE_TIME_FORMAT);
+
+			message.channel.edit({ topic: `${updatedStatus} ⠀⠀ ⠀⠀@ **${updateTime}**` })
+				.catch((err) => {
+					logger.error(`Edit #ark Topic Error: ${err}`);
+				});
+			logger.info(`Ark server status updated to: ${updatedStatus}`);
+		})
+		.catch((err) => {
+			logger.error(`Fetch Ark Server Status Msg Error: ${err}`);
+		});
+};
+
+/**
+ * Pings the physical server hosting ark to determine if it is online.
+ *
+ * @returns {Boolean} whether or not the server is online
+ */
+async function isArkServerOnline() {
+	const pingOptions = process.platform.startsWith('win') ? ['-n', '2', '-w', '1500'] : ['-c', '2', '-w', '3'];
+    const pingArgs = [priv.arkServerIp, ...pingOptions];
+    const result = await spawnSync('ping', pingArgs, { encoding: 'utf-8' });
+
+    return result.stdout.includes('from');
+}
+
+/**
+ * Checks if the status of the physical server hosting ark
+ * and notifies the server admin if down.
+ */
+exports.checkArkServerStatus = async function() {
+	const isOnline = await isArkServerOnline();
+	const channel = bot.getServer().channels.find('id', c.ARK_CHANNEL_ID);
+	const isPrevStatusDown = channel.topic.startsWith('⬇️');
+
+	if (isOnline ^ isPrevStatusDown) { return; }
+
+	if (!isOnline) {
+		const reportMsg = 'the server hosting the ark VM is **down**. Please investigate.';
+
+		channel.send(`${util.mentionUser(c.ARK_SERVER_ADMIN_ID)}, ${reportMsg}`)
+			.catch(util.log);
+	}
+
+	exports.maybeUpdateArkServerStatus({
+		content: isOnline ? '⬆️' : '⬇️',
+		channel,
+		webhookID: c.ARK_SERVER_WEBHOOK_ID
+	});
+};
+
+exports.registerCommandHandlers = () => {
+  cmdHandler.registerCommandHandler('who-plays', exports.whoPlays);
+	cmdHandler.registerCommandHandler('@', exports.mentionGroup);
+	cmdHandler.registerCommandHandler('1-more', (message, args) => {
+    exports.letsPlay(args, message.member.id, message, true);
+  });
+	cmdHandler.registerCommandHandler('fortnite-leaderboard', (message, args) => {
+    if (!args[1] || !args[2]) { return; }
+
+    exports.getFortniteStats(args[1], args[2], message.member.id);
+  });
+	cmdHandler.registerCommandHandler('fortnite-stats', (message, args) => {
+    if (args[1] && args[2]) {
+      const targetStat = args[3] || 'all';
+      exports.getFortniteStats(args[2], targetStat, message.member.id, args[1]);
+    } else {
+      exports.outputFortniteHelp();
+    }
+  });
+	cmdHandler.registerCommandHandler('lets-play', (message, args) => {
+    exports.letsPlay(args, message.member.id, message);
+  });
+	cmdHandler.registerCommandHandler('opt-in', (message) => {
+    exports.optIn(message.member.id);
+    message.delete();
+  });
+	cmdHandler.registerCommandHandler('playing', (message) => {
+    exports.maybeOutputCountOfGamesBeingPlayed(message.guild.members.array(), message.member.id);
+    message.delete();
+  });
+	cmdHandler.registerCommandHandler('remove-player', (message, args) => {
+    if (!util.isAdmin(message.member.id) || !util.isMention(args[1])) { return; }
+
+    exports.removePlayer(args);
+  });
+	cmdHandler.registerCommandHandler('round-robin', (message, args) => {
+    if (!args[1]) { return; }
+
+    exports.roundRobin(args[1], message.member.id);
+  });
+	cmdHandler.registerCommandHandler('set-fortnite-name', (message, args) => {
+    if (!args[1]) { return; }
+
+    exports.setFortniteName(message.member.id, args);
+  });
+	cmdHandler.registerCommandHandler('set-stream', (message, args) => {
+    if (!args[1]) { return; }
+
+    exports.setStreamingUrl(message.member, args[1]);
+  });
+	cmdHandler.registerCommandHandler('split-group', (message) => {
+    exports.splitGroup(message.member);
+  });
+	cmdHandler.registerCommandHandler('sunken-sailor', (message) => {
+    exports.sunkenSailor(message.member);
+  });
+	cmdHandler.registerCommandHandler('time', (message, args) => {
+    exports.maybeOutputTimePlayed(args, message.member.id);
+  });
+	cmdHandler.registerCommandHandler('toggle-streaming', (message) => {
+    exports.toggleStreaming(message.member);
+  });
+	cmdHandler.registerCommandHandler('who-said', (message, args) => {
+    exports.startWhoSaidGame(args[1], args[2], args[3], args[4]);
+  });
+	cmdHandler.registerCommandHandler('ping-ark-server', exports.checkArkServerStatus);
 };

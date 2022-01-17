@@ -1,12 +1,12 @@
 var moment = require('moment');
-var get = require('lodash.get');
 var rp = require('request-promise');
 
 var c = require('../const.js');
 var util = require('../utilities/utilities.js');
 var testUtil = require('../../test/configuration/testUtil.js');
-var logger = require('../logger.js').botLogger;
+const { logger } = require('../logger.js');
 var gambling = require('./gambling.js');
+const cmdHandler = require('../handlers/cmdHandler.js');
 
 var priv = require('../../../private.json');
 var numStocksUpdated = 0;
@@ -24,26 +24,29 @@ var numStocksUpdated = 0;
 function finalizeInvestment(userEntry, stock, shares, stockPrice, cost, userID) {
     var stockInfo = userEntry.stockToInfo[stock];
 
-    if (!stockInfo) {
+    if (stockInfo) {
+        stockInfo.shares += shares;
+        stockInfo.currentPrice = stockPrice;
+    } else {
         userEntry.stockToInfo[stock] = {
             shares: shares,
             initialPrice: stockPrice,
             currentPrice: stockPrice,
             netArmyChange: 0
         };
-        logger.info('stock: ' + stock);
+        logger.info(`stock: ${stock}`);
         logger.info(JSON.stringify(userEntry.stockToInfo));
-    } else {
-        stockInfo.shares = stockInfo.shares + shares;
-        stockInfo.currentPrice = stockPrice;
     }
 
     userEntry.armySize -= cost;
-    util.sendEmbedMessage('📈 Solid Investment', `${util.mentionUser(userID)} your investment of ` +
+
+    const description = `${util.mentionUser(userID)} your investment of ` +
         `${util.formatAsBoldCodeBlock(util.comma(cost))} Scrubbing Bubbles for ${util.formatAsBoldCodeBlock(util.comma(shares))}` +
         ` shares of ${util.formatAsBoldCodeBlock(stock)} stock has been processed. ${gambling.getArmySizeMsg(userID)}\n` +
         'Your army will grow or shrink daily by `2 * ⌈stock close price - stock open price⌉ * #shares`.' +
-        ' See this calculated daily change by calling `.stocks`', userID);
+        ' See this calculated daily change by calling `.stocks`';
+
+    util.sendEmbedMessage('📈 Solid Investment', description, userID);
 }
 
 /**
@@ -80,9 +83,11 @@ function buildInvestmentArgs(shares, stock, userID) {
 }
 
 function outputUnableToAffordStockMessage(userID, cost, shares, stock) {
-    return util.sendEmbedMessage('📈 Unable to Afford Stock',
-        `${util.mentionUser(userID)} you will need ${util.formatAsBoldCodeBlock(util.comma(cost))} Scrubbing Bubbles` +
-        ` to purchase ${util.formatAsBoldCodeBlock(util.comma(shares))} shares of ${util.formatAsBoldCodeBlock(stock)} stock.`, userID);
+    const description = `${util.mentionUser(userID)} you will need ${util.formatAsBoldCodeBlock(util.comma(cost))} `
+        + `Scrubbing Bubbles to purchase ${util.formatAsBoldCodeBlock(util.comma(shares))} `
+        + `shares of ${util.formatAsBoldCodeBlock(stock)} stock.`;
+
+    return util.sendEmbedMessage('📈 Unable to Afford Stock', description, userID);
 }
 
 /**
@@ -93,14 +98,17 @@ function outputUnableToAffordStockMessage(userID, cost, shares, stock) {
  * @param {String} desiredShares number of shares desired
  * @param {Number} numBubbles number of scrubbing bubbles to invest
  */
-exports.invest = function(userID, stockName, desiredShares, numBubbles) {
+function invest(userID, stockName, desiredShares, numBubbles) {
     var { userEntry, shares, stock } = buildInvestmentArgs(desiredShares, stockName, userID);
 
     getStockUpdate(stock)
         .then((newStockInfo) => {
             if (!newStockInfo) {
-                return util.sendEmbedMessage('📈 Stock not Found',
-                    `Sorry ${util.mentionUser(userID)}, I could not find any stock matching \`${stock}\``, userID);
+                return util.sendEmbedMessage(
+                    '📈 Stock not Found',
+                    `Sorry ${util.mentionUser(userID)}, I could not find any stock matching \`${stock}\``,
+                    userID
+                );
             }
 
             const stockPrice = newStockInfo.price;
@@ -127,7 +135,7 @@ exports.invest = function(userID, stockName, desiredShares, numBubbles) {
             finalizeInvestment(userEntry, stock, shares, stockPrice, cost, userID);
             gambling.exportLedger();
         });
-};
+}
 
 /**
  * Sells shares of a stock.
@@ -136,10 +144,10 @@ exports.invest = function(userID, stockName, desiredShares, numBubbles) {
  * @param {String} stock stock being sold
  * @param {Number} shares number of shares being sold
  */
-exports.sellShares = function(userID, stock, shares) {
+function sellShares(userID, stock, shares) {
     stock = stock.toUpperCase();
 
-    const stockToInfo = get(gambling.getLedger(), `[${userID}].stockToInfo`);
+    const stockToInfo = gambling.getLedger()?.[userID]?.stockToInfo;
 
     if (!stockToInfo) { return; }
 
@@ -154,23 +162,26 @@ exports.sellShares = function(userID, stock, shares) {
 
     getStockUpdate(stock)
         .then((newStockInfo) => {
-            const price = newStockInfo.price;
+            const { price } = newStockInfo;
 
             if (!price) { return; }
 
             const payout = Math.ceil(price * shares);
+
             stockInfo.shares -= shares;
             gambling.getLedger()[userID].armySize += payout;
-            util.sendEmbedMessage('📈 Scrubble Stock Liquidated',
-                `${util.mentionUser(userID)} your ${util.formatAsBoldCodeBlock(shares)} share${util.maybeGetPlural(shares)}` +
-                ` of ${util.formatAsBoldCodeBlock(stock)} stock sold for ${util.formatAsBoldCodeBlock(payout)} Scrubbing Bubbles. ` +
-                `${gambling.getArmySizeMsg(userID)}`, userID);
+
+            const description = `${util.mentionUser(userID)} your ${util.formatAsBoldCodeBlock(shares)} share${util.maybeGetPlural(shares)}`
+                + ` of ${util.formatAsBoldCodeBlock(stock)} stock sold for ${util.formatAsBoldCodeBlock(payout)} Scrubbing Bubbles. `
+                + `${gambling.getArmySizeMsg(userID)}`;
+
+            util.sendEmbedMessage('📈 Scrubble Stock Liquidated', description, userID);
 
             if (stockInfo.shares === 0) {
                 delete stockToInfo[stock];
             }
         });
-};
+}
 
 /**
  * Creates the bot's stocks entry.
@@ -197,14 +208,15 @@ function updateUsersStockInfo(stockToInfo, stock, newStockInfo, userID) {
     const armyChange = Math.ceil(armyChangePerShare * stockInfo.shares);
 
     if (!userEntry.stats) {
-        userEntry.stats = Object.assign({}, c.NEW_LEDGER_ENTRY.stats);
-    }
+        userEntry.stats = { ...c.NEW_LEDGER_ENTRY.stats };
+    } 
 
     const oldNetArmyChangeStat = userEntry.stats.stocksNetArmyChange;
 
     userEntry.stats.stocksNetArmyChange = isNaN(oldNetArmyChangeStat) ? armyChange : oldNetArmyChangeStat + armyChange;
     userEntry.armySize += armyChange;
     stockInfo.netArmyChange += armyChange;
+    gambling.maybeUpdateRecordArmySize(userEntry);
 
     if (newStockInfo) {
         stockInfo.currentPrice = newStockInfo.price;
@@ -272,7 +284,7 @@ exports.updateStocks = function() {
     var stocks = [];
 
     for (var userID in gambling.getLedger()) {
-        const stockToInfo = gambling.getLedger()[userID].stockToInfo;
+        const { stockToInfo } = gambling.getLedger()[userID];
 
         if (!stockToInfo || Object.keys(stockToInfo).length === 0) { continue; }
 
@@ -321,17 +333,22 @@ function outputStockChanges(stockToInfo, userID) {
     const { stockChangeFields, netArmyChange } = buildStockChangeFieldsAndDetermineChange(stockToInfo);
     const { graphEmoji, footer } = buildArmyChangeFooterAndGraphEmoji(netArmyChange);
 
-    util.sendEmbedFieldsMessage(`${graphEmoji} ${stocksOwner} Scrubble Stock Changes for ${updateDate}`,
-        stockChangeFields, userID, footer);
+    util.sendEmbedFieldsMessage(
+        `${graphEmoji} ${stocksOwner} Scrubble Stock Changes for ${updateDate}`,
+        stockChangeFields,
+        userID,
+        footer
+    );
 }
 
 /**
  * Outputs the provided user's daily stock changes if they have a stock portfolio.
  *
- * @param {String} userID id of user to output stock changes for
+ * @param {Object} message the message that called the command
  */
-exports.maybeOutputUsersStockChanges = function(userID) {
-    const userStockToInfo = get(gambling.getLedger(), `[${userID}].stockToInfo`);
+function maybeOutputUsersStockChanges(message) {
+    const userID = message.member.id;
+    const userStockToInfo = gambling.getLedger()?.[userID]?.stockToInfo;
     const cachedStockToInfo = gambling.getLedger()[c.SCRUB_DADDY_ID].stocks.stockToInfo;
 
     if (!userStockToInfo || Object.keys(userStockToInfo).length === 0) {
@@ -341,15 +358,16 @@ exports.maybeOutputUsersStockChanges = function(userID) {
     var userStockToArmyChange = {};
 
     for (var stock in userStockToInfo) {
-        const armyChange = cachedStockToInfo[stock].armyChange;
-        const shares = userStockToInfo[stock].shares;
+        const { armyChange } = cachedStockToInfo[stock];
+        const { shares } = userStockToInfo[stock];
         const plural = util.maybeGetPlural(shares);
+        const stockHeader = `${stock} (${util.comma(shares)} share${plural})`;
 
-        userStockToArmyChange[`${stock} (${util.comma(shares)} share${plural})`] = { armyChange: Math.ceil(armyChange * shares) };
+        userStockToArmyChange[stockHeader] = { armyChange: Math.ceil(armyChange * shares) };
     }
 
     outputStockChanges(userStockToArmyChange, userID);
-};
+}
 
 /**
  * Builds the army change footer and graph emoji.
@@ -380,8 +398,10 @@ function buildArmyChangeFooterAndGraphEmoji(netArmyChange, totalValue, totalPric
  * @param {String} userID id of user who has no stock portfolio
  */
 function outputStockPortfolioNotFoundMsg(userID) {
-    return util.sendEmbedMessage('📈 Stock Portfolio Not Found', `${util.mentionUser(userID)} you don't have any investments.` +
-        ` Call ${util.formatAsBoldCodeBlock('.help invest')} to learn how to invest in Scrubble Stocks.`, userID);
+    const description = `${util.mentionUser(userID)} you don't have any investments.`
+        + ` Call ${util.formatAsBoldCodeBlock('.help invest')} to learn how to invest in Scrubble Stocks.`;
+
+    return util.sendEmbedMessage('📈 Stock Portfolio Not Found', description, userID);
 }
 
 /**
@@ -394,12 +414,14 @@ function buildStockChangeFieldsAndDetermineChange(stockToInfo) {
     var netArmyChange = 0;
 
     for (var stock in stockToInfo) {
-        const armyChange = stockToInfo[stock].armyChange;
+        const { armyChange } = stockToInfo[stock];
         const changeSymbol = determineChangeSymbol(armyChange);
 
         netArmyChange += armyChange;
-        changeFields.push(util.buildField(stock,
-            `${changeSymbol}${util.comma(armyChange)} ${c.SCRUBBING_BUBBLE_EMOJI}${util.maybeGetPlural(armyChange)}`));
+        changeFields.push(util.buildField(
+            stock,
+            `${changeSymbol}${util.comma(armyChange)} ${c.SCRUBBING_BUBBLE_EMOJI}${util.maybeGetPlural(armyChange)}`
+        ));
     }
 
     return { netArmyChange: netArmyChange, stockChangeFields: changeFields };
@@ -462,6 +484,7 @@ function getStockUpdate(stock) {
             logger.info(`Stocks API Response: ${result}`);
 
             const mostRecentQuote = JSON.parse(result)["Global Quote"];
+
             if (!mostRecentQuote || Object.keys(mostRecentQuote).length === 0) { return; }
 
             const stockUpdate = determineStockUpdate(mostRecentQuote);
@@ -476,11 +499,13 @@ function getStockUpdate(stock) {
 
 /**
  * Outputs the provided user's stock portfolio.
- *
- * @param {String} userID id of user to output stock portfolio of
+ * 
+ * @param {Object} message the message calling the command
+ * @param {String[]} args command arguments
  */
-exports.outputUserStockPortfolio = function(userID) {
-    const userStockToInfo = get(gambling.getLedger(), `[${userID}].stockToInfo`);
+function outputUserStockPortfolio(message, args) {
+    const userID = util.isMention(args[1]) ? util.getIdFromMention(args[1]) : message.member.id;
+    const userStockToInfo = gambling.getLedger()?.[userID]?.stockToInfo;
 
     if (!userStockToInfo || Object.keys(userStockToInfo).length === 0) {
         return outputStockPortfolioNotFoundMsg(userID);
@@ -489,9 +514,13 @@ exports.outputUserStockPortfolio = function(userID) {
     var { netArmyChange, totalValue, totalPriceDiff, output } = buildPortfolioTableBody(userStockToInfo);
     const { graphEmoji, footer } = buildArmyChangeFooterAndGraphEmoji(netArmyChange, totalValue, totalPriceDiff);
 
-    util.sendEmbedMessage(`${graphEmoji} ${util.getNick(userID)}'s Scrubble Stock Portfolio`,
-        output, userID, null, null, footer);
-};
+    util.sendEmbed({
+        title: `${graphEmoji} ${util.getNick(userID)}'s Scrubble Stock Portfolio`,
+        description: output,
+        userID,
+        footer
+    });
+}
 
 /**
  * Builds the stock portfolio ascii table body.
@@ -499,63 +528,50 @@ exports.outputUserStockPortfolio = function(userID) {
  * @param {Object} userStockToInfo map of stock user owns to info on it
  */
 function buildPortfolioTableBody(userStockToInfo) {
-    var { output, columnLengths } = buildTableHeader(['Stock', 'Shares        ', 'Init$', 'Curr$', 'Net Army Change   ']);
+    var { output, columnLengths } = util.buildTableHeader(['Stock', 'Shares        ', 'Init$', 'Curr$', 'Net Army Change   ']);
     var netArmyChange = 0;
     var totalValue = 0;
     var totalPriceDiff = 0;
 
-    Object.keys(userStockToInfo).sort().forEach((stock) => {
-        const stockInfo = userStockToInfo[stock];
-        const shares = `${stockInfo.shares}`;
-        const initialPrice = `${Math.ceil(stockInfo.initialPrice)}`;
-        const currentPrice = `${Math.ceil(stockInfo.currentPrice)}`;
-        const armyChange = `${determineChangeSymbol(stockInfo.netArmyChange)}${stockInfo.netArmyChange}`;
+    Object.keys(userStockToInfo).sort()
+        .forEach((stock) => {
+            const stockInfo = userStockToInfo[stock];
+            const shares = `${stockInfo.shares}`;
+            const initialPrice = `${Math.ceil(stockInfo.initialPrice)}`;
+            const currentPrice = `${Math.ceil(stockInfo.currentPrice)}`;
+            const armyChange = `${determineChangeSymbol(stockInfo.netArmyChange)}${stockInfo.netArmyChange}`;
 
-        netArmyChange += stockInfo.netArmyChange;
-        totalValue += shares * currentPrice;
-        totalPriceDiff += currentPrice - initialPrice;
-        output += buildColumn(stock, columnLengths[0])
-            + buildColumn(util.comma(shares), columnLengths[1])
-            + buildColumn(util.comma(initialPrice), columnLengths[2])
-            + buildColumn(util.comma(currentPrice), columnLengths[3])
-            + buildColumn(util.comma(armyChange), columnLengths[4], true);
-    });
+            netArmyChange += stockInfo.netArmyChange;
+            totalValue += shares * currentPrice;
+            totalPriceDiff += currentPrice - initialPrice;
+            output += util.buildColumn(stock, columnLengths[0])
+                + util.buildColumn(util.comma(shares), columnLengths[1])
+                + util.buildColumn(util.comma(initialPrice), columnLengths[2])
+                + util.buildColumn(util.comma(currentPrice), columnLengths[3])
+                + util.buildColumn(util.comma(armyChange), columnLengths[4], true);
+        });
 
     output += '```**';
 
     return { netArmyChange, totalValue, totalPriceDiff, output };
 }
 
-/**
- * Builds a column for an ascii table.
- *
- * @param {String} text column's text content
- * @param {Number} columnLength column length
- * @param {Boolean} isLastColumn whether or not it is the last column being built
- */
-function buildColumn(text, columnLength, isLastColumn) {
-    var padding = '';
+exports.registerCommandHandlers = () => {
+    cmdHandler.registerCommandHandler('invest', (message, args) => {
+        if (!args[1]) { return; }
 
-    if (text.length > columnLength) {
-        text = text.slice(0, columnLength);
-    } else {
-        padding = ' '.repeat(columnLength - text.length);
-    }
+        invest(message.member.id, args[1], args[2]);
+    });
+    cmdHandler.registerCommandHandler('invest-scrubbles', (message, args) => {
+        if (args.length < 3 || isNaN(args[2])) { return; }
 
+        invest(message.member.id, args[1], null, Number(args[2]));
+    });
+    cmdHandler.registerCommandHandler('portfolio', outputUserStockPortfolio);
+    cmdHandler.registerCommandHandler('sell-shares', (message, args) => {
+        if (!args[1]) { return; }
 
-    return isLastColumn ? `${text}\n` : `${text}${padding}${c.TABLE_COL_SEPARATOR}`;
-}
-
-/**
- * Builds an ascii table header.
- *
- * @param {String[]} columnHeaders column headers of the table
- */
-function buildTableHeader(columnHeaders) {
-    const header = columnHeaders.join(c.TABLE_COL_SEPARATOR);
-    const columnLengths = columnHeaders.map((currHeader) => currHeader.length);
-    const underline = columnLengths.map((length) => '═'.repeat(length)).join('═╬═');
-    const output = `**\`\`\`${header}\n${underline}\n`;
-
-    return { output, columnLengths };
-}
+        sellShares(message.member.id, args[1], args[2]);
+    });
+    cmdHandler.registerCommandHandler('stocks', maybeOutputUsersStockChanges);
+};

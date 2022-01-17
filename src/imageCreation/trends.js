@@ -5,6 +5,7 @@ var { d3, document } = new D3Node();
 var c = require('../const.js');
 var util = require('../utilities/utilities.js');
 var imgConverter = require('./imageConverter.js');
+const cmdHandler = require('../handlers/cmdHandler.js');
 
 const filePath = path.join(__dirname.replace('c:\\', ''), '../../resources/data/gameHistory.json');
 const fullSvgWidth = 1500;
@@ -24,7 +25,7 @@ function createSvgCanvas() {
             .attr('height', fullSvgHeight)
             .style('background-color', 'darkgray')
             .append('g')
-                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+                .attr('transform', `translate(${margin.left},${margin.top})`);
 }
 
 function generateGraph(userID, countKey, targetGames) {
@@ -61,7 +62,12 @@ function outputTrends(userID) {
     setTimeout(() => {
         imgConverter.writeSvgToFileAsPng(fullSvgWidth, fullSvgHeight + 30, 'darkgray', 'trend', svg)
             .then(() => {
-                util.sendEmbedMessage('Player Count Trends', null, userID, 'attachment://trend.png', null, null, null, './resources/images/trend.png');
+                util.sendEmbed({
+                    title: 'Player Count Trends',
+                    image: 'attachment://trend.png',
+                    file: './resources/images/trend.png',
+                    userID
+                });
             });
     }, 100);
 }
@@ -113,7 +119,7 @@ function padGroupWithZeroEntries(groupedByDate, countKey) {
 
                 groupedByDate.splice(idx, 0, {
                     key: zeroEntryTime.format(c.MDY_DATE_FORMAT),
-                    values: [Object.assign({ time: zeroEntryTime.toDate() }, baseZeroEntry)]
+                    values: [{ ...baseZeroEntry, time: zeroEntryTime.toDate() }]
                 });
             }
         }
@@ -184,7 +190,7 @@ function appendXAxis() {
         .style('stroke-width', 1)
         .style('shape-rendering', 'crispEdges')
         .style('font-size', '16px')
-        .attr('transform', 'translate(0,' + height + ')')
+        .attr('transform', `translate(0,${height})`)
         .call(d3.axisBottom().scale(x).ticks(7));
 }
 
@@ -195,7 +201,7 @@ function appendTitleToLegend(legend, dataNest, color, i, groupedByGame) {
         .style('font-size', `${legend.fontSize}px`)
         .style('font-weight', 'bold')
         .style('text-anchor', 'middle')
-        .style('fill', () => groupedByGame.color = color(groupedByGame.key))
+        .style('fill', () => color(groupedByGame.key))
         .text(groupedByGame.key);
 }
 
@@ -203,15 +209,20 @@ function appendLine(dataNest, color, countline) {
     svg.append('path')
         .style('stroke-width', 2)
         .style('fill', 'none')
-        .style('stroke', () => dataNest.color = color(dataNest.key))
+        .style('stroke', () => color(dataNest.key))
         .attr('d', countline(dataNest.values));
 }
 
-exports.outputGameTrendsGraph = function(args, userID) {
+function outputGameTrendsGraph(message, args) {
     const targetGames = args.length === 1 ? null : util.getTargetFromArgs(args, 1).toLowerCase().split(/(?:, |,)+/);
-    generateGraph(userID, 'count', targetGames);
-};
+    generateGraph(message.member.id, 'count', targetGames);
+}
 
-exports.ouputTotalPlayerCountGraph = function(userID) {
-    generateGraph(userID, 'playerCount');
+function ouputTotalPlayerCountGraph(message) {
+    generateGraph(message.member.id, 'playerCount');
+}
+
+exports.registerCommandHandlers = () => {
+    cmdHandler.registerCommandHandler('trends', outputGameTrendsGraph);
+    cmdHandler.registerCommandHandler('total-trends', ouputTotalPlayerCountGraph);
 };

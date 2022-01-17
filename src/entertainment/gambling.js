@@ -1,11 +1,12 @@
 var Discord = require('discord.js');
 var moment = require('moment');
-var get = require('lodash.get');
 
 var c = require('../const.js');
 var bot = require('../bot.js');
 var util = require('../utilities/utilities.js');
-var logger = require('../logger.js').botLogger;
+const { logger } = require('../logger.js');
+const cmdHandler = require('../handlers/cmdHandler.js');
+const games = require('./games.js');
 
 var ledger = require('../../resources/data/ledger.json');
 var config = require('../../resources/data/config.json');
@@ -29,11 +30,10 @@ exports.exportLedger = function() {
  * the calling user's army.
  *
  * @param {String} userID - the id of the user giving bubbles
- * @param {String} userName - the name of the user giving bubbles
  * @param {String} targetMention - a mention of the user to give bubbles to
  * @param {Number} numBubbles - the number of bubbles to give
  */
-exports.giveScrubBubbles = function (userID, userName, targetMention, numBubbles) {
+exports.giveScrubBubbles = function (userID, targetMention, numBubbles) {
     if (isNaN(numBubbles) || !util.isMention(targetMention)) { return; }
 
     numBubbles = Number(numBubbles);
@@ -46,7 +46,7 @@ exports.giveScrubBubbles = function (userID, userName, targetMention, numBubbles
         exports.removeFromArmy(userID, numBubbles);
         exports.addToArmy(targetID, numBubbles);
         const msg = `${targetMention}  ${getArmyGrownMessage(numBubbles)} ${exports.getArmySizeMsg(targetID)}`;
-        util.sendEmbedMessage(`Scrubbing Bubbles Gifted By ${userName}`, msg, userID);
+        util.sendEmbedMessage(`Scrubbing Bubbles Gifted By ${util.getNick(userID)}`, msg, userID);
     }
 };
 
@@ -58,7 +58,7 @@ exports.giveScrubBubbles = function (userID, userName, targetMention, numBubbles
  * @param {Number} numBubbles - the number of bubbles to discharge
  */
 exports.dischargeScrubBubble = function(numBubbles, userID) {
-    numBubbles = numBubbles && !isNaN(numBubbles)  ? Number(numBubbles) : 1;
+    numBubbles = numBubbles && !isNaN(numBubbles) ? Number(numBubbles) : 1;
 
     if (!Number.isInteger(numBubbles)) { return; }
 
@@ -80,7 +80,7 @@ exports.dischargeScrubBubble = function(numBubbles, userID) {
     }
 
     const title = `**${dropped} Scrubbing ${msg} arrived for duty!**`;
-    const thisMessage = util.sendEmbedMessage(null, title, userID, c.BUBBLE_IMAGES[droppedImg-1], true);
+    const thisMessage = util.sendEmbedMessage(null, title, userID, c.BUBBLE_IMAGES[droppedImg - 1], true);
 
     exports.maybeDeletePreviousMessage(thisMessage);
 };
@@ -92,11 +92,12 @@ exports.maybeDischargeScrubBubble = function() {
     if (util.isDevEnv()) { return; }
 
     var num = util.getRand(1, 11);
+
     if (num > 6) {
-        if (num !== prevDropNum) {
-            exports.dischargeScrubBubble();
+        if (num === prevDropNum) {
+          exports.dischargeScrubBubble(util.getRand(1, 61));
         } else {
-            exports.dischargeScrubBubble(util.getRand(1, 61));
+          exports.dischargeScrubBubble();
         }
 
         prevDropNum = num;
@@ -110,11 +111,13 @@ exports.maybeDischargeScrubBubble = function() {
  */
 exports.reserve = function(userID) {
     const baseTitle = 'Request for Reserve Scrubbing Bubbles';
-    const lastReserveTime = ledger[userID].lastReserveTime;
+    const { lastReserveTime } = ledger[userID];
 
     if (lastReserveTime && moment().isSame(moment(lastReserveTime), 'day')) {
-        util.sendEmbedMessage(`${baseTitle} Denied`,
-            `${util.mentionUser(userID)}, you have to wait a day to request more soldiers.`);
+        util.sendEmbedMessage(
+            `${baseTitle} Denied`,
+            `${util.mentionUser(userID)}, you have to wait a day to request more soldiers.`
+        );
     } else {
         exports.addToArmy(userID, c.DAILY_RESERVE_AMOUNT);
         const msg = `${util.mentionUser(userID)} ${util.formatAsBoldCodeBlock(c.DAILY_RESERVE_AMOUNT)} ` +
@@ -144,7 +147,13 @@ exports.removeFromArmy = function(userID, amount) {
 exports.maybeCreateLedgerEntry = function(userID) {
     if (ledger[userID]) { return; }
 
-    ledger[userID] = Object.assign({}, c.NEW_LEDGER_ENTRY);
+    ledger[userID] = { ...c.NEW_LEDGER_ENTRY};
+};
+
+exports.maybeUpdateRecordArmySize = function(userEntry) {
+    if (userEntry.armySize <= userEntry.stats.recordArmy) { return; }
+
+    userEntry.stats.recordArmy = userEntry.armySize;
 };
 
 /**
@@ -164,9 +173,7 @@ exports.addToArmy = function(userID, amount) {
 
     userEntry.stats.scrubsEnlisted += amount;
 
-    if (userEntry.armySize > userEntry.stats.recordArmy) {
-        userEntry.stats.recordArmy = userEntry.armySize;
-    }
+   exports.maybeUpdateRecordArmySize(userEntry);
 };
 
 /**
@@ -198,7 +205,7 @@ function getActiveGamblerIds() {
  * Checks for bots trying to get scrubbing bubbles at random.
  */
 exports.maybeCheckForBots = function() {
-    if (util.getRand(0, 4) !== 0) { return; }
+    // if (util.getRand(0, 4) !== 0) { return; }
 
     setTimeout(() => {
         if (dropped !== 0) { return; }
@@ -211,13 +218,16 @@ exports.maybeCheckForBots = function() {
  * Checks for bots trying to get scrubbing bubbles.
  */
 function checkForBots() {
-    const filter = (m) => m.content.startsWith('.e');
+    const filter = ({ content }) => content.startsWith('.e');
     var suspectIdToTimesCaught = {};
     var checksRun = 0;
 
     function sendFakeDropAndCheckForResponse() {
-        util.sendEmbedMessage(null, `**${util.getRand(8, 60)} Scrubbing Bubbles have arrived for duty!**`,
-            null, c.BOT_CHECK_IMG, true)
+        util.sendEmbed({
+            description: `**${util.getRand(8, 60)} Scrubbing Bubbles have arrived for duty!**`,
+            image: c.BOT_CHECK_IMG,
+            isThumbnail: true
+        })
             .then((msgSent) => {
                 setTimeout(() => {
                     msgSent.delete();
@@ -239,8 +249,12 @@ function checkForBots() {
                 if (timesCaught > 1) {
                     logger.info(`Banning ${response.author.username} for being a bot.`);
                     util.banSpammer(response.author, response.channel, 2, false, true);
-                    util.sendEmbedMessage('Hax Detected', `${util.mentionUser(responderID)} Ya banned!`,
-                        responderID, c.BANNED_IMAGES[util.getRand(0, c.BANNED_IMAGES.length)]);
+                    util.sendEmbedMessage(
+                        'Hax Detected',
+                        `${util.mentionUser(responderID)} Ya banned!`,
+                        responderID,
+                        c.BANNED_IMAGES[util.getRand(0, c.BANNED_IMAGES.length)]
+                    );
                 } else if (checksRun < 5) {
                     logger.info(`Suspected Bot ID: ${responderID}, name: ${response.author.username}`
                         + `, times caught: ${timesCaught}`);
@@ -269,28 +283,30 @@ exports.maybeEnlistForRandomUser = function(channelID, userID) {
     const onlineActiveGamblers = activeGamblerIds.filter((gamblerID) => {
         const gambler = util.getMembers().find((member) => member.id === gamblerID);
 
-        return gambler && 'online' === get(gambler, 'presence.status');
+        return gambler && 'online' === gambler?.presence?.status;
     });
 
-    exports.enlist(onlineActiveGamblers[util.getRand(0, onlineActiveGamblers.length)]);
+    enlist(onlineActiveGamblers[util.getRand(0, onlineActiveGamblers.length)]);
 };
 
 /**
  * enlists a scrubbing bubble in userID's army.
  */
-exports.enlist = function(userID, message) {
+ function enlist(userID, message) {
     if (dropped < 1) { return; }
 
     exports.addToArmy(userID, dropped);
-    const msg = `${util.mentionUser(userID)}  ${getArmyGrownMessage(dropped)} ${exports.getArmySizeMsg(userID)}`;
-    util.sendEmbedMessage(null, msg, userID);
+
+    const description = `${util.mentionUser(userID)}  ${getArmyGrownMessage(dropped)} ${exports.getArmySizeMsg(userID)}`;
+
+    util.sendEmbed({ description, userID });
     exports.maybeDeletePreviousMessage();
     dropped = 0;
 
     if (!message) { return; }
 
     message.delete();
-};
+}
 
 /**
  * Takes the user's bet from the ledger.
@@ -375,7 +391,7 @@ exports.maybeRefundUnfinishedRace = function() {
 
     if (!scrubDaddyEntry || !scrubDaddyEntry.race) { return; }
 
-    const userIdToEmoji = scrubDaddyEntry.race.userIdToEmoji;
+    const { userIdToEmoji } = scrubDaddyEntry.race;
 
     for (var userID in userIdToEmoji) {
         const bet = ledger[userID].raceBet;
@@ -466,7 +482,7 @@ function shouldReplaceMove(crabId, movingUserId, prevMovingUserId) {
 function buildRaceProgressUpdates() {
     const sideline = '━'.repeat(18);
     const lane = `${c.FINISH_LINE}${'﹒ '.repeat(11)}`;
-    const race = ledger[c.SCRUB_DADDY_ID].race;
+    const { race } = ledger[c.SCRUB_DADDY_ID];
     const userIds = Object.keys(race.userIdToEmoji);
     const numRacers = userIds.length;
     const crabId = Object.keys(race.userIdToEmoji).find((key) => race.userIdToEmoji[key] === '🦀');
@@ -552,7 +568,7 @@ function determineEmojiWinPercentage(racerEmoji) {
  * @param {Object} scrubDaddyEntry bot's race entry
  */
 function updateRacerEmojiStats(winningEmoji, scrubDaddyEntry) {
-    const racerEmojiToStats = scrubDaddyEntry.racerEmojiToStats;
+    const { racerEmojiToStats } = scrubDaddyEntry;
     const racerEmojis = c.RACER_EMOJIS.filter((emoji) => !scrubDaddyEntry.race.racerEmojis.includes(emoji));
 
     racerEmojis.forEach((racerEmoji) => {
@@ -567,7 +583,7 @@ function updateRacerEmojiStats(winningEmoji, scrubDaddyEntry) {
  */
 function endRace() {
     const scrubDaddyEntry = ledger[c.SCRUB_DADDY_ID];
-    const winner = scrubDaddyEntry.race.winner;
+    const { winner } = scrubDaddyEntry.race;
     const bet = ledger[winner.id].raceBet;
     const payoutMultiplier = winner.racerIds.length < 4 ? 2 : 2.6;
     var winnings = Math.floor(bet * payoutMultiplier);
@@ -626,8 +642,12 @@ function enterRace(userID, bet) {
 
     takeBetFromUser(userID, bet, 'race');
     scrubDaddyEntry.race.userIdToEmoji[userID] = racerEmoji;
-    util.sendEmbedMessage('New Race Competitor', `Watch out boys, ${util.mentionUser(userID)}'s ${racerEmoji}` +
-        ` has joined the race.`, userID, null, null, footer);
+    util.sendEmbed({
+        title: 'New Race Competitor',
+        description: `Watch out boys, ${util.mentionUser(userID)}'s ${racerEmoji} has joined the race.`,
+        userID,
+        footer
+    });
 }
 
 /**
@@ -656,9 +676,9 @@ exports.race = function(userID, args) {
         });
     }
 
-    const race = scrubDaddyEntry.race;
+    const { race } = scrubDaddyEntry;
 
-    if (race.ongoing || !exports.isAbleToAffordBet(userID, race.bet)|| race.userIdToEmoji[userID] || race.racerEmojis.length === 0) { return; }
+    if (race.ongoing || !exports.isAbleToAffordBet(userID, race.bet) || race.userIdToEmoji[userID] || race.racerEmojis.length === 0) { return; }
 
     enterRace(userID, race.bet);
 
@@ -674,9 +694,11 @@ exports.race = function(userID, args) {
  * @param {String} userID id of user starting the race
  */
 function maybeStartRaceAfterTimeout(race, userID) {
-    util.sendEmbedMessage('Race Starting Soon', `A race will start in 20 seconds.\n`
-        + `Call ${util.formatAsBoldCodeBlock(`${config.prefix}race`)} to enter with a bet of ${util.formatAsBoldCodeBlock(race.bet)} Scrubbing Bubbles.`);
+    const description = 'A race will start in 20 seconds.\n'
+        + `Call ${util.formatAsBoldCodeBlock(`${config.prefix}race`)} to enter `
+        + `with a bet of ${util.formatAsBoldCodeBlock(race.bet)} Scrubbing Bubbles.`;
 
+    util.sendEmbedMessage('Race Starting Soon', description);
     setTimeout(() => {
         if (Object.keys(race.userIdToEmoji).length === 1) {
             return cancelRace(race, userID);
@@ -746,7 +768,7 @@ function outputBetCleanCacelledMsg(wallet, userID) {
     const description = `${util.mentionUser(userID)}  You do not have enough` +
         ` Scrubbing Bubbles to clean the bathroom. ${msg}`;
 
-    util.sendEmbedMessage(null, description, userID);
+    util.sendEmbed({description, userID});
 
     return msg;
 }
@@ -761,7 +783,7 @@ function outputBetCleanCacelledMsg(wallet, userID) {
 exports.betClean = function(userID, bet) {
     var wallet = ledger[userID];
 
-    if (!wallet || wallet.armySize < bet ) {
+    if (!wallet || wallet.armySize < bet) {
         outputBetCleanCacelledMsg(wallet, userID);
     } else {
         finalizeBetClean(userID, bet);
@@ -787,16 +809,17 @@ exports.maybeBetClean = function(userID, args, message) {
  * @param {String} value value of the stat
  */
 function buildStatDesc(label, value) {
-    return `${label}: ${util.formatAsBoldCodeBlock(value)}\n`;
+    return `${label}: ${util.formatAsBoldCodeBlock(util.comma(value))}\n`;
 }
 
 /**
  * Builds the description of the user's gambling stats.
  *
- * @param {Object} userStats gambling stats of the user
+ * @param {Object} userEntry user's ledger entry
  */
-function buildStatsDescription(userStats) {
-    return buildStatDesc('Current Army Size', userStats.armySize) +
+function buildStatsDescription(userEntry) {
+    const userStats = userEntry.stats;
+    var description = buildStatDesc('Current Army Size', userEntry.armySize) +
         buildStatDesc('Record Army Size', userStats.recordArmy) +
         buildStatDesc('Total Scrubbles Bet', userStats.scrubsBet) +
         buildStatDesc('Total Scrubbles Won', userStats.scrubsWon) +
@@ -812,6 +835,16 @@ function buildStatsDescription(userStats) {
         buildStatDesc('Longest Loss Streak', userStats.highestLossStreak) +
         buildStatDesc('Current Win Streak', userStats.winStreak) +
         buildStatDesc('Current Loss Streak', userStats.lossStreak);
+
+    if (!isNaN(userEntry.rocksDropped)) {
+        description += buildStatDesc('Rocks Dropped', userEntry.rocksDropped);
+    }
+
+    if (!isNaN(userStats.stocksNetArmyChange)) {
+        description += buildStatDesc('Stocks Net Army Change', userStats.stocksNetArmyChange);
+    }
+
+    return description;
 }
 
 /**
@@ -829,7 +862,7 @@ function outputUserGamblingData(userID, args) {
 
     if (!userEntry) { return; }
 
-    const armySize = userEntry.armySize;
+    const { armySize } = userEntry;
     var title;
     var description = '';
 
@@ -838,21 +871,10 @@ function outputUserGamblingData(userID, args) {
             ` Scrubbing Bubble${util.maybeGetPlural(armySize)} strong!`;
     } else if (args[0] === 'worth') {
         description = `${util.mentionUser(userID)}${msg} net worth is ` +
-            `${util.formatAsBoldCodeBlock(util.comma(determineNetWorth(armySize, userEntry)))} Scrubbing Bubbles!`
+            `${util.formatAsBoldCodeBlock(util.comma(determineNetWorth(armySize, userEntry)))} Scrubbing Bubbles!`;
     } else {
-        const userStats = userEntry.stats;
-
         title = 'Gambling Stats';
-        description = `${util.mentionUser(userID)}${msg} Stats (starting from 10/31/17):\n` +
-            buildStatsDescription(description, userID, msg, userStats);
-
-        if (!isNaN(userStats.rocksDropped)) {
-            description += `\nRocks Dropped: ${util.formatAsBoldCodeBlock(userStats.rocksDropped)}`;
-        }
-
-        if (!isNaN(userStats.stocksNetArmyChange)) {
-            description += `\nStocks Net Army Change: ${util.formatAsBoldCodeBlock(userStats.stocksNetArmyChange)}`;
-        }
+        description = `${util.mentionUser(userID)}${msg} stats:\n${buildStatsDescription(userEntry)}`;
     }
 
     util.sendEmbedMessage(title, description, userID);
@@ -863,7 +885,7 @@ function outputUserGamblingData(userID, args) {
  */
 exports.worth = function(userID, args) {
     outputUserGamblingData(userID, args);
-}
+};
 
 /**
  * Outputs the user's army size.
@@ -884,12 +906,15 @@ exports.stats = function (userID, args) {
  */
 exports.armyRanks = function(userID) {
     var fields = [];
-    const scrubIDToNick = util.getScrubIdToNick();
 
     for (var id in ledger) {
         if (id === c.SCRUB_DADDY_ID) { continue; }
 
-        fields.push(util.buildField(scrubIDToNick[id], util.comma(ledger[id].armySize)));
+        const name = util.getNick(id);
+
+        if (name) {
+          fields.push(util.buildField(name, util.comma(ledger[id].armySize)));
+        }
     }
 
     fields.sort(util.compareFieldValues);
@@ -946,7 +971,7 @@ exports.redistributeWealth = function () {
     if (!wealthToDistribute || isNaN(wealthToDistribute) || wealthToDistribute < 500) { return; }
 
     const userIds = Object.keys(ledger);
-    const amountPerUser = Math.floor((wealthToDistribute / 1.1) / userIds.length - 1);
+    const amountPerUser = Math.floor((wealthToDistribute / 1.1) / (userIds.length - 1));
 
     userIds.forEach((userId) => {
         if (userId === c.AF_ID) { return; }
@@ -955,7 +980,7 @@ exports.redistributeWealth = function () {
     });
 
     ledger[c.AF_ID].armySize -= amountPerUser * (userIds.length - 1);
-    util.sendEmbedMessage(null, null, null, c.DROP_ALL_IMG);
+    util.sendEmbed({ image: c.DROP_ALL_IMG });
 };
 
 /**
@@ -965,17 +990,20 @@ exports.fakeStealAll = function() {
     if (util.isLocked()) { return; }
 
     util.lock();
+
     for (var id in ledger) {
         if (id === c.SCRUB_DADDY_ID) { continue; }
 
-        const thirdOfArmy = Math.round(ledger[id].armySize/3);
+        const thirdOfArmy = Math.round(ledger[id].armySize / 3);
+
         if (thirdOfArmy > 0) {
             ledger[id].armySize -= thirdOfArmy;
             ledger[c.AF_ID].armySize += thirdOfArmy;
             idToAmountStolen[id] = thirdOfArmy;
         }
     }
-    util.sendEmbedMessage(null, null, null, c.STEAL_IMG);
+
+    util.sendEmbed({ image: c.STEAL_IMG });
     setTimeout(() => {
         for (var userID in idToAmountStolen) {
             ledger[userID].armySize += idToAmountStolen[userID];
@@ -998,3 +1026,69 @@ function determineNetWorth(armySize, userEntry) {
 
     return netWorth;
 }
+
+exports.registerCommandHandlers = () => {
+    cmdHandler.registerCommandHandler(
+        'enlist',
+        (message) => enlist(message.member.id, message)
+    );
+    cmdHandler.registerCommandHandler(
+        'army',
+        (message, args) => exports.army(message.member.id, args)
+    );
+    cmdHandler.registerCommandHandler(
+        'clean',
+        (message, args) => exports.maybeBetClean(message.member.id, args, message)
+    );
+    cmdHandler.registerCommandHandler(
+        'discharge',
+        (message, args) => exports.dischargeScrubBubble(args[1], message.member.id)
+    );
+    cmdHandler.registerCommandHandler('export', ({ member }) => {
+        if (!util.isAdmin(member.id)) { return; }
+
+        exports.exportLedger();
+        games.exportTimeSheetAndGameHistory();
+    });
+    cmdHandler.registerCommandHandler('give', (message, args) => {
+        if (args.length !== 3) { return; }
+        exports.giveScrubBubbles(message.member.id, args[2], args[1]);
+    });
+    cmdHandler.registerCommandHandler(
+        'race',
+        (message, args) => exports.race(message.member.id, args)
+    );
+    cmdHandler.registerCommandHandler('ranks', (message) => {
+        exports.armyRanks(message.member.id);
+        message.delete();
+    });
+    cmdHandler.registerCommandHandler(
+        'reserve',
+        (message) => exports.reserve(message.member.id)
+    );
+    cmdHandler.registerCommandHandler('revive', (message, args) => {
+        if (!util.isAdmin(message.member.id)) { return; }
+
+        exports.dischargeScrubBubble(args[1]);
+    });
+    cmdHandler.registerCommandHandler(
+        'stats',
+        (message, args) => exports.stats(message.member.id, args)
+    );
+    cmdHandler.registerCommandHandler('steal', (message, args) => {
+        if (args.length !== 3 || !util.isAdmin(message.member.id)) { return; }
+
+        exports.steal(Number(args[1]), args[2], message.member.id);
+    });
+    cmdHandler.registerCommandHandler('steal-all', (message) => {
+        if (message.member.id === c.AF_ID) {
+            exports.redistributeWealth();
+        } else if (util.isAdmin(message.member.id)) {
+            exports.fakeStealAll();
+        }
+    });
+    cmdHandler.registerCommandHandler(
+        'worth',
+        (message, args) => exports.worth(message.member.id, args)
+    );
+};

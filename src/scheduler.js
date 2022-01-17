@@ -1,7 +1,6 @@
 var schedule = require('node-schedule');
 var moment = require('moment');
 var Discord = require('discord.js');
-var get = require('lodash.get');
 
 var gambling = require('./entertainment/gambling.js');
 var prizes = require('./entertainment/prizes.js');
@@ -11,11 +10,12 @@ var cars = require('./channelEnhancements/cars.js');
 var util = require('./utilities/utilities.js');
 var bot = require('./bot.js');
 var c = require('./const.js');
+const cmdHandler = require('./handlers/cmdHandler.js');
 
 var config = require('../resources/data/config.json');
 var reminders = require('../resources/data/reminders.json');
 const priv = require('../../private.json');
-var previousTip = {};
+var previousTip;
 
 /**
  * Schedules a recurring scan of voice channels.
@@ -74,7 +74,11 @@ exports.scheduleLotto = function() {
 function maybeScheduleLottoEnd() {
 	if (!config.lottoTime) { return; }
 
-	exports.scheduleLotto();
+	if (new Date(config.lottoTime) < new Date()) {
+		prizes.endLotto();
+	} else {
+		exports.scheduleLotto();
+	}
 }
 
 function activateRainbowRole() {
@@ -84,7 +88,7 @@ function activateRainbowRole() {
 function maybeUpdateStocks(updateStocksRule) {
 	if (util.isDevEnv()) {	return; }
 
-	const stockToInfo = get(gambling.getLedger(), `[${c.SCRUB_DADDY_ID}].stocks.stockToInfo`);
+	const stockToInfo = gambling.getLedger()?.[c.SCRUB_DADDY_ID]?.stocks?.stockToInfo;
 
 	if (!stockToInfo) { return; }
 
@@ -102,7 +106,7 @@ function outputTipAndUpdateInvitesAtTenAMFivePMAndElevenPM() {
 	tipAndInvitesRule.minute = 0;
 
 	schedule.scheduleJob(tipAndInvitesRule, function () {
-		if (!firstRun) {
+		if (!firstRun && previousTip) {
 			previousTip.delete();
 		}
 
@@ -131,8 +135,10 @@ function scheduleHourlyJobs() {
 	schedule.scheduleJob(hourlyJobsRule, function () {
 		util.updateMembers();
 		util.messageCatFactsSubscribers();
+		util.outputBillionaireFact();
 		prizes.maybeRemoveRainbowRoleFromUsers();
 		games.maybeOutputCountOfGamesBeingPlayed(util.getMembers(), c.SCRUB_DADDY_ID);
+		games.checkArkServerStatus();
 	});
 }
 
@@ -174,7 +180,7 @@ function maybeScheduleReviewJob() {
 	reviewRule[reviewJob.key3] = reviewJob.val3;
 	schedule.scheduleJob(reviewRule, function () {
 		bot.getBotSpam().send(c.REVIEW_ROLE);
-		util.sendEmbedMessage(null, null, null, reviewJob.img);
+		util.sendEmbed({ image: reviewJob.img });
 	});
 	reviewRule[reviewJob.key3] = reviewJob.val3 - 3;
 	schedule.scheduleJob(reviewRule, function () {
@@ -182,20 +188,32 @@ function maybeScheduleReviewJob() {
 	});
 }
 
-exports.createReminder = function(timeAmount, timeUnit, message, userID, channelID, cmdMessage) {
+/**
+ * Creates a reminder for a user.
+ *
+ * @param {Object} cmdMessage	message that called the command
+ * @param {String[]} args	the arguments passed by the user
+ */
+function createReminder(cmdMessage, args) {
+	if (args.length < 4 || isNaN(args[1])) { return; }
+
+	const timeAmount = Number(args[1]);
+	const timeUnit = args[2];
+	const reminderMsg = util.getTargetFromArgs(args, 3);
+	const userID = cmdMessage.member.id;
 	const duration = moment.duration(timeAmount, timeUnit);
-	
+
 	if (!moment.isDuration(duration) || c.INVALID_DURATION_ISO === duration.toISOString()) {
 		cmdMessage.react('❌');
-		return; 
+		return;
 	}
-	
+
 	const remindTime = moment().add(duration);
 	const reminder = {
 		time: remindTime.valueOf(),
-		message: message,
+		message: reminderMsg,
 		userID: userID,
-		channelID: channelID
+		channelID: cmdMessage.channel.id
 	};
 
 	reminders[reminders.length] = reminder;
@@ -211,10 +229,14 @@ function scheduleReminders() {
 
 function scheduleReminder(reminder, index) {
 	schedule.scheduleJob(moment(reminder.time).toDate(), () => {
-		const content = `⏰ Reminder - ${util.mentionUser(reminder.userID)}\n\`\`\`\n${reminder.message}\`\`\``;
+		const content = `⏰ Reminder - ${util.mentionUser(reminder.userID)}\n\n${reminder.message}`;
 
 		util.sendAuthoredMessage(content, c.SCRUB_DADDY_ID, reminder.channelID);
 		reminders.splice(index, 1);
 		util.exportJson(reminders, 'reminders');
 	});
 }
+
+exports.registerCommandHandlers = () => {
+	cmdHandler.registerCommandHandler('remind-me', createReminder);
+};

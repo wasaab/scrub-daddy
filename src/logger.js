@@ -1,23 +1,11 @@
 const moment = require('moment');
-const winston = require('winston');
+const path = require('path');
+const { createLogger, format, transports } = require('winston');
 const Transport = require('winston-transport');
+
+const c = require('./const.js');
+
 const isTestRun = process.argv.includes('test/**/?(**)/*.js');
-
-/**
- * Console logger.
- *
- * @param {Object[]} opts - logger options
- */
-class ConsoleTransport extends Transport {
-	constructor(opts) {
-        super(opts);
-	}
-
-	log(info, callback) {
-		console.log(info.message); //eslint-disable-line
-		callback();
-	}
-}
 
 /**
  * Discord server logger.
@@ -26,15 +14,17 @@ class ConsoleTransport extends Transport {
  */
 class DiscordServerTransport extends Transport {
 	constructor(opts) {
-        super(opts);
-        this.logChannel = opts.channel;
+		super(opts);
+
+		this.logChannel = opts.channel;
+		this.format = discordLogFormat;
 	}
 
 	log(info, callback) {
 		const msg = info.message;
 
 		if (msg.length <= 2000) {
-			this.logChannel.send(info.message);
+			this.logChannel.send(msg);
 		}
 
 		callback();
@@ -47,15 +37,37 @@ class DiscordServerTransport extends Transport {
  * @return {String} properly formatted timestamp
  */
 function getTimestamp() {
-	return moment().format('ddd h:mm A');
+	return moment().format(c.DAY_HM_DATE_TIME_FORMAT);
 }
 
-const format = winston.format((info) => {
-	info.message = `<${info.level.toUpperCase()}> ${getTimestamp()} |	${info.message}`;
+/**
+ * Formats a log message using the info provided.
+ * 
+ * @param {Object} info log info
+ */
+function formatLogMsg(info) {
+	return `<${info.level.toUpperCase()}> ${getTimestamp()} |	${info.message}`;
+}
+
+const logFormat = format.printf((info) => {
+	var formattedMessage = formatLogMsg(info);
+
+	if (info.request) {
+		formattedMessage += ` | ${info.request.method} ${info.request.path}`;
+	}
+
+	if (info.stack) {
+		formattedMessage += `\n${info.stack}`;
+	}
+
+	return formattedMessage;
+});
+const discordLogFormat = format.printf((info) => {
+	info.message = formatLogMsg(info);
+
 	return info;
 });
-
-const logger = winston.createLogger({
+exports.logger = createLogger({
 	levels: {
 		error: 0,
 		warn: 1,
@@ -63,9 +75,17 @@ const logger = winston.createLogger({
 		cmd: 3,
 		send: 4
 	},
-	format: format(),
-	transports: [ new ConsoleTransport({ level: isTestRun ? 'send' : 'cmd' }) ]
+	format: logFormat,
+	transports: [
+		new transports.Console({
+			level: isTestRun ? 'send' : 'cmd',
+		}),
+		new transports.File({
+			level: 'cmd',
+			dirname: path.resolve('..', 'bot-logs'),
+			filename: `bot-${moment().format('M[-]D[-]YY')}.log`
+		})
+	]
 });
 
-exports.botLogger = logger;
 exports.DiscordServerTransport = DiscordServerTransport;

@@ -1,6 +1,7 @@
 const { setWorldConstructor } = require("cucumber");
-const gambling = require('../../src/entertainment/gambling.js');
 const testUtil = require('../configuration/testUtil.js');
+const bot = require('../../src/bot.js');
+const gambling = require('../../src/entertainment/gambling.js');
 const c = require('../../src/const.js');
 
 class TestWorld {
@@ -11,6 +12,7 @@ class TestWorld {
         displayName: "tester1"
     };
     this.messages = [];
+    this.client = bot.getClient();
   }
 
   buildMessage(content) {

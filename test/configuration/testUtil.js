@@ -1,11 +1,10 @@
 const Discord = require('discord.js');
 const c = require('../../src/const.js');
-const logger = require('../../src/logger.js').botLogger;
+const { logger } = require('../../src/logger.js');
 
 const testRun = process.argv.includes('test/**/?(**)/*.js');
 var mockCurrentTime;
 var sentMessages = [];
-var lastMessageSent;
 var stockToMockApiResponse = {};
 
 exports.isTestRun = function() {
@@ -24,15 +23,15 @@ exports.mockServer = function(eventHandler) {
     const util = require('../../src/utilities/utilities.js');
 
     eventHandler.setChannels(createMockServer());
+	eventHandler.registerCommandHandlers();
     util.updateMembers();
 };
 
 function interceptMessage(message) {
-    lastMessageSent = message;
     sentMessages.push(message);
     logger.send(JSON.stringify(message));
 
-    return new Promise((resolve) => resolve({ delete: () => null}));
+    return new Promise((resolve) => resolve({ delete: () => null }));
 }
 
 exports.getSentMessages = function() {
@@ -40,7 +39,7 @@ exports.getSentMessages = function() {
 };
 
 exports.getLastMessageSent = function() {
-    return lastMessageSent;
+    return sentMessages[sentMessages.length - 1];
 };
 
 exports.resetStockToMockApiResp = function() {
@@ -90,7 +89,10 @@ function createMockMembers() {
 }
 
 function createMockWebhook() {
-	return new Promise((resolve) => resolve({ send: interceptMessage }));
+	return new Promise((resolve) => resolve({
+		send: interceptMessage,
+		delete: () => new Promise((resolveDel) => resolveDel())
+	}));
 }
 
 function createMockChannels() {

@@ -1,15 +1,15 @@
 var Discord = require('discord.js');
 var moment = require('moment');
-var get = require('lodash.get');
 
 var c = require('../const.js');
 var bot = require('../bot.js');
 var util = require('../utilities/utilities.js');
-var logger = require('../logger.js').botLogger;
+const { logger } = require('../logger.js');
 var scheduler = require('../scheduler.js');
 var gambling = require('./gambling.js');
 var loot = require('../../resources/data/loot.json');
 var config = require('../../resources/data/config.json');
+const cmdHandler = require('../handlers/cmdHandler.js');
 
 /**
  * Updates the lotto countdown for use in playing status.
@@ -17,7 +17,9 @@ var config = require('../../resources/data/config.json');
 exports.updateLottoCountdown = function() {
     if (!config.lottoTime || util.isDevEnv()) { return; }
 
-	bot.getClient().user.setPresence({game: {name: `lotto ${getTimeUntilLottoEnd().timeUntil}`}});
+	bot.getClient()
+        .user
+        .setPresence({ game: { name: `lotto ${getTimeUntilLottoEnd().timeUntil}` } });
 };
 
 /**
@@ -27,7 +29,7 @@ exports.updateLottoCountdown = function() {
  * @param {String} monthDay month and day to start lotto on in MM/DD format
  * @param {String} hour hour to start lotto on
  */
-exports.startLotto = function(userID, monthDay, hour) {
+function startLotto(userID, monthDay, hour) {
     if (config.lottoTime) { return; }
 
     const lottoTime = moment(`${monthDay} ${hour}`, 'MM/DD HH');
@@ -43,7 +45,7 @@ exports.startLotto = function(userID, monthDay, hour) {
     }
 
     scheduler.scheduleLotto();
-};
+}
 
 /**
  * Stops the lottery to enter Beyond role. Activated with a scrub box prize.
@@ -52,13 +54,15 @@ exports.startLotto = function(userID, monthDay, hour) {
  * @param {Number} tierNumber tier of the prize being activated
  * @param {String} cmd command called
  */
-exports.stopLotto = function (userID, tierNumber, cmd) {
+function stopLotto(userID, tierNumber, cmd) {
     delete config.lottoTime;
     util.exportJson(config, 'config');
-    util.sendEmbedMessage('Beyond Lotto Stopped',
-        `The lottery was stopped by ${util.mentionUser(userID)} with a Scrub Box prize.`);
+    util.sendEmbedMessage(
+        'Beyond Lotto Stopped',
+        `The lottery was stopped by ${util.mentionUser(userID)} with a Scrub Box prize.`
+    );
     removePrizeFromInventory(userID, cmd, tierNumber);
-};
+}
 
 /**
  * Enters a user into the beyond role lottery.
@@ -66,8 +70,8 @@ exports.stopLotto = function (userID, tierNumber, cmd) {
  * @param {String} user name of the user joining the lotto
  * @param {String} userID id of the user joining the lotto
  */
-exports.joinLotto = function(user, userID) {
-    var entries = config.lottoEntries || [];
+function joinLotto(user, userID) {
+    const entries = config.lottoEntries || [];
 
     if (entries.includes(userID)) {
         checkLotto(userID);
@@ -75,10 +79,13 @@ exports.joinLotto = function(user, userID) {
         entries.push(userID);
         config.lottoEntries = entries;
         util.exportJson(config, 'config');
-        util.sendEmbedMessage(`${user} has entered the Beyond Lotto`,
-            `There are now ${entries.length} participants.`, userID);
+        util.sendEmbedMessage(
+            `${user} has entered the Beyond Lotto`,
+            `There are now ${entries.length} participants.`,
+            userID
+        );
     }
-};
+}
 
 /**
  * Gets the time until the beyond lotto ends.
@@ -86,7 +93,10 @@ exports.joinLotto = function(user, userID) {
 function getTimeUntilLottoEnd() {
     const endMoment = moment(config.lottoTime);
 
-    return { timeUntil: endMoment.fromNow(), endDate: endMoment.format(c.FULL_DATE_TIME_FORMAT) };
+    return {
+        timeUntil: endMoment.fromNow(),
+        endDate: endMoment.format(c.FULL_DATE_TIME_FORMAT)
+    };
 }
 
 /**
@@ -96,7 +106,11 @@ function getTimeUntilLottoEnd() {
  */
 function checkLotto(userID) {
     if (!config.lottoTime) {
-        util.sendEmbedMessage('Beyond Lotto Information', 'There is no Beyond lotto currently running.', userID);
+        util.sendEmbedMessage(
+            'Beyond Lotto Information',
+            'There is no Beyond lotto currently running.',
+            userID
+        );
         return;
     }
 
@@ -109,15 +123,19 @@ function checkLotto(userID) {
 exports.endLotto = function() {
 	if (!config.lottoEntries || config.lottoEntries.length <= 1) { return; }
 
-    const {fakeWinner, winner, winnerID} = getFakeAndRealWinner();
+    const { fakeWinner, winner, winnerID } = getFakeAndRealWinner();
     const winningMsgs = [`...and ${winner} has risen from the filth to become...\nBEYOND!`,
         `Amongst the trashcans, ${winner} has been plucked from obscurity to become...\nBEYOND!`,
         `May your name once again be your own. Welcome to Beyond, ${winner}!`,
         `...and ${fakeWinner} is the winner in our hearts. However, the real winner is ${winner}!`,
         `Today the Gods of RNG have shined their light upon ${winner}!`];
-
     const winningMsg = winningMsgs[util.getRand(0, winningMsgs.length)];
-    util.sendEmbedMessage('The Beyond Lotto Has Concluded', winningMsg, null, c.BEYOND_LOTTO_IMG);
+
+    util.sendEmbed({
+        title: 'The Beyond Lotto Has Concluded',
+        description: winningMsg,
+        image: c.BEYOND_LOTTO_IMG
+    });
     logger.info(`Beyond lotto winner = ${winner}`);
 
     const server = bot.getServer();
@@ -126,6 +144,7 @@ exports.endLotto = function() {
 
     delete config.lottoTime;
     delete config.lottoEntries;
+    util.exportJson(config, 'config');
 };
 
 /**
@@ -143,8 +162,10 @@ function outputLottoInfo(userID, isStartMsg) {
         entries += `${util.getNick(userId)}\n`;
     });
 
-    util.sendEmbedMessage(`Beyond Lotto ${title}`, `The lotto will end ${util.formatAsBoldCodeBlock(timeUntil)} on ${endDate} EST\n\n` +
-        `**The following ${config.lottoEntries.length} users have entered:**\n${entries}`, userID);
+    const description = `The lotto will end ${util.formatAsBoldCodeBlock(timeUntil)} on ${endDate} EST\n\n` +
+        `**The following ${config.lottoEntries.length} users have entered:**\n${entries}`;
+
+    util.sendEmbedMessage(`Beyond Lotto ${title}`, description, userID);
 }
 
 /**
@@ -167,37 +188,107 @@ function getFakeAndRealWinner() {
 }
 
 /**
- * Opens a scrub box.
+ * Generates and opens a scrub box.
  *
  * @param {String} userID id of the calling user
  * @param {Number} tierNumber tier of the box to open
  */
-exports.scrubBox = function(userID, tierNumber) {
-    if (!Number.isInteger(tierNumber) || tierNumber > 3 || tierNumber < 1) { return; }
+function scrubBox(userID, tierNumber, numBoxes = 1) {
+    if (util.isIntegerInBounds(tierNumber, 1, c.PRIZE_TIERS.length) || !Number.isInteger(Number(numBoxes))) { return; }
 
-    const cost = c.TIER_COST[tierNumber - 1];
+    const cost = c.TIER_COST[tierNumber - 1] * numBoxes;
 
     if (!gambling.getLedger()[userID] || gambling.getLedger()[userID].armySize < cost) {
-        return util.sendEmbedMessage('Insufficient Funds',
-            `${util.mentionUser(userID)} You are too poor to afford a tier ${tierNumber} Scrub Box.`, userID);
+        const description = `${util.mentionUser(userID)} You are too poor to afford ${numBoxes > 1 ? numBoxes : 'a'} `
+            + `tier ${tierNumber} Scrub ${util.maybeGetPlural(numBoxes, 'Box')}.`;
+
+        return util.sendEmbedMessage('Insufficient Funds', description, userID);
     }
+
     gambling.removeFromArmy(userID, cost);
 
-    var { title, prizeDescription, extraInfo } = addRandomPrizeAndGetInfo(tierNumber, userID);
+    var { title, prizeDescMsg, armySizeMsg } = addAllPrizesAndGetInfo(numBoxes, tierNumber, userID);
 
-	util.sendEmbedMessage(title, null, userID, 'https://i.imgur.com/mKwsQGi.gif')
-	.then((msgSent) => {
-		const updatedMsg = new Discord.RichEmbed({
-			color: 0xffff00,
-			title: title,
-			description: `${util.mentionUser(userID)}, the Scrubbing Bubble gods have blessed you with:` +
-				`\n\n${prizeDescription}\n\n${extraInfo}.`
-		});
-		setTimeout(() => {
-			msgSent.edit('', updatedMsg);
-		}, 6200);
-	});
-};
+    openScrubBox(title, prizeDescMsg, armySizeMsg, userID);
+}
+
+/**
+ * Adds the provided number of scrub box prizes to the users inventory
+ * and gets the prize info.
+ *
+ * @param {Number} numBoxes number of boxes to open
+ * @param {Number} tierNumber tier of the box to open
+ * @param {String} userID id of the calling user
+ */
+function addAllPrizesAndGetInfo(numBoxes, tierNumber, userID) {
+    const prizeToInfo = populatePrizeToInfo(numBoxes, tierNumber, userID);
+
+    const prizes = Object.keys(prizeToInfo);
+    var prizeDescMsg = '';
+    var armySizeMsg = '';
+    var title = numBoxes > 1 ? `${numBoxes} ` : '';
+
+    title += `Scrubbing Bubble Loot ${util.maybeGetPlural(numBoxes, 'Box')} - Tier ${tierNumber}`;
+    prizes.sort((a, b) => prizeToInfo[b].count - prizeToInfo[a].count);
+    prizes.forEach((prize, i) => {
+        const prizeInfo = prizeToInfo[prize];
+        const multiplier = prizeInfo.count > 1 ? `${prizeInfo.count}× ` : '';
+
+        prizeDescMsg += prizes.length > 1 ? `**${i + 1}.**  ${multiplier}${prizeInfo.desc}\n\n` : `${prizeInfo.desc}\n\n`;
+
+        if (prizeInfo.extraInfo.startsWith('Call `.help ')) {
+            prizeDescMsg += `${' '.repeat(6)}${prizeInfo.extraInfo}.\n\n`;
+        } else {
+            armySizeMsg = prizeInfo.extraInfo;
+        }
+    });
+
+    return { title, prizeDescMsg, armySizeMsg };
+}
+
+function populatePrizeToInfo(numBoxes, tierNumber, userID) {
+    const prizeToInfo = {};
+
+    for (let i = 0; i < numBoxes; i++) {
+        const { prize, prizeDescription, extraInfo } = addRandomPrizeAndGetInfo(tierNumber, userID);
+
+        if (prizeToInfo[prize]) {
+            prizeToInfo[prize].count++;
+            prizeToInfo[prize].extraInfo = extraInfo;
+        } else {
+            prizeToInfo[prize] = {
+                desc: prizeDescription,
+                extraInfo: extraInfo,
+                count: 1
+            };
+        }
+    }
+
+    return prizeToInfo;
+}
+
+/**
+ * Opens a scrub box.
+ *
+ * @param {String} title title of the prize message
+ * @param {String} prizeDescription description of the prize
+ * @param {String} armySizeMsg updated army size message
+ * @param {String} userID id of the calling user
+ */
+function openScrubBox(title, prizeDescription, armySizeMsg, userID) {
+    util.sendEmbed({title, userID, image: 'https://i.imgur.com/mKwsQGi.gif'})
+        .then((msgSent) => {
+            const updatedMsg = new Discord.RichEmbed({
+                color: 0xffff00,
+                title: title,
+                description: `${util.mentionUser(userID)}, the Scrubbing Bubble gods have blessed you with:` +
+                    `\n\n${prizeDescription}${armySizeMsg}`
+            });
+            setTimeout(() => {
+                msgSent.edit('', updatedMsg);
+            }, 6200);
+        });
+}
 
 /**
  * Adds a random prize to the user's inventory and gets the info.
@@ -210,7 +301,6 @@ function addRandomPrizeAndGetInfo(tierNumber, userID) {
     const prizes = Object.keys(prizesInTier);
     const prize = prizes[util.getRand(0, prizes.length)];
     const prizeDescription = c.PRIZE_TO_DESCRIPTION[prize].replace('``', `\`${prizesInTier[prize]}\``);
-    const title = `Scrubbing Bubble Loot Box - Tier ${tierNumber}`;
     var extraInfo = `Call \`.help ${prize}\` for usage info`;
 
     if (prize.endsWith('bubbles')) {
@@ -220,7 +310,7 @@ function addRandomPrizeAndGetInfo(tierNumber, userID) {
         addPrizeToInventory(userID, prize, tierNumber);
     }
 
-    return { title, prizeDescription, extraInfo };
+    return { prize, prizeDescription, extraInfo };
 }
 
 /**
@@ -232,23 +322,26 @@ function addRandomPrizeAndGetInfo(tierNumber, userID) {
  */
 function addPrizeToInventory(userID, prize, tierNumber) {
     if (!gambling.getLedger()[userID]) {
-        gambling.getLedger()[userID] = Object.assign({}, c.NEW_LEDGER_ENTRY);
+        gambling.getLedger()[userID] = { ...c.NEW_LEDGER_ENTRY };
     }
     if (!gambling.getLedger()[userID].inventory) {
         gambling.getLedger()[userID].inventory = {};
     }
-    if (!gambling.getLedger()[userID].inventory[tierNumber]) {
-        gambling.getLedger()[userID].inventory[tierNumber] = {};
+
+    const { inventory } = gambling.getLedger()[userID];
+
+    if (!inventory[tierNumber]) {
+        inventory[tierNumber] = {};
     }
 
-    if (!gambling.getLedger()[userID].inventory[tierNumber][prize]) {
-        gambling.getLedger()[userID].inventory[tierNumber][prize] = 1;
+    if (inventory[tierNumber][prize]) {
+        inventory[tierNumber][prize]++;
     } else {
-        gambling.getLedger()[userID].inventory[tierNumber][prize]++;
+        inventory[tierNumber][prize] = 1;
     }
 
     if (prize === 'add-emoji' && tierNumber === 3) {
-        gambling.getLedger()[userID].inventory[tierNumber][prize] += 2;
+        inventory[tierNumber][prize] += 2;
     }
 }
 
@@ -278,22 +371,25 @@ function removePrizeFromInventory(userID, prize, tierNumber) {
  *
  * @param {String} userID id of the user to output inventory for
  */
-exports.outputInventory = function(userID) {
-    if (!gambling.getLedger()[userID] || !gambling.getLedger()[userID].inventory) {
-        return util.sendEmbedMessage('No Inventory', `${util.mentionUser(userID)}, all you have is a rock.`, userID);
+function outputInventory(userID) {
+    if (!gambling.getLedger()[userID]?.inventory) {
+        return util.sendEmbedMessage(
+            'No Inventory',
+            `${util.mentionUser(userID)}, all you have is a rock.`,
+            userID
+        );
     }
 
-    const inventory = gambling.getLedger()[userID].inventory;
+    const { inventory } = gambling.getLedger()[userID];
     var fields = [];
     var results = [];
 
-    for (var tier in inventory) {
+    for (let tier = 1; tier <= c.PRIZE_TIERS.length; tier++) {
         var tierFields = [];
+
         for (var action in inventory[tier]) {
             tierFields.push(util.buildField(action, inventory[tier][action]));
         }
-
-        if (tierFields.length < 1) { continue; }
 
         fields = fields.concat(tierFields);
         results.push({
@@ -311,7 +407,7 @@ exports.outputInventory = function(userID) {
     };
 
     util.sendDynamicMessage(userID, 'tier', results, homePage);
-};
+}
 
 /**
  * Gets the count of the prize in a user's inventory for a given tier.
@@ -321,7 +417,7 @@ exports.outputInventory = function(userID) {
  * @param {Number} tierNumber tier of the prize
  */
 function getPrizeCount(userID, prize, tierNumber) {
-    return get(gambling.getLedger(), `[${userID}].inventory[${tierNumber}][${prize}]`) || 0;
+    return gambling.getLedger()?.[userID]?.inventory?.[tierNumber]?.[prize] ?? 0;
 }
 
 /**
@@ -331,24 +427,29 @@ function getPrizeCount(userID, prize, tierNumber) {
  * @param {String} prize name of the prize
  * @param {Number} tierNumber tier of the prize
  */
-exports.hasPrize = function(userID, prize, tierNumber) {
+function hasPrize(userID, prize, tierNumber) {
     if (isNaN(tierNumber)) { return false; }
 
     if (0 === getPrizeCount(userID, prize, tierNumber)) {
-        util.sendEmbedMessage('Prize not in inventory', `To gain access to the \`${prize}\`` +
-            ' command, win it in a Scrub Box.', userID);
+        util.sendEmbedMessage(
+            'Prize not in inventory',
+            `To gain access to the \`${prize}\` command, win it in a Scrub Box.`,
+            userID
+        );
+
         return false;
     }
 
     return true;
-};
+}
 
 /**
  * Resets names if unlock time is reached or the user has attempted
  * to manually rename themself while locked.
  */
 exports.maybeResetNames = function() {
-    const lockedIdToLockInfo = loot.lockedIdToLockInfo;
+    const { lockedIdToLockInfo } = loot;
+
     if (lockedIdToLockInfo === {}) { return; }
 
     const server = bot.getServer();
@@ -427,22 +528,23 @@ function updateRenamedList() {
  *
  * @param {String} type target type (user, role, channel, or hank)
  * @param {String} targetID id of the target
- * @param {String[]} args args passed to the command
+ * @param {String} newName new name to use for target
  * @param {Number} tierNumber tier of the prize
  * @param {String} userID id of the calling user
  * @param {String} cmd command called
  * @param {Object[]} mentions mentions in the message
  */
-exports.renameUserRoleOrChannel = function(type, targetID, args, tierNumber, userID, cmd, mentions) {
-    const name = util.getTargetFromArgs(args, 3);
+function renameUserRoleOrChannel(type, targetID, newName, tierNumber, userID, cmd, mentions) {
     var lockInfo = loot.lockedIdToLockInfo[targetID];
 
     if (lockInfo) {
         const unlockTime = moment(lockInfo.unlockTime);
 
         if (moment().isBefore(unlockTime)) {
-            return util.sendEmbedMessage('Target Locked', 'You may not rename the target until' +
-                ` \`${unlockTime.format(c.MDY_HM_DATE_TIME_FORMAT)}\``);
+            return util.sendEmbedMessage(
+                'Target Locked',
+                `You may not rename the target until \`${unlockTime.format(c.MDY_HM_DATE_TIME_FORMAT)}\``
+            );
         }
     }
 
@@ -452,26 +554,67 @@ exports.renameUserRoleOrChannel = function(type, targetID, args, tierNumber, use
     const target = mentions.id ? mentions : mentions[`${group}s`].values().next().value;
     const oldName = target.displayName || target.name;
 
-    maybeRename(type, target, name)
+    maybeRename(type, target, newName)
         .then(() => {
             const { endTime, formattedEndTime } = getPrizeEndTime(tierNumber, `rename-${type}`);
 
             loot.lockedIdToLockInfo[targetID] = {
                 unlockTime: endTime.valueOf(),
                 oldName: oldName,
-                newName: name,
+                newName: newName,
                 type: group,
             };
             removePrizeFromInventory(userID, cmd, tierNumber);
             util.exportJson(loot, 'loot');
-            util.sendEmbedMessage(`${formattedType} Renamed`,
-                `Thou shalt be called ${util[`mention${mentionType}`](targetID)} until \`${formattedEndTime}\``, userID);
+            util.sendEmbedMessage(
+                `${formattedType} Renamed`,
+                `Thou shalt be called ${util[`mention${mentionType}`](targetID)} until \`${formattedEndTime}\``,
+                userID
+            );
             updateRenamedList();
         })
         .catch((err) => {
             logger.error(`Edit Name Error: ${err}`);
         });
-};
+}
+
+/**
+ * Renames the provided user, role, or channel.
+ *
+ * @param {Object} message	message that called the rename command
+ * @param {String[]} args	the arguments passed by the user
+ */
+function rename(message, args) {
+    const [ cmd, tier, targetMention ] = args;
+    const mentionType = cmd.split('-')[1];
+    const tierNumber = Number(tier);
+    const userID = message.member.id;
+    const newName = util.getTargetFromArgs(args, 3);
+
+    if (!hasPrize(userID, cmd, tierNumber)) { return; }
+
+    if ('hank' === mentionType) {
+        renameUserRoleOrChannel(
+            mentionType,
+            c.H_ID,
+            'hang',
+            tierNumber,
+            userID,
+            cmd,
+            message.guild.members.find('id', c.H_ID)
+        );
+    } else if (newName && util.isMention(targetMention, c.MENTION_TYPE[mentionType])){
+        renameUserRoleOrChannel(
+            mentionType,
+            util.getIdFromMention(targetMention),
+            newName,
+            tierNumber,
+            userID,
+            cmd,
+            message.mentions
+        );
+    }
+}
 
 /**
  * Adds a user provided emoji to the server.
@@ -482,7 +625,7 @@ exports.renameUserRoleOrChannel = function(type, targetID, args, tierNumber, use
  * @param {String} userID id of the calling user
  * @param {String} cmd command called
  */
-exports.addEmoji = function(message, name, tierNumber, userID, cmd) {
+function addEmoji(message, name, tierNumber, userID, cmd) {
     if (message.attachments.length === 0) { return; }
 
     const attachment = message.attachments.array()[0];
@@ -492,8 +635,38 @@ exports.addEmoji = function(message, name, tierNumber, userID, cmd) {
         .then((emoji) => {
             removePrizeFromInventory(userID, cmd, tierNumber);
             util.sendEmbedMessage('Emoji Added', `${new Array(9).fill(emoji).join('')}`);
+        })
+        .catch((err) => {
+            const fileIssueMsgMatches = err.message.match(/File.*\./);
+            var fileIssueMsg = fileIssueMsgMatches ? fileIssueMsgMatches[0] : 'The image format may not be supported.';
+            const fileSize = util.formatAsBoldCodeBlock(`${(attachment.filesize / 1024).toFixed(2)} kb`);
+
+            fileIssueMsg = maybeFormatFileIssueMsgForSize(fileIssueMsg);
+            logger.error(`Unable to add ${fileSize} kb emoji.`, err);
+            util.sendEmbedMessage(
+                'Unable to Add Emoji',
+                `${fileIssueMsg}\nFile size: ${fileSize}`
+            );
         });
-};
+}
+
+/**
+ * Formats file issue message for max file size exceeded.
+ *
+ * @param {string} fileIssueMsg message to format
+ * @returns {string} the formatted message
+ */
+function maybeFormatFileIssueMsgForSize(fileIssueMsg) {
+    const maxFileSizeMatches = fileIssueMsg.match(/[0-9]{3,5}\.?[0-9]{0,2} [A-z]{2}/);
+
+    if (maxFileSizeMatches) {
+        const [ maxFileSize ] = maxFileSizeMatches;
+
+        fileIssueMsg = fileIssueMsg.replace(maxFileSize, util.formatAsBoldCodeBlock(maxFileSize));
+    }
+
+    return fileIssueMsg;
+}
 
 /**
  * Gets the end time of a prize.
@@ -533,7 +706,7 @@ function maybeRename(type, target, name) {
  * Removes rainbow role if time has expired on the prize.
  */
 exports.maybeRemoveRainbowRoleFromUsers = function() {
-    const rainbowRoleMemberIdToEndTime = loot.rainbowRoleMemberIdToEndTime;
+    const { rainbowRoleMemberIdToEndTime } = loot;
     const rainbowRole = bot.getServer().roles.find('name', 'rainbow');
     const rainbowRoleMembers = rainbowRole.members.array();
 
@@ -551,7 +724,7 @@ exports.maybeRemoveRainbowRoleFromUsers = function() {
 
     if (0 !== rainbowRole.members.array().length) { return; }
 
-    logger.info('No users with rainbow role. Clearing color update interval.')
+    logger.info('No users with rainbow role. Clearing color update interval.');
     util.clearRainbowRoleUpdateInterval();
 };
 
@@ -563,11 +736,13 @@ exports.maybeRemoveRainbowRoleFromUsers = function() {
  * @param {Number} tierNumber tier of the prize
  * @param {String} cmd command called
  */
-exports.addRainbowRole = function(userID, targetUser, tierNumber, cmd) {
+function addRainbowRole(userID, targetUser, tierNumber, cmd) {
     const server = bot.getServer();
     var rainbowRole = server.roles.find('name', 'rainbow');
 
-	if (!rainbowRole) {
+	if (rainbowRole) {
+        targetUser.addRole(rainbowRole).then(util.updateRainbowRoleColor);
+    } else {
 		server.createRole({
 			name: 'rainbow',
 			position: server.roles.array().length - 4
@@ -575,8 +750,6 @@ exports.addRainbowRole = function(userID, targetUser, tierNumber, cmd) {
 		.then((role) => {
 			targetUser.addRole(role).then(util.updateRainbowRoleColor);
 		});
-	} else {
-        targetUser.addRole(rainbowRole).then(util.updateRainbowRoleColor);
     }
 
     if (!loot.rainbowRoleMemberIdToEndTime) {
@@ -584,14 +757,15 @@ exports.addRainbowRole = function(userID, targetUser, tierNumber, cmd) {
     }
 
     const { endTime, formattedEndTime } = getPrizeEndTime(tierNumber, cmd);
+    const description = `${util.mentionUser(userID)} Your role's color will `
+        + `change until ${util.formatAsBoldCodeBlock(formattedEndTime)}!`;
 
     loot.rainbowRoleMemberIdToEndTime[userID] = endTime.valueOf();
     removePrizeFromInventory(userID, cmd, tierNumber);
     logger.info(`Rainbow role active for ${util.getNick(userID)} until ${formattedEndTime}`);
-    util.sendEmbedMessage(`🌈 Rainbow Role Activated`, `${util.mentionUser(userID)} Your role's color` +
-        ` will change until ${util.formatAsBoldCodeBlock(formattedEndTime)}!`, userID);
+    util.sendEmbedMessage(`🌈 Rainbow Role Activated`, description, userID);
     util.exportJson(loot, 'loot');
-};
+}
 
 /**
  * Updates the magic word count in the channel's topic.
@@ -601,18 +775,19 @@ exports.addRainbowRole = function(userID, targetUser, tierNumber, cmd) {
 function updateChannelTopicWithMagicWordCount(channelID) {
     const magicWords = loot.magicWords[channelID];
     const magicWordCount = magicWords ? Object.keys(magicWords).length : 0;
-    const magicWordRegex = new RegExp(/^(:sparkles:|✨) [0-9]+ Magic Words (:sparkles:|✨) /);
+    const magicWordRegex = new RegExp(/^(:sparkles:|✨) [0-9]+ Magic Word(s)? (:sparkles:|✨) /);
     const channel = bot.getServer().channels.find('id', channelID);
     const oldTopic = channel.topic;
-    var topic;
+    var topic = oldTopic.replace(magicWordRegex, '');
 
-    if (magicWordCount === 0) {
-        topic = oldTopic.replace(magicWordRegex, '');
-    } else {
-        topic = magicWordRegex.test(oldTopic) ? oldTopic.replace(/[0-9]+/, magicWordCount) : `✨ ${magicWordCount} Magic Words ✨ ${oldTopic}`;
+    if (magicWordCount !== 0) {
+        topic = `✨ ${magicWordCount} Magic Word${util.maybeGetPlural(magicWordCount)} ✨ ${topic}`;
     }
 
     channel.setTopic(topic)
+        .then((updatedChannel) => {
+            logger.info(`${util.mentionChannel(updatedChannel.id)}'s topic set to: ${updatedChannel.topic}`);
+        })
         .catch((err) => {
             logger.error(`Edit Channel Topic for Magic Word Error: ${err}`);
         });
@@ -626,7 +801,12 @@ function updateChannelTopicWithMagicWordCount(channelID) {
 exports.checkForMagicWords = function(message) {
     const channelID = message.channel.id;
     var magicWordsToEndTime = loot.magicWords[channelID];
+
     if (!magicWordsToEndTime || message.author.bot) { return; }
+
+    removeExpiredMagicWords(channelID);
+
+    if (!loot.magicWords[channelID]) { return; }
 
     const magicWordsPattern = `\\b(${Object.keys(magicWordsToEndTime).join("|")})\\b`;
     const magicWordsRegex = new RegExp(magicWordsPattern, 'gi');
@@ -634,18 +814,8 @@ exports.checkForMagicWords = function(message) {
 
     if (!magicWordMatches) { return; }
 
-    var banDays = magicWordMatches.length;
-    magicWordMatches.forEach((magicWord) => {
-        if (moment().isBefore(moment(magicWordsToEndTime[magicWord]))) { return; }
 
-        if (Object.keys(magicWordsToEndTime).length === 1) {
-            delete loot.magicWords[channelID];
-        } else {
-            delete magicWordsToEndTime[magicWord];
-        }
-
-        banDays--;
-    });
+    const banDays = magicWordMatches.length;
 
     util.exportJson(loot, 'loot');
     updateChannelTopicWithMagicWordCount(channelID);
@@ -657,6 +827,20 @@ exports.checkForMagicWords = function(message) {
     util.banSpammer(message.author, message.channel, banDays, true);
 };
 
+function removeExpiredMagicWords(channelID) {
+    const magicWordsToEndTime = loot.magicWords[channelID];
+
+    Object.keys(magicWordsToEndTime).forEach((magicWord) => {
+        if (moment().isBefore(moment(magicWordsToEndTime[magicWord]))) { return; }
+
+        if (Object.keys(magicWordsToEndTime).length === 1) {
+            delete loot.magicWords[channelID];
+        } else {
+            delete magicWordsToEndTime[magicWord];
+        }
+    });
+}
+
 /**
  * Adds a magic word, that when typed by a user will temporarily ban them from the channel.
  *
@@ -666,13 +850,15 @@ exports.checkForMagicWords = function(message) {
  * @param {String} userID id of the calling user
  * @param {String} cmd command called
  */
-exports.addMagicWord = function(word, tierNumber, channelID, userID, cmd) {
+function addMagicWord(word, tierNumber, channelID, userID, cmd) {
     const minLength = tierNumber + 2;
 
     // word must meet min length req for tier
     if (word.length < minLength) {
-        return util.sendEmbedMessage('Insufficient Word Length',
-            `Word must be at least ${minLength} letters for tier ${tierNumber}.`);
+        return util.sendEmbedMessage(
+            'Insufficient Word Length',
+            `Word must be at least ${minLength} letters for tier ${tierNumber}.`
+        );
     }
 
     if (!loot.magicWords[channelID]) {
@@ -683,58 +869,191 @@ exports.addMagicWord = function(word, tierNumber, channelID, userID, cmd) {
     const magicWordEndTime = moment().add(banDays, 'days');
 
     loot.magicWords[channelID][word] = magicWordEndTime.valueOf();
+    removeExpiredMagicWords(channelID);
     updateChannelTopicWithMagicWordCount(channelID);
 
-    const magicWordCount = Object.keys(magicWordEndTime).length;
-    const totalWordsMsg = magicWordEndTime ? `. There are now ${magicWordCount} magic words for this channel.` : '';
-    const endTimeMsg = `magic word is in effect until \`${magicWordEndTime.format(c.MDY_HM_DATE_TIME_FORMAT)}\``;
+    const magicWordCount = Object.keys(loot.magicWords[channelID]).length;
+    const totalWordsMsg = magicWordCount > 1 ? `. There are now ${magicWordCount} magic words for this channel.` : '';
+    const endTimeMsg = `new magic word is in effect until \`${magicWordEndTime.format(c.MDY_HM_DATE_TIME_FORMAT)}\``;
 
-    util.sendEmbedMessage('Magic Word Set', `A new ${endTimeMsg}${totalWordsMsg}`, userID, null, null, null, channelID);
-    util.getMembers().find('id', userID).createDM()
+    util.sendEmbedMessageToChannel(
+        'Magic Word Set',
+        `A ${endTimeMsg}${totalWordsMsg}`,
+        channelID,
+        userID,
+    );
+    util.getMembers()
+        .find('id', userID)
+        .createDM()
         .then((dm) => {
             dm.send(`When a user types \`${word}\` in ${util.mentionChannel(channelID)}, `
             + `they will receive a one day ban. The ${endTimeMsg}`);
         });
     removePrizeFromInventory(userID, cmd, tierNumber);
     util.exportJson(loot, 'loot');
-};
+}
 
 /**
  * Drops a rock image in chat.
  *
  * @param {String} userID id of the calling user
  */
-exports.rock = function(userID) {
-    util.sendEmbedMessage(null, null, userID, c.ROCK_IMG);
+function rock(userID) {
+    util.sendEmbed({ userID, image: c.ROCK_IMG });
     gambling.maybeCreateLedgerEntry(userID);
 
     const userEntry = gambling.getLedger()[userID];
 
     userEntry.rocksDropped = userEntry.rocksDropped ? userEntry.rocksDropped + 1 : 1;
-};
+}
 
 //Todo: use this for annoy
 /**
- * Has a chance of joining a random channel and playing a soundbyte.
+ * Has a chance of joining a random channel and playing a soundbite.
  */
-exports.maybeJoinRandomChannelAndPlaySoundbyte = function() {
+exports.maybeJoinRandomChannelAndPlaySoundbite = function() {
 	if (util.getRand(1, 21) > 13) {
-		const soundByteChoices = ['tryagainlater', 'cmdnotrecognized', 'repeatthat', 'betconfirmed'];
+		const soundBiteChoices = ['tryagainlater', 'cmdnotrecognized', 'repeatthat', 'betconfirmed'];
 		const voiceChannels = bot.getServer().channels.filterArray(
 			(channel) => channel.type === 'voice' && channel.members.size !== 0);
 		const chosenChannel = voiceChannels[util.getRand(0, voiceChannels.length)];
-		const chosenSoundByte = soundByteChoices[util.getRand(0, soundByteChoices.length)];
+		const chosenSoundBite = soundBiteChoices[util.getRand(0, soundBiteChoices.length)];
 		const chosenUserID = chosenChannel.members.first().id;
 
-		if (chosenSoundByte === 'betconfimed') {
+		if (chosenSoundBite === 'betconfimed') {
 			gambling.betClean(chosenUserID, util.getRand(1, 11));
         }
 
         chosenChannel.join()
             .then((connection) => {
                 setTimeout(() => {
-                    util.playSoundByte(chosenChannel, chosenSoundByte, chosenUserID, connection);
+                    // util.playSoundBite(chosenChannel, chosenSoundBite, chosenUserID, connection); //Todo: Update this call to use proper args for new code
                 }, util.getRand(2000, 9000));
             });
 	}
+};
+
+//Todo: Use this for a prize or standalone cmd and move to another file like entertainmentAndInfoUtil
+//Todo: Schedule a job at join time and at startup to remove ,,, role from users after endTime
+exports.joinBillionairesClub = function(userID, tierNumber) {
+    const { endTime, formattedEndTime } = getPrizeEndTime(tierNumber, 'billionaires-club');
+
+    loot.billionaireIdToEndTime[userID] = endTime.valueOf();
+    //Todo: send msg with formatted end time
+    util.exportJson(loot, 'loot');
+};
+
+/**
+ * Builds the prize tier ascii table body.
+ *
+ * @param {String} userID id of the calling user
+ */
+function outputPrizeTiersTable(userID) {
+    var { output, columnLengths } = util.buildTableHeader(['Prize        ', 'Tier 1 (200)', 'Tier 2 (400)', 'Tier 3 (600)']);
+
+    Object.keys(c.PRIZE_TO_DESCRIPTION).forEach((prize) => {
+        var tableRow = util.buildColumn(prize, columnLengths[0]);
+
+        c.PRIZE_TIERS.forEach((prizeTier, i) => {
+            const prizeInfo = prizeTier[prize] || '';
+            const isLastColumn = i === c.PRIZE_TIERS.length - 1;
+
+            tableRow += util.buildColumn(`${prizeInfo}`, columnLengths[i + 1], isLastColumn);
+        });
+
+        output += tableRow;
+    });
+
+    output += '```**';
+
+    util.sendEmbedMessage(`Scrub Box Prize Tiers`, output, userID);
+}
+
+
+function determinePrizeArgs(args, message) {
+    const cmd = args[0];
+    const userID = message.member.id;
+    const tierNumber = Number(args[1]);
+
+    return { userID, cmd, tierNumber };
+}
+
+exports.registerCommandHandlers = () => {
+    cmdHandler.registerCommandHandler('rename-user', rename);
+    cmdHandler.registerCommandHandler('rename-role', rename);
+    cmdHandler.registerCommandHandler('rename-channel', rename);
+    cmdHandler.registerCommandHandler('rename-hank', rename);
+    cmdHandler.registerCommandHandler('add-emoji', (message, args) => {
+        const { userID, cmd, tierNumber } = determinePrizeArgs(args, message);
+
+        if (!hasPrize(userID, cmd, tierNumber)) { return; }
+
+        addEmoji(message, args[2], tierNumber, userID, cmd);
+    });
+    cmdHandler.registerCommandHandler('annoy', (message, args) => {
+        const { userID, cmd, tierNumber } = determinePrizeArgs(args, message);
+
+        // TODO: create
+        if (!hasPrize(userID, cmd, tierNumber)) { return; }
+    });
+    cmdHandler.registerCommandHandler('inventory', (message, args) => {
+        const { userID } = determinePrizeArgs(args, message);
+
+        outputInventory(userID);
+    });
+    cmdHandler.registerCommandHandler('lotto', (message, args) => {
+        const { userID } = determinePrizeArgs(args, message);
+
+        joinLotto(util.getNick(userID), userID);
+    });
+    cmdHandler.registerCommandHandler('magic-word', (message, args) => {
+        const { userID, cmd, tierNumber } = determinePrizeArgs(args, message);
+
+        if (!hasPrize(userID, cmd, tierNumber)) { return; }
+
+        message.delete();
+        addMagicWord(args[2], tierNumber, message.channel.id, userID, cmd);
+
+    });
+    cmdHandler.registerCommandHandler('move-user', (message, args) => {
+        const { userID, cmd, tierNumber } = determinePrizeArgs(args, message);
+
+        // TODO: create
+        if (!hasPrize(userID, cmd, tierNumber)) { return; }
+    });
+    cmdHandler.registerCommandHandler('prizes', ({ member }) => outputPrizeTiersTable(member.id));
+    cmdHandler.registerCommandHandler('rainbow-role', (message, args) => {
+        const { userID, cmd, tierNumber } = determinePrizeArgs(args, message);
+
+        if (!hasPrize(userID, cmd, tierNumber)) { return; }
+
+        addRainbowRole(userID, message.member, tierNumber, cmd);
+    });
+    cmdHandler.registerCommandHandler('rock', (message, args) => {
+        const { userID } = determinePrizeArgs(args, message);
+
+        rock(userID);
+        message.delete();
+    });
+    cmdHandler.registerCommandHandler('scrub-box', (message, args) => {
+        if (!args[1] || isNaN(args[1])) { return; }
+
+        const { userID, tierNumber } = determinePrizeArgs(args, message);
+
+        scrubBox(userID, tierNumber, args[2]);
+    });
+    cmdHandler.registerCommandHandler('start-lotto', (message, args) => {
+        const { userID, cmd } = determinePrizeArgs(args, message);
+
+        if (args.length < 3 || (!hasPrize(userID, cmd, 3) && !util.isAdmin(userID))) { return; }
+
+        startLotto(userID, args[1], args[2]);
+    });
+    cmdHandler.registerCommandHandler('stop-lotto', (message, args) => {
+        const { userID, cmd } = determinePrizeArgs(args, message);
+
+        if (!hasPrize(userID, cmd, 3)) { return; }
+
+        stopLotto(userID, 3, cmd);
+    });
 };

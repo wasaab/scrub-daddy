@@ -1,6 +1,5 @@
 const { Given, Then } = require('cucumber');
 const { assert } = require('chai');
-const get = require('lodash.get');
 
 const testUtil = require('../../configuration/testUtil.js');
 const gambling = require('../../../src/entertainment/gambling.js');
@@ -38,7 +37,7 @@ Given('{int} share of {string} stock costs {string} and had a change of {float}'
 });
 
 Then('I should have {int} shares of {string} stock', function (expectedShares, stock) {
-    const actualShares = get(this.getTestUserLedgerEntry(), `stockToInfo[${stock}].shares`) || 0;
+    const actualShares = this.getTestUserLedgerEntry()?.stockToInfo?.[stock]?.shares ?? 0;
 
     assert.strictEqual(actualShares, expectedShares);
 });

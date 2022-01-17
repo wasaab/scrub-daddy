@@ -1,20 +1,12 @@
 var c = require('../const.js');
 var bot = require('../bot.js');
 var util = require('../utilities/utilities.js');
-var logger = require('../logger.js').botLogger;
+const { logger } = require('../logger.js');
+const cmdHandler = require('../handlers/cmdHandler.js');
 
-var voteChannelMembers = {
-	'370625207150575617' : [],						//Beyond
-	'370625515293507584' : [],						//Str8 Chillin
-	'370625345138720809' : [],						//Post Beta
-	'370626021227233290' : [],						//Spazzy's Scrub Shack
-	'370625671833190400' : [],						//Cartoon Network
-	'370625623736975372' : [],						//Civ Anonymous
-	'370626139972042752' : [],						//They'll fix that b4 release
-	'370628203523473408' : []						//Where he at doe?
-};
-var votes = {};										//map of targetConcat to number of votes
-var alreadyVoted = {};								//map of targetConcat to array of people who have voted for them
+var voteChannelIdToMembers = {};
+var votes = {}; // map of targetConcat to number of votes
+var alreadyVoted = {}; // map of targetConcat to array of people who have voted for them
 
 /**
  * Moves the channel associated with the provided task name to the
@@ -24,22 +16,27 @@ var alreadyVoted = {};								//map of targetConcat to array of people who have 
  */
 function maybeMoveTaskToInProgress(taskName) {
 	const taskChannel = bot.getServer().channels.find('name', taskName);
+
 	if (taskChannel) {
 		taskChannel.setParent(c.CATEGORY_ID['In Progress']);
 		taskChannel.send('The scrubs have spoken! Implement this feature next.');
 	} else {
-		util.sendEmbedMessage('The task you voted for does not exist',
-			'Make sure your input matches the channel title. Only letters, nums, -, _ are allowed.');
+		util.sendEmbedMessage(
+			'The task you voted for does not exist',
+			'Make sure your input matches the channel title. Only letters, nums, -, _ are allowed.'
+		);
 	}
 }
 
 /**
  * Outputs totals for custom votes to bot-spam channel.
  */
-exports.getCustomVoteTotals = function(userID) {
+function getCustomVoteTotals(userID) {
 	var totals = [];
+
 	for (var targetConcat in votes) {
 		const target = targetConcat.split(':-:')[2];
+
 		if (target !== c.VOTE_TYPE.KICK && target !== c.VOTE_TYPE.BAN) {
 			totals.push({
 				name: target,
@@ -48,10 +45,11 @@ exports.getCustomVoteTotals = function(userID) {
 			});
 		}
 	}
+
 	if (totals.length > 0) {
 		util.sendEmbedFieldsMessage('Custom Vote Totals', totals, userID);
 	}
-};
+}
 
 /**
  * Retrieves the total votes for the given target
@@ -60,33 +58,43 @@ exports.getCustomVoteTotals = function(userID) {
  * @param {String} kickChannel - the voice channel to kick a user from
  * @param {String[]} args - input args of the requester (cmd and target)
  */
-exports.getTotalVotesForTarget = function(user, userID, kickChannel, args) {
+function getTotalVotesForTarget(user, userID, kickChannel, args) {
 	if (!kickChannel) {
-		const description = `Sup ${user}! Tryna voteinfo @user from nothing, ey dumbass?`;
-		util.sendEmbedMessage(null, description, userID);
-		logger.info(`${user} is trying to voteinfo @user from nothing.`);
+		const description = `${util.mentionUser(userID)}, you must be in a voice channel with the target user`;
+
+		util.sendEmbed({ description, userID });
+		logger.info(`${user} is trying to voteinfo a user not in their VC.`);
 		return;
 	}
+
 	var target = util.getTargetFromArgs(args, 1);
 	var titleTarget = 'The Provided User';
-	voteChannelMembers[kickChannel.id].forEach((vMember) => {
-		if (vMember.name === target || (util.isMention(target) && vMember.id === util.getIdFromMention(target))) {
-			titleTarget = vMember.name;
+	const voteChannelMembers = voteChannelIdToMembers[kickChannel.id];
+
+	if (!voteChannelMembers) { return; }
+
+	voteChannelMembers.forEach((member) => {
+		if (member.name === target || (util.isMention(target) && member.id === util.getIdFromMention(target))) {
+			titleTarget = member.name;
 		}
 	});
-	const kickTargetConcat = `${target}:-:${kickChannel.id}:-:${c.VOTE_TYPE.KICK}`;
-	const banTargetConcat = `${target}:-:${kickChannel.id}:-:${c.VOTE_TYPE.BAN}`;
+
+	const kickTargetKey = `${target}:-:${kickChannel.id}:-:${c.VOTE_TYPE.KICK}`;
+	const banTargetKey = `${target}:-:${kickChannel.id}:-:${c.VOTE_TYPE.BAN}`;
 	var totals = [];
-	if (votes[kickTargetConcat]) {
-		totals.push(util.buildField('Kick 👢', votes[kickTargetConcat]));
+
+	if (votes[kickTargetKey]) {
+		totals.push(util.buildField('Kick 👢', votes[kickTargetKey]));
 	}
-	if (votes[banTargetConcat]) {
-		totals.push(util.buildField('Ban 🔨', votes[banTargetConcat]));
+
+	if (votes[banTargetKey]) {
+		totals.push(util.buildField('Ban 🔨', votes[banTargetKey]));
 	}
+
 	if (totals.length > 0) {
 		util.sendEmbedFieldsMessage(`${kickChannel.name}    -	Vote Totals for ${titleTarget}`, totals, userID);
 	}
-};
+}
 
 /**
  * Gets the ID of the vote's target iff they are in the current vote's channel.
@@ -95,15 +103,19 @@ exports.getTotalVotesForTarget = function(user, userID, kickChannel, args) {
  * @returns {Object} the member iff found.
  */
 function getTargetInVoteChannel(vote) {
-	var result;
-	voteChannelMembers[vote.channelID].forEach((vMember) => {
+	const voteChannelMembers = voteChannelIdToMembers[vote.channelID];
+
+	if (!voteChannelMembers) { return; }
+
+	const targetMember = voteChannelMembers.find((member) => {
 		const kickTarget = vote.targetConcat.split(':-:')[0];
-		if (vMember.name === kickTarget || (util.isMention(kickTarget) && vMember.id === util.getIdFromMention(kickTarget))) {
-			result = vMember.fullMember;
-		}
+
+		return member.name === kickTarget || (util.isMention(kickTarget) && member.id === util.getIdFromMention(kickTarget));
 	});
 
-	return result;
+	if (!targetMember) { return; }
+
+	return targetMember.fullMember;
 }
 
 /**
@@ -114,13 +126,13 @@ function getTargetInVoteChannel(vote) {
  * @param {Collection} roles - server's roles
  */
 function endVote(vote, target, roles) {
-	switch (vote.targetConcat.split(':-:')[2]) {
-		case c.VOTE_TYPE.BAN:
-			target.addRole(roles.find('id', c.CHANNEL_ID_TO_BAN_ROLE_ID[vote.channelID]));
-			target.setVoiceChannel(bot.getPurgatory());
-			break;
-		case c.VOTE_TYPE.KICK:
-			target.setVoiceChannel(bot.getPurgatory());
+	const voteType = vote.targetConcat.split(':-:')[2];
+
+	if (c.VOTE_TYPE.BAN === voteType) {
+		target.addRole(roles.find('id', c.CHANNEL_ID_TO_BAN_ROLE_ID[vote.channelID]));
+		target.setVoiceChannel(bot.getPurgatory());
+	} else { // vote kick
+		target.setVoiceChannel(bot.getPurgatory());
 	}
 }
 
@@ -131,19 +143,26 @@ function endVote(vote, target, roles) {
  */
 function maybeEndVote(voteData, roles, userID) {
 	const target = getTargetInVoteChannel(voteData);
-	if (!target) {
-		return;
-	}
 
-	const channelSize = voteChannelMembers[voteData.channelID].length;
-	const majority = channelSize/2;
+	if (!target) { return; }
+
+	const voteChannelMembers = voteChannelIdToMembers[voteData.channelID];
+
+	if (!voteChannelMembers) { return; }
+
+	const channelSize = voteChannelMembers.length;
+	const majority = channelSize / 2;
+
 	logger.info(`majority: ${majority} votes: ${votes[voteData.targetConcat]}`);
+
 	if (channelSize > 2 && votes[voteData.targetConcat] > majority) {
 		const targetName = voteData.targetConcat.split(':-:')[0];
+
 		endVote(voteData, target, roles);
 
-		const description = `${targetName} has been voted off the island, a.k.a. ${voteData.channelName}! 🔨` ;
-		util.sendEmbedMessage(null, description, userID);
+		const description = `${targetName} has been voted off the island, a.k.a. ${voteData.channelName}! 🔨`;
+
+		util.sendEmbed({ description, userID });
 		logger.info(`Kicking ${targetName} from ${voteData.channelName}`);
 	}
 }
@@ -159,20 +178,22 @@ function maybeEndVote(voteData, roles, userID) {
  * @param {String} kickChannel - the voice channel of the user calling !vote
  * @param {String} roles - the guild's role objects
  */
-exports.conductVote = function(user, userID, args, type, kickChannel, roles) {
+function conductVote(user, userID, args, type, kickChannel, roles) {
 	if (type === c.VOTE_TYPE.CUSTOM) {
 		kickChannel = { id: '', name: ''};
 	}
 
 	//if voting user not in a voice channel
 	if (!kickChannel) {
-		const description = `Sup ${user}! Tryna vote${type} from nothing, ey dumbass?`;
-		util.sendEmbedMessage(null, description, userID);
+		const description = `Sup ${user}! Tryna vote${type} from nothing, eh?`;
+
+		util.sendEmbed({ description, userID });
 		logger.info(`${user} is trying to kick from nothing.`);
 		return;
 	}
 
 	var target = util.getTargetFromArgs(args, 1);
+
 	if (type === c.VOTE_TYPE.CUSTOM) {
 		type = target;
 	}
@@ -195,30 +216,21 @@ exports.conductVote = function(user, userID, args, type, kickChannel, roles) {
 		votes[targetConcat] = 0;
 		msg = ` vote to ${type} `;
 	}
-	//If the user has not already voted for the target
-	if (!alreadyVoted[targetConcat].includes(user)) {
-		votes[targetConcat] = votes[targetConcat] + 1;
+
+	//If the user has already voted for the target
+	if (alreadyVoted[targetConcat].includes(user)) {
+		const description = `Nice try, ${user}. You can only vote for a person once.`;
+
+		util.sendEmbed({ description, userID });
+		logger.info(`${user} is attempting to vote for a person more than once.`);
+	} else {
+		votes[targetConcat]++;
 		alreadyVoted[targetConcat].push(user);
 
-		//If not a custom vote
-		if (kickChannel.name !== '') {
-			voteChannelMembers[kickChannel.id] = [];
-			var kickMembers = kickChannel.members.array();
-			kickMembers.forEach((member) => {
-				var memberData = {id: member.id, name: util.getNick(member.id), fullMember: member};
-				voteChannelMembers[kickChannel.id].push(memberData);
-			});
-			exports.getTotalVotesForTarget(user, userID, kickChannel, args);
-			var currVote =  {
-				channelID : kickChannel.id,
-				channelName : kickChannel.name,
-				targetConcat: targetConcat,
-			};
-			maybeEndVote(currVote, roles, userID);
-			logger.info(`${votes[targetConcat]}${msg}${target} from ${kickChannel.name}`);
-		} else {
-			//custom vote
+		//If custom vote
+		if (kickChannel.name === '') {
 			var message = votes[targetConcat] + msg;
+
 			if (votes[targetConcat] > 2) {
 				message = `The vote has concluded with ${votes[targetConcat]}${msg}`;
 
@@ -226,12 +238,78 @@ exports.conductVote = function(user, userID, args, type, kickChannel, roles) {
 					maybeMoveTaskToInProgress(targetConcat.split(':')[0].slice(10));
 				}
 			}
-			util.sendEmbedMessage(null, `📋 ${message}`, userID);
+
+			util.sendEmbed({ description: `📋 ${message}`, userID });
 			logger.info(`${message}`);
+		} else {	//not a custom vote
+			var kickMembers = kickChannel.members.array();
+
+			voteChannelIdToMembers[kickChannel.id] = [];
+			kickMembers.forEach((member) => {
+				var memberData = {id: member.id, name: util.getNick(member.id), fullMember: member};
+
+				voteChannelIdToMembers[kickChannel.id].push(memberData);
+			});
+			getTotalVotesForTarget(user, userID, kickChannel, args);
+
+			var currVote = {
+				channelID : kickChannel.id,
+				channelName : kickChannel.name,
+				targetConcat: targetConcat,
+			};
+
+			maybeEndVote(currVote, roles, userID);
+			logger.info(`${votes[targetConcat]}${msg}${target} from ${kickChannel.name}`);
 		}
-	} else {
-		const message = `Screw yourself ${user}! You can only vote for a person once.`;
-		util.sendEmbedMessage(null, message, userID);
-		logger.info(`${user} is attempting to vote for a person more than once.`);
 	}
+}
+
+exports.registerCommandHandlers = () => {
+  cmdHandler.registerCommandHandler(
+		'implement',
+		(message, args) => {
+			args.splice(1, 0, args[0]);
+			conductVote(util.getNick(message.member.id), message.member.id, args, c.VOTE_TYPE.CUSTOM);
+		}
+	);
+
+  cmdHandler.registerCommandHandler(
+		'vote',
+		(message, args) => conductVote(util.getNick(message.member.id), message.member.id, args, c.VOTE_TYPE.CUSTOM)
+	);
+
+  cmdHandler.registerCommandHandler(
+		'voteban',
+		(message, args) => {
+			const user = util.getNick(message.member.id);
+
+			logger.info(`VOTE Ban - ${user}: ${message}`);
+			conductVote(user, message.member.id, args, c.VOTE_TYPE.BAN, message.member.voiceChannel, message.guild.roles);
+		}
+	);
+
+  cmdHandler.registerCommandHandler(
+		'voteinfo',
+		(message, args) => {
+			const user = util.getNick(message.member.id);
+
+			if (args[1]) {
+				logger.info(`VOTE Info User - ${user}: ${message}`);
+				getTotalVotesForTarget(user, message.member.id, message.member.voiceChannel, args);
+			} else {
+				logger.info(`VOTE Info Custom - ${user}: ${message}`);
+				getCustomVoteTotals(message.member.id);
+			}
+		}
+	);
+
+  cmdHandler.registerCommandHandler(
+		'votekick',
+		(message, args) => {
+			const user = util.getNick(message.member.id);
+
+			logger.info(`VOTE Kick - ${user}: ${message}`);
+			conductVote(user, message.member.id, args, c.VOTE_TYPE.KICK, message.member.voiceChannel, message.guild.roles);
+		}
+  );
 };

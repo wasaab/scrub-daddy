@@ -3,6 +3,7 @@ var D3Node = require('d3-node');
 var { d3, document } = new D3Node();
 var util = require('../utilities/utilities.js');
 var imgConverter = require('./imageConverter.js');
+const cmdHandler = require('../handlers/cmdHandler.js');
 
 var margin = {
         top: 50,
@@ -47,8 +48,12 @@ function outputHeatMap(userID) {
     setTimeout(() => {
         imgConverter.writeSvgToFileAsPng(960, 430, 'rgba(54, 57, 62, 0.74)', 'heatMap', svg)
             .then(() => {
-                util.sendEmbedMessage('🔥 Player Count Heat Map', null, userID, 'attachment://heatMap.png',
-                    null, null, null, './resources/images/heatMap.png');
+                util.sendEmbed({
+                    title: '🔥 Player Count Heat Map',
+                    image: 'attachment://heatMap.png',
+                    file: './resources/images/heatMap.png',
+                    userID
+                });
             });
     }, 100);
 }
@@ -56,14 +61,14 @@ function outputHeatMap(userID) {
 function addCards(data, colorScale) {
     var cards = svg.selectAll(".hour")
         .data(data, function (d) {
-            return d.day + ':' + d.hour;
+            return `${d.day}:${d.hour}`;
         });
 
     cards.append("title");
 
     cards.enter().append("rect")
         .attr("x", function (d) {
-            return (d.hour) * gridSize;
+            return d.hour * gridSize;
         })
         .attr("y", function (d) {
             return (d.day - 1) * gridSize;
@@ -71,8 +76,10 @@ function addCards(data, colorScale) {
         .attr("rx", 4)
         .attr("ry", 4)
         .attr("style", function (d) {
-            if (d.value === 5)
+            if (d.value === 5) {
                 return `stroke: #36393e; stroke-width: 2px; fill: ${colorScale(6)};`;
+            }
+
             return `stroke: #36393e; stroke-width: 2px; fill: ${colorScale(d.value)};`;
         })
         .attr("width", gridSize)
@@ -122,7 +129,7 @@ function addLegend(colorScale) {
     legend.enter().append("text")
         .attr("style", 'font-size: 22pt; font-family: Consolas, courier; fill: white;')
         .text(function (d) {
-            return "≥ " + Math.round(d);
+            return `≥ ${Math.round(d)}`;
         })
         .attr("x", function (d, i) {
             return (legendElementWidth * i) + 10;
@@ -155,9 +162,9 @@ function heatmapChart(dataFileName, userID) {
     });
 }
 
-exports.generateHeatMap = function(userID) {
-    heatmapChart('rawHeatMapData.json', userID);
-};
+function generateHeatMap(message) {
+    heatmapChart('rawHeatMapData.json', message.member.id);
+}
 
 function determineColorScale(data) {
     return d3.scaleQuantile()
@@ -170,7 +177,8 @@ function determineColorScale(data) {
 function addTimeLabels() {
     svg.selectAll(".timeLabel")
         .data(times)
-        .enter().append("text")
+        .enter()
+        .append("text")
         .text(function (d) {
             return d;
         })
@@ -179,16 +187,16 @@ function addTimeLabels() {
         })
         .attr("y", 0)
         .attr("style", 'text-anchor: middle; fill: white;')
-        .attr("transform", "translate(" + gridSize / 2 + ", -6)")
-        .attr("class", function (d, i) {
-            return ((i >= 7 && i <= 16) ? "timeLabel mono axis" : "timeLabel mono axis");
-        });
+        .attr("transform", `translate(" + gridSize / 2 + ", -6)`)
+        .attr("class", "timeLabel mono axis");
+
 }
 
 function addDayLabels() {
     svg.selectAll(".dayLabel")
         .data(days)
-        .enter().append("text")
+        .enter()
+        .append("text")
         .text(function (d) {
             return d;
         })
@@ -197,10 +205,8 @@ function addDayLabels() {
             return i * gridSize;
         })
         .attr("style", 'text-anchor: end; fill: white;')
-        .attr("transform", "translate(-6," + gridSize / 1.5 + ")")
-        .attr("class", function (d, i) {
-            return ((i >= 0 && i <= 4) ? "dayLabel mono axis" : "dayLabel mono axis");
-        });
+        .attr("transform", `translate(-6,${gridSize / 1.5})`)
+        .attr("class", "dayLabel mono axis");
 }
 
 function initHeatmapSvg() {
@@ -208,10 +214,14 @@ function initHeatmapSvg() {
         .attr("width", width + margin.left + margin.right)
         .attr("height", height + margin.top + margin.bottom)
         .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+        .attr("transform", `translate(${margin.left},${margin.top})`);
 
     addDayLabels();
     addTimeLabels();
 }
 
 initHeatmapSvg();
+
+exports.registerCommandHandlers = () => {
+    cmdHandler.registerCommandHandler('heatmap', generateHeatMap);
+};

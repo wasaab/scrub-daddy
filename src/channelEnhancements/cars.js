@@ -1,12 +1,14 @@
-var rp = require('request-promise');
-var moment = require('moment');
+const rp = require('request-promise');
+const moment = require('moment');
 const c = require('../const.js');
 const util = require('../utilities/utilities.js');
+const cmdHandler = require('../handlers/cmdHandler.js');
 const mergeImg = require('merge-img');
 const Jimp = require('jimp');
-const { JSDOM } = require('jsdom');
-var forumData = require('../../resources/data/carForum.json');
-var updatedForumIdToLastCrawlTime = {};
+const { jsdom } = require('jsdom');
+const { logger } = require('../logger.js');
+const forumData = require('../../resources/data/carForum.json');
+const updatedForumIdToLastCrawlTime = {};
 const dateFormat = 'MM-DD-YYYY';
 const baseUrl = 'https://www.2addicts.com';
 const baseForumPath = `${baseUrl}/forums/forumdisplay.php?f=`;
@@ -48,34 +50,37 @@ function maybeIgnorePost(message) {
     const post = message.embeds[0];
 
     forumData.ignoredPosts.push(post.url.split('/')[4]);
-    util.sendEmbedMessage('Post Ignored', `You will no longer see updates for the following post:\n${post.title}`,
-        message.member.id, null, null, null, channel.id, null, post.url);
+    util.sendEmbed({
+        title: 'Post Ignored',
+        description: `You will no longer see updates for the following post:\n${post.title}`,
+        userID: message.member.id,
+        channelID: channel.id,
+        url: post.url
+    });
     message.delete();
     util.exportJson(forumData, 'carForum');
 }
 
 /**
  * Ignores all posts that have trash reactions.
+ * 
+ * @package {Object} message - the message calling the command
  */
-exports.ignorePosts = function() {
-	channel.fetchMessages({limit: 50})
-        .then((foundMessages) => {
-            foundMessages.array().forEach((msg) => {
-                maybeIgnorePost(msg);
-            });
-        });
-};
+async function ignorePosts(message) {
+    if (message.channel.id !== c.CAR_PARTS_CHANNEL_ID) { return; }
+
+	const recentMessages = await channel.fetchMessages({ limit: 50 });
+
+    recentMessages.array().forEach(maybeIgnorePost);
+}
 
 /**
- * Outputs the forum header if the current post is the first in the forum.
+ * Outputs the forum header.
  *
- * @param {Number} i - the current post index
  * @param {String} forumID - id of the forum the post is in
  * @param {Object} postMoment - the moment object representing post time
  */
-function maybeOutputForumHeader(i, forumID, postMoment) {
-    if (i !== 1) { return; }
-
+function outputForumHeader(forumID, postMoment) {
     updatedForumIdToLastCrawlTime[forumID] = postMoment.valueOf();
     channel.send(`**${forumIdToName[forumID]}**\n\`\`\`${'-'.repeat(61)}\`\`\``);
 }
@@ -89,7 +94,7 @@ function determineTags(postText) {
     var tags = [];
 
     for (var tag in c.TAG_TO_TEXT) {
-        if (postText.match(new RegExp(c.TAG_TO_TEXT[tag].join('|'), 'gi'))) {
+        if (new RegExp(c.TAG_TO_TEXT[tag].join('|'), 'gi').test(postText)) {
             tags.push(tag);
         }
     }
@@ -98,16 +103,14 @@ function determineTags(postText) {
 }
 
 /**
- * Outputs the post and forum header if it is the first post.
+ * Outputs the post.
  *
  * @param {String} title - the title of the post
  * @param {Object} postDoc - the document of the post
- * @param {Number} i - the index of the post
- * @param {String} forumID - the id of the forum the post was made in
  * @param {Object} postMoment - the moment object representing post time
  * @param {boolean} textOnly - true iff the post has no attachments
  */
-function outputPostAndMaybeForumHeader(title, postDoc, i, forumID, postMoment, textOnly) {
+async function outputPost(title, postDoc, postMoment, textOnly) {
     const formattedTitle = title.text;
     const priceEle = postDoc.querySelector('div.bpitemprice');
     const descriptionEle = postDoc.querySelector('.bpclassmain') || postDoc.querySelector('.thePostItself');
@@ -119,14 +122,17 @@ function outputPostAndMaybeForumHeader(title, postDoc, i, forumID, postMoment, t
 
     price = '-2' === price ? 'SOLD' : `$${price}`;
 
-    maybeOutputForumHeader(i, forumID, postMoment);
-    util.sendEmbedMessage(`\n\`${price}\`    **${formattedTitle}**`, description, null, attachPath,
-        null, null, channel.id, imgPath, `${baseUrl}/forums/${title.getAttribute('href')}`, postMoment.toDate())
-        .then((msgSent) => {
-            tags.forEach((tag) => {
-                msgSent.react(tag);
-            });
-        });
+    const msgSent = await util.sendEmbed({
+        title:`\n\`${price}\`    **${formattedTitle}**`,
+        description: description,
+        image: attachPath,
+        channelID: channel.id,
+        file: imgPath,
+        url: `${baseUrl}/forums/${title.getAttribute('href')}`,
+        timestamp: postMoment.toDate()
+    });
+    
+    tags.forEach(msgSent.react);
 }
 
 /**
@@ -135,11 +141,9 @@ function outputPostAndMaybeForumHeader(title, postDoc, i, forumID, postMoment, t
  * @param {Promise[]} imgResponses - image buffers
  * @param {String} title - title of the post
  * @param {Object} postDoc - the document of the post
- * @param {Number} i - the index of the post
- * @param {String} forumID - the id of the forum the post was made in
  * @param {Object} postMoment - the moment object representing post time
  */
-function mergeAndOutput(imgResponses, title, postDoc, i, forumID, postMoment) {
+async function mergeAndOutput(imgResponses, title, postDoc, postMoment) {
     var images = [];
 
     imgResponses.forEach((imgResponse) => {
@@ -148,14 +152,16 @@ function mergeAndOutput(imgResponses, title, postDoc, i, forumID, postMoment) {
         images.push(imgResponse.result);
     });
 
-    if (!images) { return outputPostAndMaybeForumHeader(title, postDoc, i, forumID, postMoment, true); }
+    if (!images) { return outputPost(title, postDoc, postMoment, true); }
 
-    mergeImg(images, { direction: false })
-        .then((img) => {
-            img.write('./resources/images/postCollage.png',
-                () => outputPostAndMaybeForumHeader(title, postDoc, i, forumID, postMoment));
-        })
-        .catch(util.log);
+    try {
+        const { bitmap } = await mergeImg(images, { direction: false });
+        
+        await new Jimp(bitmap).writeAsync('./resources/images/postCollage.png');
+        outputPost(title, postDoc, postMoment);
+    } catch (err) {
+        logger.error('Unable to merge images: ', err);
+    }
 }
 
 
@@ -167,21 +173,20 @@ function mergeAndOutput(imgResponses, title, postDoc, i, forumID, postMoment) {
  * @param {String[]} imageUrls - urls of all images in the post
  * @param {String} title - title of the post
  * @param {Object} postDoc - the document of the post
- * @param {Number} i - the index of the post
- * @param {String} forumID - the id of the forum the post was made in
  * @param {Object} postMoment - the moment object representing post time
  */
-function scaleImage(response, imgPromises, imageUrls, title, postDoc, i, forumID, postMoment) {
-    response.result.scaleToFit(500, Jimp.AUTO, null, (err, resizedImg) => {
-        imgPromises.push(resizedImg.getBufferAsync(Jimp.MIME_JPEG));
+async function scaleImage(response, imgPromises, imageUrls, title, postDoc, postMoment) {
+    const resizedImg = response.result
+        .scaleToFit(500, Jimp.AUTO, null)
+        .getBufferAsync(Jimp.MIME_JPEG);
+    
+    imgPromises.push(resizedImg);
 
-        if (imgPromises.length !== imageUrls.length) { return; }
+    if (imgPromises.length !== imageUrls.length) { return; }
 
-        util.handleAllPromises(imgPromises)
-            .then((responses) => {
-                mergeAndOutput(responses, title, postDoc, i, forumID, postMoment);
-            });
-    });
+    const responses = await util.handleAllPromises(imgPromises);
+
+    mergeAndOutput(responses, title, postDoc, postMoment);
 }
 
 /**
@@ -191,17 +196,15 @@ function scaleImage(response, imgPromises, imageUrls, title, postDoc, i, forumID
  * @param {String[]} imageUrls - urls of all images in the post
  * @param {String} title - title of the post
  * @param {Object} postDoc - the document of the post
- * @param {Number} i - the index of the post
- * @param {String} forumID - the id of the forum the post was made in
  * @param {Object} postMoment - the moment object representing post time
  */
-function scaleImages(responses, imageUrls, title, postDoc, i, forumID, postMoment) {
+function scaleImages(responses, imageUrls, title, postDoc, postMoment) {
     var imgPromises = [];
 
     responses.forEach((response) => {
         if (!response.success) { return; }
 
-        scaleImage(response, imgPromises, imageUrls, title, postDoc, i, forumID, postMoment);
+        scaleImage(response, imgPromises, imageUrls, title, postDoc, postMoment);
     });
 }
 
@@ -212,13 +215,7 @@ function scaleImages(responses, imageUrls, title, postDoc, i, forumID, postMomen
  * @returns {Promise} the image buffers
  */
 function downloadImages(imageUrls) {
-    var promises = [];
-
-	imageUrls.forEach((url) => {
-        promises.push(Jimp.read(url));
-	});
-
-	return util.handleAllPromises(promises);
+	return util.handleAllPromises(imageUrls.map(Jimp.read));
 }
 
 /**
@@ -226,20 +223,17 @@ function downloadImages(imageUrls) {
  *
  * @param {String} title - title of the post
  * @param {Object} postDoc - the document of the post
- * @param {Number} i - the index of the post
  * @param {String[]} imageUrls - urls of all images in the post
- * @param {String} forumID - the id of the forum the post was made in
  * @param {Object} postMoment - the moment object representing post time
  */
-function buildPost(title, postDoc, i, imageUrls, forumID, postMoment) {
+async function buildPost(title, postDoc, imageUrls, postMoment) {
     if (imageUrls.length === 0) {
-        return outputPostAndMaybeForumHeader(title, postDoc, i, forumID, postMoment, true);
+        return outputPost(title, postDoc, postMoment, true);
     }
 
-    downloadImages(imageUrls)
-        .then((responses) => {
-            scaleImages(responses, imageUrls, title, postDoc, i, forumID, postMoment);
-        });
+    const responses = await downloadImages(imageUrls);
+
+    scaleImages(responses, imageUrls, title, postDoc, postMoment);
 }
 
 /**
@@ -265,7 +259,8 @@ function determinePostMoment(time) {
     var date = time.previousSibling.wholeText.trim();
 
     if ('Yesterday' === date) {
-        date = moment().subtract(1, 'days').format(dateFormat);
+        date = moment().subtract(1, 'days')
+            .format(dateFormat);
     } else if ('Today' === date) {
         date = moment().format(dateFormat);
     }
@@ -274,14 +269,14 @@ function determinePostMoment(time) {
 }
 
 /**
- * Gets the info of the post.
+ * Builds discord posts from the car forum posts.
  *
  * @param {String[]} titles - titles of posts in the forum
- * @param {Object[]} time - post updated time elements from the page
- * @param {Number} i - the index of the current post
+ * @param {Object[]} times - post updated time elements from the page
+ * @param {Number} postIdx - the index of the current post
  * @param {String} forumID - the id of the forum the post was made in
  */
-function getPostInfo(titles, times, i, forumID) {
+function buildPosts(titles, times, postIdx, forumID) {
     if (titles.length < 1) { return; }
 
     const title = titles.pop();
@@ -290,9 +285,9 @@ function getPostInfo(titles, times, i, forumID) {
 
     return rp(`${baseUrl}/forums/${title.getAttribute('href')}`)
         .then((postHtml) => {
-            const postDoc = new JSDOM(postHtml, { url: baseUrl }).window.document;
+            const postDoc = jsdom(postHtml, { url: baseUrl });
 
-            if (!postDoc || i > 15) { return; }
+            if (!postDoc || postIdx > 14) { return; }
 
             const postMoment = determinePostMoment(time);
 
@@ -301,13 +296,17 @@ function getPostInfo(titles, times, i, forumID) {
                 return;
             }
 
-            buildPost(title, postDoc, i, getImageUrls(postDoc), forumID, postMoment);
+            if (postIdx === 0) {
+                outputForumHeader(postIdx, forumID, postMoment);
+            }
+
+            buildPost(title, postDoc, getImageUrls(postDoc), postMoment);
         })
         .catch(util.log)
         .finally(() => {
             if (isFinished) { return; }
 
-            return getPostInfo(titles, times, i + 1, forumID);
+            return buildPosts(titles, times, postIdx + 1, forumID);
         });
 }
 
@@ -317,8 +316,8 @@ function getPostInfo(titles, times, i, forumID) {
  * @param {Object} document - the document of the page being scraped
  * @param {String} selector - selector to find element with
  */
-function getNodeListAsArray(document, selector) {
-    return [].slice.call(document.querySelectorAll(selector)).reverse();
+function getNodeListAsReversedArray(document, selector) {
+    return [...document.querySelectorAll(selector)].reverse();
 }
 
 /**
@@ -328,72 +327,64 @@ function getNodeListAsArray(document, selector) {
  * @param {String} forumID - the id of the forum to scrape posts in
  */
 function scrapeTitlesAndTimestamps(document, forumID) {
-    var titles = getNodeListAsArray(document, `#threadbits_forum_${forumID} a[id^='thread_title']`);
-    const lastPostTimes = getNodeListAsArray(document, `#threadbits_forum_${forumID} .time`);
+    const lastPostTimes = getNodeListAsReversedArray(document, `#threadbits_forum_${forumID} .time`);
+    const titles = getNodeListAsReversedArray(document, `#threadbits_forum_${forumID} a[id^='thread_title']`)
+        .filter((title, i) => {
+            if (forumData.ignoredPosts.includes(title.getAttribute('href'))) {
+                lastPostTimes.splice(i, 1);
+                return false;
+            }
 
-    titles = titles.filter((title, i) => {
-        if (forumData.ignoredPosts.includes(title.getAttribute('href'))) {
-            lastPostTimes.splice(i, 1);
-            return false;
-        }
-
-        return true;
-    });
+            return true;
+        });
 
     return { titles, lastPostTimes };
 }
 
 /**
- * Gets a post in the specified forum.
+ * Scrapes posts in the specified forum.
  *
- * @param {String} forumID - Id of the forum to get post in
+ * @param {String} forumID - Id of the forum to scrape posts in
  */
-function getPostInForum(forumID) {
+function scrapePostsInForum(forumID) {
     return rp(`${baseForumPath}${forumID}`)
         .then((html) => {
-            const { window } = new JSDOM(html, { url: 'https://www.2addicts.com' });
-            const document = window.document;
+            const document = jsdom(html, { url: 'https://www.2addicts.com' });
             const { titles, lastPostTimes } = scrapeTitlesAndTimestamps(document, forumID);
 
-            return getPostInfo(titles, lastPostTimes, 1, forumID);
+            return buildPosts(titles, lastPostTimes, 0, forumID);
         })
         .catch(util.log);
 }
 
 /**
- * Gets posts in the specified forums if any still need processing.
+ * Scrapes posts in the specified forums.
  *
- * @param {String[]} forumIds - Ids of the forums to get posts in
+ * @param {String[]} forumIds - Ids of the forums to scrape posts in
  */
-function maybeGetPostsInForum(forumIds) {
-    if (forumIds.length !== 0) { return getPostsInForums(forumIds); }
+async function scrapePostsInForums(forumIds) {
+    const forumID = forumIds.pop();
+
+    await scrapePostsInForum(forumID);
+
+    if (forumIds.length !== 0) { return scrapePostsInForums(forumIds); }
 
     setTimeout(() => {
-        forumData.forumIdToLastCrawlTime = Object.assign(
-            forumData.forumIdToLastCrawlTime, updatedForumIdToLastCrawlTime);
+        forumData.forumIdToLastCrawlTime = { ...forumData.forumIdToLastCrawlTime, updatedForumIdToLastCrawlTime };
         util.exportJson(forumData, 'carForum');
     }, 3000);
 }
 
 /**
- * Gets posts in the specified forums..
- *
- * @param {String[]} forumIds - Ids of the forums to get posts in
- */
-function getPostsInForums(forumIds) {
-    const forumID = forumIds.pop();
-
-    return getPostInForum(forumID)
-        .then(() => maybeGetPostsInForum(forumIds));
-
-}
-
-/**
  * Crawls the car forum looking for posts of interest.
+ * 
+ * @package {Object=} message - the message calling the command
  */
-exports.crawlCarForum = () => {
+exports.crawlCarForum = (message) => {
+    if (message && !util.isAdmin(message.member?.id)) { return; }
+
     channel.send(`**${moment().format('ddd MMM Do   hh:mm A')}** \`\`\` \`\`\``);
-    getPostsInForums(Object.keys(forumIdToName));
+    scrapePostsInForums(Object.keys(forumIdToName));
 };
 
 /**
@@ -403,4 +394,9 @@ exports.crawlCarForum = () => {
  */
 exports.setCarPartsChannel = (carPartsChannel) => {
     channel = carPartsChannel;
+};
+
+exports.registerCommandHandlers = () => {
+    cmdHandler.registerCommandHandler('cars', exports.crawlCarForum);
+    cmdHandler.registerCommandHandler('ignore-posts', ignorePosts);
 };

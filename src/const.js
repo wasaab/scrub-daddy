@@ -9,13 +9,20 @@ module.exports = {
 	RATINGS_CHANNEL_ID: '601115821066027102',		//channel used for rating tv and movies
 	CAR_PARTS_CHANNEL_ID: '544229507767468054',
 	LOL_CHANNEL_ID: '509761663814336532',
+	BILLIONAIRE_CHANNEL_ID: '780562033333501964',
+	ARK_SERVER_WEBHOOK_ID: '850716841647013949',
+	ARK_SERVER_STATUS_MSG_ID: '850832949451685898',
+	ARK_CHANNEL_ID: '725823809562869863',
+	ARK_SERVER_ADMIN_ID: '126527690319593473',
 	CATEGORY_ID: {
 		'Issue': '372143355070644255',				//category for bot issues
 		'Feature': '374009714213781504',			//category for bot feature requests
 		'Temp': '374246719648694282',				//category for temporary channels
 		'Topics': '370623193528008704',				//category for topics channels
-		'In Progress': '374702344316780567'			//category for bot features/issues actively being worked on
+		'In Progress': '374702344316780567',		//category for bot features/issues actively being worked on
+		'Text': '436695467414257676'				//category for general text channels
 	},
+	BILLIONAIRE_ROLE_ID: '780560807854342166',		//P2P role ID
 	BEYOND_ROLE_ID: '370670924992610305',			//elevated role ID
 	SCRUBS_ROLE_ID: '370671041644724226',			//main role ID
 	SUPER_SCRUBS_ROLE_ID: '370671068282617866',		//lowered permission role ID
@@ -57,21 +64,22 @@ module.exports = {
 	UNVERIFIED_3_STAR_MOVIES_MSG_ID: '609569037940162600',
 	UNVERIFIED_2_STAR_MOVIES_MSG_ID: '609569014443802661',
 	UNVERIFIED_1_STAR_MOVIES_MSG_ID: '609569013797879825',
-	RENAMED_LIST_MSG_ID: '557740497599332364',
+	RENAMED_LIST_MSG_ID: '780524043643125792',
 
 
-	SCRUB_DADDY_ID: '370688149971795982',			//ID of this bot
+	OLD_SCRUB_DADDY_ID: '370688149971795982',
+	SCRUB_DADDY_ID: '362784198848675842',			//ID of this bot
 	K_ID: '132944096347160576',
 	R_ID: '208790727197589504',
 	DBC_ID: '465686834358255616',
 	AF_ID: '162434234357645312',
 	H_ID: '126528082919161856',
+	SCRUB_DADDY_ROLE_ID: '370728799668535307',
 	REVIEW_ROLE: '<@&376391242105225216>',
 	REVIEW_ROLE_ID: '376391242105225216',
 	INACTIVE_GAMBLER_IDS: ['115587855824191495', '136677809367023617', '285600309257043968',
-		'165286296875433985', '126527690319593473', '465686834358255616', '370688149971795982'],
+		'165286296875433985', '126527690319593473', '465686834358255616', '362784198848675842'],
 	DAYS: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
-	PUBG_ALIASES: ['scrubg', 'pubg', 'pugG', 'pabg', 'pobg', 'pebg', 'pibg', 'pybg', 'Mr. Pib G.', 'pub', 'pudgy', 'puh ba gee'],
 	GREETINGS: ['you guys', 'yous guys', 'y\'all', 'hey buddies,', 'hey pals,', 'hey friends,', 'sup dudes,', 'hello fellow humans,'],
 	LOOP_DELAY: 1500,							//delay between each loop
 	MIN_STOCK_PRICE: 50,
@@ -89,6 +97,7 @@ module.exports = {
 	BEYOND_LOTTO_IMG: 'https://i.imgur.com/viDJZi3.png',
 	ROCK_IMG: 'https://i.imgur.com/DtQPHcn.png',
 	ONLINE_IMG: 'https://i.imgur.com/w4ey7v0.gif?2',
+	OFFLINE_IMG: 'https://media0.giphy.com/media/Meg4PTH32tPpe/giphy.gif',
 	LEAVE_IMAGES: ['https://media.giphy.com/media/48FhEMYGWji8/giphy.gif',
 		'https://media.giphy.com/media/l0K42RIaNOZcK7CNy/giphy.gif',
 		'https://media.giphy.com/media/LPtp3yR0EiVc4/giphy.gif',
@@ -124,7 +133,7 @@ module.exports = {
 	HELP_CATEGORIES_PROMPT: [
 		{ name: '1) `Voting`', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
 		{ name: '2) `Scrubbing Bubbles`', value: '`enlist`	`discharge`	`give`	`reserve`	`clean`		`race`	`21`	`hit`	`stay`'
-			+ '	`invest`	`invest-scrubbles`	`sell-shares`	`stocks`	`portfolio`	`worth`	`army`	`ranks`	`stats`	`who-said`	`sunken-sailor`	`add-emoji`	`magic-word`'
+			+ '	`invest`	`invest-scrubbles`	`sell-shares`	`stocks`	`portfolio`	`prizes`	`worth`	`army`	`ranks`	`stats`	`who-said`	`sunken-sailor`	`add-emoji`	`magic-word`'
 			+ '	`rename-hank`	`rename-channel`	`rename-role`	`rename-user`	`scrub-box`		`inventory`	`start-lotto`	`stop-lotto`', inline: 'false'},
 		{ name: '3) `Time Played`', value: '`time`	`opt-in`	`heatmap`', inline: 'false'},
 		{ name: '4) `Gaming`', value: '`playing`	`who-plays`	`lets-play`	`1-more`	`p`	`split-group`	`trends`	`total-trends`'
@@ -132,7 +141,7 @@ module.exports = {
 		{ name: '5) `Bot Issues, Feature Requests, and Help`', value: '`tips`	`issue`	`feature`	`implement`	`help`', inline: 'false'},
 		{ name: '6) `Roles & User Settings`', value: '`join-review`	`leave-review`	`color`	`shuffle-scrubs`	`set-birthday`	`set-stream`'
 			+ '	`toggle-streaming`	`alias`	`unalias`', inline: 'false'},
-		{ name: '7) `Soundbytes`', value: '`sb`	`add-sb`	`fav-sb`	`volume`', inline: 'false'},
+		{ name: '7) `Soundbites`', value: '`sb`	`add-sb`	`fav-sb`	`volume`', inline: 'false'},
 		{ name: '8) `Utilities`', value: '`temp`	`leave-temp`	`lotto`	`quote`	`quotes`	`create-list`	`list`	`create-group`	`remind-me`'
 			+ '	`@`	`subscribe-catfacts`	`catfacts`	`channels-left`	`rejoin-temp`	`ignore-posts`	`delete`', inline: 'false'},
 	],
@@ -156,6 +165,8 @@ module.exports = {
 				{ name: '.give <`numBubbles`> <`@user`>', value: '`transfers numBubbles from your army to user\'s army.`', inline: 'false'},
 				{ name: '.reserve', value: '`to get Scrubbing Bubble reinforcements from your reserve army.`', inline: 'false'},
 				{ name: '.clean <`numBubbles`>', value: '`send numBubbles to clean the toilet.`', inline: 'false'},
+				{ name: '.race <`numBubbles`>', value: '`to start a race that costs numBubbles to enter`', inline: 'false'},
+				{ name: '.race', value: '`to join a race`', inline: 'false'},
 				{ name: '.21 <`numBubbles`>', value: '`to start a game of blackjack with a bet of numBubbles.`', inline: 'false'},
 				{ name: '.hit', value: '`to hit in blackjack.`', inline: 'false'},
 				{ name: '.stay', value: '`to stay in blackjack.`', inline: 'false'},
@@ -181,8 +192,10 @@ module.exports = {
 				{ name: '.rename-channel <`tier`> <`#channel`> <`New Name`>', value: '`🏆 to rename a channel`', inline: 'false'},
 				{ name: '.rename-role <`tier`> <`@role`> <`New Name`>', value: '`🏆 to rename a role`', inline: 'false'},
 				{ name: '.rename-user <`tier`> <`@user`> <`New Name`>', value: '`🏆 to rename a user`', inline: 'false'},
-				{ name: '.scrub-box <`tier`>', value: '`to open a Scrub Box. Tier cost = tier * 200. Better and longer lasting prizes as tier increases.`', inline: 'false'},
+				{ name: '.scrub-box <`tier`>', value: '`to open a Scrub Box. Tier cost = tier * 200. Better and longer lasting prizes as tier increases. For more info call: .prizes`', inline: 'false'},
+				{ name: '.scrub-box <`tier`> <`numBoxes`>', value: '`to open the provided # of Scrub Box. Tier cost = tier * 200. Better and longer lasting prizes as tier increases. For more info call: .prizes`', inline: 'false'},
 				{ name: '.inventory', value: '`to see your scrub box prize inventory.`', inline: 'false'},
+				{ name: '.prizes', value: '`to see the prize tiers table`', inline: 'false'},
 				{ name: '.start-lotto <`MM/DD`> <`HH`>', value: '`🏆 to start a Beyond lotto that will end at the specified time\n-----(HH is 24-hour format in EST)-----`', inline: 'false'},
 				{ name: '.stop-lotto', value: '`🏆 to stop the current Beyond Lotto without choosing a winner.`', inline: 'false'}
 			],
@@ -208,8 +221,8 @@ module.exports = {
 				{ name: '.lets-play <`Game Name|Game Emoji`>', value: '`to ask Scrubs who have recently played Game Name if they want to play.`', inline: 'false'},
 				{ name: '.lets-play -all <`Game Name|Game Emoji`>', value: '`.lets-play including Super ͡Scrubs and inactive players.`', inline: 'false'},
 				{ name: '.1-more', value: '`to request 1 more player for the game you are playing via mentions.`', inline: 'false'},
-				{ name: '.p', value: '`to ask @Scrubs to play PUBG in scrubs text channel.`', inline: 'false'},
 				{ name: '.split-group', value: '`to generate a random group splitting for users in your voice channel.`', inline: 'false'},
+				{ name: '.round-robin <`groupName`>', value: '`to get the next user in the group in round robin fashion.`', inline: 'false'},
 				{ name: '.trends <`Game Name | Game, Game2, etc`>', value: '`to see player count trends for the provided game(s).`', inline: 'false'},
 				{ name: '.total-trends', value: '`To see total player count trends across all games.`', inline: 'false'},
 				{ name: '.fortnite-stats <`fortniteUserName|@user`> <`gameMode`> <`stat`>', value: '`to lookup fortnite stats for the provided player.`', inline: 'false'},
@@ -235,6 +248,7 @@ module.exports = {
 				{ name: '.join-review-team', value: '`to be added to the review team.`', inline: 'false'},
 				{ name: '.leave-review-team', value: '`to be removed from the review team.`', inline: 'false'},
 				{ name: '.color <`colorName`>', value: '`to set your role/response color preference.`', inline: 'false'},
+        { name: '.rainbow-role <`tier`>', value: '`🏆 to add a role with changing color for a limited time`', inline: 'false'},
 				{ name: '.shuffle-scrubs', value: '`to randomize the first letter of every Srub\'s name.`', inline: 'false'},
 				{ name: '.shuffle-scrubs <`letter`>', value: '`to set the first letter of every Srub\'s name.`', inline: 'false'},
 				{ name: '.set-birthday <`MM/DD`>', value: '`to set your birthday and receive cake.`', inline: 'false'},
@@ -246,13 +260,13 @@ module.exports = {
 			]
 		},
 		{
-			name: '`Soundbytes`',
+			name: '`Soundbites`',
 			fields: [
-				{ name: '.sb', value: '`to get the list of available soundbytes.`', inline: 'false'},
+				{ name: '.sb', value: '`to get the list of available soundbites.`', inline: 'false'},
 				{ name: '.sb <`name`>', value: '`to play the sound byte of the given name in your voice channel.`', inline: 'false'},
 				{ name: '.add-sb + `ATTACHMENT IN SAME MESSAGE`', value: '`to add a sound byte.`', inline: 'false'},
-				{ name: '.fav-sb', value: '`to get the list of your most frequently used soundbytes.`', inline: 'false'},
-				{ name: '.volume <soundbyte> <1-10>', value: '`to set the volume for the provided soundbyte.`', inline: 'false'}
+				{ name: '.fav-sb', value: '`to get the list of your most frequently used soundbites.`', inline: 'false'},
+				{ name: '.volume <soundbite> <1-10>', value: '`to set the volume for the provided soundbite.`', inline: 'false'}
 			]
 		},
 		{
@@ -287,11 +301,6 @@ module.exports = {
 					'All messages between the two you reacted to will be deleted, including those two.\nThis will only work if you are in a temp channel you created.`', inline: 'false'}
 			]
 		}
-	],
-	//TODO: finish updated the help for these commands and place them in relevant categories
-	UNCATEGORIZED_HELP: [
-		{ name: '.move-user <`TBD`>', value: '`🏆`', inline: 'false'},
-		{ name: '.rainbow-role <`TBD`>', value: '`🏆`', inline: 'false'},
 	],
 	NEW_LEDGER_ENTRY: {
 		armySize: 0,
@@ -331,6 +340,15 @@ module.exports = {
 			imdb: {}
 		}
 	},
+	MISSING_TITLES: {
+		movies: {
+			rt: [],
+			imdb: []
+		},
+		tv: {
+			imdb: []
+		}
+	},
 	Clubs: ['https://i.imgur.com/o7m74ae.png', 'https://i.imgur.com/s15mB52.png', 'https://i.imgur.com/8zKQuRh.png?1', 'https://i.imgur.com/cCGAnwz.png',
 		'https://i.imgur.com/aw8SjKM.png', 'https://i.imgur.com/fDYMBkl.png','https://i.imgur.com/9GdN1xf.png', 'https://i.imgur.com/KT1weaO.png',
 		'https://i.imgur.com/qt9QC39.png','https://i.imgur.com/Z13JEy5.png', 'https://i.imgur.com/ihire3h.png', 'https://i.imgur.com/YghMO9j.png', 'https://i.imgur.com/LzMzKTB.png'],
@@ -364,7 +382,7 @@ module.exports = {
 		},
 		{
 			color: 0xffff00,
-			title: '💡 Adding Soundbytes And Emojis',
+			title: '💡 Adding Soundbites And Emojis',
 			description: 'You must call *add-sb/.add-emoji and attach your .mp3/.png file in the same message as seen below.',
 			image: {
 				url: 'https://i.imgur.com/WdoyTXc.png'
@@ -410,12 +428,12 @@ module.exports = {
 		'ignore-posts', 'implement', 'inventory', 'invest', 'invest-scrubbles', 'issue',
 		'join-review-team',
 		'list', 'leave-temp', 'leave-review-team', 'lets-play', 'list-backups', 'log', 'lotto',
-		'magic-word', 'missing-help', 'move-user',
+		'magic-word', 'missing-help',
 		'opt-in',
-		'p', 'playing', 'portfolio',
+		'ping-ark-server', 'playing', 'portfolio', 'prizes',
 		'quote', 'quotes',
 		'race', 'rainbow-role', 'ranks', 'rate', 'ratings', 'rating-info', 'refresh-ratings', 'rejoin-temp', 'remind-me', 'remove-player', 'rename', 'rename-channel', 'rename-hank', 'rename-role', 'rename-user', 'reserve', 'restart', 'restore', 'review-messages', 'revive', 'rock', 'round-robin',
-		'sb', 'sb-add', 'scrub-box', 'sell-shares', 'set-birthday', 'set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'split-group', 'start-lotto', 'stats', 'stay', 'steal', 'steal-all', 'stocks', 'stop-lotto', 'subscribe-catfacts', 'sunken-sailor',
+		'sb', 'scrub-box', 'sell-shares', 'set-birthday', 'set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'split-group', 'start-lotto', 'stats', 'stay', 'steal', 'steal-all', 'stocks', 'stop-lotto', 'subscribe-catfacts', 'sunken-sailor',
 		'temp', 'test', 'time', 'tips', 'toggle-streaming', 'trends', 'total-trends',
 		'unalias', 'update-readme',
 		'volume', 'vote', 'voteban', 'voteinfo', 'votekick',
@@ -434,7 +452,7 @@ module.exports = {
 	},
 	RATING_FUZZY_OPTIONS: {
 		shouldSort: true,
-		threshold: 0.25,
+		threshold: 0.1,
 		location: 0,
 		distance: 100,
 		maxPatternLength: 32,
@@ -456,6 +474,18 @@ module.exports = {
 		'0': '⓪', '1': '①', '2': '②', '3': '③', '4': '④', '5': '⑤', '6': '⑥', '7': '⑦', '8': '⑧', '9': '⑨'
 	},
 	REACTION_NUMBERS: ['0⃣', '1⃣', '2⃣', '3⃣', '4⃣', '5⃣', '6⃣', '7⃣', '8⃣','9⃣'],
+	NUMBER_TO_EMOJI: {
+		'zero': '0️⃣',
+		'one': '1️⃣',
+		'two': '2️⃣',
+		'three': '3️⃣',
+		'four': '4️⃣',
+		'five': '5️⃣',
+		'six': '6️⃣',
+		'seven': '7️⃣',
+		'eight': '8️⃣',
+		'nine': '9️⃣',
+	},
 	PPL_EMOJIS: ['😢', '🕺', '👬', '👨‍👨‍👧', '👨‍👨‍👧‍👦⠀', '🧙👩‍👩‍👧‍👦⠀'],
 	RACER_EMOJIS: ['🐒', '🦆', '🐢', '🐳', '🐓', '🐬', '🏃', '🦀',
 		'🐘', '🐉', '🐇', '🐐', '🐌', '🐩', '🐑'],
@@ -483,13 +513,23 @@ module.exports = {
 		's-squad': 'stats.curr_p9',
 		'all': 'lifeTimeStats'
 	},
+	ARK_SERVER_STATUS_TO_COLOR: {
+		'Starting...': 0xffbb33,
+		'⬆️': 0x00C851,
+		'⬇️': 0xff4444
+	},
+	REDDIT_URL_PATTERN: {
+		video: /https:\/\/v\.redd\.it\/([a-z0-9]+)/,
+		gif: /https:\/\/preview\.redd\.it\/([a-z0-9]+).gif(\?width=[0-9]{3,4})?[?&]format=mp4&s=[a-z0-9]+/,
+		comments: /https:\/\/((www|old)\.)?(old\.)?reddit.com\/r\/\w+\/comments\/[a-z0-9]+\/\w+\//
+	},
+	TWITTER_STATUS_URL_PATTERN: /https:\/\/twitter\.com\/.+\/status\/[0-9]+/,
 	STOCKS_BASE_URL: 'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=',
 	DEV: 'dev',
 	MAX_BITRATE: 96,
 	MIN_BITRATE: 64,
 	CODACY_BADGE: '[![Codacy Badge](https://api.codacy.com/project/badge/Grade/8f59c3e85df049d3bd319a21576f37c4)]'
 		+ '(https://www.codacy.com/app/Scrubs/scrub-daddy?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=wasaab/scrub-daddy&amp;utm_campaign=Badge_Grade)',
-	UPDATE_LOG_LINK: '[Update Log](https://boostlog.io/@wasaab/scrub-daddy-update-log-5ad3d7f547018500491f3bde)',
 	ADMIN_COMMANDS: '1. Admin Commands\n' +
 		'+ backup - `backs up all json files within the data folder to ../jsonBackups.`\n' +
 		'+ restore <`backupFileName`> - `restores json files to the specified backup.`\n' +
@@ -520,8 +560,8 @@ module.exports = {
 	},
 	PRIZE_TIERS: [
 		{
-			'rename-hank': '1 days',
-			'rename-user': '1 days',
+			'rename-hank': '1 day',
+			'rename-user': '1 day',
 			'rename-channel': '2 days',
 			'rename-role': '2 days',
 			// 'annoy': '1 day',
@@ -555,9 +595,16 @@ module.exports = {
 			'add-emoji': '3 emojis',
 			'add-bubbles': 800,
 			'subtract-bubbles': 400,
-			'start-lotto': '',
-			'stop-lotto': ''
-		}
+			'start-lotto': '1 use',
+			'stop-lotto': '1 use'
+		},
+		// {
+		// 	'demote': '',
+		// 	'clear-lotto': '',
+		// 	//client.on('guildMemberSpeaking')
+		// 	'talking-rainbow-role': '1 day',
+		//	'billionaires-club': '1 day'
+		// }
 	],
 	TIER_COST: [200, 400, 600],
 	MENTION_TYPE_TO_SYMBOL: {
@@ -571,6 +618,7 @@ module.exports = {
 		role: 'role'
 	},
 	INVALID_DURATION_ISO: 'P0D',
+	DAY_HM_DATE_TIME_FORMAT: 'ddd h:mm A',
 	MDY_HM_DATE_TIME_FORMAT: 'M/DD/YY hh:mm A',
 	MDY_DATE_FORMAT: 'MM/DD/YY',
 	MD_DATE_FORMAT: 'MM/DD',
@@ -578,6 +626,7 @@ module.exports = {
 	SHORT_DATE_FORMAT: 'l',
 	BACKUP_DATE_FORMAT: 'M[-]D[-]YY[@]h[-]mm[-]a',
 	NO_RENAMES_MSG: 'No active renames',
+	CUSTOM_STATUS: 'Custom Status',
 	DAILY_RESERVE_AMOUNT: 10,
 	VOLUME_TO_DB: [-70, -60, -50, -40, -30, -20, -15, -10, -5, 0],
 	TABLE_COL_SEPARATOR: ' ║ '

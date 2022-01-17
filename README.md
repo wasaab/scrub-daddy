@@ -9,7 +9,7 @@ Discord bot using Node.js, focused on gamers, with 117 commands.
 + Track players of games and invite all or a subset
 + List players by game name or see a list of those who play the same games as you
 + Simulated stock market using real world stocks
-+ Soundbytes
++ Soundbites
 + Server and bot administration
 + Discord integrated issue and feature submission system with task priority determined by majority vote
 + Game stat tracking
@@ -109,12 +109,12 @@ Discord bot using Node.js, focused on gamers, with 117 commands.
       e.g. .alias ow who-plays Overwatch ... will allow you to call .ow`
 + .unalias <`alias`> - `removes the alias with the provided name.`
 
-### Soundbytes
-+ .sb - `to get the list of available soundbytes.`
+### Soundbites
++ .sb - `to get the list of available soundbites.`
 + .sb <`name`> - `to play the sound byte of the given name in your voice channel.`
 + .add-sb + `ATTACHMENT IN SAME MESSAGE` - `to add a sound byte.`
-+ .fav-sb - `to get the list of your most frequently used soundbytes.`
-+ .volume <soundbyte> <1-10> - `to set the volume for the provided soundbyte.`
++ .fav-sb - `to get the list of your most frequently used soundbites.`
++ .volume <soundbite> <1-10> - `to set the volume for the provided soundbite.`
 
 ### Utilities
 + .temp - `Creates a temporary text channel`

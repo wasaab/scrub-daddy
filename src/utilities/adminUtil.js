@@ -1,21 +1,19 @@
-var execSync = require('child_process').execSync;
+var { execSync } = require('child_process');
 var backup = require('backup');
 var moment = require('moment');
-var get = require('lodash.get');
 var fs = require('fs');
 
-var logUtil = require('../logger.js');
+var { logger, DiscordServerTransport } = require('../logger.js');
 var bot = require('../bot.js');
 var c = require('../const.js');
+const cmdHandler = require('../handlers/cmdHandler.js');
 
-const { sendEmbedMessage, log } = require('./messagingUtil.js');
+const { sendEmbedMessage, sendEmbed, log } = require('./messagingUtil.js');
 const { getNick, exportJson, mentionUser, mentionChannel, getMembers, maybeGetPlural, getRand } = require('./baseUtil.js');
 
 var bannedUserIDToBans = require('../../resources/data/banned.json');
 var config = require('../../resources/data/config.json');
 
-var logger = logUtil.botLogger;
-var DiscordServerTransport = logUtil.DiscordServerTransport;
 var reviewQueue = [];
 var muteAndDeafUserIDToTime = {};
 const backupBasePath = '../jsonBackups/';
@@ -29,13 +27,12 @@ const backupBasePath = '../jsonBackups/';
  */
 function banSpammer(user, channel, days = 2, isMagicWord, isSilent) {
 	var usersBans = bannedUserIDToBans[user.id] || [];
-	channel.overwritePermissions(user, {
-		SEND_MESSAGES: false
-	})
-	.then(logger.info(`Banning ${getNick(user.id)} from ${channel.name} for spamming.`))
-	.catch((err) => {
-		logger.error(`Ban - Overwrite Permissions Error: ${err}`);
-	});
+
+	channel.overwritePermissions(user, { SEND_MESSAGES: false })
+		.then(logger.info(`Banning ${getNick(user.id)} from ${channel.name} for spamming.`))
+		.catch((err) => {
+			logger.error(`Ban - Overwrite Permissions Error: ${err}`);
+		});
 	usersBans.push({
 		channelID: channel.id,
 		time: moment(),
@@ -43,6 +40,7 @@ function banSpammer(user, channel, days = 2, isMagicWord, isSilent) {
 	});
 	bannedUserIDToBans[user.id] = usersBans;
 	exportBanned();
+
 	var msg = `Enjoy the ${days} day ban from ${mentionChannel(channel.id)}, you filthy spammer!`;
 
 	if (isMagicWord) {
@@ -52,7 +50,10 @@ function banSpammer(user, channel, days = 2, isMagicWord, isSilent) {
 	if (isSilent) { return; }
 
 	channel.send(`🔨 ${mentionUser(user.id)} ${msg}`);
-	sendEmbedMessage(null, null, null, c.BANNED_IMAGES[getRand(0, c.BANNED_IMAGES.length)], null, null, channel.id);
+	sendEmbed({
+		image: c.BANNED_IMAGES[getRand(0, c.BANNED_IMAGES.length)],
+		channelID: channel.id
+	});
 }
 
 /**
@@ -62,17 +63,37 @@ function banSpammer(user, channel, days = 2, isMagicWord, isSilent) {
  * @param {Object} message - the message sent in a channel
  */
 function maybeBanSpammer(message) {
-	if (message.channel.id === c.BOT_SPAM_CHANNEL_ID || message.author.bot || message.attachments.size !== 0) { return; }
+	if (isNotSpam(message)) { return; }
 
 	message.channel.fetchMessages({limit: 3})
 	.then((oldMessages) => {
-		var duplicateMessages = oldMessages.array().filter((oldMsg) => {
-			return oldMsg.author.id === message.author.id && oldMsg.content === message.content;
-		});
+		const duplicateMessages = oldMessages.array()
+			.filter((oldMsg) => isDuplicateMessage(oldMsg, message));
+
 		if (duplicateMessages.length === 3) {
 			banSpammer(message.member, message.channel);
 		}
 	});
+}
+
+/**
+ * Determines if the current message is a duplicate of a prior message.
+ *
+ * @param {Object} oldMsg the old messages to compare against
+ * @param {Object} message the current message to check for duplication
+ */
+function isDuplicateMessage(oldMsg, message) {
+	return oldMsg.author.id === message.author.id && oldMsg.content === message.content;
+}
+
+/**
+ * Determines if a message is not spam.
+ *
+ * @param {Object} message the message to check for spam
+ */
+function isNotSpam(message) {
+	return message.channel.id === c.BOT_SPAM_CHANNEL_ID || message.author.bot
+		|| message.attachments.size !== 0 || "PINS_ADD" === message.type;
 }
 
 /**
@@ -83,18 +104,17 @@ function maybeBanSpammer(message) {
  */
 function unBanSpammer(userID, channelID) {
 	const channel = bot.getServer().channels.find('id', channelID);
+
 	if (!channel) { return; }
 
-	channel.overwritePermissions(userID, {
-		SEND_MESSAGES: true
-	})
-	.then(logger.info(`Un-banning ${getNick(userID)} from ${channel.name} for spamming.`))
-	.catch((err) => {
-		logger.error(`Un-ban - Overwrite Permissions Error: ${err}`);
-	});
+	channel.overwritePermissions(userID, { SEND_MESSAGES: true })
+		.then(logger.info(`Un-banning ${getNick(userID)} from ${channel.name} for spamming.`))
+		.catch((err) => {
+			logger.error(`Un-ban - Overwrite Permissions Error: ${err}`);
+		});
 	delete bannedUserIDToBans[userID];
 	exportBanned();
-	channel.send(`${mentionUser(userID)} Your ban has been lifted, and may now post in ${mentionChannel(channel.id)} again.`);
+	channel.send(`${mentionUser(userID)} Your ban has been lifted. You may now post in ${mentionChannel(channel.id)} again.`);
 }
 
 /**
@@ -104,6 +124,7 @@ function maybeUnbanSpammers() {
 	for (var userID in bannedUserIDToBans) {
 		const bans = bannedUserIDToBans[userID];
 		const now = moment();
+
 		bans.forEach((ban) => { //eslint-disable-line
 			if (now.diff(ban.time, 'days') >= ban.days) {
 				unBanSpammer(userID, ban.channelID);
@@ -128,7 +149,7 @@ function isInPurgatoryOrAFK(channelID) {
  */
 function updateMuteAndDeaf(channels) {
 	channels.forEach((channel) => {
-		if (channel.type !== "voice" || !get(channel, 'members.size')) { return; }
+		if (channel.type !== "voice" || !channel?.members?.size) { return; }
 
 		channel.members.array().forEach((member) => {
 			if (!member.selfMute || !member.selfDeaf) {
@@ -158,7 +179,8 @@ function maybeMoveMuteAndDeaf() {
 
 		if (!deafMember) { continue; }
 
-		deafMember.setVoiceChannel(purgatoryVC);
+		deafMember.setVoiceChannel(purgatoryVC)
+			.catch(log);
 		logger.info(`Sending ${getNick(deafMember.id)} to solitary for being mute & deaf.`);
 	}
 }
@@ -193,18 +215,25 @@ function isDevEnv() {
 
 /**
  * Outputs the list of server backups.
+ *
+ * @param {Object} message	message that called the list backups command
  */
-function listBackups() {
+function listBackups(message) {
+	if (!isAdmin(message.member.id)) { return; }
+
 	var timestamps = [];
 	var filesMsg = '';
+
 	fs.readdirSync(backupBasePath).forEach((file) => {
-		const time = moment(file.split('.')[0],'M[-]D[-]YY[@]h[-]mm[-]a');
+		const time = moment(file.split('.')[0], c.BACKUP_DATE_FORMAT);
+
 		timestamps.push(time.valueOf());
 	});
 	timestamps.sort((a,b) => b - a);
 	timestamps = timestamps.slice(0, 5);
 	timestamps.forEach((timestamp) => {
 		const time = moment(timestamp).format(c.BACKUP_DATE_FORMAT);
+
 		filesMsg += `\`${time.toString()}\`\n`;
 	});
 	sendEmbedMessage('Available Backups', filesMsg, c.K_ID);
@@ -212,8 +241,12 @@ function listBackups() {
 
 /**
  * Updates README.md to have the up to date list of commands.
+ *
+ * @param {Object} message	message that called the update readme command
  */
-function updateReadme() {
+function updateReadme(message) {
+	if (!isAdmin(message.member.id)) { return; }
+
 	var result = '';
 	var cmdCount = c.ADMIN_COMMANDS.split('+').length;
 
@@ -230,30 +263,64 @@ function updateReadme() {
 	fs.writeFile('README.md', result, 'utf8', log);
 }
 
-function outputCmdsMissingHelpDocs() {
-	const cmdsMissingDocs = c.COMMANDS.filter((cmd) => {
-		return !c.HELP_CATEGORIES.some((category) => {
-			return category.fields.some((command) => command.name.substring(1).startsWith(cmd));
-		});
-	});
+/**
+ * Outputs a list of the commands that are missing help docs.
+ *
+ * @param {Object} message	message that called the missing help command
+ */
+function outputCmdsMissingHelpDocs(message) {
+	if (!isAdmin(message.member.id)) { return; }
 
-	sendEmbedMessage('Top Secret Commands', `I actually just need to document these ${cmdsMissingDocs.length} commands...\n\n${cmdsMissingDocs.toString().split(',').join(', ')}`);
+	const cmdsMissingDocs = c.COMMANDS.filter(isCommandInAnyHelpCategory);
+	const missingDocsOutput = cmdsMissingDocs.toString().split(',').join(', ');
+
+	sendEmbedMessage(
+		'Top Secret Commands',
+		`I actually just need to document these ${cmdsMissingDocs.length} commands...\n\n${missingDocsOutput}`
+	);
 }
 
+/**
+ * Determines if the command is documented in any help category.
+ *
+ * @param {String} cmd command to find docs of
+ */
+function isCommandInAnyHelpCategory(cmd) {
+	return !c.HELP_CATEGORIES.some((category) => isCommandInHelpCategory(category, cmd));
+}
+
+/**
+ * Determines if the command is documented in the provided help category.
+ *
+ * @param {Object} category help category to search
+ * @param {String} cmd command to find docs of
+ */
+function isCommandInHelpCategory(category, cmd) {
+	return category.fields.some((command) => command.name.substring(1).startsWith(cmd));
+}
+
+/**
+ * Outputs the updated help categories prompt.
+ */
 function outputUpdatedHelpCategoriesPrompt() {
 	var result = '';
 
 	c.HELP_CATEGORIES.forEach((category, i) => {
 		var cmds = [];
+
 		category.fields.forEach((cmd) => {
 			if (!cmd.name.startsWith('.')) { return; }
+
 			const cmdName = cmd.name.match('(@|[A-z0-9]+(-[A-z0-9]*)?)')[0];
-			if (cmds[cmds.length-1] === cmdName) { return; }
+
+			if (cmds[cmds.length - 1] === cmdName) { return; }
+
 			cmds.push(cmdName);
 		});
 
 		const cmdsList = cmds.join('`	`');
-		result += `{ name: '${i+1}) ${category.name}', value: '\`${cmdsList}\`', inline: 'false'},\n`;
+
+		result += `{ name: '${i + 1}) ${category.name}', value: '\`${cmdsList}\`', inline: 'false'},\n`;
 	});
 
 	console.log(result); //eslint-disable-line
@@ -262,12 +329,18 @@ function outputUpdatedHelpCategoriesPrompt() {
 /**
  * Restarts the bot.
  *
- * @param {Boolean} update - whether or not the bot should pull from github
+ * @param {Object} message	message that called the restart command
+ * @param {String[]} args	the arguments passed by the user
+ * @param {Boolean} pullUpdatedCode whether or not the bot should pull from github
  */
-function restartBot(update) {
-    if (update) {
-        execSync('git pull', {stdio: 'inherit'});
-	}
+function restartBot(message, args, pullUpdatedCode) {
+	if (message && !isAdmin(message.member.id)) { return; }
+
+	pullUpdatedCode = pullUpdatedCode || args[1];
+
+  if (pullUpdatedCode) {
+      execSync('git pull', { stdio: 'inherit' });
+  }
 
 	process.exit(0); //eslint-disable-line
 }
@@ -286,8 +359,9 @@ function waitForFileToExist(time, path, timeout, restart) {
 		if (fs.existsSync(path)) {
 			clearInterval(interval);
 			sendEmbedMessage('Backup Successfully Created', `**${time}**`, c.K_ID);
+
 			if (restart) {
-				restartBot(restart);
+				restartBot(null, null, restart);
 			}
 		} else if (retriesLeft === 0){
 			clearInterval(interval);
@@ -301,61 +375,80 @@ function waitForFileToExist(time, path, timeout, restart) {
 /**
  * Restores all json files from the specified backup.
  *
- * @param {String} backupTarget - the timestamp of the backup to restore from
+ * @param {Object} message	message that called the restore command
+ * @param {String[]} args	the arguments passed by the user
  */
-function restoreJsonFromBackup(backupTarget) {
+function restoreJsonFromBackup(message, args) {
+	if (!isAdmin(message.member.id)) { return; }
+
+	var backupTarget = args[1];
+
 	if (!backupTarget && config.lastBackup) {
 		backupTarget = config.lastBackup;
 	}
 
 	const backupPath = `${backupBasePath}${backupTarget}.backup`;
+
 	if (fs.existsSync(backupPath)) {
 		const tempDir = './resources/resources';
+
 		backup.restore(backupPath, './resources/');
 		setTimeout(() => {
 			execSync(`mv ${tempDir}/data/* ./resources/data/`);
 			fs.rmdirSync(`${tempDir}/data`);
 			fs.rmdirSync(tempDir);
-			sendEmbedMessage('Data Restored From Backup', `All data files have been restored to the state they were in on ${backupTarget}.`);
+			sendEmbedMessage(
+				'Data Restored From Backup',
+				`All data files have been restored to the state they were in on ${backupTarget}.`
+			);
 		}, 2000);
 	} else {
-		sendEmbedMessage('Invalid Backup Specified', `There is no backup for the provided time of ${backupTarget}.`);
+		sendEmbedMessage(
+			'Invalid Backup Specified',
+			`There is no backup for the provided time of ${backupTarget}.`
+		);
 	}
 }
 
 /**
  * Backs the server up.
  *
- * @param {Boolean} restart - whether or not the bot should restart on success
+ * @param {Object} message	message that called the backup json command
+ * @param {String[]} args	the arguments passed by the user
  */
-function backupJson(restart) {
+function backupJson(message, args) {
+	if (!isAdmin(message.member.id)) { return; }
+
+	const restartAfterBackup = args[1];
 	const time = moment().format(c.BACKUP_DATE_FORMAT);
 	const backupPath = `${backupBasePath}${time}.backup`;
-	config.lastBackup = time;
 
+	config.lastBackup = time;
 	exportJson(config, 'config');
-	
+
 	if (!fs.existsSync(backupBasePath)) {
 		fs.mkdirSync(backupBasePath);
 	}
 
 	backup.backup('./resources/data', backupPath);
-	waitForFileToExist(time, backupPath, 2000, restart);
+	waitForFileToExist(time, backupPath, 2000, restartAfterBackup);
 }
 
 /**
  * Sends messages from the review queue to the reviewer.
  *
- * @param {Object} reviewer - user reviewing the queue of messages
+ * @param {Object} message	message that called the review command
  */
-function reviewMessages(reviewer) {
+function reviewMessages(message) {
+	const reviewer = message.author;
+
 	reviewer.createDM()
-	.then((dm) => {
-		reviewQueue.forEach((message) => {
-			logger.info(`Message to review: ${message}`);
-			dm.send(message);
+		.then((dm) => {
+			reviewQueue.forEach((reviewMessage) => {
+				logger.info(`Message to review: ${reviewMessage}`);
+				dm.send(reviewMessage);
+			});
 		});
-	});
 }
 
 /**
@@ -381,42 +474,57 @@ function exportBanned() {
 function enableServerLogRedirect() {
     const logChannel = bot.getLogChannel();
 
-	if (!logChannel || logger.transports.length === 2) { return; }
+	if (!logChannel || logger.transports.length === 3) { return; }
 
 	logger.add(new DiscordServerTransport({ level: 'cmd', channel: logChannel }));
 }
 
 /**
  * Toggles the logger redirect to discord text channel on or off.
+ *
+ * @param {Object} message	message that called the log command
  */
-function toggleServerLogRedirect(userID) {
-	if (logger.transports.length === 2) {
+function toggleServerLogRedirect(message) {
+	const userID = message.member.id;
+
+	if (!isAdmin(userID)) { return; }
+
+	if (logger.transports.length === 3) {
 		const discordTransport = logger.transports.find((transport) => {
 			return transport.constructor.name === 'DiscordServerTransport';
 		});
 
 		logger.remove(discordTransport);
-		sendEmbedMessage('Server Log Redirection Disabled', 'Server logs will stay where they belong!', userID);
+		sendEmbedMessage(
+			'Server Log Redirection Disabled',
+			'Server logs will stay where they belong!',
+			userID
+		);
 	} else {
 		exports.enableServerLogRedirect();
-		sendEmbedMessage('Server Log Redirection Enabled', `The server log will now be redirected to ${mentionChannel(c.LOG_CHANNEL_ID)}`, userID);
+		sendEmbedMessage(
+			'Server Log Redirection Enabled',
+			`The server log will now be redirected to ${mentionChannel(c.LOG_CHANNEL_ID)}`,
+			userID
+		);
 	}
 }
 
 exports.addMessageToReviewQueue = addMessageToReviewQueue;
-exports.backupJson = backupJson;
 exports.banSpammer = banSpammer;
 exports.enableServerLogRedirect = enableServerLogRedirect;
 exports.handleMuteAndDeaf = handleMuteAndDeaf;
 exports.isAdmin = isAdmin;
 exports.isDevEnv = isDevEnv;
-exports.listBackups = listBackups;
 exports.maybeBanSpammer = maybeBanSpammer;
 exports.maybeUnbanSpammers = maybeUnbanSpammers;
-exports.outputCmdsMissingHelpDocs = outputCmdsMissingHelpDocs;
-exports.outputUpdatedHelpCategoriesPrompt = outputUpdatedHelpCategoriesPrompt;
-exports.restartBot = restartBot;
-exports.restoreJsonFromBackup = restoreJsonFromBackup;
-exports.reviewMessages = reviewMessages;
-exports.toggleServerLogRedirect = toggleServerLogRedirect;
-exports.updateReadme = updateReadme;
+exports.registerCommandHandlers = () => {
+	cmdHandler.registerCommandHandler('backup', backupJson);
+	cmdHandler.registerCommandHandler('list-backups', listBackups);
+	cmdHandler.registerCommandHandler('restore', restoreJsonFromBackup);
+	cmdHandler.registerCommandHandler('log', toggleServerLogRedirect);
+	cmdHandler.registerCommandHandler('missing-help', outputCmdsMissingHelpDocs);
+	cmdHandler.registerCommandHandler('review-messages', reviewMessages);
+	cmdHandler.registerCommandHandler('update-readme', updateReadme);
+	cmdHandler.registerCommandHandler('restart', restartBot);
+};

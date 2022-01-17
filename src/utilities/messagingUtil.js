@@ -3,11 +3,12 @@ var Discord = require('discord.js');
 var inspect = require('util-inspect');
 var moment = require('moment');
 
-var logger = require('../logger.js').botLogger;
+const cmdHandler = require('../handlers/cmdHandler.js');
+const { logger } = require('../logger.js');
 var bot = require('../bot.js');
 var c = require('../const.js');
 
-const { getRand, getNick, getAvatar, exportJson, capitalizeFirstLetter,
+const { getNick, getMembers, getAvatar, exportJson, capitalizeFirstLetter,
 	lock, isLocked, isMention, unLock, getIdFromMention, buildField } = require('./baseUtil.js');
 
 var userIDToColor = require('../../resources/data/colors.json');
@@ -51,6 +52,7 @@ function getUserColor(userID) {
  * @param {String[]} fields - fields of the message
  * @param {String} userID - id of sending user
  * @param {Object} footer - the footer for the message
+ * @returns {Promise<Message>} a promise of the message that was sent
  */
 function sendEmbedFieldsMessage(title, fields, userID, footer, channelID) {
 	if (fields.length === 1 && fields[0].name === '') { return; }
@@ -65,22 +67,57 @@ function sendEmbedFieldsMessage(title, fields, userID, footer, channelID) {
 	return sendMessageToChannel(message, channelID);
 }
 
-function sendAuthoredMessage(description, userID, channelID) {
+/**
+ * Sends a message with the provided user as the author via a webhook.
+ *
+ * @param {String} description description of the message
+ * @param {String} userID id of authoring user
+ * @param {String} channelID id of channel to send the message to
+ * @param {Object} file file to attach to the message
+ * @returns {Promise<Message|Error>} a promise of the message that was sent
+ */
+async function sendAuthoredMessage(description, userID, channelID, file) {
 	const channel = bot.getServer().channels.find('id', channelID);
 	const author = getAuthor(userID, true);
 
 	if (!channel || !author) { return; }
 
 	if (author.username.length === 1) {
-		author.username = '·' + author.username;
+		author.username = `.${author.username}`;
 	}
 
-	channel.createWebhook("AuthoredMsg", author.avatarURL).then((webhook) => {
-		webhook.send(description, author).catch(log);
-		webhook.delete().catch(log);
-	}).catch(log);
+	let webhook;
+
+	try {
+		webhook = await channel.createWebhook('AuthoredMsg', author.avatarURL);
+
+		const msgOptions = {
+			...author,
+			file
+		};
+
+		await webhook.send(description, msgOptions);
+
+		return webhook.delete().catch(log);
+	} catch (err) {
+		logger.error(`Unable to send authored msg: ${err}`);
+
+		if (webhook) {
+			webhook.delete().catch(log);
+		}
+
+		return err;
+	}
 }
 
+/**
+ * Sends an embed message with the provided user as the author.
+ *
+ * @param {String} description description of the message
+ * @param {String} userID id of authoring user
+ * @param {String} channelID id of channel to send the message to
+ * @returns {Promise<Message>} a promise of the message that was sent
+ */
 function sendAuthoredEmbed(description, userID, channelID) {
 	const message = {
 		color: getUserColor(userID),
@@ -92,17 +129,56 @@ function sendAuthoredEmbed(description, userID, channelID) {
 }
 
 /**
- * Sends an embed message to bot-spam with an optional title, description, image, thumbnail(true/false), and footer.
+ * Sends an embed message to the channel specified.
+ *
+ * @param {String=} title title of the message
+ * @param {String=} description description of the message
+ * @param {String} channelID id of the channel to send the message to
+ * @param {String} userID id of the user message is for
+ * @returns {Promise<Message>} a promise of the message that was sent
  */
-function sendEmbedMessage(title, description, userID, image, thumbnail, footer, channelID, file, url, timestamp) {
-	//these are all optional parameters
-	title = title || '';
-	description = description || '';
-	image = image || '';
-	file = file || '';
+function sendEmbedMessageToChannel(title = '', description = '', channelID, userID) {
+	return sendEmbed({ title, description, channelID, userID });
+}
 
-	const picType = thumbnail ? 'thumbnail' : 'image';
-	var message = {
+/**
+ * Sends an embed message to the channel specified or default channel.
+ *
+ * @param {Object} options the embed message options
+ * @param {String=} options.title title of the message
+ * @param {String=} options.description description of the message
+ * @param {String} options.userID id of the user message is for
+ * @param {String=} options.image url of the image to embed in the message
+ * @param {Boolean} options.isThumbnail whether or no the image should be thumbnail size
+ * @param {String} options.footer footer of the message
+ * @param {String} options.channelID id of the channel to send the message to
+ * @param {Object} options.file file stream to attach to the message
+ * @param {String} options.url url of the message
+ * @param {String} options.timestamp timestamp to include in the footer
+ * @returns {Promise<Message>} a promise of the message that was sent
+ */
+function sendEmbed({ title, description, userID, image, isThumbnail, footer, channelID, file, url, timestamp }) {
+	return sendEmbedMessage(title, description, userID, image, isThumbnail, footer, channelID, file, url, timestamp);
+}
+
+/**
+ * Sends an embed message to the channel specified or default channel.
+ *
+ * @param {String=} title title of the message
+ * @param {String=} description description of the message
+ * @param {String} userID id of the user message is for
+ * @param {String=} image url of the image to embed in the message
+ * @param {Boolean} isThumbnail whether or no the image should be thumbnail size
+ * @param {String} footer footer of the message
+ * @param {String} channelID id of the channel to send the message to
+ * @param {Object} file file stream to attach to the message
+ * @param {String} url url of the message
+ * @param {String} timestamp timestamp to include in the footer
+ * @returns {Promise<Message>} a promise of the message that was sent
+ */
+function sendEmbedMessage(title = '', description = '', userID, image = '', isThumbnail, footer, channelID, file = '', url, timestamp) {
+	const picType = isThumbnail ? 'thumbnail' : 'image';
+	const message = {
 		color: getUserColor(userID),
 		title: title,
 		description: description,
@@ -119,6 +195,13 @@ function sendEmbedMessage(title, description, userID, image, thumbnail, footer, 
 	return sendMessageToChannel(message, channelID);
 }
 
+/**
+ * Sends the provided message to the specified channel.
+ *
+ * @param {Object} message the message to send
+ * @param {String} channelID id of the channel to send message to
+ * @returns {Promise<Message>} a promise of the message that was sent
+ */
 function sendMessageToChannel(message, channelID) {
 	const channel = channelID ? bot.getServer().channels.find('id', channelID) : bot.getBotSpam();
 
@@ -133,10 +216,37 @@ function sendMessageToChannel(message, channelID) {
  * @param {String} userID - id of the user
  * @param {String} selectionType - type of selection that timed out
  */
-function reactionTimedOut(userID, selectionType) {
-	logger.info((`After 40 seconds, there were no reactions.`));
-	sendEmbedMessage(`${capitalizeFirstLetter(selectionType)} Reponse Timed Out`,
-		`${getNick(userID)}, you have not made a ${selectionType} selection, via reaction, so I'm not listening to you anymore 😛`, userID);
+function sendReactionTimedOutMsg(userID, selectionType) {
+	logger.info(`After 40 seconds, there were no reactions.`);
+	sendEmbedMessage(
+		`${capitalizeFirstLetter(selectionType)} Reponse Timed Out`,
+		`${getNick(userID)}, you have not made a ${selectionType} selection, via reaction, so I'm not listening to you anymore 😛`,
+		userID
+	);
+}
+
+/**
+ * Checks if the reaction is valid for selecting pages in a paginated embed.
+ *
+ * @param {Object} reaction reaction to validate
+ * @param {Object} homeReaction home page reaction
+ * @returns {Boolean} true iff the reaction is valid for page selection
+ */
+function isValidPageSelectionReaction(reaction, homeReaction) {
+	return c.REACTION_NUMBERS.includes(reaction.emoji.name) || reaction.emoji.name === homeReaction;
+}
+
+/**
+ * Builds a reaction filter for dynamic message page selections.
+ *
+ * @param {Object} homeResult the result for home selection
+ * @param {String} userID id of the target user
+ * @returns {function: Boolean} the reaction filter
+ */
+function buildReactionFilter(homeResult, userID) {
+	const homeReaction = homeResult ? '🏠' : 'no home';
+
+	return (reaction, user) => user.id === userID && isValidPageSelectionReaction(reaction, homeReaction);
 }
 
 /**
@@ -144,24 +254,22 @@ function reactionTimedOut(userID, selectionType) {
  * when a reaction is found.
  *
  * @param {Object} msgSent - the help message
- * @param {String} userID - id of the user requesting help
+ * @param {String} userID - id of the target user
  * @param {*[]} results - results that can be displayed
  * @param {Object=} homeResult - the result for home selection
  */
 function awaitAndHandleReaction(msgSent, userID, results, selectionType, homeResult) {
-	const homeReaction = homeResult ? '🏠' : 'no home';
-    const reactionFilter = (reaction, user) => (c.REACTION_NUMBERS.includes(reaction.emoji.name) || reaction.emoji.name === homeReaction) && user.id === userID;
-    msgSent.awaitReactions(reactionFilter, { time: 40000, max: 1 })
-    .then((collected) => {
-		if (collected.size === 0) {
-			reactionTimedOut(userID, selectionType);
-		} else {
-			maybeUpdateDynamicMessage(collected, msgSent, userID, results, selectionType, homeResult);
-		}
-	})
-	.catch(() => {
-		reactionTimedOut(userID, selectionType);
-	});
+	msgSent.awaitReactions(buildReactionFilter(homeResult, userID), { time: 40000, max: 1 })
+		.then((collected) => {
+			if (collected.size === 0) {
+				sendReactionTimedOutMsg(userID, selectionType);
+			} else {
+				maybeUpdateDynamicMessage(collected, msgSent, userID, results, selectionType, homeResult);
+			}
+		})
+		.catch(() => {
+			sendReactionTimedOutMsg(userID, selectionType);
+		});
 }
 
 /**
@@ -176,7 +284,8 @@ function awaitAndHandleReaction(msgSent, userID, results, selectionType, homeRes
 function maybeUpdateDynamicMessage(selectedReactions, msg, userID, results, selectionType, homeResult) {
 	if (selectedReactions.size === 0) { return; }
 
-	const numberSelected = c.REACTION_NUMBERS.indexOf(selectedReactions.first().emoji.name);
+	const reaction = selectedReactions.first();
+	const numberSelected = c.REACTION_NUMBERS.indexOf(reaction.emoji.name);
 	const correction = results.length > 9 ? 0 : 1;
 	const selection = numberSelected === -1 ? homeResult : results[numberSelected - correction];
 
@@ -185,8 +294,10 @@ function maybeUpdateDynamicMessage(selectedReactions, msg, userID, results, sele
 		title: selection.name
 	});
 	const contentType = selection.fields ? 'fields' : 'description';
+	const { footer } = msg.embeds[0];
+
 	newMsg[contentType] = selection[contentType];
-	const footer = msg.embeds[0].footer;
+
 	if (footer) {
 		newMsg.footer = {
 			icon_url: footer.iconURL, //eslint-disable-line
@@ -194,10 +305,14 @@ function maybeUpdateDynamicMessage(selectedReactions, msg, userID, results, sele
 		};
 	}
 
+	const user = getMembers().find('id', userID);
+
+	reaction.remove(user).catch(log);
 	msg.edit('', newMsg)
-	.then((updatedMsg) => {
-		awaitAndHandleReaction(updatedMsg, userID, results, selectionType, homeResult);
-	});
+		.then((updatedMsg) => {
+			awaitAndHandleReaction(updatedMsg, userID, results, selectionType, homeResult);
+		})
+		.catch(log);
 }
 
 /**
@@ -210,6 +325,7 @@ function maybeUpdateDynamicMessage(selectedReactions, msg, userID, results, sele
 function addInitialNumberReactions(msg, number, max) {
 	setTimeout(() => {
 		msg.react(c.REACTION_NUMBERS[number]);
+
 		if (number < max) {
 			addInitialNumberReactions(msg, number + 1, max);
 		}
@@ -226,27 +342,30 @@ function addInitialNumberReactions(msg, number, max) {
  * @param {Object=} homePage - first page to show
  */
 function sendDynamicMessage(userID, selectionType, results, homePage) {
-    const footer = {
+	const footer = {
 		icon_url: c.INFO_IMG, //eslint-disable-line
 		text: `Click a reaction below to select a ${selectionType}.`
 	};
-	var msg;
 	const isFieldsEmbed = results[0].fields;
 	const contentType = isFieldsEmbed ? 'fields' : 'description';
 	const title = homePage ? homePage.name : results[0].name;
 	const content = homePage ? homePage[contentType] : results[0][contentType];
+	var msg;
+
 	if (isFieldsEmbed) {
 		msg = sendEmbedFieldsMessage(title, content, userID, footer);
 	} else {
-		msg = sendEmbedMessage(title, content, userID, null, null, footer);
+		msg = sendEmbed({ title, description: content, userID, footer });
 	}
 
-    msg.then((msgSent) => {
+	msg.then((msgSent) => {
 		if (homePage) {
 			msgSent.react('🏠');
 		}
+
 		const firstReactionNum = results.length > 9 ? 0 : 1;
 		const lastReactionNum = results.length > 9 ? results.length - 1 : results.length;
+
 		addInitialNumberReactions(msgSent, firstReactionNum, lastReactionNum);
 		awaitAndHandleReaction(msgSent, userID, results, selectionType, homePage);
 	});
@@ -279,8 +398,8 @@ function hasQuoteReaction(quotingUserID) {
 		&& user.id === quotingUserID;
 }
 
-function outputQuoteTip(ogMessage) {
-	ogMessage.channel.send('**Add Reaction(s) to The Desired Messages**\n' +
+function outputQuoteTip(cmdMessage) {
+	cmdMessage.channel.send('**Add Reaction(s) to The Desired Messages**\n' +
 		'Use <:quoteReply:425051478986719233> to include their quote at the top of your next message.\n' +
 		'Use <:quoteSave:425051557952749569> to save the quote to the quote list for that user.')
 		.then((msgSent) => {
@@ -291,21 +410,24 @@ function outputQuoteTip(ogMessage) {
 /**
  * Quotes a user.
  *
- * @param {Object} ogMessage - original message being quoted
- * @param {String} quotedUserID - id of user being quoted
- * @param {String} quotingUserID - id of user creating quote
- * @param {String} channelID - id of the channel quote was found in
+ * @param {Object} cmdMessage	message that called quote command
+ * @param {String[]} args	the arguments passed by the user
  */
-function quoteUser(ogMessage, quotedUserID, quotingUserID, channelID) {
+function quoteUser(cmdMessage, args) {
+	var quotedUserID = args[1];
+
+	if (quotedUserID && !isMention(quotedUserID)) { return; }
+
+	const quotingUserID = cmdMessage.member.id;
+
 	if (isLocked()) { return; }
 
 	lock();
 	finalizeQuoteAfterTimeout();
+	outputQuoteTip(cmdMessage);
 
-	const channel = bot.getServer().channels.find('id', channelID);
+	const { channel } = cmdMessage;
 	var quoteableMessages = channel.messages.last(50);
-
-	outputQuoteTip(ogMessage);
 
 	if (quotedUserID) {
 		quotedUserID = getIdFromMention(quotedUserID);
@@ -313,7 +435,8 @@ function quoteUser(ogMessage, quotedUserID, quotingUserID, channelID) {
 		if (!getNick(quotedUserID)) { return; }
 
 		quoteableMessages = quoteableMessages.filter((message) => message.member.id === quotedUserID)
-			.reverse().slice(0, 20);
+			.reverse()
+			.slice(0, 20);
 	}
 
 	awaitQuoteReactions(quoteableMessages, quotingUserID);
@@ -356,10 +479,11 @@ function saveQuote(collected, quotingUserID, message) {
 /**
  * Outputs quotes.
  *
- * @param {String} quoteTarget - person to get quotes by
- * @param {String} userID - id of user requesting quotes
+ * @param {Object} message	message that called get quotes command
+ * @param {String[]} args	the arguments passed by the user
  */
-function getQuotes(quoteTarget, userID) {
+function getQuotes(message, args) {
+	const quoteTarget = args[1];
 	var targetName = 'Everyone';
 	var targetQuotes = quotes;
 	var fields = [];
@@ -370,14 +494,23 @@ function getQuotes(quoteTarget, userID) {
 		targetName = getNick(targetID);
 		targetQuotes = quotes.filter((quote) => quote.quotedUserID === targetID);
 		targetQuotes.forEach((quote) => {
-			fields.push(buildField(moment(quote.time).format(c.SHORT_DATE_FORMAT), quote.message, 'false'));
+			fields.push(buildField(
+				moment(quote.time).format(c.SHORT_DATE_FORMAT),
+				quote.message,
+				'false'
+			));
 		});
 	} else {
 		targetQuotes.forEach((quote) => {
-			fields.push(buildField(getNick(quote.quotedUserID),
-				`${quote.message}\n	— ${moment(quote.time).format(c.SHORT_DATE_FORMAT)}`, 'false'));
+			fields.push(buildField(
+				getNick(quote.quotedUserID),
+				`${quote.message}\n	— ${moment(quote.time).format(c.SHORT_DATE_FORMAT)}`,
+				'false'
+			));
 		});
 	}
+
+	const userID = message.member.id;
 
 	if (fields.length > 0) {
 		sendEmbedFieldsMessage(`Quotes From ${targetName}`, fields, userID);
@@ -439,15 +572,6 @@ function maybeReplicateLol(message) {
 	sendAuthoredMessage(message.content, message.author.id, c.LOL_CHANNEL_ID);
 }
 
-function maybeReact(message) {
-	if (c.SCRUB_DADDY_ID === message.author.id || getRand(1, 21) > 3) { return; }
-
-	const reactions = bot.getServer().emojis.array()
-		.filter((emoji) => !emoji.name.toLowerCase().match(/delete|quote|over|rocket|world|fort|netflix|iron|heroes/));
-
-	message.react(reactions[getRand(0, reactions.length)]);
-}
-
 /**
  * Checks if the reactions include the delete reactions.
  *
@@ -456,6 +580,41 @@ function maybeReact(message) {
 function hasDeleteReactions(reactions) {
 	return reactions.has(c.DELETE_REACTION) ||
 		(reactions.has(c.TRASH_REACTION) && reactions.has('⚫'));
+}
+
+
+/**
+ * Builds a column for an ascii table.
+ *
+ * @param {String} text column's text content
+ * @param {Number} columnLength column length
+ * @param {Boolean} isLastColumn whether or not it is the last column being built
+ */
+function buildColumn(text, columnLength, isLastColumn) {
+	var padding = '';
+
+	if (text.length > columnLength) {
+		text = text.slice(0, columnLength);
+	} else {
+		padding = ' '.repeat(columnLength - text.length);
+	}
+
+
+	return isLastColumn ? `${text}\n` : `${text}${padding}${c.TABLE_COL_SEPARATOR}`;
+}
+
+/**
+ * Builds an ascii table header.
+ *
+ * @param {String[]} columnHeaders column headers of the table
+ */
+function buildTableHeader(columnHeaders) {
+	const header = columnHeaders.join(c.TABLE_COL_SEPARATOR);
+	const columnLengths = columnHeaders.map((currHeader) => currHeader.length);
+	const underline = columnLengths.map((length) => '═'.repeat(length)).join('═╬═');
+	const output = `**\`\`\`${header}\n${underline}\n`;
+
+	return { output, columnLengths };
 }
 
 /**
@@ -479,11 +638,14 @@ function deleteMessages(message) {
 			foundMessages.array().some((msg) => {
 				if (deleteReactionsFound) {
 					addMessageToDelete(msg);
+
 					if (hasDeleteReactions(msg.reactions)) { return true; }
 				} else if (hasDeleteReactions(msg.reactions)) {
 					deleteReactionsFound = true;
 					addMessageToDelete(msg);
 				}
+
+				return false;
 			});
 			message.channel.bulkDelete(messagesToDelete)
 				.catch(log);
@@ -499,27 +661,30 @@ function deleteMessages(message) {
  */
 function log(error, response) {
 	if (error) {
-		logger.error(`API ERROR: ${error}`);
+		const uri = error.options ? error.options.uri : error.path;
+		const formattedUri = uri ? ` (${uri})` : '';
+
+		logger.error(`API ERROR${formattedUri}: `, error);
 	} else if (response) {
 		logger.info(`API RESPONSE: ${inspect(response)}`);
 	}
 }
 
-exports.addInitialNumberReactions = addInitialNumberReactions;
-exports.awaitAndHandleReaction = awaitAndHandleReaction;
+exports.buildColumn = buildColumn;
+exports.buildTableHeader = buildTableHeader;
 exports.deleteMessages = deleteMessages;
-exports.deleteQuoteTipMsg = deleteQuoteTipMsg;
-exports.exportQuotes = exportQuotes;
 exports.getUserIDToColor = () => userIDToColor;
-exports.getQuotes = getQuotes;
 exports.log = log;
 exports.maybeInsertQuotes = maybeInsertQuotes;
-exports.maybeReact = maybeReact;
 exports.maybeReplicateLol = maybeReplicateLol;
-exports.maybeUpdateDynamicMessage = maybeUpdateDynamicMessage;
-exports.quoteUser = quoteUser;
 exports.sendAuthoredEmbed = sendAuthoredEmbed;
 exports.sendAuthoredMessage = sendAuthoredMessage;
 exports.sendDynamicMessage = sendDynamicMessage;
 exports.sendEmbedFieldsMessage = sendEmbedFieldsMessage;
 exports.sendEmbedMessage = sendEmbedMessage;
+exports.sendEmbed = sendEmbed;
+exports.sendEmbedMessageToChannel = sendEmbedMessageToChannel;
+exports.registerCommandHandlers = () => {
+	cmdHandler.registerCommandHandler('quote', quoteUser);
+	cmdHandler.registerCommandHandler('quotes', getQuotes);
+};

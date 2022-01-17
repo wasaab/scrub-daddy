@@ -10,10 +10,11 @@ var rt = require('lw5');
 var c = require('../const.js');
 var bot = require('../bot.js');
 var util = require('../utilities/utilities.js');
-var logger = require('../logger.js').botLogger;
+const { logger } = require('../logger.js');
+const cmdHandler = require('../handlers/cmdHandler.js');
 var priv = require('../../../private.json');
 var ratings = require('../../resources/data/ratings.json');
-var ratingsResponses = 0;
+var ratingsResponses = 0; // Todo: Use promise.all or async/await rather than completion based on incrementing a counter. this is obsolete regardless.
 
 /**
  * Gets a string of stars.
@@ -22,7 +23,8 @@ var ratingsResponses = 0;
  */
 function getStars(count) {
 	var result = '';
-	for (var i=0; i < Math.floor(count); i++) {
+
+	for (var i = 0; i < Math.floor(count); i++) {
 		result += '⭐';
 	}
 
@@ -40,7 +42,7 @@ function getStars(count) {
  * @param {String} title - title to get rating of
  */
 function determineRating(category, title) {
-	const reviews = ratings[category][title].reviews;
+	const { reviews } = ratings[category][title];
 	const allRatings = Object.values(reviews);
 	const ratingSum = allRatings.reduce((a, b) => a + b);
 
@@ -54,27 +56,20 @@ function determineRating(category, title) {
  * @param {String} original - string to get proper title from
  */
 function determineTitle(original) {
-	var title = original.replace(/([^\W_]+[^\s-]*) */g, function(txt) {
-		return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
-	});
+	var title = original.replace(/([^\W_]+[^\s-]*) */g, util.capitalizeFirstLetter);
 
-	// Certain minor words should be left lowercase unless
-	// they are the first or last words in the string
+	// Certain minor words should be left lowercase unless they are the first or last words in the string
 	const lowers = ['A', 'An', 'The', 'And', 'But', 'Or', 'For', 'Nor', 'As', 'At',
 	'By', 'For', 'From', 'In', 'Into', 'Near', 'Of', 'On', 'Onto', 'To', 'With'];
 
 	for (let i = 0, j = lowers.length; i < j; i++) {
-		title = title.replace(new RegExp('\\s' + lowers[i] + '\\s', 'g'),
-		function(txt) {
-			return txt.toLowerCase();
-		});
+		title = title.replace(new RegExp(`(?<!:)\\s${lowers[i]}\\s`, 'g'), (txt) => txt.toLowerCase());
 	}
 
 	// Certain words such as initialisms or acronyms should be left uppercase
 	const uppers = ['Id', 'Tv'];
 	for (let i = 0, j = uppers.length; i < j; i++) {
-		title = title.replace(new RegExp('\\b' + uppers[i] + '\\b', 'g'),
-		uppers[i].toUpperCase());
+		title = title.replace(new RegExp(`\\b${uppers[i]}\\b`, 'g'), uppers[i].toUpperCase());
 	}
 
 	return title;
@@ -168,21 +163,21 @@ function updateRatingAndDetermineAvg(category, title, userID, rating, channel) {
 			verifyReview(category, title, oldReview, channel);
 		}
 
-		avgRating = determineRating(category, title);
 		ratings[category][title].reviews[userID] = rating;
+		avgRating = determineRating(category, title);
 		ratings[category][title].rating = avgRating;
 
 		// Update list review used to be in
 		if (!unverifiedReview && Math.floor(avgRating) !== Math.floor(oldReview.rating)) {
-			exports.outputOrUpdateRatings(Math.floor(oldReview.rating), category, true, channel);
+			outputOrUpdateRatings(Math.floor(oldReview.rating), category, true, channel);
 		}
 	}
 
 	// Update list review is now in
 	if (isUnverified) {
-		exports.outputOrUpdateRatings(Math.floor(avgRating), category, false, channel);
+		outputOrUpdateRatings(Math.floor(avgRating), category, false, channel);
 	} else {
-		exports.outputOrUpdateRatings(Math.floor(avgRating), category, true, channel);
+		outputOrUpdateRatings(Math.floor(avgRating), category, true, channel);
 	}
 
 	util.exportJson(ratings, 'ratings');
@@ -203,7 +198,7 @@ function verifyReview(category, title, oldReview, channel) {
 	ratings[category][title] = oldReview;
 	delete ratings.unverified[category][title];
 	// update unverified list
-	exports.outputOrUpdateRatings(Math.floor(oldReview.rating), category, false, channel);
+	outputOrUpdateRatings(Math.floor(oldReview.rating), category, false, channel);
 }
 
 /**
@@ -218,7 +213,7 @@ function updateUnverifiedReview(category, title, rating, userID) {
 	ratings.unverified[category][title] = {
 		reviews: {},
 		rating: rating,
-		time: moment().toJSON()
+		time: moment().valueOf()
 	};
 	ratings.unverified[category][title].reviews[userID] = rating;
 }
@@ -232,16 +227,19 @@ function refreshRatings(channel, isCalledByStartup) {
 	const categories = ['tv', 'movies'];
 
 	categories.forEach((category) => {
-		for (var i=1; i < 5; i++) {
-			exports.outputOrUpdateRatings(i, category, true, channel);
-			exports.outputOrUpdateRatings(i, category, false, channel);
+		for (var i = 1; i < 5; i++) {
+			outputOrUpdateRatings(i, category, true, channel);
+			outputOrUpdateRatings(i, category, false, channel);
 		}
 	});
 
 	if (isCalledByStartup) { return; }
 
-	util.sendEmbedMessage(`Ratings Refreshed`, `All rating info is now up to date with user ratings, IMDB, and RT.`,
-		null, null, null, null, channel.id);
+	util.sendEmbedMessageToChannel(
+		`Ratings Refreshed`,
+		`All rating info is now up to date with user ratings, IMDB, and RT.`,
+		channel.id
+	);
 }
 
 /**
@@ -292,10 +290,11 @@ function updateThirdPartyRatingsForCategory(site, responses, category) {
 		}
 
 		const review = response.result;
-		var title = site === 'rt' ? review.name : review.title;
-		const score = site === 'rt' ? get(review, 'aggregateRating.ratingValue') : review.rating;
+		const score = site === 'rt' ? review?.aggregateRating?.ratingValue : review.rating;
 
 		if (!score) { return; }
+
+		var title = site === 'rt' ? review.name : review.title;
 
 		if (!category[title] && !category[`${title} 🎌`]) {
 			titleToPartialMatch[targetTitle] = title;
@@ -356,13 +355,13 @@ function getRating(title) {
 		if (fuzzyResults.length === 0) { return false; }
 
 		const matchingTitle = ratingsKeys[fuzzyResults[0]];
-		const lastChar = title[title.length -1];
+		const lastChar = title[title.length - 1];
 
 		if (!isNaN(lastChar) && !matchingTitle.endsWith(lastChar)) { return false; }
 
 		rating.title = matchingTitle;
 		rating.isVerified = !category.includes('.');
-		rating.category =  rating.isVerified ? category : category.split('.')[1];
+		rating.category = rating.isVerified ? category : category.split('.')[1];
 		rating.rating = ratingsInCategory[rating.title];
 
 		return true;
@@ -379,8 +378,12 @@ function getRating(title) {
  * @param {String} userID - id of the user calling the command
  */
 function titleNotFound(title, channel, userID) {
-	util.sendEmbedMessage(`Title not Found`, `There is no title matching "${title}" in any category`,
-		userID, null, null, null, channel.id);
+	util.sendEmbedMessageToChannel(
+		`Title not Found`,
+		`There is no title matching "${title}" in any category`,
+		channel.id,
+		userID
+	);
 }
 
 
@@ -405,10 +408,13 @@ function updateRatingsMsg(isVerified, rating, category, channel, output) {
 				description: output
 			});
 
-			message.edit('', updatedMsg);
+			message.edit('', updatedMsg)
+				.catch((err) => {
+					logger.error(`Edit Ratings Msg Error: ${err}`);
+				});
 		})
 		.catch((err) => {
-			logger.error(`Edit Ratings Msg Error: ${err}`);
+			logger.error(`Fetch Ratings Msg Error: ${err}`);
 		});
 }
 
@@ -420,7 +426,7 @@ function updateRatingsMsg(isVerified, rating, category, channel, output) {
  * @param {Boolean} isVerified - whether or not the title is verified
  * @param {Object=} channel - text channelt to output ratings in
  */
-exports.outputOrUpdateRatings = function(rating, category, isVerified, channel) {
+function outputOrUpdateRatings(rating, category, isVerified, channel) {
 	category = category === 'movie' ? 'movies' : category;
 	const targetRatings = isVerified ? ratings : ratings.unverified;
 	const titles = Object.keys(targetRatings[category]).sort();
@@ -434,7 +440,7 @@ exports.outputOrUpdateRatings = function(rating, category, isVerified, channel) 
 		const categoryEmoji = c[`${category.toUpperCase()}_EMOJI`];
 		util.sendEmbedMessage(`${categoryEmoji}	${getStars(rating)}`, output);
 	}
-};
+}
 
 /**
  * Updates the rating for a tv show or movie.
@@ -445,7 +451,7 @@ exports.outputOrUpdateRatings = function(rating, category, isVerified, channel) 
  * @param {Object} channel - the channel the msg was sent from
  * @param {String} userID - id of user adding rating
  */
-exports.rate = function(targetCategory, rating, args, channel, userID) {
+function rate(targetCategory, rating, args, channel, userID) {
 	targetCategory = targetCategory === 'movie' ? 'movies' : targetCategory;
 	var titleIdx = 3;
 
@@ -465,9 +471,12 @@ exports.rate = function(targetCategory, rating, args, channel, userID) {
 
 
 	if (category && targetCategory && category !== targetCategory) {
-		return util.sendEmbedMessage(`Duplicate Titles Not Allowed`,
-			`Try adding the year released, to make the title unique, e.g. \`${title} (${(new Date()).getFullYear()})\``,
-			userID, null, null, null, channel.id);
+		return util.sendEmbedMessageToChannel(
+			`Duplicate Titles Not Allowed`,
+			`Try adding the year released, to make the title unique, e.g. \`${title} (${new Date().getFullYear()})\``,
+			channel.id,
+			userID
+		);
 	}
 
 	targetCategory = targetCategory || category;
@@ -475,9 +484,13 @@ exports.rate = function(targetCategory, rating, args, channel, userID) {
 	var avgRating = updateRatingAndDetermineAvg(targetCategory, title, userID, Number(rating), channel);
 	const categoryEmoji = c[`${targetCategory.toUpperCase()}_EMOJI`];
 
-	util.sendEmbedMessage(`${categoryEmoji} ${title} - Rated ${getStars(rating)} by ${util.getNick(userID)}`,
-		`Average Rating: ${getStars(avgRating)}`, userID, null, null, null, channel.id);
-};
+	util.sendEmbedMessageToChannel(
+		`${categoryEmoji} ${title} - Rated ${getStars(rating)} by ${util.getNick(userID)}`,
+		`Average Rating: ${getStars(avgRating)}`,
+		channel.id,
+		userID
+	);
+}
 
 /**
  * Displays the reviewers and ratings for the provided title.
@@ -485,7 +498,7 @@ exports.rate = function(targetCategory, rating, args, channel, userID) {
  * @param {String[]} args - arguments provided to the command
  * @param {String} userID - id of user requesting info
  */
-exports.ratingInfo = function(args, userID) {
+function ratingInfo(args, userID) {
 	const channel = bot.getServer().channels.find('id', c.RATINGS_CHANNEL_ID);
 	const targetTitle = util.getTargetFromArgs(args, 1);
 	const { title, rating, category, isVerified } = getRating(targetTitle);
@@ -511,8 +524,8 @@ exports.ratingInfo = function(args, userID) {
 		info += `\n${util.getNick(reviewer)}	${getStars(rating.reviews[reviewer])}`;
 	}
 
-	util.sendEmbedMessage(title, info, userID, null, null, null, channel.id);
-};
+	util.sendEmbedMessageToChannel(title, info, channel.id, userID);
+}
 
 /**
  * Renames a title.
@@ -521,7 +534,7 @@ exports.ratingInfo = function(args, userID) {
  * @param {String} userID - id of calling user
  * @param {Object} channel - channel called from
  */
-exports.rename = function(args, userID, channel) {
+function rename(args, userID, channel) {
 	const renameOperation = util.getTargetFromArgs(args, 1);
 	if (!renameOperation.includes('=')) { return; }
 
@@ -540,22 +553,26 @@ exports.rename = function(args, userID, channel) {
 		delete ratings.unverified[category][title];
 	}
 
-	exports.outputOrUpdateRatings(Math.floor(rating.rating), category, isVerified, channel);
+	outputOrUpdateRatings(Math.floor(rating.rating), category, isVerified, channel);
 
-	util.sendEmbedMessage(`${title} - Renamed by ${util.getNick(userID)}`,
-		`New Title: ${newTitle}`, userID, null, null, null, channel.id);
+	util.sendEmbedMessageToChannel(
+		`${title} - Renamed by ${util.getNick(userID)}`,
+		`New Title: ${newTitle}`,
+		channel.id,
+		userID
+	);
 	util.exportJson(ratings, 'ratings');
 	updateExternalRatingsJson();
-};
+}
 
 /**
  * Updates the 3rd party ratings for all titles.
  */
 exports.updateThirdPartyRatings = function(isCalledByStartup) {
 	const channel = bot.getServer().channels.find('id', c.RATINGS_CHANNEL_ID);
-	const categories =  ['tv', 'movies'];
+	const categories = ['tv', 'movies'];
 	var titleToPartialTitleMatch = util.deepClone(c.THIRD_PARTY_RATINGS);
-	var missingTitles = util.deepClone(c.THIRD_PARTY_RATINGS);
+	var missingTitles = util.deepClone(c.MISSING_TITLES);
 
 	function sumRatingErrors(titleToPartialMatch, titlesNotFound, category, site) {
 		Object.assign(titleToPartialTitleMatch[category][site], titleToPartialMatch);
@@ -564,6 +581,7 @@ exports.updateThirdPartyRatings = function(isCalledByStartup) {
 
 	if (Object.keys(ratings).length === 0) { return; }
 
+	// Todo: Use promise.all or async/await rather than completion based on incrementing a counter
 	categories.forEach((category) => {
 		const sites = category === 'tv' ? ['imdb'] : ['rt', 'imdb'];
 		sites.forEach((site) => {
@@ -597,12 +615,14 @@ exports.updateThirdPartyRatings = function(isCalledByStartup) {
  * @param {Object} channel - channel called from
  * @param {String} userID - id of calling user
  */
-exports.changeCategory = function(args, channel, userID) {
+ function changeCategory(args, channel, userID) {
 	const targetTitle = util.getTargetFromArgs(args, 1);
 	const { title, rating, category, isVerified } = getRating(targetTitle);
+
 	if (!title) { return titleNotFound(targetTitle, channel, userID); }
 
 	const newCategory = category === 'tv' ? 'movies' : 'tv';
+
 	if (isVerified) {
 		ratings[newCategory][title] = rating;
 		delete ratings[category][title];
@@ -612,14 +632,23 @@ exports.changeCategory = function(args, channel, userID) {
 	}
 
 	const flooredRating = Math.floor(rating.rating);
-	exports.outputOrUpdateRatings(flooredRating, category, isVerified, channel);
-	exports.outputOrUpdateRatings(flooredRating, newCategory, isVerified, channel);
 
-	util.sendEmbedMessage(`Category Changed`, `"${title}" has been moved from ${category} to ${newCategory}`,
-		userID, null, null, null, channel.id);
+	outputOrUpdateRatings(flooredRating, category, isVerified, channel);
+	outputOrUpdateRatings(flooredRating, newCategory, isVerified, channel);
+
+	util.sendEmbedMessageToChannel(
+		`Category Changed`,
+		`"${title}" has been moved from ${category} to ${newCategory}`,
+		channel.id,
+		userID
+	);
 	util.exportJson(ratings, 'ratings');
 	updateExternalRatingsJson();
-};
+}
+
+function isUserSoleReviewerOfTitle(rating, userID) {
+	return Object.keys(rating.reviews).length === 1 && rating.reviews[userID];
+}
 
 /**
  * Deletes a title from the review list.
@@ -628,31 +657,43 @@ exports.changeCategory = function(args, channel, userID) {
  * @param {Object} channel - channel called from
  * @param {String} userID - id of calling user
  */
-exports.delete = function(args, channel, userID) {
+function deleteRating(args, channel, userID) {
 	const targetTitle = util.getTargetFromArgs(args, 1);
 	const { title, rating, category, isVerified } = getRating(targetTitle);
+
 	if (!title) { return titleNotFound(targetTitle, channel, userID); }
 
 	//If not admin and the user is not the only reviewer of the title
-	if (!util.isAdmin(userID) && (!rating.reviews[userID] || Object.keys(rating.reviews).length !== 1)) {
-		return util.sendEmbedMessage(`Deletion Not Authorized`, `"${title}" can not be deleted, ` +
-			`except by ${util.mentionUser(c.K_ID)}, as you are not the sole reviewer of this title.`,
-			userID, null, null, null, channel.id);
+	if (!util.isAdmin(userID) && isUserSoleReviewerOfTitle(rating, userID)) {
+		const msgDescription = `"${title}" can not be deleted, except by ${util.mentionUser(c.K_ID)}, `
+			+ `as you are not the sole reviewer of this title.`;
+
+		return util.sendEmbedMessageToChannel(
+			`Deletion Not Authorized`,
+			msgDescription,
+			channel.id,
+			userID
+		);
 	}
 
 	logger.info(`Deleting rating for "${title}" in ${category}`);
+
 	if (isVerified) {
 		delete ratings[category][title];
 	} else {
 		delete ratings.unverified[category][title];
 	}
 
-	exports.outputOrUpdateRatings(Math.floor(rating.rating), category, isVerified, channel);
-	util.sendEmbedMessage(`Rating Deleted`, `"${title}" has been deleted`,
-		userID, null, null, null, channel.id);
+	outputOrUpdateRatings(Math.floor(rating.rating), category, isVerified, channel);
+	util.sendEmbedMessageToChannel(
+		`Rating Deleted`,
+		`"${title}" has been deleted`,
+		channel.id,
+		userID
+	);
 	util.exportJson(ratings, 'ratings');
 	updateExternalRatingsJson();
-};
+}
 
 /**
  * Converts the ratings to table data to be used with a bootstrap table.
@@ -680,39 +721,37 @@ function convertRatingsCategoryToTableData(category, isVerified) {
 	var tableData = [];
 
 	for (var title in reviewsInCategory) {
-		var rating = Object.assign({}, reviewsInCategory[title]);
+		var rating = { ...reviewsInCategory[title] };
 		var reviewers = '';
 
 		for (var reviewerID in rating.reviews) {
 			const nickname = util.getNick(reviewerID);
 			const ratingNum = rating.reviews[reviewerID];
 
-			if (!nickname || isNaN(ratingNum)) { return; }
+			if (!nickname || isNaN(ratingNum)) { continue; }
 
 			reviewers += `${nickname} (${ratingNum}), `;
 		}
 
 		rating.reviews = reviewers.slice(0, -2);
-		if (rating.rating) {
-			rating.rating = rating.rating.toString();
-		}
-		if (rating.time) {
-			rating.time = moment(rating.time).format('M/D/YY');
-		}
-
-		const reviewData = Object.assign({ title: title, category: category, verified: isVerified.toString()}, rating);
-		tableData.push(reviewData);
+		tableData.push({
+			title: title,
+			category: category,
+			verified: isVerified.toString(),
+			...rating
+		});
 	}
 
 	return tableData;
 }
 
+//Todo: this service is gone. Use my AWS ratings service for this instead.
 /**
  * Updates the externally hosted ratings json file, to be used with a bootstrap table.
  */
 function updateExternalRatingsJson() {
 	const tableData = convertRatingsToTableData();
-	var options= {
+	var options = {
 		uri: `https://api.myjson.com/bins/${priv.externalJsonID}`,
 		method: 'PUT',
 		headers: {
@@ -726,3 +765,47 @@ function updateExternalRatingsJson() {
 		})
 		.catch(util.log);
 }
+
+exports.registerCommandHandlers = () => {
+    cmdHandler.registerCommandHandler('change-category', (message, args) => {
+		if (!args[1] || message.channel.id !== c.RATINGS_CHANNEL_ID) { return; }
+
+		changeCategory(args, message.channel, message.member.id);
+		message.delete();
+	});
+    cmdHandler.registerCommandHandler('delete-rating', (message, args) => {
+		if (!args[1] || message.channel.id !== c.RATINGS_CHANNEL_ID) { return; }
+
+		deleteRating(args, message.channel, message.member.id);
+		message.delete();
+	});
+	cmdHandler.registerCommandHandler('rate', (message, args) => {
+		if (args.length < 3 || message.channel.id !== c.RATINGS_CHANNEL_ID) { return; }
+
+		rate(args[1], Number(args[2]), args, message.channel, message.member.id);
+		message.delete();
+	});
+    cmdHandler.registerCommandHandler('rating-info', (message, args) => {
+		if (!args[1]) { return; }
+
+		ratingInfo(args, message.member.id);
+		message.delete();
+	});
+    cmdHandler.registerCommandHandler('ratings', (message, args) => {
+		if (args.length < 3) { return; }
+
+		outputOrUpdateRatings(Number(args[1]), args[2], args[3]);
+		message.delete();
+	});
+    cmdHandler.registerCommandHandler('refresh-ratings', (message) => {
+		if (!util.isAdmin(message.member.id)) { return; }
+
+		exports.updateThirdPartyRatings();
+	});
+    cmdHandler.registerCommandHandler('rename', (message, args) => {
+		if (!args[1]) { return; }
+
+		rename(args, message.member.id, message.channel);
+		message.delete();
+	});
+};
