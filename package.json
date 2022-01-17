@@ -10,6 +10,7 @@
     "cucumber": "^6.0.5",
     "d3-node": "^1.1.1",
     "discord.js": "~11.3.2",
+    "erlpack": "discordapp/erlpack",
     "ffmpeg-binaries": "^3.2.2-3",
     "forever": "^1.0.0",
     "fuse.js": "^3.2.0",
@@ -26,7 +27,7 @@
     "moment": "^2.19.1",
     "natural": "^2.1.5",
     "node-schedule": "^1.2.5",
-    "opusscript": "0.0.4",
+    "opusscript": "0.0.6",
     "request": "^2.83.0",
     "request-promise": "^4.2.2",
     "svg-to-png": "^3.1.2",
@@ -38,8 +39,7 @@
     "xmlserializer": "^0.6.0"
   },
   "devDependencies": {
-    "eslint": "^7.29.0",
-    "lebab": "^2.7.7"
+    "eslint": "^7.29.0"
   },
   "scripts": {
     "start": "node ./src/run.js",
