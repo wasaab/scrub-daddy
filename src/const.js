@@ -388,7 +388,7 @@ module.exports = {
 		{
 			color: 0xffff00,
 			title: '💡 New Commands',
-			description: '`remind-me`	`set-birthday`	`worth`	`invest-scrubbles`',
+			description: '`billionaires-club`	`remind-me`	`set-birthday`	`worth`	`invest-scrubbles`',
 			image: {
 				url: 'https://media3.giphy.com/media/UGxfEt5POsukg/giphy.gif'
 			}
