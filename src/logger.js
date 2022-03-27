@@ -18,7 +18,7 @@ class DiscordServerTransport extends Transport {
 	}
 
 	log({ message }, callback) {
-		if (message <= 2000) {
+		if (message.length <= 2000) {
 			this.logChannel.send(message);
 		}
 
