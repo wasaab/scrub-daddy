@@ -172,7 +172,7 @@ function sellShares(userID, stock, shares) {
             gambling.getLedger()[userID].armySize += payout;
 
             const description = `${util.mentionUser(userID)} your ${util.formatAsBoldCodeBlock(shares)} share${util.maybeGetPlural(shares)}`
-                + ` of ${util.formatAsBoldCodeBlock(stock)} stock sold for ${util.formatAsBoldCodeBlock(payout)} Scrubbing Bubbles. `
+                + ` of ${util.formatAsBoldCodeBlock(stock)} stock sold for ${util.formatAsBoldCodeBlock(util.comma(payout))} Scrubbing Bubbles. `
                 + `${gambling.getArmySizeMsg(userID)}`;
 
             util.sendEmbedMessage('📈 Scrubble Stock Liquidated', description, userID);

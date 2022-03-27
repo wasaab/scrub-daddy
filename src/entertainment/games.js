@@ -755,7 +755,6 @@ function setChannelNameToMajorityGame(channel, majorityGame) {
 
 /**
  * Updates the dynamic voice channel names if the majority is playing a game.
- *
  */
 exports.maybeUpdateChannelNames = function() {
 	gameChannels.forEach((channel) => {
@@ -776,6 +775,18 @@ exports.maybeUpdateChannelNames = function() {
 };
 
 /**
+ * Determines if the member is eligible to experience high quality voice.
+ *
+ * @param {Object} member - the member to check eligibility of
+ * @returns {Boolean} whether the member is eligible for HQ voice
+ */
+function isEligibileForHighQualityVoice(member) {
+	return member.roles.find('id', c.BEYOND_ROLE_ID)
+		|| member.roles.find('id', c.BILLIONAIRE_ROLE_ID)
+		|| member.selfDeaf;
+}
+
+/**
  * Raises audio quality for channels with only beyond members. Vice versa for all others.
  *
  * @param {Object[]} channels - the server's channels
@@ -789,7 +800,7 @@ exports.maybeChangeAudioQuality = function(channels) {
 		if (!memberCount) { return; }
 
 		const beyondCount = channel.members.array()
-			.filter((member) => member.roles.find('id', c.BEYOND_ROLE_ID) || member.selfDeaf)
+			.filter(isEligibileForHighQualityVoice)
 			.length;
 
 		if (memberCount === beyondCount && channel.bitrate !== c.MAX_BITRATE) {

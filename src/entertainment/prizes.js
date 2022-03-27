@@ -194,7 +194,7 @@ function getFakeAndRealWinner() {
  * @param {Number} tierNumber tier of the box to open
  */
 function scrubBox(userID, tierNumber, numBoxes = 1) {
-    if (util.isIntegerInBounds(tierNumber, 1, c.PRIZE_TIERS.length) || !Number.isInteger(Number(numBoxes))) { return; }
+    if (!util.isIntegerInBounds(tierNumber, 1, c.PRIZE_TIERS.length) || !Number.isInteger(Number(numBoxes))) { return; }
 
     const cost = c.TIER_COST[tierNumber - 1] * numBoxes;
 
@@ -300,7 +300,7 @@ function addRandomPrizeAndGetInfo(tierNumber, userID) {
     const prizesInTier = c.PRIZE_TIERS[tierNumber - 1];
     const prizes = Object.keys(prizesInTier);
     const prize = prizes[util.getRand(0, prizes.length)];
-    const prizeDescription = c.PRIZE_TO_DESCRIPTION[prize].replace('``', `\`${prizesInTier[prize]}\``);
+    const prizeDescription = c.PRIZE_TO_DESCRIPTION[prize].replace('``', `\`${util.comma(prizesInTier[prize])}\``);
     var extraInfo = `Call \`.help ${prize}\` for usage info`;
 
     if (prize.endsWith('bubbles')) {
@@ -321,9 +321,8 @@ function addRandomPrizeAndGetInfo(tierNumber, userID) {
  * @param {Number} tierNumber tier of the prize
  */
 function addPrizeToInventory(userID, prize, tierNumber) {
-    if (!gambling.getLedger()[userID]) {
-        gambling.getLedger()[userID] = { ...c.NEW_LEDGER_ENTRY };
-    }
+    gambling.maybeCreateLedgerEntry(userID);
+
     if (!gambling.getLedger()[userID].inventory) {
         gambling.getLedger()[userID].inventory = {};
     }
@@ -703,71 +702,6 @@ function maybeRename(type, target, name) {
 }
 
 /**
- * Removes rainbow role if time has expired on the prize.
- */
-exports.maybeRemoveRainbowRoleFromUsers = function() {
-    const { rainbowRoleMemberIdToEndTime } = loot;
-    const rainbowRole = bot.getServer().roles.find('name', 'rainbow');
-    const rainbowRoleMembers = rainbowRole.members.array();
-
-    if (rainbowRoleMembers.length === 0) { return; }
-
-    rainbowRoleMembers.forEach((member) => {
-        const endTime = rainbowRoleMemberIdToEndTime[member.id];
-
-        if (!endTime || moment().isAfter(moment(endTime))) {
-            delete loot.rainbowRoleMemberIdToEndTime[member.id];
-            member.removeRole(rainbowRole);
-            util.exportJson(loot, 'loot');
-        }
-    });
-
-    if (0 !== rainbowRole.members.array().length) { return; }
-
-    logger.info('No users with rainbow role. Clearing color update interval.');
-    util.clearRainbowRoleUpdateInterval();
-};
-
-/**
- * Adds the rainbow role to a user.
- *
- * @param {String} userID id of the calling user
- * @param {Object} targetUser user to add role to
- * @param {Number} tierNumber tier of the prize
- * @param {String} cmd command called
- */
-function addRainbowRole(userID, targetUser, tierNumber, cmd) {
-    const server = bot.getServer();
-    var rainbowRole = server.roles.find('name', 'rainbow');
-
-	if (rainbowRole) {
-        targetUser.addRole(rainbowRole).then(util.updateRainbowRoleColor);
-    } else {
-		server.createRole({
-			name: 'rainbow',
-			position: server.roles.array().length - 4
-		})
-		.then((role) => {
-			targetUser.addRole(role).then(util.updateRainbowRoleColor);
-		});
-    }
-
-    if (!loot.rainbowRoleMemberIdToEndTime) {
-        loot.rainbowRoleMemberIdToEndTime = {};
-    }
-
-    const { endTime, formattedEndTime } = getPrizeEndTime(tierNumber, cmd);
-    const description = `${util.mentionUser(userID)} Your role's color will `
-        + `change until ${util.formatAsBoldCodeBlock(formattedEndTime)}!`;
-
-    loot.rainbowRoleMemberIdToEndTime[userID] = endTime.valueOf();
-    removePrizeFromInventory(userID, cmd, tierNumber);
-    logger.info(`Rainbow role active for ${util.getNick(userID)} until ${formattedEndTime}`);
-    util.sendEmbedMessage(`🌈 Rainbow Role Activated`, description, userID);
-    util.exportJson(loot, 'loot');
-}
-
-/**
  * Updates the magic word count in the channel's topic.
  *
  * @param {String} channelID id of the channel to update
@@ -805,6 +739,8 @@ exports.checkForMagicWords = function(message) {
     if (!magicWordsToEndTime || message.author.bot) { return; }
 
     removeExpiredMagicWords(channelID);
+    updateChannelTopicWithMagicWordCount(channelID);
+    util.exportJson(loot, 'loot');
 
     if (!loot.magicWords[channelID]) { return; }
 
@@ -814,11 +750,7 @@ exports.checkForMagicWords = function(message) {
 
     if (!magicWordMatches) { return; }
 
-
     const banDays = magicWordMatches.length;
-
-    util.exportJson(loot, 'loot');
-    updateChannelTopicWithMagicWordCount(channelID);
 
     if (banDays === 0) { return; }
 
@@ -933,14 +865,121 @@ exports.maybeJoinRandomChannelAndPlaySoundbite = function() {
 	}
 };
 
-//Todo: Use this for a prize or standalone cmd and move to another file like entertainmentAndInfoUtil
-//Todo: Schedule a job at join time and at startup to remove ,,, role from users after endTime
-exports.joinBillionairesClub = function(userID, tierNumber) {
-    const { endTime, formattedEndTime } = getPrizeEndTime(tierNumber, 'billionaires-club');
+
+/**
+ * Adds the rainbow role to a user.
+ *
+ * @param {String} userID id of the calling user
+ * @param {Object} targetUser user to add role to
+ * @param {Number} tierNumber tier of the prize
+ * @param {String} cmd command called
+ */
+ function addRainbowRole(userID, targetUser, tierNumber, cmd) {
+    const server = bot.getServer();
+    var rainbowRole = server.roles.find('name', 'rainbow');
+
+	if (rainbowRole) {
+        targetUser.addRole(rainbowRole).then(util.updateRainbowRoleColor);
+    } else {
+		server.createRole({
+			name: 'rainbow',
+			position: server.roles.array().length - 4
+		})
+		.then((role) => {
+			targetUser.addRole(role).then(util.updateRainbowRoleColor);
+		});
+    }
+
+    if (!loot.rainbowRoleMemberIdToEndTime) {
+        loot.rainbowRoleMemberIdToEndTime = {};
+    }
+
+    const { endTime, formattedEndTime } = getPrizeEndTime(tierNumber, cmd);
+    const description = `${util.mentionUser(userID)} Your role's color will `
+        + `change until ${util.formatAsBoldCodeBlock(formattedEndTime)}!`;
+
+    loot.rainbowRoleMemberIdToEndTime[userID] = endTime.valueOf();
+    removePrizeFromInventory(userID, cmd, tierNumber);
+    logger.info(`Rainbow role active for ${util.getNick(userID)} until ${formattedEndTime}`);
+    util.sendEmbedMessage(`🌈 Rainbow Role Activated`, description, userID);
+    util.exportJson(loot, 'loot');
+}
+
+/**
+ * Joins the Billionaire's club.
+ *
+ * @param {Object} message - the message that triggered the command
+ * @param {Object} message.member - the member joining the club
+ * @param {[cmd]: [String]} cmd - the cmd called
+ */
+function joinBillionairesClub({ member }, [cmd]) {
+    const { id: userID } = member;
+
+    if (!hasPrize(userID, cmd, 4)) { return; }
+
+    const { endTime, formattedEndTime } = getPrizeEndTime(4, cmd);
+    const billionaireRole = bot.getServer().roles.find('id', c.BILLIONAIRE_ROLE_ID);
+
+    if (!loot.billionaireIdToEndTime) {
+        loot.billionaireIdToEndTime = {};
+    }
 
     loot.billionaireIdToEndTime[userID] = endTime.valueOf();
-    //Todo: send msg with formatted end time
+    member.addRole(billionaireRole);
+    removePrizeFromInventory(userID, cmd, 4);
+    logger.info(`Billionaire's club admits ${util.getNick(userID)} until ${formattedEndTime}`);
+
+    const maxWeeksCount = Math.round(gambling.getLedger()[userID].armySize / c.TIER_COST[3]);
+    const desc = `${util.mentionUser(userID)}, Your wealth will be acknowledged until ${util.formatAsBoldCodeBlock(formattedEndTime)}`
+        + `\n\nWelcome to The Billionaire's Club ${util.mentionChannel(c.BILLIONAIRE_CHANNEL_ID)}!\n`
+        + `You can afford ${util.formatAsBoldCodeBlock(util.comma(maxWeeksCount))} more week${util.maybeGetPlural(maxWeeksCount)} of membership.`;
+    const joinImg = c.BILLIONAIRE_JOIN_IMAGES[util.getRand(0, c.BILLIONAIRE_JOIN_IMAGES.length)];
+
+    util.sendEmbedMessage('🤑💵   , , ,   💰💸', desc, userID);
+    util.sendAuthoredMessage(joinImg, userID, c.BILLIONAIRE_CHANNEL_ID);
     util.exportJson(loot, 'loot');
+}
+
+/**
+ * Removes role if time has expired on the prize.
+ */
+function maybeRemoveRoleFromUsers(memberIdToRoleEndTime, role) {
+    const roleMembers = role.members.array();
+
+    if (roleMembers.length === 0) { return; }
+
+    roleMembers.forEach((member) => {
+        const endTime = memberIdToRoleEndTime[member.id];
+
+        if (!endTime || moment().isAfter(moment(endTime))) {
+            delete memberIdToRoleEndTime[member.id];
+            member.removeRole(role);
+            util.exportJson(loot, 'loot');
+        }
+    });
+}
+
+/**
+ * Removes rainbow role if time has expired on the prize.
+ */
+function maybeRemoveRainbowRoleFromUsers() {
+    const rainbowRole = bot.getServer().roles.find('name', 'rainbow');
+    maybeRemoveRoleFromUsers(loot.rainbowRoleMemberIdToEndTime, rainbowRole);
+    
+    if (0 !== rainbowRole.members.array().length) { return; }
+    
+    logger.info('No users with rainbow role. Clearing color update interval.');
+    util.clearRainbowRoleUpdateInterval();
+}
+
+/**
+ * Removes prize roles from users if the time has expired on their prize.
+ */
+exports.maybeRemovePrizeRolesFromUsers = () => {
+    const billionaireRole = bot.getServer().roles.find('id', c.BILLIONAIRE_ROLE_ID);
+
+    maybeRemoveRoleFromUsers(loot.billionaireIdToEndTime, billionaireRole);
+    maybeRemoveRainbowRoleFromUsers();
 };
 
 /**
@@ -949,8 +988,9 @@ exports.joinBillionairesClub = function(userID, tierNumber) {
  * @param {String} userID id of the calling user
  */
 function outputPrizeTiersTable(userID) {
-    var { output, columnLengths } = util.buildTableHeader(['Prize        ', 'Tier 1 (200)', 'Tier 2 (400)', 'Tier 3 (600)']);
-
+    const tierCostHeaders = c.TIER_COST.slice(0, -1).map((tierCost, i) => `${i + 1} (${tierCost})`);
+    var { output, columnLengths } = util.buildTableHeader(['Prize            ', ...tierCostHeaders, '4 (100B)   ']);
+    
     Object.keys(c.PRIZE_TO_DESCRIPTION).forEach((prize) => {
         var tableRow = util.buildColumn(prize, columnLengths[0]);
 
@@ -1001,6 +1041,7 @@ exports.registerCommandHandlers = () => {
 
         outputInventory(userID);
     });
+    cmdHandler.registerCommandHandler('billionaires-club', joinBillionairesClub);
     cmdHandler.registerCommandHandler('lotto', (message, args) => {
         const { userID } = determinePrizeArgs(args, message);
 

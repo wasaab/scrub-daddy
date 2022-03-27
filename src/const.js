@@ -2,7 +2,6 @@ module.exports = {
 	BOT_SPAM_CHANNEL_ID: '372570540482887701',		//listen's to messages from this channel
 	SCRUBS_CHANNEL_ID: '370626384059695107',		//channel ID of scrubs text channel
 	PLEBS_CHANNEL_ID: '370623193528008705',			//channel ID of plebs text channel
-	NEW_MEMBER_CHANNEL_ID: '435154703312224287', 	//channel ID of new member info text channel
 	AFK_CHANNEL_ID: '370628203523473408',			//channel ID of the server's afk voice channel
 	PURGATORY_CHANNEL_ID: '370626266786824192',	    //sends kicked user's to this channel
 	LOG_CHANNEL_ID: '410258655322308608',			//channel ID of the text channel used for redirecting the console
@@ -65,10 +64,7 @@ module.exports = {
 	UNVERIFIED_2_STAR_MOVIES_MSG_ID: '609569014443802661',
 	UNVERIFIED_1_STAR_MOVIES_MSG_ID: '609569013797879825',
 	RENAMED_LIST_MSG_ID: '780524043643125792',
-
-
-	OLD_SCRUB_DADDY_ID: '370688149971795982',
-	SCRUB_DADDY_ID: '362784198848675842',			//ID of this bot
+	SCRUB_DADDY_ID: '773323199710494730',			//ID of this bot
 	K_ID: '132944096347160576',
 	R_ID: '208790727197589504',
 	DBC_ID: '465686834358255616',
@@ -78,7 +74,7 @@ module.exports = {
 	REVIEW_ROLE: '<@&376391242105225216>',
 	REVIEW_ROLE_ID: '376391242105225216',
 	INACTIVE_GAMBLER_IDS: ['115587855824191495', '136677809367023617', '285600309257043968',
-		'165286296875433985', '126527690319593473', '465686834358255616', '362784198848675842'],
+		'165286296875433985', '126527690319593473', '465686834358255616', '773323199710494730', '119482224713269248'],
 	DAYS: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
 	GREETINGS: ['you guys', 'yous guys', 'y\'all', 'hey buddies,', 'hey pals,', 'hey friends,', 'sup dudes,', 'hello fellow humans,'],
 	LOOP_DELAY: 1500,							//delay between each loop
@@ -134,7 +130,7 @@ module.exports = {
 		{ name: '1) `Voting`', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
 		{ name: '2) `Scrubbing Bubbles`', value: '`enlist`	`discharge`	`give`	`reserve`	`clean`		`race`	`21`	`hit`	`stay`'
 			+ '	`invest`	`invest-scrubbles`	`sell-shares`	`stocks`	`portfolio`	`prizes`	`worth`	`army`	`ranks`	`stats`	`who-said`	`sunken-sailor`	`add-emoji`	`magic-word`'
-			+ '	`rename-hank`	`rename-channel`	`rename-role`	`rename-user`	`scrub-box`		`inventory`	`start-lotto`	`stop-lotto`', inline: 'false'},
+			+ '	`rename-hank`	`rename-channel`	`rename-role`	`rename-user`	`scrub-box`		`inventory`	`start-lotto`	`stop-lotto`	`billionaires-club`', inline: 'false'},
 		{ name: '3) `Time Played`', value: '`time`	`opt-in`	`heatmap`', inline: 'false'},
 		{ name: '4) `Gaming`', value: '`playing`	`who-plays`	`lets-play`	`1-more`	`p`	`split-group`	`trends`	`total-trends`'
 			+ '	`fortnite-stats`	`fortnite-leaderboard`	`set-fortnite-name`', inline: 'false'},
@@ -197,7 +193,8 @@ module.exports = {
 				{ name: '.inventory', value: '`to see your scrub box prize inventory.`', inline: 'false'},
 				{ name: '.prizes', value: '`to see the prize tiers table`', inline: 'false'},
 				{ name: '.start-lotto <`MM/DD`> <`HH`>', value: '`🏆 to start a Beyond lotto that will end at the specified time\n-----(HH is 24-hour format in EST)-----`', inline: 'false'},
-				{ name: '.stop-lotto', value: '`🏆 to stop the current Beyond Lotto without choosing a winner.`', inline: 'false'}
+				{ name: '.stop-lotto', value: '`🏆 to stop the current Beyond Lotto without choosing a winner.`', inline: 'false'},
+				{ name: '.billionaires-club', value: '`🏆 to join The Billionaire\'s Club.`', inline: 'false'}
 			],
 		},
 		{
@@ -417,7 +414,7 @@ module.exports = {
 	COMMANDS: [
 		'@', '1-more','21',
 		'add-emoji', 'add-sb', 'alias', 'army',
-		'backup',
+		'backup', 'billionaires-club',
 		'cars', 'catfacts', 'channels-left', 'change-category', 'clean', 'color', 'create-group', 'create-list',
 		'delete', 'delete-rating', 'discharge',
 		'enlist', 'export',
@@ -539,7 +536,7 @@ module.exports = {
 		'+ log - `toggles server output redirection to discord channel #server-log.`\n' +
 		'+ revive - `revives a fallen Scrubbing Bubble.`\n' +
 		'+ update-readme - `updates the readme to include new commands.`\n' +
-		'+ remove-player <`@user`> <`game name`>- `remove a player from gamesPlayed.`\n' +
+		'+ remove-player <`@user`> <`game name`> - `remove a player from gamesPlayed.`\n' +
 		'+ cars\n' +
 		'+ missing-help\n' +
 		'+ review-messages\n',
@@ -556,7 +553,8 @@ module.exports = {
 		'add-bubbles': '`` Scrubbing Bubbles.',
 		'subtract-bubbles': '`` Scrubbing Bubbles.',
 		'start-lotto': 'Start a Beyond lottery.',
-		'stop-lotto': 'Stop a Beyond lottery.'
+		'stop-lotto': 'Stop a Beyond lottery.',
+		'billionaires-club': 'Join The Billionaire\'s Club.'
 	},
 	PRIZE_TIERS: [
 		{
@@ -598,15 +596,26 @@ module.exports = {
 			'start-lotto': '1 use',
 			'stop-lotto': '1 use'
 		},
-		// {
+		{
+			'billionaires-club': '1 week',
+			'add-bubbles': 150000000000
 		// 	'demote': '',
 		// 	'clear-lotto': '',
 		// 	//client.on('guildMemberSpeaking')
 		// 	'talking-rainbow-role': '1 day',
-		//	'billionaires-club': '1 day'
-		// }
+		}
 	],
-	TIER_COST: [200, 400, 600],
+	TIER_COST: [200, 400, 600, 100000000000],
+	BILLIONAIRE_JOIN_IMAGES: [
+		'https://media0.giphy.com/media/h0MTqLyvgG0Ss/giphy.gif',
+		'https://media3.giphy.com/media/xT1XH1dfMnbezHSa9a/giphy.gif',
+		'https://media1.giphy.com/media/LQpCRK5tnJmNKxWoqZ/giphy.gif',
+		'https://media4.giphy.com/media/QWFMD7qdzm0UwsSHH4/giphy.gif',
+		'https://media3.giphy.com/media/MFsqcBSoOKPbjtmvWz/giphy.gif',
+		'https://media4.giphy.com/media/hAcDHEhZHA2bu/giphy.gif',
+		'https://media3.giphy.com/media/2dI7FZreQAp44/giphy.gif',
+		'https://media2.giphy.com/media/l41lIkTqv4NTHPktO/giphy.gif'
+	],
 	MENTION_TYPE_TO_SYMBOL: {
 		role: '@&',
 		user: '@!',

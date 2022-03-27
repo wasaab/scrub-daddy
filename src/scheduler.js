@@ -135,7 +135,7 @@ function scheduleHourlyJobs() {
 		util.updateMembers();
 		util.messageCatFactsSubscribers();
 		util.outputBillionaireFact();
-		prizes.maybeRemoveRainbowRoleFromUsers();
+		prizes.maybeRemovePrizeRolesFromUsers();
 		games.maybeOutputCountOfGamesBeingPlayed(util.getMembers(), c.SCRUB_DADDY_ID);
 		games.checkArkServerStatus();
 	});

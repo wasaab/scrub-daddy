@@ -101,7 +101,7 @@ module.exports = class BotEventHandler {
             member.addRole(c.PLEB_ROLE_ID);
             util.updateMembers();
             util.addInvitedByRole(member);
-            plebsChannel.send(`Welcome to the server, ${util.mentionUser(member.id)}! Check out ${util.mentionChannel(c.NEW_MEMBER_CHANNEL_ID)}.`);
+            plebsChannel.send(`Welcome to the server, ${util.mentionUser(member.id)}!`);
         });
 
         /**

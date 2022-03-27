@@ -108,14 +108,16 @@ function unBanSpammer(userID, channelID) {
 	if (!channel) { return; }
 
 	channel.overwritePermissions(userID, { SEND_MESSAGES: true })
-		.then(logger.info(`Un-banning ${getNick(userID)} from ${channel.name} for spamming.`))
+		.then(() => {
+			logger.info(`Un-banning ${getNick(userID)} from ${channel.name} for spamming.`);
+			delete bannedUserIDToBans[userID];
+			exportBanned();
+			channel.send(`${mentionUser(userID)} Your ban has been lifted. You may now post in ${mentionChannel(channel.id)} again.`);
+		})
 		.catch((err) => {
 			logger.error(`Un-ban - Overwrite Permissions Error: ${err}`);
 		});
-	delete bannedUserIDToBans[userID];
-	exportBanned();
-	channel.send(`${mentionUser(userID)} Your ban has been lifted. You may now post in ${mentionChannel(channel.id)} again.`);
-}
+	}
 
 /**
  * Lifts any spamming ban that has been active longer than its end time.
