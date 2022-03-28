@@ -308,15 +308,30 @@ exports.updateStocks = function() {
         });
 };
 
+
+/**
+ * Invests in a random number of shares of a random stock.
+ * Only accessible in the Billionaire's channel.
+ *
+ * @param {String} userID - ID of the user investing
+ */
+function investInRandomStock({ channel, member }) {
+    if (channel.id !== c.BILLIONAIRE_CHANNEL_ID) { return; }
+
+    const stockNames = Object.keys(gambling.getLedger()[c.SCRUB_DADDY_ID].stocks.stockToInfo);
+    const img = c.BILLIONAIRE_JOIN_IMAGES[util.getRand(0, c.BILLIONAIRE_JOIN_IMAGES.length)];
+
+    invest(member.id, stockNames[util.getRand(0, stockNames.length)], util.getRand(1, 15000));
+    util.sendAuthoredMessage(img, member.id, channel.id);
+}
+
 /**
  * Locks stock functionality during sensitive 5pm rate limited update from api.
  */
 function toggleStocksLock() {
-    const toggleTo = util.isLocked('invest') ? 'unLock' : 'lock';
+    const toggleLock = util.isLocked('invest') ? util.unLock : util.lock;
 
-    util[toggleTo]('invest');
-    util[toggleTo]('sellShares');
-    util[toggleTo]('outputUsersStockChanges');
+    ['invest', 'sellShares', 'outputUsersStockChanges'].forEach(toggleLock);
 }
 
 /**
@@ -568,6 +583,7 @@ exports.registerCommandHandlers = () => {
         invest(message.member.id, args[1], null, Number(args[2]));
     });
     cmdHandler.registerCommandHandler('portfolio', outputUserStockPortfolio);
+    cmdHandler.registerCommandHandler(',,,', investInRandomStock);
     cmdHandler.registerCommandHandler('sell-shares', (message, args) => {
         if (!args[1]) { return; }
 

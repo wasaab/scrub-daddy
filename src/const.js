@@ -128,7 +128,7 @@ module.exports = {
 	COLOR_OPTIONS_URL: 'https://www.w3.org/TR/2018/PR-css-color-3-20180315/#svg-color',
 	HELP_CATEGORIES_PROMPT: [
 		{ name: '1) `Voting`', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
-		{ name: '2) `Scrubbing Bubbles`', value: '`enlist`	`discharge`	`give`	`reserve`	`clean`		`race`	`21`	`hit`	`stay`'
+		{ name: '2) `Scrubbing Bubbles`', value: '`enlist`	`discharge`	`give`	`reserve`	`clean`		`race`'
 			+ '	`invest`	`invest-scrubbles`	`sell-shares`	`stocks`	`portfolio`	`prizes`	`worth`	`army`	`ranks`	`stats`	`who-said`	`sunken-sailor`	`add-emoji`	`magic-word`'
 			+ '	`rename-hank`	`rename-channel`	`rename-role`	`rename-user`	`scrub-box`		`inventory`	`start-lotto`	`stop-lotto`	`billionaires-club`', inline: 'false'},
 		{ name: '3) `Time Played`', value: '`time`	`opt-in`	`heatmap`', inline: 'false'},
@@ -163,9 +163,6 @@ module.exports = {
 				{ name: '.clean <`numBubbles`>', value: '`send numBubbles to clean the toilet.`', inline: 'false'},
 				{ name: '.race <`numBubbles`>', value: '`to start a race that costs numBubbles to enter`', inline: 'false'},
 				{ name: '.race', value: '`to join a race`', inline: 'false'},
-				{ name: '.21 <`numBubbles`>', value: '`to start a game of blackjack with a bet of numBubbles.`', inline: 'false'},
-				{ name: '.hit', value: '`to hit in blackjack.`', inline: 'false'},
-				{ name: '.stay', value: '`to stay in blackjack.`', inline: 'false'},
 				{ name: '.army', value: '`retrieves the size of your army.`', inline: 'false'},
 				{ name: '.army <`@user`>', value: '`retrieves the size of the user\'s army.`', inline: 'false'},
 				{ name: '.worth', value: '`retrieves your net worth (army + stock portfolio).`', inline: 'false'},
@@ -412,7 +409,7 @@ module.exports = {
 		}
 	],
 	COMMANDS: [
-		'@', '1-more','21',
+		'@', ',,,', '1-more',
 		'add-emoji', 'add-sb', 'alias', 'army',
 		'backup', 'billionaires-club',
 		'cars', 'catfacts', 'channels-left', 'change-category', 'clean', 'color', 'create-group', 'create-list',
@@ -421,7 +418,7 @@ module.exports = {
 		'feature',
 		'fav-sb', 'fortnite-leaderboard', 'fortnite-stats',
 		'give',
-		'h', 'heatmap', 'help', 'hit',
+		'h', 'heatmap', 'help',
 		'ignore-posts', 'implement', 'inventory', 'invest', 'invest-scrubbles', 'issue',
 		'join-review-team',
 		'list', 'leave-temp', 'leave-review-team', 'lets-play', 'list-backups', 'log', 'lotto',
@@ -430,13 +427,13 @@ module.exports = {
 		'ping-ark-server', 'playing', 'portfolio', 'prizes',
 		'quote', 'quotes',
 		'race', 'rainbow-role', 'ranks', 'rate', 'ratings', 'rating-info', 'refresh-ratings', 'rejoin-temp', 'remind-me', 'remove-player', 'rename', 'rename-channel', 'rename-hank', 'rename-role', 'rename-user', 'reserve', 'restart', 'restore', 'review-messages', 'revive', 'rock', 'round-robin',
-		'sb', 'scrub-box', 'sell-shares', 'set-birthday', 'set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'split-group', 'start-lotto', 'stats', 'stay', 'steal', 'steal-all', 'stocks', 'stop-lotto', 'subscribe-catfacts', 'sunken-sailor',
+		'sb', 'scrub-box', 'sell-shares', 'set-birthday', 'set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'split-group', 'start-lotto', 'stats', 'steal', 'steal-all', 'stocks', 'stop-lotto', 'subscribe-catfacts', 'sunken-sailor',
 		'temp', 'test', 'time', 'tips', 'toggle-streaming', 'trends', 'total-trends',
 		'unalias', 'update-readme',
 		'volume', 'vote', 'voteban', 'voteinfo', 'votekick',
 		'who-plays', 'who-said', 'worth'
 	],
-	GLOBAL_COMMANDS: ['@', 'cars', 'change-category', 'delete', 'delete-rating', 'ignore-posts',
+	GLOBAL_COMMANDS: ['@', ',,,', 'cars', 'change-category', 'delete', 'delete-rating', 'ignore-posts',
 		'leave-temp', 'magic-word', 'quote', 'rate', 'remind-me', 'rename', 'refresh-ratings', 'rating-info'],
 	WHO_PLAYS_FUZZY_OPTIONS: {
 		shouldSort: true,
