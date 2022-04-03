@@ -1,7 +1,9 @@
 # scrub-daddy
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/8f59c3e85df049d3bd319a21576f37c4)](https://www.codacy.com/app/Scrubs/scrub-daddy?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=wasaab/scrub-daddy&amp;utm_campaign=Badge_Grade)
 
-Discord bot using Node.js, focused on gamers, with 117 commands.
+> A Node.js Discord bot, focused on gaming and entertainment, with 124 commands.
+
+Most of the features were requested by users via the **feature** command.
 
 ## Key Features
 + Playtime tracking
@@ -39,8 +41,8 @@ Discord bot using Node.js, focused on gamers, with 117 commands.
 + .lets-play <`Game Name|Game Emoji`> - `to ask Scrubs who have recently played Game Name if they want to play.`
 + .lets-play -all <`Game Name|Game Emoji`> - `.lets-play including Super ͡Scrubs and inactive players.`
 + .1-more - `to request 1 more player for the game you are playing via mentions.`
-+ .p - `to ask @Scrubs to play PUBG in scrubs text channel.`
 + .split-group - `to generate a random group splitting for users in your voice channel.`
++ .round-robin <`groupName`> - `to get the next user in the group in round robin fashion.`
 + .trends <`Game Name | Game, Game2, etc`> - `to see player count trends for the provided game(s).`
 + .total-trends - `To see total player count trends across all games.`
 + .fortnite-stats <`fortniteUserName|@user`> <`gameMode`> <`stat`> - `to lookup fortnite stats for the provided player.`
@@ -53,15 +55,17 @@ Discord bot using Node.js, focused on gamers, with 117 commands.
 + .give <`numBubbles`> <`@user`> - `transfers numBubbles from your army to user's army.`
 + .reserve - `to get Scrubbing Bubble reinforcements from your reserve army.`
 + .clean <`numBubbles`> - `send numBubbles to clean the toilet.`
-+ .21 <`numBubbles`> - `to start a game of blackjack with a bet of numBubbles.`
-+ .hit - `to hit in blackjack.`
-+ .stay - `to stay in blackjack.`
++ .race <`numBubbles`> - `to start a race that costs numBubbles to enter`
++ .race - `to join a race`
 + .army - `retrieves the size of your army.`
 + .army <`@user`> - `retrieves the size of the user's army.`
++ .worth - `retrieves your net worth (army + stock portfolio).`
++ .worth <`@user`> - `retrieves the user's net worth (army + stock portfolio).`
 + .ranks - `outputs the army size of every user.`
 + .stats - `outputs your clean stats.`
 + .stats <`@user`> - `outputs the user's clean stats.`
-+ .invest <`stock`> <`shares`> - `to invest Scrubbing Bubbles in a stock. Cost is 1-1 with real world price.`
++ .invest <`stock`> <`shares`> - `to invest in shares of a stock. Cost is 1-1 with real world price.`
++ .invest-scrubbles <`stock`> <`numBubbles`> - `to invest the provided # of Scrubbing Bubbles in a stock. Cost is 1-1 with real world price.`
 + .sell-shares <`stock`> <`shares`> - `to sell shares in a stock`
 + .stocks - `to see how your stocks are doing today`
 + .portfolio - `to see how your stocks have done over time`
@@ -75,9 +79,12 @@ Discord bot using Node.js, focused on gamers, with 117 commands.
 + .rename-role <`tier`> <`@role`> <`New Name`> - `🏆 to rename a role`
 + .rename-user <`tier`> <`@user`> <`New Name`> - `🏆 to rename a user`
 + .scrub-box <`tier`> - `to open a Scrub Box. Tier cost = tier * 200. Better and longer lasting prizes as tier increases.`
++ .scrub-box <`tier`> <`numBoxes`> - `to open the provided # of Scrub Boxes.`
 + .inventory - `to see your scrub box prize inventory.`
++ .prizes - `to see the prize tiers table`
 + .start-lotto <`MM/DD`> <`HH`> - `🏆 to start a Beyond lotto that will end at the specified time (HH is 24-hour format in EST)`
 + .stop-lotto - `🏆 to stop the current Beyond Lotto without choosing a winner.`
++ .billionaires-club - `🏆 to join The Billionaire's Club.`
 
 ### Voting
 + Please Note - `You must be in a voice channel with at least 3 members to participate in a kick/ban vote.`
@@ -88,25 +95,27 @@ Discord bot using Node.js, focused on gamers, with 117 commands.
 + .voteinfo <`@user`> - `for total votes to kick/ban that user.`
 
 ### Bot Issues, Feature Requests, and Help
-+ Please Note - `Your issue title or feature title must be ONE WORD! msg is optional`
 + .tips - `to show all tips.`
 + .tips <`keyword`> - `to show all tips with a title that includes the provided keyword.`
 + .issue <`issue-title`> <`msg detailing issue`> - `to submit bot issues.`
 + .feature <`feature-title`> <`msg detailing feature`> - `to submit bot feature requests.`
 + .implement <`task-title`> - `to vote for the next task to complete.
-      task-title is the channel title of the issue or feature.`
-+ .help or .h - `to show this message again.`
+task-title is the channel title of the issue or feature.`
++ .help or .h - `to get help for all commands.`
++ .help <`command`> - `to get help for a specific command`
 
 ### Roles & User Settings
 + .join-review-team - `to be added to the review team.`
 + .leave-review-team - `to be removed from the review team.`
 + .color <`colorName`> - `to set your role/response color preference.`
++ .rainbow-role <`tier`> - `🏆 to add a role with changing color for a limited time`
 + .shuffle-scrubs - `to randomize the first letter of every Srub's name.`
 + .shuffle-scrubs <`letter`> - `to set the first letter of every Srub's name.`
++ .set-birthday <`MM/DD`> - `to set your birthday and receive cake.`
 + .set-stream <`url`> - `to set the url for either your stream or the stream you are watching.`
 + .toggle-streaming - `to toggle your streaming state on/off, which will update your nickname.`
-+ .alias <`alias`> <`command to call`> - `creates an alias for the provided command call.
-      e.g. .alias ow who-plays Overwatch ... will allow you to call .ow`
++ .alias <`alias`> <`command to call`> - `creates an alias for the provided command call. 
+e.g. .alias ow who-plays Overwatch ... will allow you to call .ow`
 + .unalias <`alias`> - `removes the alias with the provided name.`
 
 ### Soundbites
@@ -121,6 +130,7 @@ Discord bot using Node.js, focused on gamers, with 117 commands.
 + .temp <`text|voice`> - `Creates a temp text/voice channel.`
 + .temp <`text|voice`> <`channel-title`> - `Creates a voice/text channel with the provided title.`
 + .leave-temp - `to leave the temp channel the command is called in.`
++ .remind-me <`#`> <`minutes|hours|days|etc`> <`message`> - `to be reminded of something at the specified time.`
 + .lotto - `to join the currently running Beyond lotto or get the time remaining.`
 + .quote - `to quote and reply or save the quote, depending on which reaction you use (:quoteReply: or :quoteSave:).`
 + .quote <`@user`> - `to quote and reply or save the quote from @user, depending on which reaction you use (:quoteReply: or :quoteSave:).`
@@ -140,8 +150,8 @@ Discord bot using Node.js, focused on gamers, with 117 commands.
 + .rejoin-temp <`channel-name`> - `to rejoin a temp channel.`
 + .ignore-posts - `after adding :trashcan: reaction to posts, to stop them from appearing in #car-parts.`
 + .delete - `call this after adding both :trashcan: and :black_circle: reactions to first and last messages to delete.
-      All messages between the two you reacted to will be deleted, including those two.
-      This will only work if you are in a temp channel you created.`
+All messages between the two you reacted to will be deleted, including those two.
+This will only work if you are in a temp channel you created.`
 
 ### TV and Movie Ratings
 + .rate <`tv|movie`> <`1-4`> <`title of content`> - `to rate a tv or movie show 1-4 stars`
@@ -158,10 +168,12 @@ Discord bot using Node.js, focused on gamers, with 117 commands.
 + log - `toggles server output redirection to discord channel #server-log.`
 + revive - `revives a fallen Scrubbing Bubble.`
 + update-readme - `updates the readme to include new commands.`
-+ remove-player <`@user`> <`game name`>- `remove a player from gamesPlayed.`
++ add-player <`@user`> <`game name`> - `adds a player to gamesPlayed.`
++ remove-player <`@user`> <`game name`> - `removes a player from gamesPlayed.`
 + cars - `gets parts for sale by crawling car forum and creating a collage of all images in post.`
-+ missing-help - `prints the commands that are missing help docs.`
-+ review-messages - `to review messages posted since last review.`
++ admin-help - `lists admin command usage.`
++ missing-help - `lists commands missing help.`
++ review-messages - `initiates message review process for quarantined users.`
 
 ## Examples
 
