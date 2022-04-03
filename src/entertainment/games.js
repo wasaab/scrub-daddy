@@ -61,7 +61,7 @@ function getGameNameAndTarget(args) {
 		game += ` ${args[i]}`;
 	}
 
-	return { game: game.substr(1), target: target};
+	return { game: game.substr(1), target: target };
 }
 
 /**
@@ -104,7 +104,7 @@ function getGamesBeingPlayedData(players) {
 		}
 	});
 
-    return { games: games, winner: winner, total: total, max: max };
+	return { games: games, winner: winner, total: total, max: max };
 }
 
 /**
@@ -143,14 +143,14 @@ function determinePlayingFieldsAndUpdateHistory(time, total, games) {
  * unless called from recurring job, in which case it stores the result without outputting it.
  */
 exports.maybeOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
-  const { games, winner, total } = getGamesBeingPlayedData(scrubs);
-  const time = moment();
+	const { games, winner, total } = getGamesBeingPlayedData(scrubs);
+	const time = moment();
 
 	if (userID === c.SCRUB_DADDY_ID) {
 		updateHeatMap(time, total);
 	} else {
-    const imageUrl = c.GAME_NAME_TO_IMG[winner] ?? c.THUMBS_UP_GIF;
-    const fields = determinePlayingFieldsAndUpdateHistory(time, total, games);
+		const imageUrl = c.GAME_NAME_TO_IMG[winner] ?? c.THUMBS_UP_GIF;
+		const fields = determinePlayingFieldsAndUpdateHistory(time, total, games);
 
 		util.sendEmbedMessage(`🏆 Winner - ${winner}`, null, userID, imageUrl);
 		fields.sort(util.compareFieldValues);
@@ -222,8 +222,8 @@ function getUsersPlaytimeForGame(userID, gameName) {
  */
 function getCumulativeTimePlayed(gameName, target) {
 	var cumulativeTimePlayed = {
-		total : 0,
-		gameToTime : {}
+		total: 0,
+		gameToTime: {}
 	};
 	var userToTimes = timeSheet;
 
@@ -248,8 +248,8 @@ function getCumulativeTimePlayed(gameName, target) {
 					cumulativeTimePlayed.gameToTime[game] = 0;
 				}
 
-        cumulativeTimePlayed.gameToTime[game] += playtime;
-        cumulativeTimePlayed.total += playtime;
+				cumulativeTimePlayed.gameToTime[game] += playtime;
+				cumulativeTimePlayed.total += playtime;
 			}
 		} else {
 			const timePlayed = getUsersPlaytimeForGame(userID, gameName);
@@ -306,7 +306,7 @@ function outputCumulativeTimePlayed(timePlayedData, userID) {
  * @param {String[]} args - input arguments from the user
  */
 exports.maybeOutputTimePlayed = function(args, userID) {
-	var { game, target} = getGameNameAndTarget(args);
+	var { game, target } = getGameNameAndTarget(args);
 
 	logger.info(`Time Called - game: ${game} target: ${target}`);
 
@@ -316,20 +316,20 @@ exports.maybeOutputTimePlayed = function(args, userID) {
 		return;
 	}
 
-    if (util.isMention(target)) {
-        target = util.getIdFromMention(target);
+	if (util.isMention(target)) {
+		target = util.getIdFromMention(target);
 	}
 
-	var timePlayedData = getCumulativeTimePlayed(game,target);
+	var timePlayedData = getCumulativeTimePlayed(game, target);
 
-    if (Object.keys(timePlayedData.gameToTime).length === 0) {
-      const fields = [util.buildField(game, timePlayedData.total.toFixed(1))];
+	if (Object.keys(timePlayedData.gameToTime).length === 0) {
+		const fields = [util.buildField(game, timePlayedData.total.toFixed(1))];
 
-      util.sendEmbedFieldsMessage('🕒 Hours Played', fields, userID);
-      logger.info(`Hours Played: ${inspect(fields)}`);
-    } else {
-      outputCumulativeTimePlayed(timePlayedData, userID);
-    }
+		util.sendEmbedFieldsMessage('🕒 Hours Played', fields, userID);
+		logger.info(`Hours Played: ${inspect(fields)}`);
+	} else {
+		outputCumulativeTimePlayed(timePlayedData, userID);
+	}
 };
 
 /**
@@ -348,7 +348,7 @@ function getGameUserData(gameName, fuzzyThreshold) {
 function buildWhoPlaysFields(usersWhoPlay) {
 	var fields = [];
 
-    usersWhoPlay.sort((a, b) => {
+	usersWhoPlay.sort((a, b) => {
 		if (isNaN(b.time - a.time)) {
 			return isNaN(a.time) ? 1 : -1;
 		}
@@ -365,7 +365,7 @@ function buildWhoPlaysFields(usersWhoPlay) {
 		}
 	});
 
-    if (fields.length !== 2 && fields.length % 3 === 2) {
+	if (fields.length !== 2 && fields.length % 3 === 2) {
 		fields.push(util.buildField('\u200B', '\u200B'));
 	}
 
@@ -401,7 +401,7 @@ function whoPlaysUsersGames(userID) {
 		legendMsg += `**${index}**.	${game.title}\n`;
 	});
 
-    util.sendDynamicMessage(userID, 'game', gamesOutput);
+	util.sendDynamicMessage(userID, 'game', gamesOutput);
 	util.sendEmbedMessage('Legend for Who Plays', legendMsg, userID);
 }
 
@@ -488,7 +488,7 @@ exports.letsPlay = function(args, userID, message, oneMore, customMessage) {
 	}
 
 	usersWhoPlay.forEach((user) => {
-		if (shouldExcludeUserFromLetsPlay(allFlagProvided, user)){ return; }
+		if (shouldExcludeUserFromLetsPlay(allFlagProvided, user)) { return; }
 
 		msg += ` ${util.mentionUser(user.id)}`;
 	});
@@ -531,7 +531,7 @@ function determineUpdatedUsersWhoPlay(usersWhoPlay, userID, role, isRemoval) {
 			usersWhoPlay.splice(userEntryIdx, 1, newEntry);
 		}
 	} else {
-    usersWhoPlay = [{ id: userID, time: moment().valueOf(), role: role.id }];
+		usersWhoPlay = [{ id: userID, time: moment().valueOf(), role: role.id }];
 	}
 
 	return usersWhoPlay;
@@ -548,8 +548,8 @@ function updateWhoPlays(userID, role, gameName, isRemoval) {
 	const usersWhoPlay = determineUpdatedUsersWhoPlay(gameUserData.users, userID, role, isRemoval);
 
 	if (game) {
-    game.users = usersWhoPlay;
-  } else {
+		game.users = usersWhoPlay;
+	} else {
 		gamesPlayed.push({
 			title: gameName,
 			users: usersWhoPlay
@@ -558,14 +558,24 @@ function updateWhoPlays(userID, role, gameName, isRemoval) {
 }
 
 /**
- * Removes a player from the list of user who play a game.
+ * Adds or removes a player from list of user who play a game.
  *
+ * @param {Object} message - the message calling the cmd
+ * @param {Object} message.member - the calling member
  * @param {String[]} args arguments provided to the command
  */
-exports.removePlayer = function(args) {
-	updateWhoPlays(util.getIdFromMention(args[1]), { id: 'Temp Role' }, util.getTargetFromArgs(args, 2), true);
-};
+function forceAddOrRemovePlayer({ member }, args) {
+	const [cmd, playerMention] = args;
 
+	if (!util.isAdmin(member.id) || !util.isMention(playerMention)) { return; }
+
+	updateWhoPlays(
+		util.getIdFromMention(playerMention),
+		{ id: c.SCRUBS_ROLE_ID },
+		util.getTargetFromArgs(args, 2),
+		cmd.startsWith('remove')
+	);
+}
 
 /**
  * Updates the time played for a game when the user finishes playing it.
@@ -609,7 +619,7 @@ exports.updateTimesheet = function(user, userID, highestRole, oldGame, newGame) 
 	}
 	//started playing a game
 	if (newGame) {
-		gameToTime.playing = {name : newGame, start : getCurrentTimeMillis()};
+		gameToTime.playing = { name: newGame, start: getCurrentTimeMillis() };
 		if (!gameToTime[newGame]) {
 			gameToTime[newGame] = 0;
 		}
@@ -640,7 +650,7 @@ function waitAndSendScrubDaddyFact(attempts, seconds, userID) {
 			const title = '➕ You are now subscribed to Scrub Daddy Facts!';
 			const image = c.SCRUB_DADDY_FACT;
 
-			util.sendEmbed({title, userID, image});
+			util.sendEmbed({ title, userID, image });
 		} else {
 			waitAndSendScrubDaddyFact(attempts + 1, seconds);
 		}
@@ -836,21 +846,21 @@ exports.setDynamicGameChannels = function(channels) {
  * Sets the user's streaming url for use with toggle-streaming.
  */
 exports.setStreamingUrl = function(member, url) {
-	const shortener = new GoogleUrl({key: priv.googleUrlApiKey});
+	const shortener = new GoogleUrl({ key: priv.googleUrlApiKey });
 
 	shortener.shorten(url, (err, shortUrl) => {
-    if (!shortUrl) { return; }
-    if (err) {
-      logger.error('Failed to shorten url: ', err);
-      return;
-    }
+		if (!shortUrl) { return; }
+		if (err) {
+			logger.error('Failed to shorten url: ', err);
+			return;
+		}
 
-    userIDToStreamingUrl[member.id] = shortUrl;
-    util.exportJson(userIDToStreamingUrl, 'streaming');
-    util.sendEmbedMessage(
-      `Stream Url Set For ${util.getNick(member.id)}`,
-      `Your stream can be watched at ${shortUrl}`
-    );
+		userIDToStreamingUrl[member.id] = shortUrl;
+		util.exportJson(userIDToStreamingUrl, 'streaming');
+		util.sendEmbedMessage(
+			`Stream Url Set For ${util.getNick(member.id)}`,
+			`Your stream can be watched at ${shortUrl}`
+		);
 	});
 
 };
@@ -860,7 +870,7 @@ exports.setStreamingUrl = function(member, url) {
  */
 exports.toggleStreaming = function(member) {
 	if (member.displayName.includes('📺')) {
-		member.setNickname(member.displayName.split('📺')[0].slice(0,-1));
+		member.setNickname(member.displayName.split('📺')[0].slice(0, -1));
 	} else {
 		const url = userIDToStreamingUrl[member.id] || '?';
 		var name = member.displayName;
@@ -912,8 +922,8 @@ exports.maybeUpdateNickname = function(member, game) {
 		logger.info(`Updating Nickname - ${member.displayName} -> ${nick}`);
 		member.setNickname(nick);
 	} else if (nameTokens[1]) {
-    logger.info(`Updating Nickname - ${member.displayName} -> ${nameTokens[0]}`);
-    member.setNickname(nameTokens[0]);
+		logger.info(`Updating Nickname - ${member.displayName} -> ${nameTokens[0]}`);
+		member.setNickname(nameTokens[0]);
 	}
 };
 
@@ -944,7 +954,7 @@ exports.getFortniteStats = function(gameMode, stat, callingUserID, fortniteUserN
 
 			if (gameMode && c.GAME_MODE_TO_KEY[gameMode.toLowerCase()]) {
 				if (gameMode === 'all') {
-          var allFields = [];
+					var allFields = [];
 
 					get(player, c.GAME_MODE_TO_KEY[gameMode.toLowerCase()]).forEach((category) => {
 						allFields.push(util.buildField(category.key, category.value));
@@ -969,18 +979,18 @@ exports.getFortniteStats = function(gameMode, stat, callingUserID, fortniteUserN
 				}
 			}
 		})
-		.catch(function (err) {
-			logger.error(`ERROR: ${err}`);
-		})
-		.finally(() => {
-			if (userIDs.length > 0 && !fortniteUserName) {
-				options.uri = baseUri;
-				requestStats(userIDs.pop());
-			} else if (fields.length > 0) {
-				fields.sort(util.compareFieldValues);
-				util.sendEmbedFieldsMessage(`Fortnite ${gameModeTitle} ${statTitleLabel} Leaderboard`, fields, callingUserID);
-			}
-		});
+			.catch(function (err) {
+				logger.error(`ERROR: ${err}`);
+			})
+			.finally(() => {
+				if (userIDs.length > 0 && !fortniteUserName) {
+					options.uri = baseUri;
+					requestStats(userIDs.pop());
+				} else if (fields.length > 0) {
+					fields.sort(util.compareFieldValues);
+					util.sendEmbedFieldsMessage(`Fortnite ${gameModeTitle} ${statTitleLabel} Leaderboard`, fields, callingUserID);
+				}
+			});
 	}
 
 	const gameModeTitle = util.capitalizeFirstLetter(gameMode);
@@ -1038,9 +1048,9 @@ exports.setFortniteName = function(userID, args) {
  */
 function sendSunkenSailorMessage(user, isSunken) {
 	user.createDM()
-	.then((dm) => {
-		dm.send(generateSunkenSailorSentence(isSunken));
-	});
+		.then((dm) => {
+			dm.send(generateSunkenSailorSentence(isSunken));
+		});
 }
 
 /**
@@ -1049,21 +1059,21 @@ function sendSunkenSailorMessage(user, isSunken) {
  * @param {String} secretWord secret word to include in sentence
  */
 function generateSunkenSailerSentenceTemplates(secretWord) {
-    const nounArg = '{{noun}}';
-    var originalSentenceTemplates = txtgen.getTemplates();
+	const nounArg = '{{noun}}';
+	var originalSentenceTemplates = txtgen.getTemplates();
 
 	var nounSentenceTemplates = [];
 	var sunkenSentenceTemplate;
 
-    util.shuffleArray(originalSentenceTemplates);
+	util.shuffleArray(originalSentenceTemplates);
 
-    originalSentenceTemplates.forEach((template) => {
-        if (template.includes(nounArg)) {
-            nounSentenceTemplates.push(template.replace(nounArg, `**${secretWord}**`));
-        } else if (!sunkenSentenceTemplate) {
-            sunkenSentenceTemplate = template;
-        }
-    });
+	originalSentenceTemplates.forEach((template) => {
+		if (template.includes(nounArg)) {
+			nounSentenceTemplates.push(template.replace(nounArg, `**${secretWord}**`));
+		} else if (!sunkenSentenceTemplate) {
+			sunkenSentenceTemplate = template;
+		}
+	});
 
 	txtgen.setTemplates(nounSentenceTemplates);
 
@@ -1077,11 +1087,11 @@ function generateSunkenSailerSentenceTemplates(secretWord) {
  * @param {Object} template sentence template for nouns or sunken
  */
 function generateSunkenSailorSentence(isSunken, template) {
-    const templates = isSunken ? [template.sunkenTemplate] : template.nounTemplate;
+	const templates = isSunken ? [template.sunkenTemplate] : template.nounTemplate;
 
-    txtgen.setTemplates(templates);
+	txtgen.setTemplates(templates);
 
-    return txtgen.sentence();
+	return txtgen.sentence();
 }
 
 /**
@@ -1129,13 +1139,13 @@ exports.sunkenSailor = function(callingMember) {
 function getRandomQuotes(channel, minLength = 15, minReactions = 0, sampleSize = 100) {
 	channel = bot.getServer().channels.find('name', channel) || bot.getScrubsChannel();
 
-	return channel.fetchMessages({limit: sampleSize})
+	return channel.fetchMessages({ limit: sampleSize })
 		.then((foundMessages) => {
 			var matchingQuotes = foundMessages.array().filter(isQuotableMsg(minLength, minReactions));
 
 			util.shuffleArray(matchingQuotes);
 
-			return matchingQuotes.slice(0,5);
+			return matchingQuotes.slice(0, 5);
 		});
 }
 
@@ -1284,23 +1294,23 @@ function whoSaidGameLoop(randomQuotes, round) {
 	}
 
 	const selectedQuote = randomQuotes[round - 1];
-    startWhoSaidRound(selectedQuote, round)
-    .then((answers) => {
-		const roundWinner = answers.array()[0].member;
-		const quoteCreatedTime = moment(selectedQuote.createdTimestamp).format(c.FULL_DATE_TIME_FORMAT);
+	startWhoSaidRound(selectedQuote, round)
+		.then((answers) => {
+			const roundWinner = answers.array()[0].member;
+			const quoteCreatedTime = moment(selectedQuote.createdTimestamp).format(c.FULL_DATE_TIME_FORMAT);
 
-		util.sendEmbedMessage(
-			`Congrats ${util.getNick(roundWinner.id)}`,
-			`You're correct! **${util.getNick(selectedQuote.author.id)}**\nsaid that on \`${quoteCreatedTime}\``
-		);
-		whoSaidScore[roundWinner.id] = whoSaidScore[roundWinner.id] ? whoSaidScore[roundWinner.id] + 1 : 1;
-		whoSaidGameLoop(randomQuotes, round + 1);
-	})
-    .catch(() => {
-		logger.info(`After 30 seconds, there were no responses for Who Said.`);
-		util.sendEmbedMessage('Reponse Timed Out', 'Nobody wins this round! 😛');
-		whoSaidGameLoop(randomQuotes, round + 1);
-    });
+			util.sendEmbedMessage(
+				`Congrats ${util.getNick(roundWinner.id)}`,
+				`You're correct! **${util.getNick(selectedQuote.author.id)}**\nsaid that on \`${quoteCreatedTime}\``
+			);
+			whoSaidScore[roundWinner.id] = whoSaidScore[roundWinner.id] ? whoSaidScore[roundWinner.id] + 1 : 1;
+			whoSaidGameLoop(randomQuotes, round + 1);
+		})
+		.catch(() => {
+			logger.info(`After 30 seconds, there were no responses for Who Said.`);
+			util.sendEmbedMessage('Reponse Timed Out', 'Nobody wins this round! 😛');
+			whoSaidGameLoop(randomQuotes, round + 1);
+		});
 }
 
 /**
@@ -1317,10 +1327,10 @@ exports.startWhoSaidGame = function(channel, minLength, minReactions, sampleSize
 	whoSaidScore = {};
 
 	getRandomQuotes(channel, minLength, minReactions, sampleSize)
-	.then((randomQuotes) => {
-		if (!randomQuotes || randomQuotes.length === 0) { return; }
-		whoSaidGameLoop(randomQuotes, 1);
-	});
+		.then((randomQuotes) => {
+			if (!randomQuotes || randomQuotes.length === 0) { return; }
+			whoSaidGameLoop(randomQuotes, 1);
+		});
 };
 
 /**
@@ -1392,10 +1402,10 @@ exports.maybeUpdateArkServerStatus = function(message) {
  */
 async function isArkServerOnline() {
 	const pingOptions = process.platform.startsWith('win') ? ['-n', '2', '-w', '1500'] : ['-c', '2', '-w', '3'];
-    const pingArgs = [priv.arkServerIp, ...pingOptions];
-    const result = await spawnSync('ping', pingArgs, { encoding: 'utf-8' });
+	const pingArgs = [priv.arkServerIp, ...pingOptions];
+	const result = await spawnSync('ping', pingArgs, { encoding: 'utf-8' });
 
-    return result.stdout.includes('from');
+	return result.stdout.includes('from');
 }
 
 /**
@@ -1424,69 +1434,66 @@ exports.checkArkServerStatus = async function() {
 };
 
 exports.registerCommandHandlers = () => {
-  cmdHandler.registerCommandHandler('who-plays', exports.whoPlays);
+	cmdHandler.registerCommandHandler('who-plays', exports.whoPlays);
 	cmdHandler.registerCommandHandler('@', exports.mentionGroup);
 	cmdHandler.registerCommandHandler('1-more', (message, args) => {
-    exports.letsPlay(args, message.member.id, message, true);
-  });
+		exports.letsPlay(args, message.member.id, message, true);
+	});
 	cmdHandler.registerCommandHandler('fortnite-leaderboard', (message, args) => {
-    if (!args[1] || !args[2]) { return; }
+		if (!args[1] || !args[2]) { return; }
 
-    exports.getFortniteStats(args[1], args[2], message.member.id);
-  });
+		exports.getFortniteStats(args[1], args[2], message.member.id);
+	});
 	cmdHandler.registerCommandHandler('fortnite-stats', (message, args) => {
-    if (args[1] && args[2]) {
-      const targetStat = args[3] || 'all';
-      exports.getFortniteStats(args[2], targetStat, message.member.id, args[1]);
-    } else {
-      exports.outputFortniteHelp();
-    }
-  });
+		if (args[1] && args[2]) {
+			const targetStat = args[3] || 'all';
+			exports.getFortniteStats(args[2], targetStat, message.member.id, args[1]);
+		} else {
+			exports.outputFortniteHelp();
+		}
+	});
 	cmdHandler.registerCommandHandler('lets-play', (message, args) => {
-    exports.letsPlay(args, message.member.id, message);
-  });
+		exports.letsPlay(args, message.member.id, message);
+	});
 	cmdHandler.registerCommandHandler('opt-in', (message) => {
-    exports.optIn(message.member.id);
-    message.delete();
-  });
+		exports.optIn(message.member.id);
+		message.delete();
+	});
 	cmdHandler.registerCommandHandler('playing', (message) => {
-    exports.maybeOutputCountOfGamesBeingPlayed(message.guild.members.array(), message.member.id);
-    message.delete();
-  });
-	cmdHandler.registerCommandHandler('remove-player', (message, args) => {
-    if (!util.isAdmin(message.member.id) || !util.isMention(args[1])) { return; }
-
-    exports.removePlayer(args);
-  });
+		exports.maybeOutputCountOfGamesBeingPlayed(message.guild.members.array(), message.member.id);
+		message.delete();
+	});
+	cmdHandler.registerCommandHandler('add-player', forceAddOrRemovePlayer);
+	cmdHandler.registerCommandHandler('remove-player', forceAddOrRemovePlayer);
 	cmdHandler.registerCommandHandler('round-robin', (message, args) => {
-    if (!args[1]) { return; }
+		if (!args[1]) { return; }
 
-    exports.roundRobin(args[1], message.member.id);
-  });
+		exports.roundRobin(args[1], message.member.id);
+	});
 	cmdHandler.registerCommandHandler('set-fortnite-name', (message, args) => {
-    if (!args[1]) { return; }
+		if (!args[1]) { return; }
 
-    exports.setFortniteName(message.member.id, args);
-  });
+		exports.setFortniteName(message.member.id, args);
+	});
 	cmdHandler.registerCommandHandler('set-stream', (message, args) => {
-    if (!args[1]) { return; }
+		if (!args[1]) { return; }
 
-    exports.setStreamingUrl(message.member, args[1]);
-  });
+		exports.setStreamingUrl(message.member, args[1]);
+	});
 	cmdHandler.registerCommandHandler('split-group', (message) => {
-    exports.splitGroup(message.member);
-  });
+		exports.splitGroup(message.member);
+	});
 	cmdHandler.registerCommandHandler('sunken-sailor', (message) => {
-    exports.sunkenSailor(message.member);
-  });
+		exports.sunkenSailor(message.member);
+	});
 	cmdHandler.registerCommandHandler('time', (message, args) => {
-    exports.maybeOutputTimePlayed(args, message.member.id);
-  });
+		exports.maybeOutputTimePlayed(args, message.member.id);
+	});
 	cmdHandler.registerCommandHandler('toggle-streaming', (message) => {
-    exports.toggleStreaming(message.member);
-  });
+		exports.toggleStreaming(message.member);
+	});
 	cmdHandler.registerCommandHandler('who-said', (message, args) => {
-    exports.startWhoSaidGame(args[1], args[2], args[3], args[4]);
-  });
+		exports.startWhoSaidGame(args[1], args[2], args[3], args[4]);
+	});
 	cmdHandler.registerCommandHandler('ping-ark-server', exports.checkArkServerStatus);
 };

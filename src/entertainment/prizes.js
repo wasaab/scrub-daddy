@@ -876,7 +876,7 @@ exports.maybeJoinRandomChannelAndPlaySoundbite = function() {
  */
  function addRainbowRole(userID, targetUser, tierNumber, cmd) {
     const server = bot.getServer();
-    var rainbowRole = server.roles.find('name', 'rainbow');
+    const rainbowRole = server.roles.find('name', 'rainbow');
 
 	if (rainbowRole) {
         targetUser.addRole(rainbowRole).then(util.updateRainbowRoleColor);
@@ -968,7 +968,6 @@ function maybeRemoveRainbowRoleFromUsers() {
     
     if (0 !== rainbowRole.members.array().length) { return; }
     
-    logger.info('No users with rainbow role. Clearing color update interval.');
     util.clearRainbowRoleUpdateInterval();
 }
 

@@ -101,10 +101,7 @@ async function sendAuthoredMessage(description, userID, channelID, file) {
 		return webhook.delete().catch(log);
 	} catch (err) {
 		logger.error(`Unable to send authored msg: ${err}`);
-
-		if (webhook) {
-			webhook.delete().catch(log);
-		}
+		webhook?.delete().catch(log);
 
 		return err;
 	}
@@ -654,7 +651,7 @@ function deleteMessages(message) {
 }
 
 /**
- * Logs the response of an API request for Add Role or Move User.
+ * Logs the response of an API request.
  *
  * @param {String} error - error returned from API request
  * @param {Object} response - response returned from API request

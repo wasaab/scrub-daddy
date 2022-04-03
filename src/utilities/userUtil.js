@@ -700,6 +700,7 @@ function updateRainbowRoleColor() {
 function clearRainbowRoleUpdateInterval() {
 	if (!updateRainbowRoleInterval) { return; }
 
+	logger.info('No users with rainbow role. Clearing color update interval.');
 	clearInterval(updateRainbowRoleInterval);
 }
 

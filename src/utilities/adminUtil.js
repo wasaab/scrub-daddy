@@ -273,22 +273,40 @@ function updateReadme(message) {
 function outputCmdsMissingHelpDocs(message) {
 	if (!isAdmin(message.member.id)) { return; }
 
-	const cmdsMissingDocs = c.COMMANDS.filter(isCommandInAnyHelpCategory);
-	const missingDocsOutput = cmdsMissingDocs.toString().split(',').join(', ');
+	const cmdsMissingDocs = c.COMMANDS.filter(isCommandUndocumented);
+	const missingDocsOutput = cmdsMissingDocs.join('`, `');
 
 	sendEmbedMessage(
 		'Top Secret Commands',
-		`I actually just need to document these ${cmdsMissingDocs.length} commands...\n\n${missingDocsOutput}`
+		`I actually just need to document these ${cmdsMissingDocs.length} commands...\n\n\`${missingDocsOutput}\``
 	);
 }
 
 /**
- * Determines if the command is documented in any help category.
+ * Outputs help for admin commands.
+ *
+ * @param {Object} message - the message calling the cmd
+ * @param {Object} message.member - the calling member
+ * @param {String} [message.id: userID] - ID of the caller
+ * @returns 
+ */
+function outputAdminCmdHelp({ member: { id: userID } }) {
+	if (!isAdmin(userID)) { return; }
+
+	const adminCmdsOutput = c.ADMIN_COMMANDS.slice(c.ADMIN_COMMANDS.indexOf('+'));
+
+	sendEmbedMessage('Admin Commands', adminCmdsOutput, userID);
+}
+
+/**
+ * Determines if the command is undocumented by checking all help
+ * categories, including admin commands.
  *
  * @param {String} cmd command to find docs of
  */
-function isCommandInAnyHelpCategory(cmd) {
-	return !c.HELP_CATEGORIES.some((category) => isCommandInHelpCategory(category, cmd));
+function isCommandUndocumented(cmd) {
+	return !c.ADMIN_COMMANDS.includes(`\n+ ${cmd}`)
+		&& !c.HELP_CATEGORIES.some((category) => isCommandInHelpCategory(category, cmd));
 }
 
 /**
@@ -492,9 +510,8 @@ function toggleServerLogRedirect(message) {
 	if (!isAdmin(userID)) { return; }
 
 	if (logger.transports.length === 3) {
-		const discordTransport = logger.transports.find((transport) => {
-			return transport.constructor.name === 'DiscordServerTransport';
-		});
+		const discordTransport = logger.transports
+			.find(({ constructor: { name } }) => name === 'DiscordServerTransport');
 
 		logger.remove(discordTransport);
 		sendEmbedMessage(
@@ -525,6 +542,7 @@ exports.registerCommandHandlers = () => {
 	cmdHandler.registerCommandHandler('list-backups', listBackups);
 	cmdHandler.registerCommandHandler('restore', restoreJsonFromBackup);
 	cmdHandler.registerCommandHandler('log', toggleServerLogRedirect);
+	cmdHandler.registerCommandHandler('admin-help', outputAdminCmdHelp);
 	cmdHandler.registerCommandHandler('missing-help', outputCmdsMissingHelpDocs);
 	cmdHandler.registerCommandHandler('review-messages', reviewMessages);
 	cmdHandler.registerCommandHandler('update-readme', updateReadme);

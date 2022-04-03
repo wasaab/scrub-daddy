@@ -233,7 +233,8 @@ module.exports = {
 				{ name: '.issue <`issue-title`> <`msg detailing issue`>', value: '`to submit bot issues.`', inline: 'false'},
 				{ name: '.feature <`feature-title`> <`msg detailing feature`>', value: '`to submit bot feature requests.`', inline: 'false'},
 				{ name: '.implement <`task-title`>', value: '`to vote for the next task to complete.\ntask-title is the channel title of the issue or feature.`', inline: 'false'},
-				{ name: '.help or .h', value: '`to show this message again.`', inline: 'false'}
+				{ name: '.help or .h', value: '`to get help for all commands.`', inline: 'false'},
+				{ name: '.help <`command`>', value: '`to get help for a specific command`', inline: 'false' }
 			]
 		},
 		{
@@ -410,7 +411,7 @@ module.exports = {
 	],
 	COMMANDS: [
 		'@', ',,,', '1-more',
-		'add-emoji', 'add-sb', 'alias', 'army',
+		'add-emoji', 'add-player', 'add-sb', 'admin-help', 'alias', 'army',
 		'backup', 'billionaires-club',
 		'cars', 'catfacts', 'channels-left', 'change-category', 'clean', 'color', 'create-group', 'create-list',
 		'delete', 'delete-rating', 'discharge',
@@ -433,8 +434,11 @@ module.exports = {
 		'volume', 'vote', 'voteban', 'voteinfo', 'votekick',
 		'who-plays', 'who-said', 'worth'
 	],
-	GLOBAL_COMMANDS: ['@', ',,,', 'cars', 'change-category', 'delete', 'delete-rating', 'ignore-posts',
-		'leave-temp', 'magic-word', 'quote', 'rate', 'remind-me', 'rename', 'refresh-ratings', 'rating-info'],
+	GLOBAL_COMMANDS: [
+		'@', ',,,', 'cars', 'change-category', 'delete', 'delete-rating',
+		'ignore-posts', 'leave-temp', 'magic-word', 'quote', 'rate',
+		'remind-me', 'rename', 'refresh-ratings', 'rating-info'
+	],
 	WHO_PLAYS_FUZZY_OPTIONS: {
 		shouldSort: true,
 		threshold: 0.3,
@@ -533,10 +537,12 @@ module.exports = {
 		'+ log - `toggles server output redirection to discord channel #server-log.`\n' +
 		'+ revive - `revives a fallen Scrubbing Bubble.`\n' +
 		'+ update-readme - `updates the readme to include new commands.`\n' +
-		'+ remove-player <`@user`> <`game name`> - `remove a player from gamesPlayed.`\n' +
-		'+ cars\n' +
-		'+ missing-help\n' +
-		'+ review-messages\n',
+		'+ add-player <`@user`> <`game name`> - `adds a player to gamesPlayed.`\n' +
+		'+ remove-player <`@user`> <`game name`> - `removes a player from gamesPlayed.`\n' +
+		'+ cars - `craws car forum and outputs updates as discord embeds.`\n' +
+		'+ admin-help - `lists admin command usage.`\n' + 
+		'+ missing-help - `lists commands missing help.`\n' +
+		'+ review-messages - `initiates message review process for quarantined users.`\n',
 	PRIZE_TO_DESCRIPTION: {
 		'rename-hank': 'Automatically change hanks name to hang for ``.',
 		'rename-user': 'Rename a user for ``.',

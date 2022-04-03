@@ -130,8 +130,8 @@ function messageCatFactsSubscribers() {
 function getRandomBillionaireFact() {
 	const billionaireFact = getRandomCatFact()
 		.split('\n')[0] // remove cat related ending
-		.replace(/cat/g, 'billionaire')
-		.replace(/Cat/g, 'Billionaire');
+		.replace(/cat|kitten/g, 'billionaire')
+		.replace(/Cat|Kitten/g, 'Billionaire');
 
 	return `${mentionRole(c.BILLIONAIRE_ROLE_ID)}, ${billionaireFact}\n\n 💰 ***ka-ching!***`;
 }
