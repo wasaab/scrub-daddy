@@ -937,11 +937,12 @@ function ranks(userID, isWorthRanks) {
         if (name) {
             const numBubbles = isWorthRanks ? determineNetWorth(ledger[id]) : ledger[id].armySize;
 
-            fields.push(util.buildField(name, formatNumber(numBubbles)));
+            fields.push(util.buildField(name, numBubbles));
         }
     }
 
     fields.sort(util.compareFieldValues);
+    fields = fields.map((field) => ({ ...field, value: formatNumber(field.value) }));
 
     const titlePostfix = isWorthRanks ? 'Net Worth' : 'Army Sizes';
 
