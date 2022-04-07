@@ -129,7 +129,7 @@ module.exports = {
 	HELP_CATEGORIES_PROMPT: [
 		{ name: '1) `Voting`', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
 		{ name: '2) `Scrubbing Bubbles`', value: '`enlist`	`discharge`	`give`	`reserve`	`clean`		`race`'
-			+ '	`invest`	`invest-scrubbles`	`sell-shares`	`stocks`	`portfolio`	`prizes`	`worth`	`army`	`ranks`	`stats`	`who-said`	`sunken-sailor`	`add-emoji`	`magic-word`'
+			+ '	`invest`	`invest-scrubbles`	`sell-shares`	`stocks`	`portfolio`	`prizes`	`worth`	`army`	`ranks`	`worth-ranks`	`stats`	`who-said`	`sunken-sailor`	`add-emoji`	`magic-word`'
 			+ '	`rename-hank`	`rename-channel`	`rename-role`	`rename-user`	`scrub-box`		`inventory`	`start-lotto`	`stop-lotto`	`billionaires-club`', inline: 'false'},
 		{ name: '3) `Time Played`', value: '`time`	`opt-in`	`heatmap`', inline: 'false'},
 		{ name: '4) `Gaming`', value: '`playing`	`who-plays`	`lets-play`	`1-more`	`p`	`split-group`	`trends`	`total-trends`'
@@ -167,6 +167,7 @@ module.exports = {
 				{ name: '.army <`@user`>', value: '`retrieves the size of the user\'s army.`', inline: 'false'},
 				{ name: '.worth', value: '`retrieves your net worth (army + stock portfolio).`', inline: 'false'},
 				{ name: '.worth <`@user`>', value: '`retrieves the user\'s net worth (army + stock portfolio).`', inline: 'false'},
+				{ name: '.worth-ranks', value: '`outputs the net worth of every user.`', inline: 'false'},
 				{ name: '.ranks', value: '`outputs the army size of every user.`', inline: 'false'},
 				{ name: '.stats', value: '`outputs your clean stats.`', inline: 'false'},
 				{ name: '.stats <`@user`>', value: '`outputs the user\'s clean stats.`', inline: 'false'},
@@ -432,7 +433,7 @@ module.exports = {
 		'temp', 'test', 'time', 'tips', 'toggle-streaming', 'trends', 'total-trends',
 		'unalias', 'update-readme',
 		'volume', 'vote', 'voteban', 'voteinfo', 'votekick',
-		'who-plays', 'who-said', 'worth'
+		'who-plays', 'who-said', 'worth', 'worth-ranks'
 	],
 	GLOBAL_COMMANDS: [
 		'@', ',,,', 'cars', 'change-category', 'delete', 'delete-rating',
@@ -629,6 +630,10 @@ module.exports = {
 		channel: 'channel',
 		role: 'role'
 	},
+	LARGE_NUM_UNITS: [
+		'Quadrillion', 'Quintillion', 'Sextillion',
+		'Septillion', 'Octillion', 'Nonillion', 'Decillion'
+	],
 	INVALID_DURATION_ISO: 'P0D',
 	DAY_HM_DATE_TIME_FORMAT: 'ddd h:mm A',
 	MDY_HM_DATE_TIME_FORMAT: 'M/DD/YY hh:mm A',

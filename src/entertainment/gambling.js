@@ -871,7 +871,7 @@ function outputUserGamblingData(userID, args) {
             ` Scrubbing Bubble${util.maybeGetPlural(armySize)} strong!`;
     } else if (args[0] === 'worth') {
         description = `${util.mentionUser(userID)}${msg} net worth is ` +
-            `${util.formatAsBoldCodeBlock(util.comma(determineNetWorth(armySize, userEntry)))} Scrubbing Bubbles!`;
+            `${util.formatAsBoldCodeBlock(util.comma(determineNetWorth(userEntry)))} Scrubbing Bubbles!`;
     } else {
         title = 'Gambling Stats';
         description = `${util.mentionUser(userID)}${msg} stats:\n${buildStatsDescription(userEntry)}`;
@@ -902,9 +902,31 @@ function stats(userID, args) {
 }
 
 /**
- * Outputs all member's army sizes in order.
+ * Formats the provided number.
+ * Adds commas if at least 1000.
+ * Precision 3 with unit if at least 1 quadrillion.
+ *
+ * @param {Number} num - number to format
+ * @returns {String} the formatted number
  */
-function armyRanks(userID) {
+function formatNumber(num) {
+	const formattedNum = util.comma(num);
+	const numberTokens = formattedNum.split(',');
+
+	if (numberTokens.length > 4) {
+		return `${numberTokens[0]} ${c.LARGE_NUM_UNITS[numberTokens.length - 5]}`;
+	}
+
+    return formattedNum;
+}
+
+/**
+ * Outputs all member's army sizes or net worths in order.
+ *
+ * @param {String} userID - the ID of the calling user
+ * @param {boolean=} isWorthRanks - whether worth should be shown instead of army size
+ */
+function ranks(userID, isWorthRanks) {
     var fields = [];
 
     for (var id in ledger) {
@@ -913,12 +935,17 @@ function armyRanks(userID) {
         const name = util.getNick(id);
 
         if (name) {
-          fields.push(util.buildField(name, util.comma(ledger[id].armySize)));
+            const numBubbles = isWorthRanks ? determineNetWorth(ledger[id]) : ledger[id].armySize;
+
+            fields.push(util.buildField(name, formatNumber(numBubbles)));
         }
     }
 
     fields.sort(util.compareFieldValues);
-    util.sendEmbedFieldsMessage('Scrubbing Bubbles Army Sizes', fields, userID);
+
+    const titlePostfix = isWorthRanks ? 'Net Worth' : 'Army Sizes';
+
+    util.sendEmbedFieldsMessage(`Scrubbing Bubbles ${titlePostfix}`, fields, userID);
 }
 
 /**
@@ -1018,11 +1045,9 @@ function fakeStealAll() {
     }, 60000);
 }
 
-function determineNetWorth(armySize, userEntry) {
-    var netWorth = armySize;
-
-    if (userEntry.stockToInfo && Object.keys(userEntry.stockToInfo).length !== 0) {
-        const totalStockValue = Object.values(userEntry.stockToInfo)
+function determineNetWorth({ stockToInfo, armySize: netWorth }) {
+    if (stockToInfo && Object.keys(stockToInfo).length !== 0) {
+        const totalStockValue = Object.values(stockToInfo)
             .map((stock) => Math.ceil(stock.currentPrice) * stock.shares)
             .reduce((a, b) => a + b, 0);
 
@@ -1065,7 +1090,11 @@ exports.registerCommandHandlers = () => {
         (message, args) => exports.race(message.member.id, args)
     );
     cmdHandler.registerCommandHandler('ranks', (message) => {
-        armyRanks(message.member.id);
+        ranks(message.member.id);
+        message.delete();
+    });
+    cmdHandler.registerCommandHandler('worth-ranks', (message) => {
+        ranks(message.member.id, true);
         message.delete();
     });
     cmdHandler.registerCommandHandler(
