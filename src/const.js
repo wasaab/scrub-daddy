@@ -247,7 +247,8 @@ module.exports = {
         { name: '.rainbow-role <`tier`>', value: '`🏆 to add a role with changing color for a limited time`', inline: 'false'},
 				{ name: '.shuffle-scrubs', value: '`to randomize the first letter of every Srub\'s name.`', inline: 'false'},
 				{ name: '.shuffle-scrubs <`letter`>', value: '`to set the first letter of every Srub\'s name.`', inline: 'false'},
-				{ name: '.set-birthday <`MM/DD`>', value: '`to set your birthday and receive cake.`', inline: 'false'},
+				{ name: '.set-birthday <`MM/DD`>', value: '`to set your birthday and get a random cake nickname.`', inline: 'false'},
+				{ name: '.set-birthday <`MM/DD`> <`Desired Name`>', value: '`to set your birthday and desired nickname.`', inline: 'false'},
 				{ name: '.set-stream <`url`>', value: '`to set the url for either your stream or the stream you are watching.`', inline: 'false'},
 				{ name: '.toggle-streaming', value: '`to toggle your streaming state on/off, which will update your nickname.`', inline: 'false'},
 				{ name: '.alias <`alias`> <`command to call`>',
@@ -387,7 +388,7 @@ module.exports = {
 		{
 			color: 0xffff00,
 			title: '💡 New Commands',
-			description: '`billionaires-club`	`remind-me`	`set-birthday`	`worth`	`invest-scrubbles`',
+			description: '`worth-ranks`	`billionaires-club`	`remind-me`	`set-birthday`	`worth`	`invest-scrubbles`',
 			image: {
 				url: 'https://media3.giphy.com/media/UGxfEt5POsukg/giphy.gif'
 			}
@@ -525,6 +526,7 @@ module.exports = {
 	TWITTER_STATUS_URL_PATTERN: /https:\/\/twitter\.com\/.+\/status\/[0-9]+/,
 	STOCKS_BASE_URL: 'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=',
 	DEV: 'dev',
+	MAX_USERNAME_LENGTH: '32',
 	MAX_BITRATE: 96,
 	MIN_BITRATE: 64,
 	CODACY_BADGE: '[![Codacy Badge](https://api.codacy.com/project/badge/Grade/8f59c3e85df049d3bd319a21576f37c4)]'

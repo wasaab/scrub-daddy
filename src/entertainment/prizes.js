@@ -460,7 +460,7 @@ exports.maybeResetNames = function() {
 
         if (!target || moment().isAfter(moment(lockInfo.unlockTime))) {
             if (target) {
-                maybeRename(lockInfo.type, target, lockInfo.oldName);
+                rename(lockInfo.type, target, lockInfo.oldName);
             }
 
             delete loot.lockedIdToLockInfo[targetID];
@@ -472,13 +472,40 @@ exports.maybeResetNames = function() {
 
         if (targetName === lockInfo.newName || targetName === lockInfo.newName.split(' ').join('-')) { continue; }
 
-        maybeRename(lockInfo.type, target, lockInfo.newName);
+        rename(lockInfo.type, target, lockInfo.newName);
     }
 
     if (isRenameExpired) {
         util.exportJson(loot, 'loot');
         updateRenamedList();
     }
+};
+
+/**
+ * Renames users if it's their birthday.
+ */
+exports.maybeRenameBirthdayUsers = () => {
+    const userIdToMetadata = util.getUserIdToMetadata();
+
+	Object.keys(userIdToMetadata).forEach((userID) => {
+		const { nickname, birthday } = userIdToMetadata[userID];
+
+		if (!moment().isSame(moment(birthday), 'day')) { return; }
+
+        const birthdayUser = util.getMembers().find('id', userID);
+
+        if (birthdayUser.displayName === nickname) { return; }
+
+        renameUserRoleOrChannel(
+            c.MENTION_TYPE.user,
+            userID,
+            nickname,
+            1,
+            userID,
+            null,
+            birthdayUser
+        );
+	});
 };
 
 /**
@@ -536,7 +563,7 @@ function updateRenamedList() {
 function renameUserRoleOrChannel(type, targetID, newName, tierNumber, userID, cmd, mentions) {
     var lockInfo = loot.lockedIdToLockInfo[targetID];
 
-    if (lockInfo) {
+    if (lockInfo && cmd) {
         const unlockTime = moment(lockInfo.unlockTime);
 
         if (moment().isBefore(unlockTime)) {
@@ -553,17 +580,21 @@ function renameUserRoleOrChannel(type, targetID, newName, tierNumber, userID, cm
     const target = mentions.id ? mentions : mentions[`${group}s`].values().next().value;
     const oldName = target.displayName || target.name;
 
-    maybeRename(type, target, newName)
+    rename(type, target, newName)
         .then(() => {
             const { endTime, formattedEndTime } = getPrizeEndTime(tierNumber, `rename-${type}`);
-
+            
             loot.lockedIdToLockInfo[targetID] = {
                 unlockTime: endTime.valueOf(),
                 oldName: oldName,
                 newName: newName,
                 type: group,
             };
-            removePrizeFromInventory(userID, cmd, tierNumber);
+
+            if (cmd) {
+                removePrizeFromInventory(userID, cmd, tierNumber);
+            }
+
             util.exportJson(loot, 'loot');
             util.sendEmbedMessage(
                 `${formattedType} Renamed`,
@@ -578,12 +609,13 @@ function renameUserRoleOrChannel(type, targetID, newName, tierNumber, userID, cm
 }
 
 /**
- * Renames the provided user, role, or channel.
+ * Renames the provided user, role, or channel if the calling user
+ * has the rename prize.
  *
  * @param {Object} message	message that called the rename command
  * @param {String[]} args	the arguments passed by the user
  */
-function rename(message, args) {
+function maybeRename(message, args) {
     const [ cmd, tier, targetMention ] = args;
     const mentionType = cmd.split('-')[1];
     const tierNumber = Number(tier);
@@ -688,7 +720,7 @@ function getPrizeEndTime(tierNumber, prize) {
  * @param {Object} targetID target of the rename
  * @param {String} name new name
  */
-function maybeRename(type, target, name) {
+function rename(type, target, name) {
     switch (type) {
         case 'hank':
         case 'member':
@@ -1018,10 +1050,10 @@ function determinePrizeArgs(args, message) {
 }
 
 exports.registerCommandHandlers = () => {
-    cmdHandler.registerCommandHandler('rename-user', rename);
-    cmdHandler.registerCommandHandler('rename-role', rename);
-    cmdHandler.registerCommandHandler('rename-channel', rename);
-    cmdHandler.registerCommandHandler('rename-hank', rename);
+    cmdHandler.registerCommandHandler('rename-user', maybeRename);
+    cmdHandler.registerCommandHandler('rename-role', maybeRename);
+    cmdHandler.registerCommandHandler('rename-channel', maybeRename);
+    cmdHandler.registerCommandHandler('rename-hank', maybeRename);
     cmdHandler.registerCommandHandler('add-emoji', (message, args) => {
         const { userID, cmd, tierNumber } = determinePrizeArgs(args, message);
 

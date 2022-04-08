@@ -659,6 +659,15 @@ function showLists(userID) {
 }
 
 /**
+ * Get's the user ID to metadata mapping.
+ *
+ * @returns {Object} mapping of userId to metadata
+ */
+function getUserIdToMetadata() {
+	return userIdToMetadata;
+}
+
+/**
  * Determines if the provided user owns the provided channel.
  *
  * @param {Object} channel - the channel to check ownership of
@@ -797,6 +806,37 @@ function setUserColor(message, args) {
 }
 
 /**
+ * Builds the nickname for a user's birthday.
+ * 
+ * @returns {String} the birthday nickname 
+ */
+ function buildBirthdayNickname() {
+	const birthdayEmojis = ['🎂', '🍰', '🎂', '🎉', '🎊', '🎈', '🎂'];
+
+	shuffleArray(birthdayEmojis);
+
+	const nicknames = ['Boy', 'Girl', 'Cake', 'Boi', 'Grill'];
+
+	return `${birthdayEmojis[0]} Birthday ${nicknames[getRand(0, nicknames.length)]} ${birthdayEmojis[1]}`;
+}
+
+/**
+ * Populates the user's metadata with their birthday and the nickname
+ * to use on their birthday.
+ *
+ * @param {String} userID the user's ID
+ * @param {Number} birthday the user's birthday in ms since epoch
+ * @param {String=} nickname the user's desired nickname
+ */
+function populateBirthdayMetadata(userID, birthday, nickname) {
+	userIdToMetadata[userID] = {
+		...userIdToMetadata[userID],
+		birthday,
+		nickname: nickname ?? buildBirthdayNickname(nickname)
+	};
+}
+
+/**
  * Sets the user's birthday.
  *
  * @param {Object} message	message that called the set birthday command
@@ -817,43 +857,34 @@ function setBirthday(message, args) {
 		return;
 	}
 
-	if (!userIdToMetadata[userID]) {
-		userIdToMetadata[userID] = { birthday: {} };
+	const nickname = getTargetFromArgs(args, 2);
+
+	if (nickname?.length > c.MAX_USERNAME_LENGTH) {
+		sendEmbedMessage(
+			'🎂 Invalid Nickname',
+			`Nickname can be no more than ${c.MAX_USERNAME_LENGTH} characters`,
+			userID
+		);
+		return;
 	}
 
-	populateBirthdayMetadata(birthday, userIdToMetadata[userID]);
+	populateBirthdayMetadata(userID, birthday.valueOf(), nickname);
 
 	const formattedDay = formatAsBoldCodeBlock(birthday.format('MMMM Do'));
+	const formattedName = formatAsBoldCodeBlock(userIdToMetadata[userID].nickname);
 
 	sendEmbedMessage(
 		'🎂 Birthday Set',
-		`${mentionUser(userID)}, on ${formattedDay} your name will have cake!`,
+		`${mentionUser(userID)}, on ${formattedDay} your name will be:\n${formattedName}`,
 		userID
 	);
 	exportJson(userIdToMetadata, 'userMetadata');
 }
 
-/**
- * Sets birthday and nickname to be given on that day in the user's metadata.
- *
- * @param {moment} birthday the user's birthday
- * @param {Object} userMetadata metadata on the user
- */
-function populateBirthdayMetadata(birthday, userMetadata) {
-	const birthdayEmojis = ['🎂', '🍰', '🎂', '🎉', '🎊', '🎈', '🎂'];
-
-	shuffleArray(birthdayEmojis);
-
-	const nicknames = ['Boy', 'Girl', 'Cake', 'Boi', 'Grill'];
-	const nickname = `${birthdayEmojis[0]} Birthday ${nicknames[getRand(0, nicknames.length)]} ${birthdayEmojis[1]}`;
-
-	userMetadata.birthday = birthday.valueOf();
-	userMetadata.nickname = nickname;
-}
-
 exports.addInvitedByRole = addInvitedByRole;
 exports.clearRainbowRoleUpdateInterval = clearRainbowRoleUpdateInterval;
 exports.getGroup = getGroup;
+exports.getUserIdToMetadata = getUserIdToMetadata;
 exports.mentionChannelsPowerUsers = mentionChannelsPowerUsers;
 exports.modifyGroup = modifyGroup;
 exports.updateRainbowRoleColor = updateRainbowRoleColor;

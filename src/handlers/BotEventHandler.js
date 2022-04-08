@@ -132,11 +132,11 @@ module.exports = class BotEventHandler {
             gambling.maybeRefundUnfinishedRace();
             logger.info(`Connected`);
             reacter.train();
-
             if (util.isDevEnv()) { return; }
-
+            
             games.updatePlayingStatus();
             prizes.updateLottoCountdown();
+            prizes.maybeRenameBirthdayUsers();
             util.sendEmbed({ title: 'B A C K⠀O N L I N E !', image: c.ONLINE_IMG });
         });
 

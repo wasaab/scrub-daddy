@@ -57,6 +57,7 @@ exports.scheduleRecurringJobs = function() {
 	updateBansAtEightAmAndPM(); // 8 AM/PM
 	crawlCarForumAndUpdateStocksAtFivePM();	// 5 PM
 	outputTipAndUpdateInvitesAtTenAMFivePMAndElevenPM(); // 10 AM, 5 PM, 11 PM
+	renameBirthdayUsersAtMidnight(); // Midnight
 	activateRainbowRole();
 	maybeScheduleReviewJob();
 	maybeScheduleLottoEnd();
@@ -165,6 +166,14 @@ function clearTimesheetAtFiveAM() {
 	clearTimeSheetRule.hour = 5;
 	clearTimeSheetRule.minute = 0;
 	schedule.scheduleJob(clearTimeSheetRule, games.clearTimeSheet);
+}
+
+function renameBirthdayUsersAtMidnight() {
+	var renameBirthdayUsersRule = new schedule.RecurrenceRule();
+
+	renameBirthdayUsersRule.hour = 0;
+	renameBirthdayUsersRule.minute = 0;
+	schedule.scheduleJob(renameBirthdayUsersRule, prizes.maybeRenameBirthdayUsers);
 }
 
 function maybeScheduleReviewJob() {

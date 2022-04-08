@@ -253,15 +253,17 @@ function updateReadme(message) {
 	var cmdCount = c.ADMIN_COMMANDS.split('+').length;
 
 	c.HELP_CATEGORIES.forEach((category) => {
-		result += `\n1. ${category.name.split('`').join('')}\n`;
+		result += `\n### ${category.name.split('`').join('')}\n`;
 		category.fields.forEach((field) => {
-			result += `      + ${field.name} - ${field.value}\n`;
+			result += `+ ${field.name} - ${field.value}\n`;
 			cmdCount++;
 		});
 	});
 
-	result = `# scrub-daddy\n${c.CODACY_BADGE}\n\n` +
-		`Personal Discord bot with the following ${cmdCount} commands:\n${result}\n\n${c.ADMIN_COMMANDS}`;
+	result = `# scrub-daddy\n${c.CODACY_BADGE}\n\n`
+		+ `> A Discord bot, focused on gaming and entertainment, with ${cmdCount} commands.\n\n`
+		+ 'Most of the features were requested by users via the **feature** command.\n'
+		+ `${result}\n\n${c.ADMIN_COMMANDS}`;
 	fs.writeFile('README.md', result, 'utf8', log);
 }
 
