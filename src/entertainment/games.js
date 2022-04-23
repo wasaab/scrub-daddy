@@ -561,20 +561,21 @@ function updateWhoPlays(userID, role, gameName, isRemoval) {
  * Adds or removes a player from list of user who play a game.
  *
  * @param {Object} message - the message calling the cmd
- * @param {Object} message.member - the calling member
  * @param {String[]} args arguments provided to the command
  */
-function forceAddOrRemovePlayer({ member }, args) {
+function forceAddOrRemovePlayer(message, args) {
+	if (args.length < 2) { return; }
+
 	const [cmd, playerMention] = args;
+	const gameName = util.getTargetFromArgs(args, 2);
 
-	if (!util.isAdmin(member.id) || !util.isMention(playerMention)) { return; }
+	if (!util.isAdmin(message.member.id) || !util.isMention(playerMention)) { return; }
 
-	updateWhoPlays(
-		util.getIdFromMention(playerMention),
-		{ id: c.SCRUBS_ROLE_ID },
-		util.getTargetFromArgs(args, 2),
-		cmd.startsWith('remove')
-	);
+	const targetUserId = util.getIdFromMention(playerMention);
+
+	updateWhoPlays(targetUserId, { id: c.SCRUBS_ROLE_ID }, gameName, cmd.startsWith('remove'));
+	util.sendAuthoredMessage(`I sure do love playing ${gameName}!`, targetUserId);
+	message.delete();
 }
 
 /**

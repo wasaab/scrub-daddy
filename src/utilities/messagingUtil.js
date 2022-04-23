@@ -77,7 +77,7 @@ function sendEmbedFieldsMessage(title, fields, userID, footer, channelID) {
  * @returns {Promise<Message|Error>} a promise of the message that was sent
  */
 async function sendAuthoredMessage(description, userID, channelID, file) {
-	const channel = bot.getServer().channels.find('id', channelID);
+	const channel = channelID ? bot.getServer().channels.find('id', channelID) : bot.getBotSpam();
 	const author = getAuthor(userID, true);
 
 	if (!channel || !author) { return; }

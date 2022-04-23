@@ -190,7 +190,7 @@ function formatAsBoldCodeBlock(text) {
 }
 
 function isMention(text, mentionType) {
-	const typeSymbol = mentionType ? c.MENTION_TYPE_TO_SYMBOL[mentionType] : '@?(!|#|&)';
+	const typeSymbol = mentionType ? c.MENTION_TYPE_TO_SYMBOL[mentionType] : '(@[!&]?|#)';
 
 	if (!text) { return false; }
 
@@ -243,7 +243,7 @@ function getCallerOrProvided(funcName) {
 }
 
 /**
- * Locks the provided function, stopping it from being callable..
+ * Locks the provided function, stopping it from being callable.
  *
  * @param {String} funcName - the name of the function
  */
