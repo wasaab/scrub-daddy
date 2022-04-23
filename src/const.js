@@ -176,8 +176,7 @@ module.exports = {
 				{ name: '.sell-shares <`stock`> <`shares`>', value: '`to sell shares in a stock`', inline: 'false'},
 				{ name: '.stocks', value: '`to see how your stocks are doing today`', inline: 'false'},
 				{ name: '.portfolio', value: '`to see how your stocks have done over time`', inline: 'false'},
-				{ name: '.who-said <`channel-name`> <`minMsgLength`> <`minMsgReactions`> <`sampleSize`>',
-					value: '`Starts a quote guessing game using 5 random quotes pulled from sampleSize messages, matching the provided criteria.`', inline: 'false'},
+				{ name: '.who-said <`channel-name`> <`minMsgLength`> <`minMsgReactions`> <`sampleSize`>', value: '`Starts a quote guessing game using 5 random quotes pulled from sampleSize messages, matching the provided criteria.`', inline: 'false'},
 				{ name: '.sunken-sailor', value: '`to start a game of Sunken Sailor with the users in your current voice channel.`', inline: 'false'},
 				{ name: '.add-emoji <`tier`> <`name`> + `ATTACH PNG IN SAME MESSAGE`', value: '`🏆 to add the emoji to the server with the provided name.`', inline: 'false'},
 				{ name: '.add-emoji <`tier`> + `ATTACH PNG IN SAME MESSAGE`', value: '`🏆 to add the emoji to the server using the image\'s filename.`', inline: 'false'},
@@ -244,15 +243,14 @@ module.exports = {
 				{ name: '.join-review-team', value: '`to be added to the review team.`', inline: 'false'},
 				{ name: '.leave-review-team', value: '`to be removed from the review team.`', inline: 'false'},
 				{ name: '.color <`colorName`>', value: '`to set your role/response color preference.`', inline: 'false'},
-        { name: '.rainbow-role <`tier`>', value: '`🏆 to add a role with changing color for a limited time`', inline: 'false'},
+				{ name: '.rainbow-role <`tier`>', value: '`🏆 to add a role with changing color for a limited time`', inline: 'false'},
 				{ name: '.shuffle-scrubs', value: '`to randomize the first letter of every Srub\'s name.`', inline: 'false'},
 				{ name: '.shuffle-scrubs <`letter`>', value: '`to set the first letter of every Srub\'s name.`', inline: 'false'},
 				{ name: '.set-birthday <`MM/DD`>', value: '`to set your birthday and get a random cake nickname.`', inline: 'false'},
 				{ name: '.set-birthday <`MM/DD`> <`Desired Name`>', value: '`to set your birthday and desired nickname.`', inline: 'false'},
 				{ name: '.set-stream <`url`>', value: '`to set the url for either your stream or the stream you are watching.`', inline: 'false'},
 				{ name: '.toggle-streaming', value: '`to toggle your streaming state on/off, which will update your nickname.`', inline: 'false'},
-				{ name: '.alias <`alias`> <`command to call`>',
-					value: '`creates an alias for the provided command call. \ne.g. .alias ow who-plays Overwatch ... will allow you to call .ow`', inline: 'false'},
+				{ name: '.alias <`alias`> <`command to call`>', value: '`creates an alias for the provided command call. \ne.g. .alias ow who-plays Overwatch ... will allow you to call .ow`', inline: 'false'},
 				{ name: '.unalias <`alias`>', value: '`removes the alias with the provided name.`', inline: 'false'}
 			]
 		},
@@ -276,15 +274,13 @@ module.exports = {
 				{ name: '.remind-me <`#`> <`minutes|hours|days|etc`> <`message`>', value: '`to be reminded of something at the specified time.`', inline: 'false'},
 				{ name: '.lotto', value: '`to join the currently running Beyond lotto or get the time remaining.`', inline: 'false'},
 				{ name: '.quote', value: '`to quote and reply or save the quote, depending on which reaction you use (:quoteReply: or :quoteSave:).`', inline: 'false'},
-				{ name: '.quote <`@user`>',
-					value: '`to quote and reply or save the quote from @user, depending on which reaction you use (:quoteReply: or :quoteSave:).`', inline: 'false'},
+				{ name: '.quote <`@user`>', value: '`to quote and reply or save the quote from @user, depending on which reaction you use (:quoteReply: or :quoteSave:).`', inline: 'false'},
 				{ name: '.quotes', value: '`to retrieve the list of quotes from everyone on the server.`', inline: 'false'},
 				{ name: '.quotes <`@user`>', value: '`to retrieve the list of quotes from the specified user.`', inline: 'false'},
 				{ name: '.create-list <`name of list`>', value: '`to create a named list that users can add entries to.`', inline: 'false'},
 				{ name: '.list', value: '`to view all of the user created lists.`', inline: 'false'},
 				{ name: '.list <`list-name`> <`your new entry`>', value: '`to add a new entry to a user created list.`', inline: 'false'},
-				{ name: '.create-group <`groupName`> <`@user1`> <`@user2`>',
-					value: '`To create a mentionable group of users. You can mention as many users as you want.`', inline: 'false'},
+				{ name: '.create-group <`groupName`> <`@user1`> <`@user2`>', value: '`To create a mentionable group of users. You can mention as many users as you want.`', inline: 'false'},
 				{ name: '.create-group <`groupName`> <`title of game`>', value: '`To create a mentionable group of users who play the specified game.`', inline: 'false'},
 				{ name: '.@<`groupName`> <`message to send`>', value: '`To mention all members of a custom group in a message.`', inline: 'false'},
 				{ name: '.@<`gameName`> <`message to send`>', value: '`To mention all users who play gameName in a message.`', inline: 'false'},
@@ -535,7 +531,7 @@ module.exports = {
 		'+ backup - `backs up all json files within the data folder to ../jsonBackups.`\n' +
 		'+ restore <`backupFileName`> - `restores json files to the specified backup.`\n' +
 		'+ list-backups - `lists the available backups.`\n' +
-		'+ restart <`up|hard| `> - `restarts and updates the bot if specified.`\n' +
+		'+ restart <`up|hard`> - `restarts and updates the bot if specified.`\n' +
 		'+ export - `writes all local data to their appropriate json files immediately.`\n' +
 		'+ log - `toggles server output redirection to discord channel #server-log.`\n' +
 		'+ revive - `revives a fallen Scrubbing Bubble.`\n' +
@@ -543,7 +539,7 @@ module.exports = {
 		'+ add-player <`@user`> <`game name`> - `adds a player to gamesPlayed.`\n' +
 		'+ remove-player <`@user`> <`game name`> - `removes a player from gamesPlayed.`\n' +
 		'+ cars - `craws car forum and outputs updates as discord embeds.`\n' +
-		'+ admin-help - `lists admin command usage.`\n' + 
+		'+ admin-help - `lists admin command usage.`\n' +
 		'+ missing-help - `lists commands missing help.`\n' +
 		'+ review-messages - `initiates message review process for quarantined users.`\n',
 	PRIZE_TO_DESCRIPTION: {
@@ -624,7 +620,7 @@ module.exports = {
 	],
 	MENTION_TYPE_TO_SYMBOL: {
 		role: '@&',
-		user: '@!',
+		user: '@!?',
 		channel: '#'
 	},
 	MENTION_TYPE: {
