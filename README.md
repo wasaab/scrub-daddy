@@ -114,7 +114,7 @@ task-title is the channel title of the issue or feature.`
 + .set-birthday <`MM/DD`> - `to set your birthday and receive cake.`
 + .set-stream <`url`> - `to set the url for either your stream or the stream you are watching.`
 + .toggle-streaming - `to toggle your streaming state on/off, which will update your nickname.`
-+ .alias <`alias`> <`command to call`> - `creates an alias for the provided command call. 
++ .alias <`alias`> <`command to call`> - `creates an alias for the provided command call.
 e.g. .alias ow who-plays Overwatch ... will allow you to call .ow`
 + .unalias <`alias`> - `removes the alias with the provided name.`
 
@@ -163,7 +163,7 @@ This will only work if you are in a temp channel you created.`
 + backup - `backs up all json files within the data folder to ../jsonBackups.`
 + restore <`backupFileName`> - `restores json files to the specified backup.`
 + list-backups - `lists the available backups.`
-+ restart <`up|hard| `> - `restarts and updates the bot if specified.`
++ restart <`up|hard`> - `restarts and updates the bot if specified.`
 + export - `writes all local data to their appropriate json files immediately.`
 + log - `toggles server output redirection to discord channel #server-log.`
 + revive - `revives a fallen Scrubbing Bubble.`

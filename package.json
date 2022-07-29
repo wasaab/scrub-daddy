@@ -11,7 +11,7 @@
     "d3-node": "^1.1.1",
     "discord.js": "~11.3.2",
     "erlpack": "discordapp/erlpack",
-    "ffmpeg-binaries": "^3.2.2-3",
+    "ffmpeg-static": "^5.0.0",
     "forever": "^1.0.0",
     "fuse.js": "^3.2.0",
     "gemoji": "^6.1.0",

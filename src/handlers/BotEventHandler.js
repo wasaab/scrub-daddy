@@ -30,12 +30,10 @@ module.exports = class BotEventHandler {
          * Listen's for messages in Discord.
          */
         this.client.on('message', (message) => {
-            const firstChar = message.content.substring(0, 1);
-
             if (!message.guild) { return; } //ignore DMs
 
             //Scrub Daddy will listen for messages starting with the prefix specified in config.json
-            if (firstChar === config.prefix) {
+            if (message.content.charAt(0) === config.prefix) {
                 cmdHandler.handle(message);
             } else if (!util.isDevEnv()) {
                 reacter.maybeReact(message);
@@ -132,8 +130,9 @@ module.exports = class BotEventHandler {
             gambling.maybeRefundUnfinishedRace();
             logger.info(`Connected`);
             reacter.train();
+
             if (util.isDevEnv()) { return; }
-            
+
             games.updatePlayingStatus();
             prizes.updateLottoCountdown();
             prizes.maybeRenameBirthdayUsers();

@@ -3,6 +3,7 @@ module.exports = {
 	SCRUBS_CHANNEL_ID: '370626384059695107',		//channel ID of scrubs text channel
 	PLEBS_CHANNEL_ID: '370623193528008705',			//channel ID of plebs text channel
 	AFK_CHANNEL_ID: '370628203523473408',			//channel ID of the server's afk voice channel
+  AFK_IMMUNE_CHANNEL_ID: '370626021227233290', // ID of channel where users are immune from afk move
 	PURGATORY_CHANNEL_ID: '370626266786824192',	    //sends kicked user's to this channel
 	LOG_CHANNEL_ID: '410258655322308608',			//channel ID of the text channel used for redirecting the console
 	RATINGS_CHANNEL_ID: '601115821066027102',		//channel used for rating tv and movies
@@ -89,7 +90,7 @@ module.exports = {
 	THUMBS_UP_GIF: 'https://i.imgur.com/CLC53gf.gif',
 	CLEAN_WIN_IMG: 'https://i.imgur.com/LDSm2sg.png',
 	CLEAN_LOSE_IMG: 'https://i.imgur.com/gynZE1j.png',
-	SCRUB_DADDY_FACT: 'https://i.imgur.com/FbAwRTj.jpg',
+	SCRUB_DADDY_FACT_IMG: 'https://i.imgur.com/FbAwRTj.jpg',
 	BEYOND_LOTTO_IMG: 'https://i.imgur.com/viDJZi3.png',
 	ROCK_IMG: 'https://i.imgur.com/DtQPHcn.png',
 	ONLINE_IMG: 'https://i.imgur.com/w4ey7v0.gif?2',
@@ -112,7 +113,7 @@ module.exports = {
 		'https://i.imgur.com/VhFgbRQ.png', 'https://i.imgur.com/hQvbZkP.png', 'https://i.imgur.com/LLdxaj4.png',
 		'https://i.imgur.com/cCiI4CE.png', 'https://i.imgur.com/fue3AAM.png', 'https://i.imgur.com/8cah0Ar.png',
 		'https://i.imgur.com/3bXFEcL.png', 'https://i.imgur.com/Q33oITR.png', 'https://i.imgur.com/O2iQuhP.png',
-		'https://i.imgur.com/LUq3M1Q.png','https://i.imgur.com/ne412gl.png', 'https://i.imgur.com/ASgP6i6.png'],
+		'https://i.imgur.com/LUq3M1Q.png','https://i.imgur.com/ne412gl.png'],
 	BANNED_IMAGES: ['https://media.giphy.com/media/fe4dDMD2cAU5RfEaCU/giphy.gif',
 		'https://media.giphy.com/media/GB0lKzzxIv1te/giphy.gif',
 		'https://media.giphy.com/media/52FmnokM0kfcgFb5fq/giphy.gif',
@@ -130,7 +131,7 @@ module.exports = {
 		{ name: '1) `Voting`', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
 		{ name: '2) `Scrubbing Bubbles`', value: '`enlist`	`discharge`	`give`	`reserve`	`clean`		`race`'
 			+ '	`invest`	`invest-scrubbles`	`sell-shares`	`stocks`	`portfolio`	`prizes`	`worth`	`army`	`ranks`	`worth-ranks`	`stats`	`who-said`	`sunken-sailor`	`add-emoji`	`magic-word`'
-			+ '	`rename-hank`	`rename-channel`	`rename-role`	`rename-user`	`scrub-box`		`inventory`	`start-lotto`	`stop-lotto`	`billionaires-club`', inline: 'false'},
+			+ '	`rename-hank`	`rename-channel`	`rename-role`	`rename-user`	`scrub-box`		`inventory`	`start-lotto`	`stop-lotto`	`billionaires-club`	`replace-scrubble`', inline: 'false'},
 		{ name: '3) `Time Played`', value: '`time`	`opt-in`	`heatmap`', inline: 'false'},
 		{ name: '4) `Gaming`', value: '`playing`	`who-plays`	`lets-play`	`1-more`	`p`	`split-group`	`trends`	`total-trends`'
 			+ '	`fortnite-stats`	`fortnite-leaderboard`	`set-fortnite-name`', inline: 'false'},
@@ -191,7 +192,8 @@ module.exports = {
 				{ name: '.prizes', value: '`to see the prize tiers table`', inline: 'false'},
 				{ name: '.start-lotto <`MM/DD`> <`HH`>', value: '`🏆 to start a Beyond lotto that will end at the specified time\n-----(HH is 24-hour format in EST)-----`', inline: 'false'},
 				{ name: '.stop-lotto', value: '`🏆 to stop the current Beyond Lotto without choosing a winner.`', inline: 'false'},
-				{ name: '.billionaires-club', value: '`🏆 to join The Billionaire\'s Club.`', inline: 'false'}
+				{ name: '.billionaires-club', value: '`🏆 to join The Billionaire\'s Club.`', inline: 'false'},
+				{ name: '.replace-scrubble <`word`> <`emoji`>', value: '`🏆 replace all textual and emoji references to scrubbles. provide singular form of word.`', inline: 'false'}
 			],
 		},
 		{
@@ -357,17 +359,17 @@ module.exports = {
 	TIPS:[
 		{
 			color: 0xffff00,
-			title: '💡 Lrn2Use .help Ya Scrub',
+			title: '💡 .help',
 			description: 'You do not need to type the `<`, `|`, or `>` symbols found within .help documentation.\n\n' +
-				'<`parameter`> just lets you know the word within the arrows is a parameter for the user to input.\n\n' +
+				'<`title`> represents.\n\n' +
 				'| stands for "or", so if you see that seperating two parameters it means you can choose one of them.\n' +
-				'e.g. .temp <`text|voice`> <`channel-title`> --> .temp text cool-kids-club\n\n' +
+				'e.g. .temp <`text|voice`> <`channel-title`> --> .temp text birds\n\n' +
 				'.help <`command`> - to get help for a specific command\n' +
 				'.help - to get help for all commands'
 		},
 		{
 			color: 0xffff00,
-			title: '💡 Wanna hide all dem text channels?',
+			title: '💡 Hiding text channels',
 			description: ' ',
 			image: {
 				url: 'https://i.imgur.com/ReWl7Ir.gif'
@@ -384,7 +386,7 @@ module.exports = {
 		{
 			color: 0xffff00,
 			title: '💡 New Commands',
-			description: '`worth-ranks`	`billionaires-club`	`remind-me`	`set-birthday`	`worth`	`invest-scrubbles`',
+			description: '`replace-scrubble`	`worth-ranks`	`billionaires-club`	`remind-me`	`set-birthday`	`worth`	`invest-scrubbles`',
 			image: {
 				url: 'https://media3.giphy.com/media/UGxfEt5POsukg/giphy.gif'
 			}
@@ -392,10 +394,8 @@ module.exports = {
 		{
 			color: 0xffff00,
 			title: '💡 Is Typoeing Hard?',
-			description: '⌨ **Fret no more, because fuzzy commands are here!**\n\n' +
-				'You can now activate the command which is the closest match to your input.\n' +
-				'For example, `.akry` --> `.army`, `.lcan` --> `.clean`, etc.\n' +
-				'You really don\'t even have to be close anymore.'
+			description: '⌨ You can activate the command which is the closest match to your input.\n' +
+				'For example, `.akry` --> `.army`, `.cl` --> `.clean`, etc.\n' +
 		},
 		{
 			color: 0xffff00,
@@ -425,7 +425,7 @@ module.exports = {
 		'opt-in',
 		'ping-ark-server', 'playing', 'portfolio', 'prizes',
 		'quote', 'quotes',
-		'race', 'rainbow-role', 'ranks', 'rate', 'ratings', 'rating-info', 'refresh-ratings', 'rejoin-temp', 'remind-me', 'remove-player', 'rename', 'rename-channel', 'rename-hank', 'rename-role', 'rename-user', 'reserve', 'restart', 'restore', 'review-messages', 'revive', 'rock', 'round-robin',
+		'race', 'rainbow-role', 'ranks', 'rate', 'ratings', 'rating-info', 'refresh-ratings', 'rejoin-temp', 'remind-me', 'remove-player', 'rename', 'rename-channel', 'rename-hank', 'rename-role', 'rename-user', 'replace-scrubble', 'reserve', 'restart', 'restore', 'review-messages', 'revive', 'rock', 'round-robin',
 		'sb', 'scrub-box', 'sell-shares', 'set-birthday', 'set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'split-group', 'start-lotto', 'stats', 'steal', 'steal-all', 'stocks', 'stop-lotto', 'subscribe-catfacts', 'sunken-sailor',
 		'temp', 'test', 'time', 'tips', 'toggle-streaming', 'trends', 'total-trends',
 		'unalias', 'update-readme',
@@ -547,7 +547,7 @@ module.exports = {
 		'rename-user': 'Rename a user for ``.',
 		'rename-channel': 'Rename a channel for ``.',
 		'rename-role': 'Rename a role for ``.',
-		// 'annoy': 'Random chance to have scrub daddy enter a user’s channel while they are speaking to say stfu for ``.',
+		// 'annoy': 'Random chance to have scrub daddy enter a user’s channel while they are speaking to play a specified sb for ``.',
 		'magic-word': 'Set a magic word, that when typed by someone, will ban them from that text channel for a day. The magic word will be in effect for ``.',
 		'rainbow-role': 'Give yourself a constantly changing role color (Rainbow Role) for ``.',
 		// 'move-user': 'Randomly moves a user through the voice channels for ``.',
@@ -556,7 +556,8 @@ module.exports = {
 		'subtract-bubbles': '`` Scrubbing Bubbles.',
 		'start-lotto': 'Start a Beyond lottery.',
 		'stop-lotto': 'Stop a Beyond lottery.',
-		'billionaires-club': 'Join The Billionaire\'s Club.'
+		'billionaires-club': 'Join The Billionaire\'s Club.',
+		'replace-scrubble': 'Replace all references to scrubbles'
 	},
 	PRIZE_TIERS: [
 		{
@@ -600,7 +601,8 @@ module.exports = {
 		},
 		{
 			'billionaires-club': '1 week',
-			'add-bubbles': 150000000000
+			'add-bubbles': 150000000000,
+			'replace-scrubble': '1 week'
 		// 	'demote': '',
 		// 	'clear-lotto': '',
 		// 	//client.on('guildMemberSpeaking')

@@ -1,227 +1,198 @@
-var path = require('path');
-var D3Node = require('d3-node');
-var { d3, document } = new D3Node();
-var util = require('../utilities/utilities.js');
-var imgConverter = require('./imageConverter.js');
+const path = require('path');
+const D3Node = require('d3-node');
+const { d3, document } = new D3Node();
+const util = require('../utilities/utilities.js');
+const imgConverter = require('./imageConverter.js');
 const cmdHandler = require('../handlers/cmdHandler.js');
 
-var margin = {
-        top: 50,
-        right: 0,
-        bottom: 100,
-        left: 30
-    },
-    width = 960 - margin.left - margin.right,
-    height = 430 - margin.top - margin.bottom,
-    gridSize = Math.floor(width / 24),
-    legendElementWidth = gridSize * 2,
-    buckets = 9,
-    colors = ["#EB653A", "#F0433A", "#C9283E", "#820333", "#540032", "#2E112D"],
-    days = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"],
-    times = ["1a", "2a", "3a", "4a", "5a", "6a", "7a", "8a", "9a", "10a", "11a", "12p",
-        "1p", "2p", "3p", "4p", "5p", "6p", "7p", "8p", "9p", "10p", "11p", "12a"];
-var svg;
+const margin = {
+  top: 50,
+  right: 0,
+  bottom: 100,
+  left: 30
+};
+const width = 960 - margin.left - margin.right;
+const height = 430 - margin.top - margin.bottom;
+const gridSize = Math.floor(width / 24);
+const legendElementWidth = gridSize * 2;
+const colors = ["#EB653A", "#F0433A", "#C9283E", "#820333", "#540032", "#2E112D"];
+const days = ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"];
+const times = [
+  "12a", "1a", "2a", "3a", "4a", "5a", "6a", "7a", "8a", "9a", "10a", "11a",
+  "12p", "1p", "2p", "3p", "4p", "5p", "6p", "7p", "8p", "9p", "10p", "11p"
+];
+let svg;
 
 function formatDay(day, dayIdx) {
-    return day.map((hour, hourIdx) => {
-        const avgCount = Math.round(hour.playerCount / hour.sampleSize);
-        //convert from moment's day format to graph's day format
-        var formattedHour = hourIdx - 1;
+  return day.map((hour, hourIdx) => {
+    const avgCount = Math.round(hour.playerCount / hour.sampleSize);
 
-        if (dayIdx === 0) {
-            dayIdx = 7;
-        }
+    if (dayIdx === 0) {
+      dayIdx = 7; // end with sunday
+    }
 
-        if (formattedHour === -1) {
-            formattedHour = 23;
-        }
-
-        return {
-            day: dayIdx,
-            hour: formattedHour,
-            value: avgCount
-        };
-    });
+    return {
+      day: dayIdx,
+      hour: hourIdx,
+      value: avgCount
+    };
+  });
 }
 
 function outputHeatMap(userID) {
-    setTimeout(() => {
-        imgConverter.writeSvgToFileAsPng(960, 430, 'rgba(54, 57, 62, 0.74)', 'heatMap', svg)
-            .then(() => {
-                util.sendEmbed({
-                    title: '🔥 Player Count Heat Map',
-                    image: 'attachment://heatMap.png',
-                    file: './resources/images/heatMap.png',
-                    userID
-                });
-            });
-    }, 100);
+  setTimeout(() => {
+    imgConverter.writeSvgToFileAsPng(960, 430, 'rgba(54, 57, 62, 0.74)', 'heatMap', svg)
+      .then(() => {
+        util.sendEmbed({
+          title: '🔥 Player Count Heat Map',
+          image: 'attachment://heatMap.png',
+          file: './resources/images/heatMap.png',
+          userID
+        });
+      });
+  }, 100);
 }
 
-function addCards(data, colorScale) {
-    var cards = svg.selectAll(".hour")
-        .data(data, function (d) {
-            return `${d.day}:${d.hour}`;
-        });
+function addCards(data, colorScale, isDebug) {
+  const cards = svg.selectAll(".hour")
+    .data(data, ({ day, hour }) => `${day}:${hour}`);
 
-    cards.append("title");
+  cards.enter().append("rect")
+    .attr("x", ({ hour }) => hour * gridSize)
+    .attr("y", ({ day }) => (day - 1) * gridSize)
+    .attr("rx", 4)
+    .attr("ry", 4)
+    .attr("style", ({ value }) => `stroke: #36393e; stroke-width: 2px; fill: ${colorScale(value)};`)
+    .attr("width", gridSize)
+    .attr("height", gridSize);
 
-    cards.enter().append("rect")
-        .attr("x", function (d) {
-            return d.hour * gridSize;
-        })
-        .attr("y", function (d) {
-            return (d.day - 1) * gridSize;
-        })
-        .attr("rx", 4)
-        .attr("ry", 4)
-        .attr("style", function (d) {
-            if (d.value === 5) {
-                return `stroke: #36393e; stroke-width: 2px; fill: ${colorScale(6)};`;
-            }
+  if (isDebug) {
+    // add value text to cards
+    cards.enter().append("text")
+      .text(({ value }) => value)
+      .attr("x", ({ hour }) => hour * gridSize + 15)
+      .attr("y", ({ day }) => (day - 1) * gridSize + 25)
+      .attr("style", 'fill: white;');
+  }
 
-            return `stroke: #36393e; stroke-width: 2px; fill: ${colorScale(d.value)};`;
-        })
-        .attr("width", gridSize)
-        .attr("height", gridSize);
-
-    cards.select("title").text(function (d) {
-        return d.value;
-    });
-
-    cards.exit().remove();
+  cards.exit().remove();
 }
 
 function getUniqueQuantiles(colorScale) {
-    var uniqueQuantiles = [];
-    var previousQuantile = -1;
+  let previousQuantile = 0;
+  const uniqueQuantiles = [previousQuantile];
 
-    colorScale.quantiles().forEach((q) => {
-        if (Math.round(q) !== Math.round(previousQuantile)) {
-            uniqueQuantiles.push(q);
-            previousQuantile = q;
-        }
-    });
+  colorScale.quantiles().forEach((q) => {
+    const quantile = Math.round(q);
 
-    return uniqueQuantiles;
+    if (quantile !== previousQuantile) {
+      uniqueQuantiles.push(quantile);
+      previousQuantile = quantile;
+    }
+  });
+
+  return uniqueQuantiles;
 }
 
 function addLegend(colorScale) {
-    var legend = svg.selectAll(".legend")
-        .data([0].concat(getUniqueQuantiles(colorScale)), function (d) {
-            return d;
-        });
+  const legend = svg.selectAll(".legend")
+    .data(getUniqueQuantiles(colorScale));
 
-    legend.enter().append("g")
-        .attr("class", "legend");
+  legend.enter().append("g")
+    .attr("class", "legend");
 
-    legend.enter().append("rect")
-        .attr("x", function (d, i) {
-            return legendElementWidth * i;
-        })
-        .attr("y", height)
-        .attr("width", legendElementWidth)
-        .attr("height", (gridSize / 2) + 11)
-        .attr("style", function (d, i) {
-            return `fill: ${colors[i]};`;
-        });
+  legend.enter().append("rect")
+    .attr("x", function (d, i) {
+      return legendElementWidth * i;
+    })
+    .attr("y", height)
+    .attr("width", legendElementWidth)
+    .attr("height", (gridSize / 2) + 11)
+    .attr("style", (d, i) => `fill: ${colors[i]};`);
 
-    legend.enter().append("text")
-        .attr("style", 'font-size: 22pt; font-family: Consolas, courier; fill: white;')
-        .text(function (d) {
-            return `≥ ${Math.round(d)}`;
-        })
-        .attr("x", function (d, i) {
-            return (legendElementWidth * i) + 10;
-        })
-        .attr("y", height + gridSize + 32);
+  legend.enter().append("text")
+    .text((d) => `≥ ${Math.round(d)}`)
+    .attr("style", 'font-size: 22pt; font-family: Consolas, courier; fill: white;')
+    .attr("x", (d, i) => (legendElementWidth * i) + 10)
+    .attr("y", height + gridSize + 32);
 
-    legend.exit().remove();
+  legend.exit().remove();
 }
 
 function getFormattedData(data) {
-    return data.reduce((formattedData, day, dayIdx) => {
-        var combinedEntries = 1 === dayIdx ? formatDay(formattedData, 0) : formattedData;
+  return data.reduce((formattedData, day, dayIdx) => {
+    const combinedEntries = 1 === dayIdx ? formatDay(formattedData, 0) : formattedData;
 
-        return combinedEntries.concat(formatDay(day, dayIdx));
-    });
+    return combinedEntries.concat(formatDay(day, dayIdx));
+  });
 }
-function heatmapChart(dataFileName, userID) {
-    const filePath = path.join(__dirname.replace('c:\\', ''), '../../resources', 'data', dataFileName);
+function heatmapChart(dataFileName, userID, isDebug) {
+  const filePath = path.resolve('resources/data', dataFileName).replace('C:\\', '');
 
-    d3.json(`file:///${filePath}`, (err, data) => {
-        if (err || !data) { return; }
+  d3.json(`file:///${filePath}`, (err, data) => {
+    if (err || !data) { return; }
 
-        data = getFormattedData(data);
+    data = getFormattedData(data);
 
-        const colorScale = determineColorScale(data);
+    const colorScale = determineColorScale(data);
 
-        addCards(data, colorScale);
-        addLegend(colorScale);
-        outputHeatMap(userID);
-    });
+    addCards(data, colorScale, isDebug);
+    addLegend(colorScale);
+    outputHeatMap(userID);
+  });
 }
 
-function generateHeatMap(message) {
-    heatmapChart('rawHeatMapData.json', message.member.id);
+function generateHeatMap(message, [, flag]) {
+  heatmapChart('rawHeatMapData.json', message.member.id, flag === '-d');
 }
 
 function determineColorScale(data) {
-    return d3.scaleQuantile()
-        .domain([0, buckets - 1, d3.max(data, function (d) {
-            return d.value;
-        })])
-        .range(colors);
+  const highestVal = d3.max(data, ({ value }) => value);
+
+  return d3.scaleQuantile()
+    .domain([0, highestVal + 1])
+    .range(colors.slice(0, highestVal - 1));
 }
 
 function addTimeLabels() {
-    svg.selectAll(".timeLabel")
-        .data(times)
-        .enter()
-        .append("text")
-        .text(function (d) {
-            return d;
-        })
-        .attr("x", function (d, i) {
-            return i * gridSize;
-        })
-        .attr("y", 0)
-        .attr("style", 'text-anchor: middle; fill: white;')
-        .attr("transform", `translate(" + gridSize / 2 + ", -6)`)
-        .attr("class", "timeLabel mono axis");
+  svg.selectAll(".timeLabel")
+    .data(times)
+    .enter()
+    .append("text")
+    .text((time) => time)
+    .attr("x", (d, i) => (i * gridSize) + (gridSize / 2))
+    .attr("y", -6)
+    .attr("style", 'text-anchor: middle; fill: white;')
+    .attr("class", "timeLabel mono axis");
 
 }
 
 function addDayLabels() {
-    svg.selectAll(".dayLabel")
-        .data(days)
-        .enter()
-        .append("text")
-        .text(function (d) {
-            return d;
-        })
-        .attr("x", 0)
-        .attr("y", function (d, i) {
-            return i * gridSize;
-        })
-        .attr("style", 'text-anchor: end; fill: white;')
-        .attr("transform", `translate(-6,${gridSize / 1.5})`)
-        .attr("class", "dayLabel mono axis");
+  svg.selectAll(".dayLabel")
+    .data(days)
+    .enter()
+    .append("text")
+    .text((d) => d)
+    .attr("x", 0)
+    .attr("y", (d, i) => i * gridSize)
+    .attr("style", 'text-anchor: end; fill: white;')
+    .attr("transform", `translate(-6,${gridSize / 1.5})`)
+    .attr("class", "dayLabel mono axis");
 }
 
 function initHeatmapSvg() {
-    svg = d3.select(document.body).append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform", `translate(${margin.left},${margin.top})`);
+  svg = d3.select(document.body).append("svg")
+    .attr("width", width + margin.left + margin.right)
+    .attr("height", height + margin.top + margin.bottom)
+    .append("g")
+    .attr("transform", `translate(${margin.left},${margin.top})`);
 
-    addDayLabels();
-    addTimeLabels();
+  addDayLabels();
+  addTimeLabels();
 }
 
 initHeatmapSvg();
 
 exports.registerCommandHandlers = () => {
-    cmdHandler.registerCommandHandler('heatmap', generateHeatMap);
+  cmdHandler.registerCommandHandler('heatmap', generateHeatMap);
 };

@@ -583,7 +583,7 @@ function renameUserRoleOrChannel(type, targetID, newName, tierNumber, userID, cm
     rename(type, target, newName)
         .then(() => {
             const { endTime, formattedEndTime } = getPrizeEndTime(tierNumber, `rename-${type}`);
-            
+
             loot.lockedIdToLockInfo[targetID] = {
                 unlockTime: endTime.valueOf(),
                 oldName: oldName,
@@ -997,9 +997,9 @@ function maybeRemoveRoleFromUsers(memberIdToRoleEndTime, role) {
 function maybeRemoveRainbowRoleFromUsers() {
     const rainbowRole = bot.getServer().roles.find('name', 'rainbow');
     maybeRemoveRoleFromUsers(loot.rainbowRoleMemberIdToEndTime, rainbowRole);
-    
+
     if (0 !== rainbowRole.members.array().length) { return; }
-    
+
     util.clearRainbowRoleUpdateInterval();
 }
 
@@ -1021,7 +1021,7 @@ exports.maybeRemovePrizeRolesFromUsers = () => {
 function outputPrizeTiersTable(userID) {
     const tierCostHeaders = c.TIER_COST.slice(0, -1).map((tierCost, i) => `${i + 1} (${tierCost})`);
     var { output, columnLengths } = util.buildTableHeader(['Prize            ', ...tierCostHeaders, '4 (100B)   ']);
-    
+
     Object.keys(c.PRIZE_TO_DESCRIPTION).forEach((prize) => {
         var tableRow = util.buildColumn(prize, columnLengths[0]);
 

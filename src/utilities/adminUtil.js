@@ -150,15 +150,13 @@ function isInPurgatoryOrAFK(channelID) {
  * @param {Object[]} channels - the server's channels
  */
 function updateMuteAndDeaf(channels) {
-	channels.forEach((channel) => {
-		if (channel.type !== "voice" || !channel?.members?.size) { return; }
+	channels.forEach(({ id: channelId, type, members }) => {
+		if (type !== "voice" || !members?.size || channelId === c.AFK_IMMUNE_CHANNEL_ID) { return; }
 
-		channel.members.array().forEach((member) => {
+		members.array().forEach((member) => {
 			if (!member.selfMute || !member.selfDeaf) {
-				if (muteAndDeafUserIDToTime[member.id]) {
-					delete muteAndDeafUserIDToTime[member.id];
-				}
-			} else if (!muteAndDeafUserIDToTime[member.id] && !isInPurgatoryOrAFK(channel.id)) {
+        delete muteAndDeafUserIDToTime[member.id];
+			} else if (!muteAndDeafUserIDToTime[member.id] && !isInPurgatoryOrAFK(channelId)) {
 				muteAndDeafUserIDToTime[member.id] = moment();
 				logger.info(`Adding ${getNick(member.id)} to mute & deaf list.`);
 			}
@@ -200,9 +198,10 @@ function handleMuteAndDeaf(channels) {
 }
 
 /**
- * Returns true iff the user associated with the provided ID is an admin.
+ * Determines if the user associated with the provided ID is an admin.
  *
  * @param {String} userID - id of the user
+ * @returns {boolean} whether the user is an admin
  */
 function isAdmin(userID) {
 	return userID === c.K_ID || userID === c.R_ID;
@@ -289,8 +288,7 @@ function outputCmdsMissingHelpDocs(message) {
  *
  * @param {Object} message - the message calling the cmd
  * @param {Object} message.member - the calling member
- * @param {String} [message.id: userID] - ID of the caller
- * @returns 
+ * @param {String} [message.member.id: userID] - ID of the caller
  */
 function outputAdminCmdHelp({ member: { id: userID } }) {
 	if (!isAdmin(userID)) { return; }

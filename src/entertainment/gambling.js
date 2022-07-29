@@ -69,18 +69,11 @@ function dischargeScrubBubble(numBubbles, userID) {
     }
 
     dropped += numBubbles;
-    var droppedImg = dropped;
-    var msg = 'Bubble\nhas';
 
-    if (dropped > 1) {
-        msg = 'Bubbles\nhave';
-        if (dropped > 21) {
-            droppedImg = 21;
-        }
-    }
-
+    const droppedImgIdx = Math.min(dropped, c.BUBBLE_IMAGES.length) - 1;
+    const msg = dropped > 1 ? 'Bubbles\nhave' : 'Bubble\nhas';
     const title = `**${dropped} Scrubbing ${msg} arrived for duty!**`;
-    const msgSent = util.sendEmbedMessage(null, title, userID, c.BUBBLE_IMAGES[droppedImg - 1], true);
+    const msgSent = util.sendEmbedMessage(null, title, userID, c.BUBBLE_IMAGES[droppedImgIdx], true);
 
     maybeDeletePreviousMessage(msgSent);
 }
@@ -182,7 +175,7 @@ exports.addToArmy = function(userID, amount) {
  * @param {number} amount amount army has grown by
  */
 function getArmyGrownMessage(amount) {
-    return `Your Scrubbing Bubbles army has grown by ${util.formatAsBoldCodeBlock(util.comma(amount))}!`;
+    return `Your Scrubbing Bubbles army has grown by ${util.formatNumber(amount)}!`;
 }
 
 /**
@@ -191,7 +184,7 @@ function getArmyGrownMessage(amount) {
  * @param {String} userID id of user to get army size of
  */
 exports.getArmySizeMsg = function(userID) {
-    return `You now have an army of ${util.formatAsBoldCodeBlock(util.comma(ledger[userID].armySize))}.`;
+    return `You now have an army of ${util.formatNumber(ledger[userID].armySize)}.`;
 };
 
 /**
@@ -696,7 +689,7 @@ exports.race = function(userID, args) {
 function maybeStartRaceAfterTimeout(race, userID) {
     const description = 'A race will start in 20 seconds.\n'
         + `Call ${util.formatAsBoldCodeBlock(`${config.prefix}race`)} to enter `
-        + `with a bet of ${util.formatAsBoldCodeBlock(race.bet)} Scrubbing Bubbles.`;
+        + `with a bet of ${util.formatNumber(race.bet)} Scrubbing Bubbles.`;
 
     util.sendEmbedMessage('Race Starting Soon', description);
     setTimeout(() => {
@@ -737,13 +730,13 @@ function finalizeBetClean(userID, bet) {
         const payout = bet * 2;
 
         img = c.CLEAN_WIN_IMG;
-        msg = `Congrats, your auxiliary army gained ${util.formatAsBoldCodeBlock(bet)} `
+        msg = `Congrats, your auxiliary army gained ${util.formatNumber(bet)} `
             + 'Scrubbing Bubbles after cleaning the bathroom and conquering the land!';
         exports.addToArmy(userID, payout);
         addToGamblingStats(payout, userID, true);
     } else {
         img = c.CLEAN_LOSE_IMG;
-        msg = `Sorry bud, you lost ${util.formatAsBoldCodeBlock(bet)} ` +
+        msg = `Sorry bud, you lost ${util.formatNumber(bet)} ` +
             `Scrubbing Bubble${util.maybeGetPlural(bet)} in the battle.`;
         addToGamblingStats(bet, userID, false);
     }
@@ -809,7 +802,7 @@ function maybeBetClean(userID, args, message) {
  * @param {String} value value of the stat
  */
 function buildStatDesc(label, value) {
-    return `${label}: ${util.formatAsBoldCodeBlock(util.comma(value))}\n`;
+    return `${label}: ${util.formatNumber(value)}\n`;
 }
 
 /**
@@ -867,11 +860,11 @@ function outputUserGamblingData(userID, args) {
     var description = '';
 
     if (args[0] === 'army') {
-        description = `${util.mentionUser(userID)}${msg} army is ${util.formatAsBoldCodeBlock(util.comma(armySize))}` +
+        description = `${util.mentionUser(userID)}${msg} army is ${util.formatNumber(armySize)}` +
             ` Scrubbing Bubble${util.maybeGetPlural(armySize)} strong!`;
     } else if (args[0] === 'worth') {
         description = `${util.mentionUser(userID)}${msg} net worth is ` +
-            `${util.formatAsBoldCodeBlock(util.comma(determineNetWorth(userEntry)))} Scrubbing Bubbles!`;
+            `${util.formatNumber(determineNetWorth(userEntry))} Scrubbing Bubbles!`;
     } else {
         title = 'Gambling Stats';
         description = `${util.mentionUser(userID)}${msg} stats:\n${buildStatsDescription(userEntry)}`;
@@ -901,6 +894,8 @@ function stats(userID, args) {
     outputUserGamblingData(userID, args);
 }
 
+// Todo: Find all usages in project of formatAsBoldCodeBlock and maybe replace with util.formatNumber (combines code block and commas)
+
 /**
  * Formats the provided number.
  * Adds commas if at least 1000.
@@ -909,7 +904,7 @@ function stats(userID, args) {
  * @param {Number} num - number to format
  * @returns {String} the formatted number
  */
-function formatNumber(num) {
+function formatLargeNumber(num) {
 	const formattedNum = util.comma(num);
 	const numberTokens = formattedNum.split(',');
 
@@ -942,7 +937,7 @@ function ranks(userID, isWorthRanks) {
     }
 
     fields.sort(util.compareFieldValues);
-    fields = fields.map((field) => ({ ...field, value: formatNumber(field.value) }));
+    fields = fields.map((field) => ({ ...field, value: formatLargeNumber(field.value) }));
 
     const titlePostfix = isWorthRanks ? 'Net Worth' : 'Army Sizes';
 

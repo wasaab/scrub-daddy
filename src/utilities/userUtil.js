@@ -615,11 +615,11 @@ function getGroup(targetGroupName) {
 	delete groupFuzzyOptions.keys;
 
 	const fuse = new Fuse(groupNames, groupFuzzyOptions);
-	const fuzzyResults = fuse.search(targetGroupName);
+	const [groupNameIdx] = fuse.search(targetGroupName, { limit: 1 });
 
-	if (fuzzyResults.length === 0) { return { group: null, name: null }; }
+	if (!groupNameIdx) { return { group: null, name: null }; }
 
-	const groupName = groupNames[fuzzyResults[0]];
+	const groupName = groupNames[groupNameIdx];
 
 	return { group: groups[groupName], name: groupName };
 }
@@ -807,8 +807,8 @@ function setUserColor(message, args) {
 
 /**
  * Builds the nickname for a user's birthday.
- * 
- * @returns {String} the birthday nickname 
+ *
+ * @returns {String} the birthday nickname
  */
  function buildBirthdayNickname() {
 	const birthdayEmojis = ['🎂', '🍰', '🎂', '🎉', '🎊', '🎈', '🎂'];

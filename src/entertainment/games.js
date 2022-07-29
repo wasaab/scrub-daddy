@@ -333,14 +333,27 @@ exports.maybeOutputTimePlayed = function(args, userID) {
 };
 
 /**
+ * Gets the last time the provided user played a game.
+ *
+ * @param {Object} game - the game to check playtime of
+ * @param {Object[]} game.users - the users who have played the game
+ * @param {String} userID - the ID of the user
+ * @returns {number} the last time if found or 0
+ */
+function getUsersLastPlayedTime({ users }, userID) {
+	return users.find(({ id }) => id === userID)?.time ?? 0;
+}
+
+/**
  * Gets the user data for the provided game.
  *
  * @param {String} gameName - the game to find players of
  */
-function getGameUserData(gameName, fuzzyThreshold) {
+function getGameUserData(gameName, fuzzyThreshold, userID) {
 	const options = { ...c.WHO_PLAYS_FUZZY_OPTIONS, threshold: fuzzyThreshold };
 	const fuse = new Fuse(gamesPlayed, options);
-	const [game] = fuse.search(gameName);
+	const [game] = fuse.search(gameName, { limit: 3 })
+		.sort((a, b) => getUsersLastPlayedTime(b, userID) - getUsersLastPlayedTime(a, userID));
 
 	return game ?? {};
 }
@@ -420,7 +433,7 @@ exports.whoPlays = function(message, args) {
 	}
 
 	const game = util.getTargetFromArgs(args, 1);
-	const gameUserData = getGameUserData(game, 0.3);
+	const gameUserData = getGameUserData(game, 0.3, userID);
 	const usersWhoPlay = gameUserData.users;
 
 	logger.info(`Who Plays ${game} - ${inspect(gameUserData)}`);
@@ -469,7 +482,7 @@ exports.letsPlay = function(args, userID, message, oneMore, customMessage) {
 	if (args.length === gameIdx) { return util.outputHelpForCommand('lets-play', userID); }
 
 	var game = util.getTargetFromArgs(args, gameIdx).replace(/:/g, '');
-	const gameUserData = getGameUserData(game, 0.3);
+	const gameUserData = getGameUserData(game, 0.3, userID);
 	var usersWhoPlay = gameUserData.users;
 	var msg = '';
 
@@ -638,24 +651,20 @@ function getCurrentTimeMillis() {
 }
 
 /**
- * Waits for the provided number of seconds and then sends a scrub daddy fact.
+ * Sends a scrub daddy fact after 5s.
  *
- * @param {Number} attempts - loop iterator
- * @param {Number} seconds - duration of each loop
+ * @param {string} userID - ID of user requesting fact
  */
-function waitAndSendScrubDaddyFact(attempts, seconds, userID) {
+function waitAndSendScrubDaddyFact(userID) {
 	if (testUtil.isTestRun()) { return; }
 
 	setTimeout(() => {
-		if (attempts === seconds) {
-			const title = '➕ You are now subscribed to Scrub Daddy Facts!';
-			const image = c.SCRUB_DADDY_FACT;
-
-			util.sendEmbed({ title, userID, image });
-		} else {
-			waitAndSendScrubDaddyFact(attempts + 1, seconds);
-		}
-	}, 1000);
+    util.sendEmbed({
+      title: '➕ You are now subscribed to Scrub Daddy Facts!',
+      image: c.SCRUB_DADDY_FACT_IMG,
+      userID
+    });
+	}, 5000);
 }
 
 /**

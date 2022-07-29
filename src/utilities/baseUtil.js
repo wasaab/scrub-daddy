@@ -189,6 +189,10 @@ function formatAsBoldCodeBlock(text) {
 	return `**\`${text}\`**`;
 }
 
+function formatNumber(text) {
+	return `**\`${comma(text)}\`**`;
+}
+
 function isMention(text, mentionType) {
 	const typeSymbol = mentionType ? c.MENTION_TYPE_TO_SYMBOL[mentionType] : '(@[!&]?|#)';
 
@@ -315,6 +319,7 @@ exports.compareFieldValues = compareFieldValues;
 exports.deepClone = deepClone;
 exports.exportJson = exportJson;
 exports.formatAsBoldCodeBlock = formatAsBoldCodeBlock;
+exports.formatNumber = formatNumber;
 exports.getAvatar = getAvatar;
 exports.getIdFromMention = getIdFromMention;
 exports.getMembers = () => members;

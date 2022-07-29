@@ -21,16 +21,14 @@ function maybeGetAlias(command, userID) {
 
 /**
  * Returns the closest matching command to what was provided.
- * 
+ *
  * @param {String} command word to check for command matches
  * @return {String} matching command name
  */
 exports.findClosestCommandMatch = function(command) {
-	const fuzzyResults = fuse.search(command.toLowerCase());
+	const [matchingCommandIdx, runnerUpCommandIdx] = fuse.search(command.toLowerCase(), { limit: 2 });
 
-	if (fuzzyResults.length === 0) { return; }
-
-	const [ matchingCommandIdx, runnerUpCommandIdx ] = fuzzyResults;
+	if (!matchingCommandIdx) { return; }
 
 	logger.cmd(`1st: ${c.COMMANDS[matchingCommandIdx]}, 2nd: ${c.COMMANDS[runnerUpCommandIdx]}`);
 
@@ -39,7 +37,7 @@ exports.findClosestCommandMatch = function(command) {
 
 /**
  * Determines the target command and its arguments.
- * 
+ *
  * @param {Objecr} message the message containing a command call
  */
 function determineCommandInfo(message) {
@@ -60,7 +58,7 @@ function determineCommandInfo(message) {
 		cmd = exports.findClosestCommandMatch(args[0]);
 
 		if (!cmd) { return; }
-		
+
 		args[0] = cmd;
 	}
 
