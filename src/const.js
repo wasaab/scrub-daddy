@@ -395,7 +395,7 @@ module.exports = {
 			color: 0xffff00,
 			title: '💡 Is Typoeing Hard?',
 			description: '⌨ You can activate the command which is the closest match to your input.\n' +
-				'For example, `.akry` --> `.army`, `.cl` --> `.clean`, etc.\n' +
+				'For example, `.akry` --> `.army`, `.cl` --> `.clean`, etc.\n'
 		},
 		{
 			color: 0xffff00,
