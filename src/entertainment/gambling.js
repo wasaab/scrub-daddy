@@ -1059,19 +1059,20 @@ function buildInitialPromptGuessProgress(prompt) {
 
 function sendPromptSolvedMsgAndResetProgress(imgNum, target, userID) {
   target.progress = buildInitialPromptGuessProgress(target.prompt);
-  util.sendEmbedMessage(
+  util.sendEmbedMessageToChannel(
     'Prompt Solved',
     `${util.mentionUser(userID)} has correctly guessed the prompt for image **#${imgNum}**!\n||**${target.prompt}**||`,
+    c.DALLE_CHANNEL_ID,
     userID
   );
 }
 
 function sendPromptGuessProgressMsg(imgNum, target, userID) {
-  util.sendEmbedMessage(`Image #${imgNum}`, `||\`${target.progress}\`||`, userID);
+  util.sendEmbedMessageToChannel(`Image #${imgNum}`, `||\`${target.progress}\`||`, c.DALLE_CHANNEL_ID, userID);
 }
 
 function guessDalle(message, args) {
-  if (args.length < 3) { return; }
+  if (args.length < 3 || message.channel.id !== c.DALLE_CHANNEL_ID) { return; }
 
   const { member: { id: userID } } = message;
   const [, imgNum] = args;
@@ -1123,6 +1124,7 @@ function sendAddedDalleImg(imgUrl, prompt, userID) {
         title: `#${prompts.length}`,
         description: `\`${progress}\``,
         file,
+        channelID: c.DALLE_CHANNEL_ID,
         userID
       });
       util.exportJson(prompts, 'prompts');
@@ -1133,9 +1135,9 @@ function sendAddedDalleImg(imgUrl, prompt, userID) {
 }
 
 function addDalle(message) {
-  const { attachments, member: { id: userID } } = message;
+  const { attachments, channel, member: { id: userID } } = message;
 
-  if (attachments.length === 0) { return; }
+  if (attachments.length === 0 || channel.id !== c.DALLE_CHANNEL_ID) { return; }
 
   const [attachment] = attachments.array();
   const prompt = attachment.filename

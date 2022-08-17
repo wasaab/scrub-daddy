@@ -14,6 +14,7 @@ module.exports = {
 	ARK_SERVER_STATUS_MSG_ID: '850832949451685898',
 	ARK_CHANNEL_ID: '725823809562869863',
 	ARK_SERVER_ADMIN_ID: '126527690319593473',
+  DALLE_CHANNEL_ID: '1008136599097319495',
 	CATEGORY_ID: {
 		'Issue': '372143355070644255',				//category for bot issues
 		'Feature': '374009714213781504',			//category for bot feature requests
@@ -435,7 +436,7 @@ module.exports = {
 		'who-plays', 'who-said', 'worth', 'worth-ranks'
 	],
 	GLOBAL_COMMANDS: [
-		'@', ',,,', 'cars', 'change-category', 'delete', 'delete-rating',
+		'@', ',,,', 'add-dalle', 'guess-dalle', 'cars', 'change-category', 'delete', 'delete-rating',
 		'ignore-posts', 'leave-temp', 'magic-word', 'quote', 'rate',
 		'remind-me', 'rename', 'refresh-ratings', 'rating-info'
 	],
