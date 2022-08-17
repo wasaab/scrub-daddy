@@ -1,5 +1,6 @@
 var Discord = require('discord.js');
 var moment = require('moment');
+const rp = require('request-promise');
 
 var c = require('../const.js');
 var bot = require('../bot.js');
@@ -8,6 +9,7 @@ const { logger } = require('../logger.js');
 const cmdHandler = require('../handlers/cmdHandler.js');
 const games = require('./games.js');
 
+const prompts = require('../../resources/data/prompts.json');
 var ledger = require('../../resources/data/ledger.json');
 var config = require('../../resources/data/config.json');
 
@@ -894,8 +896,6 @@ function stats(userID, args) {
     outputUserGamblingData(userID, args);
 }
 
-// Todo: Find all usages in project of formatAsBoldCodeBlock and maybe replace with util.formatNumber (combines code block and commas)
-
 /**
  * Formats the provided number.
  * Adds commas if at least 1000.
@@ -1053,6 +1053,102 @@ function determineNetWorth({ stockToInfo, armySize: netWorth }) {
     return netWorth;
 }
 
+function buildInitialPromptGuessProgress(prompt) {
+  return prompt.replace(/[a-z]/g, '_ ');
+}
+
+function sendPromptSolvedMsgAndResetProgress(imgNum, target, userID) {
+  target.progress = buildInitialPromptGuessProgress(target.prompt);
+  util.sendEmbedMessage(
+    'Prompt Solved',
+    `${util.mentionUser(userID)} has correctly guessed the prompt for image **#${imgNum}**!\n||**${target.prompt}**||`,
+    userID
+  );
+}
+
+function sendPromptGuessProgressMsg(imgNum, target, userID) {
+  util.sendEmbedMessage(`Image #${imgNum}`, `||\`${target.progress}\`||`, userID);
+}
+
+function guessDalle(message, args) {
+  if (args.length < 3) { return; }
+
+  const { member: { id: userID } } = message;
+  const [, imgNum] = args;
+  const guess = util.getTargetFromArgs(args, 2);
+
+  if (prompts.length < imgNum) { return; }
+
+  const target = prompts[imgNum - 1];
+
+  if (guess.length > 1) { // guessing entire prompt
+    if (guess.toLowerCase() === target.prompt) {
+      sendPromptSolvedMsgAndResetProgress(imgNum, target, userID);
+    } else {
+      sendPromptGuessProgressMsg(imgNum, target, userID);
+    }
+  } else {  // guessing single letter of prompt
+    const progressTokens = target.progress.split(' ');
+
+    for (const match of target.prompt.matchAll(guess.toLowerCase())) {
+      progressTokens[match.index] = guess;
+    }
+
+    const updatedProgress = progressTokens.join(' ');
+
+    if (updatedProgress.includes('_')) {
+      target.progress = updatedProgress;
+      sendPromptGuessProgressMsg(imgNum, target, userID);
+    } else {
+      sendPromptSolvedMsgAndResetProgress(imgNum, target, userID);
+    }
+
+    util.exportJson(prompts, 'prompts');
+  }
+
+  message.delete();
+}
+
+function sendAddedDalleImg(imgUrl, prompt, userID) {
+  rp(imgUrl, { encoding: null })
+    .then((imgBuffer) => {
+      const file = {
+        attachment: imgBuffer,
+        name: 'Dall-E.png'
+      };
+      const progress = buildInitialPromptGuessProgress(prompt);
+
+      prompts.push({ prompt, progress });
+      util.sendEmbed({
+        title: `#${prompts.length}`,
+        description: `\`${progress}\``,
+        file,
+        userID
+      });
+      util.exportJson(prompts, 'prompts');
+    })
+    .catch((err) => {
+      logger.error(`Failed to add Dall-E img "${imgUrl}".`, err);
+    });
+}
+
+function addDalle(message) {
+  const { attachments, member: { id: userID } } = message;
+
+  if (attachments.length === 0) { return; }
+
+  const [attachment] = attachments.array();
+  const prompt = attachment.filename
+    .match(/_-_(.*)\.[a-z]{3}/)?.[1]
+    .toLowerCase()
+    .replaceAll('_', ' ');
+
+  if (!prompt) { return; }
+
+  sendAddedDalleImg(attachment.url, prompt, userID);
+  message.delete();
+}
+
 exports.registerCommandHandlers = () => {
     cmdHandler.registerCommandHandler(
         'enlist',
@@ -1122,4 +1218,6 @@ exports.registerCommandHandlers = () => {
         'worth',
         (message, args) => worth(message.member.id, args)
     );
+    cmdHandler.registerCommandHandler('add-dalle', addDalle);
+    cmdHandler.registerCommandHandler('guess-dalle', guessDalle);
 };
