@@ -1067,8 +1067,14 @@ function sendPromptSolvedMsgAndResetProgress(imgNum, target, userID) {
   );
 }
 
-function sendPromptGuessProgressMsg(imgNum, target, userID) {
-  util.sendEmbedMessageToChannel(`Image #${imgNum}`, `||\`${target.progress}\`||`, c.DALLE_CHANNEL_ID, userID);
+function sendPromptGuessProgressMsg(imgNum, target, guess, userID) {
+  util.sendEmbed({
+    title: `Image #${imgNum}`,
+    description: `||\`${target.progress}\`||`,
+    channelID: c.DALLE_CHANNEL_ID,
+    userID,
+    footer: `\`${guess}\` - ${util.getNick(userID)}`
+  });
 }
 
 function guessDalle(message, args) {
@@ -1082,11 +1088,30 @@ function guessDalle(message, args) {
 
   const target = prompts[imgNum - 1];
 
-  if (guess.length > 1) { // guessing entire prompt
+  if (guess.length === target.prompt.length) { // guessing entire prompt
     if (guess.toLowerCase() === target.prompt) {
       sendPromptSolvedMsgAndResetProgress(imgNum, target, userID);
     } else {
-      sendPromptGuessProgressMsg(imgNum, target, userID);
+      sendPromptGuessProgressMsg(imgNum, target, guess, userID);
+    }
+  } else if (guess.length > 1) { // guessing substring
+    const hitIdx = target.prompt.indexOf(guess.toLowerCase());
+
+    if (hitIdx === -1) {
+      sendPromptGuessProgressMsg(imgNum, target, guess, userID);
+    } else {
+      const progressTokens = target.progress.split(' ');
+
+      progressTokens.splice(hitIdx, guess.length, ...guess);
+
+      const updatedProgress = progressTokens.join(' ').replaceAll('   ', '  ');
+
+      if (updatedProgress.includes('_')) {
+        target.progress = updatedProgress;
+        sendPromptGuessProgressMsg(imgNum, target, guess, userID);
+      } else {
+        sendPromptSolvedMsgAndResetProgress(imgNum, target, userID);
+      }
     }
   } else {  // guessing single letter of prompt
     const progressTokens = target.progress.split(' ');
