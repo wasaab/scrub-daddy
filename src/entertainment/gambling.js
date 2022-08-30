@@ -1073,7 +1073,9 @@ function sendPromptGuessProgressMsg(imgNum, target, guess, userID) {
     description: `||\`${target.progress}\`||`,
     channelID: c.DALLE_CHANNEL_ID,
     userID,
-    footer: `\`${guess}\` - ${util.getNick(userID)}`
+    footer: {
+      text: `\`${guess}\` - ${util.getNick(userID)}`
+    }
   });
 }
 
