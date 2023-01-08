@@ -899,7 +899,7 @@ function stats(userID, args) {
 /**
  * Formats the provided number.
  * Adds commas if at least 1000.
- * Precision 3 with unit if at least 1 quadrillion.
+ * Precision 3 with unit if at least 1 trillion.
  *
  * @param {Number} num - number to format
  * @returns {String} the formatted number
