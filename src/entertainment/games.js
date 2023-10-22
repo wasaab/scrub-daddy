@@ -145,12 +145,12 @@ function determinePlayingFieldsAndUpdateHistory(time, total, games) {
 exports.maybeOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
 	const { games, winner, total } = getGamesBeingPlayedData(scrubs);
 	const time = moment();
+  const fields = determinePlayingFieldsAndUpdateHistory(time, total, games);
 
 	if (userID === c.SCRUB_DADDY_ID) {
 		updateHeatMap(time, total);
 	} else {
 		const imageUrl = c.GAME_NAME_TO_IMG[winner] ?? c.THUMBS_UP_GIF;
-		const fields = determinePlayingFieldsAndUpdateHistory(time, total, games);
 
 		util.sendEmbedMessage(`🏆 Winner - ${winner}`, null, userID, imageUrl);
 		fields.sort(util.compareFieldValues);
