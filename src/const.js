@@ -465,6 +465,11 @@ module.exports = {
 		minMatchCharLength: 1
 	},
 	LEFT_CHANNEL_PERMISSION: 1152,
+  ROMAN_NUMERAL_CHAR_TO_INT: {
+    I: 1,
+    V: 5,
+    X: 10
+  },
 	ALPHABET:  'ABCDEFGHIJKLMNOPQURSTUVWXYZ',
 	ENCLOSED_CHARS: {
 		'A': '🄰', 'B': '🄱', 'C': '🄲', 'D': '🄳', 'E': '🄴', 'F': '🄵', 'G': '🄶', 'H': '🄷',

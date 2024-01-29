@@ -1450,6 +1450,8 @@ async function isArkServerOnline() {
  * and notifies the server admin if down.
  */
 exports.checkArkServerStatus = async function() {
+  if (!priv.arkServerIp) { return; }
+
 	const isOnline = await isArkServerOnline();
 	const channel = bot.getServer().channels.find('id', c.ARK_CHANNEL_ID);
 	const isPrevStatusDown = channel.topic.startsWith('⬇️');
