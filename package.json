@@ -24,7 +24,7 @@
     "log-that-http": "^1.0.1",
     "lw5": "^2.0.5",
     "merge-img": "^2.1.2",
-    "moment": "^2.19.1",
+    "moment": "^2.29.4",
     "natural": "^2.1.5",
     "node-schedule": "^1.2.5",
     "opusscript": "0.0.6",
