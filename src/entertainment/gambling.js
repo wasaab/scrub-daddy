@@ -28,6 +28,38 @@ exports.exportLedger = function() {
 };
 
 /**
+ * Sends a message to the user when they reach their daily discharge limit.
+ *
+ * @param {String} userID - the id of the user to notify
+ */
+function sendDailyDischargeLimitExceededMessage(userID) {
+    const scrubsDischargedToday = util.formatAsBoldCodeBlock(
+      util.formatLargeNumber(ledger[userID].stats.scrubsDischargedToday)
+    );
+    const message = `Users can only discharge ${util.formatLargeNumber(c.MAX_DAILY_DISCHARGE_COUNT)} `
+      + `bubbles per day. You have already discharged ${scrubsDischargedToday} bubbles today.`;
+
+    util.sendEmbedMessage(
+        'Daily Discharge Limit Exceeded',
+        message,
+        userID
+    );
+}
+
+/**
+ * Checks if the daily discharge limit has been reached for the user.
+ *
+ * @param {String} userID - the id of the user to check
+ * @param {Number} numBubbles - the number of bubbles to discharge
+ * @returns {Boolean} - true if the limit is reached, false otherwise
+ */
+function isDailyDischargeLimitReached(userID, numBubbles) {
+    const { scrubsDischargedToday } = ledger[userID].stats;
+
+    return (scrubsDischargedToday + numBubbles) > c.MAX_DAILY_DISCHARGE_COUNT;
+}
+
+/**
  * Gives a scrubbing bubble to the provided user, taking that amount from
  * the calling user's army.
  *
@@ -42,6 +74,10 @@ function giveScrubBubbles(userID, targetMention, numBubbles) {
 
     if (!Number.isInteger(numBubbles) || numBubbles < 1 || !exports.isAbleToAffordBet(userID, numBubbles)) { return; }
 
+    if (isDailyDischargeLimitReached(userID, numBubbles)) {
+        return sendDailyDischargeLimitExceededMessage(userID);
+    }
+
     const targetID = util.getIdFromMention(targetMention);
 
     if (util.getNick(targetID)) {
@@ -49,6 +85,7 @@ function giveScrubBubbles(userID, targetMention, numBubbles) {
         exports.addToArmy(targetID, numBubbles);
         const msg = `${targetMention}  ${getArmyGrownMessage(numBubbles)} ${exports.getArmySizeMsg(targetID)}`;
         util.sendEmbedMessage(`Scrubbing Bubbles Gifted By ${util.getNick(userID)}`, msg, userID);
+        ledger[userID].stats.scrubsDischargedToday += numBubbles;
     }
 }
 
@@ -67,7 +104,12 @@ function dischargeScrubBubble(numBubbles, userID) {
     if (userID) {
         if (numBubbles < 1 || !(ledger[userID] && ledger[userID].armySize >= numBubbles)) { return; }
 
+        if (isDailyDischargeLimitReached(userID, numBubbles)) {
+            return sendDailyDischargeLimitExceededMessage(userID);
+        }
+
         exports.removeFromArmy(userID, numBubbles);
+        ledger[userID].stats.scrubsDischargedToday += numBubbles;
     }
 
     dropped += numBubbles;
@@ -122,6 +164,16 @@ function reserve(userID) {
         exports.exportLedger();
     }
 }
+
+/**
+ * Resets the daily discharge count stat for all users.
+ */
+exports.resetDailyDischargeCountStat = function() {
+    Object.values(ledger).forEach(({ stats: userStats }) => {
+        userStats.scrubsDischargedToday = 0;
+    });
+    exports.exportLedger();
+};
 
 /**
  * Removes the given number of Scrubbing Bubbles from the provided user's army.
@@ -897,25 +949,6 @@ function stats(userID, args) {
 }
 
 /**
- * Formats the provided number.
- * Adds commas if at least 1000.
- * Precision 3 with unit if at least 1 trillion.
- *
- * @param {Number} num - number to format
- * @returns {String} the formatted number
- */
-function formatLargeNumber(num) {
-	const formattedNum = util.comma(num);
-	const numberTokens = formattedNum.split(',');
-
-	if (numberTokens.length > 4) {
-		return `${numberTokens[0]} ${c.LARGE_NUM_UNITS[numberTokens.length - 5]}`;
-	}
-
-    return formattedNum;
-}
-
-/**
  * Outputs all member's army sizes or net worths in order.
  *
  * @param {String} userID - the ID of the calling user
@@ -937,7 +970,7 @@ function ranks(userID, isWorthRanks) {
     }
 
     fields.sort(util.compareFieldValues);
-    fields = fields.map((field) => ({ ...field, value: formatLargeNumber(field.value) }));
+    fields = fields.map((field) => ({ ...field, value: util.formatLargeNumber(field.value) }));
 
     const titlePostfix = isWorthRanks ? 'Net Worth' : 'Army Sizes';
 
@@ -1052,6 +1085,14 @@ function determineNetWorth({ stockToInfo, armySize: netWorth }) {
 
     return netWorth;
 }
+
+exports.determineUsersNetWorth = function(userID) {
+    const userEntry = ledger[userID];
+
+    if (!userEntry) { return 0; }
+
+    return determineNetWorth(userEntry);
+};
 
 function buildInitialPromptGuessProgress(prompt) {
   return prompt.replace(/[a-z]/g, '_ ');

@@ -28,7 +28,8 @@ module.exports = {
 	SCRUBS_ROLE_ID: '370671041644724226',			//main role ID
 	SUPER_SCRUBS_ROLE_ID: '370671068282617866',		//lowered permission role ID
 	PLEB_ROLE_ID: '370671263473074177',				//newly joined member role ID
-	BOTS_ROLE_ID: '370694212162945025',
+	BOTS_ROLE_ID: '370694212162945025',       //bots role ID
+  MUTE_ROLE_ID: '1406313913896931338',			//muted users role ID
 	GAME_NAME_TO_IMG: {
 		'World of Warcraft' : 'https://i.imgur.com/0qTPYEw.jpg',
 		'Overwatch' : 'http://i.imgur.com/WRQsSYp.png',
@@ -37,16 +38,13 @@ module.exports = {
 	},
 	CHANNEL_ID_TO_BAN_ROLE_ID:{
 		'370625207150575617' : '370746310346801164',	        //Beyond
-		'370625515293507584' : '370747862302326785',	        //Str8 Chillin
-		'370625345138720809' : '370747704621662218',	        //Post Beta
+		'1326721910075297873' : '370747704621662218',	        //Nobody go in here
 		'370626021227233290' : '370748388578295808',	        //Spazzy's Scrub Shack
-		'370625671833190400' : '370747928400232448',	        //Cartoon Network
 		'370626139972042752' : '370747759130705922'	        	//They'll fix that b4 release
 	},
 	GAME_CHANNEL_NAMES: {
-		'370625345138720809': 'Post Beta',
+		'1326721910075297873': 'Nobody go in here',
 		'370626021227233290': `Spazzy's Scrub Shack`,
-		'370625671833190400': 'Cartoon Network',
 		'370626139972042752': `They'll fix that b4 release`,
 	},
 	'4_STAR_TV_MSG_ID': '609569096685715462',
@@ -132,7 +130,7 @@ module.exports = {
 		{ name: '1) `Voting`', value: '`votekick`	`voteban`	`vote`	`voteinfo`', inline: 'false'},
 		{ name: '2) `Scrubbing Bubbles`', value: '`enlist`	`discharge`	`give`	`reserve`	`clean`		`race`'
 			+ '	`invest`	`invest-scrubbles`	`sell-shares`	`stocks`	`portfolio`	`prizes`	`worth`	`army`	`ranks`	`worth-ranks`	`stats`	`who-said`	`sunken-sailor`	`add-emoji`	`magic-word`'
-			+ '	`rename-hank`	`rename-channel`	`rename-role`	`rename-user`	`scrub-box`		`inventory`	`start-lotto`	`stop-lotto`	`billionaires-club`	`replace-scrubble`', inline: 'false'},
+			+ '	`rename-hank`	`rename-channel`	`rename-role`	`rename-user`	`scrub-box`		`inventory`	`start-lotto`	`stop-lotto`	`billionaires-club`	`replace-scrubble`	`mute`', inline: 'false'},
 		{ name: '3) `Time Played`', value: '`time`	`opt-in`	`heatmap`', inline: 'false'},
 		{ name: '4) `Gaming`', value: '`playing`	`who-plays`	`lets-play`	`1-more`	`p`	`split-group`	`trends`	`total-trends`'
 			+ '	`fortnite-stats`	`fortnite-leaderboard`	`set-fortnite-name`	`add-dalle`	`guess-dalle`', inline: 'false'},
@@ -188,7 +186,8 @@ module.exports = {
 				{ name: '.rename-hank <`tier`>', value: '`🏆 to rename hank to hang`', inline: 'false'},
 				{ name: '.rename-channel <`tier`> <`#channel`> <`New Name`>', value: '`🏆 to rename a channel`', inline: 'false'},
 				{ name: '.rename-role <`tier`> <`@role`> <`New Name`>', value: '`🏆 to rename a role`', inline: 'false'},
-				{ name: '.rename-user <`tier`> <`@user`> <`New Name`>', value: '`🏆 to rename a user`', inline: 'false'},
+				{ name: '.rename-user <`tier`> <`@user`> <`New Name`>', value: '`🏆 to rename a user. ⭐ Tier 5 overrides prior renames.`', inline: 'false'},
+				{ name: '.mute <`tier`> <`@user`>', value: '`🏆 to mute a user in all voice channels for 1 min. Stackable up to 15 mins.`', inline: 'false'},
 				{ name: '.scrub-box <`tier`>', value: '`to open a Scrub Box. Tier cost = tier * 200. Better and longer lasting prizes as tier increases. For more info call: .prizes`', inline: 'false'},
 				{ name: '.scrub-box <`tier`> <`numBoxes`>', value: '`to open the provided # of Scrub Box. Tier cost = tier * 200. Better and longer lasting prizes as tier increases. For more info call: .prizes`', inline: 'false'},
 				{ name: '.inventory', value: '`to see your scrub box prize inventory.`', inline: 'false'},
@@ -326,6 +325,7 @@ module.exports = {
 			highestLossStreak: 0,
 			scrubsEnlisted: 0,
 			scrubsDischared: 0,
+			scrubsDischaredToday: 0,
 			stocksNetArmyChange: 0
 		},
 	},
@@ -364,7 +364,7 @@ module.exports = {
 			color: 0xffff00,
 			title: '💡 .help',
 			description: 'You do not need to type the `<`, `|`, or `>` symbols found within .help documentation.\n\n' +
-				'<`title`> represents.\n\n' +
+				'<`title`> represents a user provided title parameter.\n\n' +
 				'| stands for "or", so if you see that seperating two parameters it means you can choose one of them.\n' +
 				'e.g. .temp <`text|voice`> <`channel-title`> --> .temp text birds\n\n' +
 				'.help <`command`> - to get help for a specific command\n' +
@@ -389,7 +389,7 @@ module.exports = {
 		{
 			color: 0xffff00,
 			title: '💡 New Commands',
-			description: '`replace-scrubble`	`worth-ranks`	`billionaires-club`	`remind-me`	`set-birthday`	`worth`	`invest-scrubbles`',
+			description: '`mute`	`replace-scrubble`	`worth-ranks`	`billionaires-club`	`remind-me`	`set-birthday`	`worth`	`invest-scrubbles`',
 			image: {
 				url: 'https://media3.giphy.com/media/UGxfEt5POsukg/giphy.gif'
 			}
@@ -424,7 +424,7 @@ module.exports = {
 		'ignore-posts', 'implement', 'inventory', 'invest', 'invest-scrubbles', 'issue',
 		'join-review-team',
 		'list', 'leave-temp', 'leave-review-team', 'lets-play', 'list-backups', 'log', 'lotto',
-		'magic-word', 'missing-help',
+		'magic-word', 'missing-help', 'mute',
 		'opt-in',
 		'ping-ark-server', 'playing', 'portfolio', 'prizes',
 		'quote', 'quotes',
@@ -526,6 +526,7 @@ module.exports = {
 	STOCKS_BASE_URL: 'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=',
 	DEV: 'dev',
 	MAX_USERNAME_LENGTH: '32',
+  MAX_DAILY_DISCHARGE_COUNT: 1000000,
 	MAX_BITRATE: 96,
 	MIN_BITRATE: 64,
 	CODACY_BADGE: '[![Codacy Badge](https://api.codacy.com/project/badge/Grade/8f59c3e85df049d3bd319a21576f37c4)]'
@@ -560,7 +561,8 @@ module.exports = {
 		'start-lotto': 'Start a Beyond lottery.',
 		'stop-lotto': 'Stop a Beyond lottery.',
 		'billionaires-club': 'Join The Billionaire\'s Club.',
-		'replace-scrubble': 'Replace all references to scrubbles'
+		'replace-scrubble': 'Replace all references to scrubbles',
+    'mute': 'Mute a user for ``. Stacks if applied multiple times.'
 	},
 	PRIZE_TIERS: [
 		{
@@ -610,9 +612,15 @@ module.exports = {
 		// 	'clear-lotto': '',
 		// 	//client.on('guildMemberSpeaking')
 		// 	'talking-rainbow-role': '1 day',
+		},
+    {
+      'mute': '1 minute',
+      'rename-user': '1 week'
 		}
 	],
 	TIER_COST: [200, 400, 600, 100000000000],
+  TIER_5_MIN_NET_WORTH: 1000000000,
+  TIER_5_COST_PERCENT: 0.05,
 	BILLIONAIRE_JOIN_IMAGES: [
 		'https://media0.giphy.com/media/h0MTqLyvgG0Ss/giphy.gif',
 		'https://media3.giphy.com/media/xT1XH1dfMnbezHSa9a/giphy.gif',
@@ -634,7 +642,7 @@ module.exports = {
 		role: 'role'
 	},
 	LARGE_NUM_UNITS: [
-		'Quadrillion', 'Quintillion', 'Sextillion',
+		'Trillion', 'Quadrillion', 'Quintillion', 'Sextillion',
 		'Septillion', 'Octillion', 'Nonillion', 'Decillion'
 	],
 	INVALID_DURATION_ISO: 'P0D',

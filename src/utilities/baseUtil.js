@@ -185,8 +185,31 @@ function comma(num) {
     return num.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,');
 }
 
+/**
+ * Formats the provided number.
+ * Adds commas if at least 1000.
+ * Precision 3 with unit if at least 1 trillion.
+ *
+ * @param {Number} num - number to format
+ * @returns {String} the formatted number
+ */
+function formatLargeNumber(num) {
+	const formattedNum = comma(num);
+	const numberTokens = formattedNum.split(',');
+
+	if (numberTokens.length > 4) {
+		return `${numberTokens[0]} ${c.LARGE_NUM_UNITS[numberTokens.length - 5]}`;
+	}
+
+    return formattedNum;
+}
+
 function formatAsBoldCodeBlock(text) {
 	return `**\`${text}\`**`;
+}
+
+function formatLargeNumberAsCodeBlock(num) {
+	return formatAsBoldCodeBlock(formatLargeNumber(num));
 }
 
 function formatNumber(text) {
@@ -319,6 +342,8 @@ exports.compareFieldValues = compareFieldValues;
 exports.deepClone = deepClone;
 exports.exportJson = exportJson;
 exports.formatAsBoldCodeBlock = formatAsBoldCodeBlock;
+exports.formatLargeNumber = formatLargeNumber;
+exports.formatLargeNumberAsCodeBlock = formatLargeNumberAsCodeBlock;
 exports.formatNumber = formatNumber;
 exports.getAvatar = getAvatar;
 exports.getIdFromMention = getIdFromMention;

@@ -17,7 +17,7 @@ const cmdHandler = require('../handlers/cmdHandler.js');
 exports.updateLottoCountdown = function() {
     if (!config.lottoTime || util.isDevEnv()) { return; }
 
-	bot.getClient()
+    bot.getClient()
         .user
         .setPresence({ game: { name: `lotto ${getTimeUntilLottoEnd().timeUntil}` } });
 };
@@ -121,7 +121,7 @@ function checkLotto(userID) {
  * Ends the beyond lottery, outputting and promoting the winner.
  */
 exports.endLotto = function() {
-	if (!config.lottoEntries || config.lottoEntries.length <= 1) { return; }
+    if (!config.lottoEntries || config.lottoEntries.length <= 1) { return; }
 
     const { fakeWinner, winner, winnerID } = getFakeAndRealWinner();
     const winningMsgs = [`...and ${winner} has risen from the filth to become...\nBEYOND!`,
@@ -172,12 +172,12 @@ function outputLottoInfo(userID, isStartMsg) {
  * Determines a fake and a real Beyond role lotto winner.
  */
 function getFakeAndRealWinner() {
-	var winnerID;
+    var winnerID;
     var fakeWinnerID;
 
-	while (winnerID === fakeWinnerID) {
-		winnerID = config.lottoEntries[util.getRand(0, config.lottoEntries.length)];
-		fakeWinnerID = config.lottoEntries[util.getRand(0, config.lottoEntries.length)];
+    while (winnerID === fakeWinnerID) {
+        winnerID = config.lottoEntries[util.getRand(0, config.lottoEntries.length)];
+        fakeWinnerID = config.lottoEntries[util.getRand(0, config.lottoEntries.length)];
     }
 
     return {
@@ -188,21 +188,85 @@ function getFakeAndRealWinner() {
 }
 
 /**
+ * Determines the cost of a Scrub Box based upon tier and net worth.
+ *
+ * Tier 1-4 boxes cost a flat rate based on their tier.
+ * Tier 5 boxes cost a percentage of the user's net worth.
+ *
+ * @param {String} userID id of the user opening the box
+ * @param {Number} tierNumber tier of the box to open
+ * @param {Number} numBoxes number of boxes to open
+ * @returns {Number} cost of opening the boxes
+ */
+function determineScrubBoxCost(userID, tierNumber, numBoxes) {
+    if (tierNumber === 5) {
+        const netWorth = gambling.determineUsersNetWorth(userID);
+
+        if (netWorth < c.TIER_5_MIN_NET_WORTH) {
+            return util.sendEmbedMessage(
+                '💵 Get them stacks up',
+                `${util.mentionUser(userID)} You need at least ${util.formatLargeNumber(c.TIER_5_MIN_NET_WORTH)} `
+                  + `net worth to open a tier 5 Scrub Box.`,
+                userID
+            );
+        }
+
+        return Math.floor(netWorth * c.TIER_5_COST_PERCENT) * numBoxes;
+    }
+
+    return c.TIER_COST[tierNumber - 1] * numBoxes;
+}
+
+/**
+ * Prompts the user to confirms the purchase of a Tier 5 Scrub Box.
+ *
+ * @param {String} userID id of the user confirming the purchase
+ * @param {Number} numBoxes number of boxes being purchased
+ * @param {Number} cost total cost of the boxes
+ * @returns {Promise} promise resolving to the user's confirmation
+ */
+function confirmTierFiveScrubBoxPurchase(userID, numBoxes, cost) {
+  const currNetWorth = gambling.determineUsersNetWorth(userID);
+  const confirmationMessage = `${numBoxes > 1 ? util.formatAsBoldCodeBlock(numBoxes) : 'A'} Tier 5 Scrub `
+    + `${util.maybeGetPlural(numBoxes, 'Box')} will cost you ${util.formatLargeNumberAsCodeBlock(cost)} bubbles.\n\n`
+    + `Your current net worth of ${util.formatLargeNumberAsCodeBlock(currNetWorth)} bubbles would be `
+    + `reduced to ${util.formatLargeNumberAsCodeBlock(currNetWorth - cost)}.\n\nCan you dig it?`;
+
+  return util.sendConfirmationPrompt(
+    '📦 Scrub Box™️ Purchase Confirmation Required',
+    confirmationMessage,
+    userID
+  );
+}
+
+/**
  * Generates and opens a scrub box.
  *
  * @param {String} userID id of the calling user
  * @param {Number} tierNumber tier of the box to open
  */
-function scrubBox(userID, tierNumber, numBoxes = 1) {
+async function scrubBox(userID, tierNumber, numBoxes = 1) {
     if (!util.isIntegerInBounds(tierNumber, 1, c.PRIZE_TIERS.length) || !Number.isInteger(Number(numBoxes))) { return; }
 
-    const cost = c.TIER_COST[tierNumber - 1] * numBoxes;
+    const cost = determineScrubBoxCost(userID, tierNumber, numBoxes);
 
     if (!gambling.getLedger()[userID] || gambling.getLedger()[userID].armySize < cost) {
         const description = `${util.mentionUser(userID)} You are too poor to afford ${numBoxes > 1 ? numBoxes : 'a'} `
             + `tier ${tierNumber} Scrub ${util.maybeGetPlural(numBoxes, 'Box')}.`;
 
-        return util.sendEmbedMessage('Insufficient Funds', description, userID);
+        return util.sendEmbedMessage('💵 Insufficient Funds', description, userID);
+    }
+
+    if (tierNumber === 5) {
+      const isApprovedByUser = await confirmTierFiveScrubBoxPurchase(userID, numBoxes, cost);
+
+      if (!isApprovedByUser) {
+        return util.sendEmbedMessage(
+          '📉 Tier 5 Scrub Box™️ Purchase Cancelled',
+          'You must not be in the Billionaire\'s Club.',
+          userID
+        );
+      }
     }
 
     gambling.removeFromArmy(userID, cost);
@@ -401,8 +465,8 @@ function outputInventory(userID) {
 
     fields.sort(util.compareFieldValues);
     const homePage = {
-		name: `${util.getNick(userID)}'s Inventory`,
-		fields: fields
+        name: `${util.getNick(userID)}'s Inventory`,
+        fields: fields
     };
 
     util.sendDynamicMessage(userID, 'tier', results, homePage);
@@ -487,10 +551,10 @@ exports.maybeResetNames = function() {
 exports.maybeRenameBirthdayUsers = () => {
     const userIdToMetadata = util.getUserIdToMetadata();
 
-	Object.keys(userIdToMetadata).forEach((userID) => {
-		const { nickname, birthday } = userIdToMetadata[userID];
+    Object.keys(userIdToMetadata).forEach((userID) => {
+        const { nickname, birthday } = userIdToMetadata[userID];
 
-		if (!moment().isSame(moment(birthday), 'day')) { return; }
+        if (!moment().isSame(moment(birthday), 'day')) { return; }
 
         const birthdayUser = util.getMembers().find('id', userID);
 
@@ -505,7 +569,7 @@ exports.maybeRenameBirthdayUsers = () => {
             null,
             birthdayUser
         );
-	});
+    });
 };
 
 /**
@@ -563,7 +627,7 @@ function updateRenamedList() {
 function renameUserRoleOrChannel(type, targetID, newName, tierNumber, userID, cmd, mentions) {
     var lockInfo = loot.lockedIdToLockInfo[targetID];
 
-    if (lockInfo && cmd) {
+    if (lockInfo && cmd && tierNumber !== 5) {
         const unlockTime = moment(lockInfo.unlockTime);
 
         if (moment().isBefore(unlockTime)) {
@@ -586,7 +650,7 @@ function renameUserRoleOrChannel(type, targetID, newName, tierNumber, userID, cm
 
             loot.lockedIdToLockInfo[targetID] = {
                 unlockTime: endTime.valueOf(),
-                oldName: oldName,
+                oldName: loot.lockedIdToLockInfo[targetID].oldName ?? oldName,
                 newName: newName,
                 type: group,
             };
@@ -634,7 +698,7 @@ function maybeRename(message, args) {
             cmd,
             message.guild.members.find('id', c.H_ID)
         );
-    } else if (newName && util.isMention(targetMention, c.MENTION_TYPE[mentionType])){
+    } else if (newName && util.isMention(targetMention, c.MENTION_TYPE[mentionType])) {
         renameUserRoleOrChannel(
             mentionType,
             util.getIdFromMention(targetMention),
@@ -704,10 +768,11 @@ function maybeFormatFileIssueMsgForSize(fileIssueMsg) {
  *
  * @param {Number} tierNumber tier of the prize
  * @param {String} prize name of the prize
+ * @param {Moment=} currentEndTime current end time to use for the prize. defaults to now.
  */
-function getPrizeEndTime(tierNumber, prize) {
+function getPrizeEndTime(tierNumber, prize, currentEndTime = moment()) {
     const timePeriodTokens = c.PRIZE_TIERS[tierNumber - 1][prize].split(' ');
-    const endTime = moment().add(timePeriodTokens[0], timePeriodTokens[1]);
+    const endTime = currentEndTime.add(timePeriodTokens[0], timePeriodTokens[1]);
     const formattedEndTime = endTime.format(c.MDY_HM_DATE_TIME_FORMAT);
 
     return { endTime, formattedEndTime };
@@ -876,16 +941,16 @@ function rock(userID) {
  * Has a chance of joining a random channel and playing a soundbite.
  */
 exports.maybeJoinRandomChannelAndPlaySoundbite = function() {
-	if (util.getRand(1, 21) > 13) {
-		const soundBiteChoices = ['tryagainlater', 'cmdnotrecognized', 'repeatthat', 'betconfirmed'];
-		const voiceChannels = bot.getServer().channels.filterArray(
-			(channel) => channel.type === 'voice' && channel.members.size !== 0);
-		const chosenChannel = voiceChannels[util.getRand(0, voiceChannels.length)];
-		const chosenSoundBite = soundBiteChoices[util.getRand(0, soundBiteChoices.length)];
-		const chosenUserID = chosenChannel.members.first().id;
+    if (util.getRand(1, 21) > 13) {
+        const soundBiteChoices = ['tryagainlater', 'cmdnotrecognized', 'repeatthat', 'betconfirmed'];
+        const voiceChannels = bot.getServer().channels.filterArray(
+            (channel) => channel.type === 'voice' && channel.members.size !== 0);
+        const chosenChannel = voiceChannels[util.getRand(0, voiceChannels.length)];
+        const chosenSoundBite = soundBiteChoices[util.getRand(0, soundBiteChoices.length)];
+        const chosenUserID = chosenChannel.members.first().id;
 
-		if (chosenSoundBite === 'betconfimed') {
-			gambling.betClean(chosenUserID, util.getRand(1, 11));
+        if (chosenSoundBite === 'betconfimed') {
+            gambling.betClean(chosenUserID, util.getRand(1, 11));
         }
 
         chosenChannel.join()
@@ -894,7 +959,7 @@ exports.maybeJoinRandomChannelAndPlaySoundbite = function() {
                     // util.playSoundBite(chosenChannel, chosenSoundBite, chosenUserID, connection); //Todo: Update this call to use proper args for new code
                 }, util.getRand(2000, 9000));
             });
-	}
+    }
 };
 
 
@@ -910,16 +975,16 @@ exports.maybeJoinRandomChannelAndPlaySoundbite = function() {
     const server = bot.getServer();
     const rainbowRole = server.roles.find('name', 'rainbow');
 
-	if (rainbowRole) {
+    if (rainbowRole) {
         targetUser.addRole(rainbowRole).then(util.updateRainbowRoleColor);
     } else {
-		server.createRole({
-			name: 'rainbow',
-			position: server.roles.array().length - 4
-		})
-		.then((role) => {
-			targetUser.addRole(role).then(util.updateRainbowRoleColor);
-		});
+        server.createRole({
+            name: 'rainbow',
+            position: server.roles.array().length - 4
+        })
+        .then((role) => {
+            targetUser.addRole(role).then(util.updateRainbowRoleColor);
+        });
     }
 
     if (!loot.rainbowRoleMemberIdToEndTime) {
@@ -973,6 +1038,94 @@ function joinBillionairesClub({ member }, [cmd]) {
 }
 
 /**
+ * Forces a mute state update for a user by moving them
+ * to a different channel and then moving them back.
+ *
+ * @param {Object} targetUser - the user to update mute state for
+ */
+function forceMuteStateUpdateForUser(targetUser) {
+    const currChannelId = targetUser.voiceChannelID;
+
+    targetUser.setVoiceChannel(bot.getPurgatory())
+        .then(() => {
+          setTimeout(() => {
+            targetUser.setVoiceChannel(currChannelId)
+              .catch((err) => {
+                logger.error(`Failed to move ${util.mentionUser(targetUser.id)} back to their original channel: ${err}`);
+              });
+          }, 400);
+        })
+        .catch((err) => {
+            logger.error(`Failed to move ${util.mentionUser(targetUser.id)} to the purgatory channel: ${err}`);
+        });
+}
+
+/**
+ * Mutes a user for one minute in all voice channels.
+ *
+ * @param {Object} muteRole - The role to assign for muting.
+ * @param {Object} targetUser - The user to mute.
+ * @param {String} targetId - The ID of the user to mute.
+ * @param {String} userID - The ID of the user initiating the mute.
+ * @returns {Promise<void>}
+ */
+function muteUser(muteRole, targetUser, targetId, userID) {
+    const { endTime, formattedEndTime } = getPrizeEndTime(5, 'mute', moment(loot.mutedMemberIdToEndTime[targetId]));
+
+    if (endTime.diff(moment(), 'minutes') > 15) {
+        return util.sendEmbedMessage(
+          '🚫🔇 Mute Stack Limit Reached',
+          'Users can be muted for a max of 15 minutes.'
+        );
+    }
+
+    loot.mutedMemberIdToEndTime[targetId] = endTime.valueOf();
+
+    targetUser.addRole(muteRole)
+        .then(() => {
+            removePrizeFromInventory(userID, 'mute', 5);
+            util.exportJson(loot, 'loot');
+            util.sendEmbedMessage(
+                '🙊 Please Don\'t Talking',
+                `${util.mentionUser(userID)} has muted ${util.mentionUser(targetId)} until ${util.formatAsBoldCodeBlock(formattedEndTime)}.`,
+                userID
+            );
+        })
+        .catch((err) => {
+            logger.error(`Failed to mute ${util.mentionUser(targetId)}: ${err}`);
+        });
+    forceMuteStateUpdateForUser(targetUser);
+}
+
+/**
+ * Mutes a user for one minute in all voice channels if
+ * the target user is valid.
+ *
+ * @param {String} targetMention - The user to mute.
+ * @param {String} userID - The ID of the user initiating the mute.
+ */
+function maybeMuteUser(targetMention, userID) {
+    if (!util.isMention(targetMention, c.MENTION_TYPE.user)) {
+        return util.sendEmbedMessage('Invalid User', `Could not find user ${targetMention}.`);
+    }
+
+    const targetId = util.getIdFromMention(targetMention);
+    const targetUser = util.getMembers().find('id', targetId);
+
+    if (!targetUser) { return; }
+
+    const muteRole = bot.getServer().roles.find('id', c.MUTE_ROLE_ID);
+
+    if (!muteRole) { return; }
+
+    if (!loot.mutedMemberIdToEndTime) {
+      loot.mutedMemberIdToEndTime = {};
+    }
+
+    muteUser(muteRole, targetUser, targetId, userID);
+}
+
+/**
  * Removes role if time has expired on the prize.
  */
 function maybeRemoveRoleFromUsers(memberIdToRoleEndTime, role) {
@@ -987,9 +1140,23 @@ function maybeRemoveRoleFromUsers(memberIdToRoleEndTime, role) {
             delete memberIdToRoleEndTime[member.id];
             member.removeRole(role);
             util.exportJson(loot, 'loot');
+
+            if (role.id === c.MUTE_ROLE_ID) {
+                forceMuteStateUpdateForUser(member);
+            }
         }
     });
 }
+
+/**
+ * Removes muted role from users if the time has expired on their mute.
+ */
+exports.maybeRemoveMutedRoleFromUsers = () => {
+  maybeRemoveRoleFromUsers(
+    loot.mutedMemberIdToEndTime,
+    bot.getServer().roles.find('id', c.MUTE_ROLE_ID)
+  );
+};
 
 /**
  * Removes rainbow role if time has expired on the prize.
@@ -1066,6 +1233,13 @@ exports.registerCommandHandlers = () => {
 
         // TODO: create
         if (!hasPrize(userID, cmd, tierNumber)) { return; }
+    });
+    cmdHandler.registerCommandHandler('mute', (message, args) => {
+        const { userID, cmd, tierNumber } = determinePrizeArgs(args, message);
+
+        if (!hasPrize(userID, cmd, tierNumber)) { return; }
+
+        maybeMuteUser(args[2], userID);
     });
     cmdHandler.registerCommandHandler('inventory', (message, args) => {
         const { userID } = determinePrizeArgs(args, message);

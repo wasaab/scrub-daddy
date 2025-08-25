@@ -9,7 +9,7 @@ var bot = require('../bot.js');
 var c = require('../const.js');
 
 const { getNick, getMembers, getAvatar, exportJson, capitalizeFirstLetter,
-	lock, isLocked, isMention, unLock, getIdFromMention, buildField } = require('./baseUtil.js');
+	lock, isLocked, isMention, unLock, getIdFromMention, buildField, formatAsBoldCodeBlock } = require('./baseUtil.js');
 
 var userIDToColor = require('../../resources/data/colors.json');
 var quotes = require('../../resources/data/quotes.json');
@@ -147,7 +147,7 @@ function sendEmbedMessageToChannel(title = '', description = '', channelID, user
  * @param {String} options.userID id of the user message is for
  * @param {String=} options.image url of the image to embed in the message
  * @param {Boolean} options.isThumbnail whether or no the image should be thumbnail size
- * @param {String} options.footer footer of the message
+ * @param {Object} options.footer footer of the message
  * @param {String} options.channelID id of the channel to send the message to
  * @param {Object} options.file file stream to attach to the message
  * @param {String} options.url url of the message
@@ -166,7 +166,7 @@ function sendEmbed({ title, description, userID, image, isThumbnail, footer, cha
  * @param {String} userID id of the user message is for
  * @param {String=} image url of the image to embed in the message
  * @param {Boolean} isThumbnail whether or no the image should be thumbnail size
- * @param {String} footer footer of the message
+ * @param {Object} footer footer of the message
  * @param {String} channelID id of the channel to send the message to
  * @param {Object} file file stream to attach to the message
  * @param {String} url url of the message
@@ -366,6 +366,37 @@ function sendDynamicMessage(userID, selectionType, results, homePage) {
 		addInitialNumberReactions(msgSent, firstReactionNum, lastReactionNum);
 		awaitAndHandleReaction(msgSent, userID, results, selectionType, homePage);
 	});
+}
+
+/**
+ * Sends a confirmation prompt to the user.
+ *
+ * @param {String} title - The title of the confirmation prompt.
+ * @param {String} description - The description of the confirmation prompt.
+ * @param {String} userID - The ID of the user to send the prompt to.
+ * @returns {Promise<Boolean>} - A promise that resolves to true if the user confirmed, false otherwise.
+ */
+async function sendConfirmationPrompt(title, description, userID) {
+	const msgSent = await sendEmbedMessage(title, description, userID);
+  const acceptReaction = '✅';
+  const denyReaction = '❌';
+
+	msgSent.react(acceptReaction);
+  msgSent.react(denyReaction);
+
+  const isApplicableReaction = (reaction, user) => (
+    [acceptReaction, denyReaction].includes(reaction.emoji.name) && user.id === userID
+  );
+
+  return msgSent.awaitReactions(isApplicableReaction, { time: 15000, max: 1 })
+    .then((collected) => {
+      const reaction = collected.first();
+
+      return reaction.emoji.name === acceptReaction;
+    })
+    .catch(() => {
+      logger.info(`Timed out waiting for confirmation of "${title}".`);
+    });
 }
 
 /**
@@ -676,6 +707,7 @@ exports.maybeInsertQuotes = maybeInsertQuotes;
 exports.maybeReplicateLol = maybeReplicateLol;
 exports.sendAuthoredEmbed = sendAuthoredEmbed;
 exports.sendAuthoredMessage = sendAuthoredMessage;
+exports.sendConfirmationPrompt = sendConfirmationPrompt;
 exports.sendDynamicMessage = sendDynamicMessage;
 exports.sendEmbedFieldsMessage = sendEmbedFieldsMessage;
 exports.sendEmbedMessage = sendEmbedMessage;
