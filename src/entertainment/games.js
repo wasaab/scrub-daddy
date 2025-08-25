@@ -145,12 +145,12 @@ function determinePlayingFieldsAndUpdateHistory(time, total, games) {
 exports.maybeOutputCountOfGamesBeingPlayed = function(scrubs, userID) {
 	const { games, winner, total } = getGamesBeingPlayedData(scrubs);
 	const time = moment();
+  const fields = determinePlayingFieldsAndUpdateHistory(time, total, games);
 
 	if (userID === c.SCRUB_DADDY_ID) {
 		updateHeatMap(time, total);
 	} else {
 		const imageUrl = c.GAME_NAME_TO_IMG[winner] ?? c.THUMBS_UP_GIF;
-		const fields = determinePlayingFieldsAndUpdateHistory(time, total, games);
 
 		util.sendEmbedMessage(`🏆 Winner - ${winner}`, null, userID, imageUrl);
 		fields.sort(util.compareFieldValues);
@@ -905,6 +905,32 @@ exports.determineActiveGameName = function(member) {
 };
 
 /**
+ * Replaces roman numerals (1-10) found at the end of
+ * the provided game name with the integer equivalent.
+ *
+ * @param {string} gameName - name of the game to be replaced
+ * @returns {string} the game name with int instead of roman numerals
+ */
+function replaceRomanNumeralWithInt(gameName) {
+  return gameName.replace(/\b(I?[VX]|V?I{1,3})$/, (romanNumeral) => {
+    let sum = 0;
+
+    for (let i = 0; i < romanNumeral.length; i++) {
+        const currInt = c.ROMAN_NUMERAL_CHAR_TO_INT[romanNumeral[i]];
+        const prevInt = c.ROMAN_NUMERAL_CHAR_TO_INT[romanNumeral[i - 1]];
+
+        if (currInt > prevInt) {
+            sum = currInt - prevInt;
+        } else {
+            sum += currInt;
+        }
+    }
+
+    return sum;
+  });
+}
+
+/**
  * Updates the provided users nickname to contain the game they
  * just started playing.
  *
@@ -917,18 +943,19 @@ exports.maybeUpdateNickname = function(member, game) {
 
 	if (game && member.voiceChannel && status !== 'idle') {
 		logger.info(`${nameTokens[0]} is playing ${game}`);
-		if (game === `Sid Meier's Civilization VI`) {
-			game = 'C I V 6';
-		}
-		const gameTokens = game.split(' ');
-		var nick = `${nameTokens[0]} ▫ `;
+
+		const gameTokens = replaceRomanNumeralWithInt(game).split(' ');
+		let nick = `${nameTokens[0]} ▫ `;
+
 		gameTokens.forEach((token) => {
-			var firstChar = token.charAt(0).toUpperCase();
+			let firstChar = token.charAt(0).toUpperCase();
+
 			if (!(/[a-zA-Z0-9]/).test(firstChar)) {
 				firstChar = token;
 			}
 			nick += c.ENCLOSED_CHARS[firstChar] || firstChar;
 		});
+
 		logger.info(`Updating Nickname - ${member.displayName} -> ${nick}`);
 		member.setNickname(nick);
 	} else if (nameTokens[1]) {
@@ -1423,6 +1450,8 @@ async function isArkServerOnline() {
  * and notifies the server admin if down.
  */
 exports.checkArkServerStatus = async function() {
+  if (!priv.arkServerIp) { return; }
+
 	const isOnline = await isArkServerOnline();
 	const channel = bot.getServer().channels.find('id', c.ARK_CHANNEL_ID);
 	const isPrevStatusDown = channel.topic.startsWith('⬇️');
