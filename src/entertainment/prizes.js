@@ -650,7 +650,7 @@ function renameUserRoleOrChannel(type, targetID, newName, tierNumber, userID, cm
 
             loot.lockedIdToLockInfo[targetID] = {
                 unlockTime: endTime.valueOf(),
-                oldName: loot.lockedIdToLockInfo[targetID].oldName ?? oldName,
+                oldName: loot.lockedIdToLockInfo[targetID]?.oldName ?? oldName,
                 newName: newName,
                 type: group,
             };
