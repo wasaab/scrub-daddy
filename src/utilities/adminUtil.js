@@ -435,6 +435,18 @@ function getRandomPositiveMessage() {
 }
 
 /**
+ * Builds a formatted list of reasons for quarantine.
+ *
+ * @param {String} userID - id of the user to get quarantine reasons of
+ * @returns {String} a formatted list of reasons for quarantine
+ */
+function buildQuarantineReasonsList(userID) {
+  const reasons = quarantinedUserIDToInfo[userID].reasons.join('\n• ');
+
+  return `\n\n• ${reasons}`;
+}
+
+/**
  * Annotates the message from a quarantined user explaining why
  * their account is restricted.
  *
@@ -449,13 +461,12 @@ async function annotateMessageFromQuarantinedUser(message, userID) {
     await sendAuthoredMessage(getRandomPositiveMessage(), userID, message.channel.id);
   }
 
-  const reasons = quarantinedUserIDToInfo[userID].reasons.join('\n• ');
   const annotationEmbed = {
     username: 'Community Guard',
     avatarURL: c.COMMUNITY_GUARD_IMG,
     embeds: [{
       title: '⚠️ Account Restricted',
-      description: `${message.author} is under review for:\n\n• ${reasons}`,
+      description: `${message.author} is under review for:${buildQuarantineReasonsList(userID)}`,
       color: 0xFF6B6B,
       footer: { text: 'Please maintain a respectful community environment' }
     }]
@@ -492,8 +503,9 @@ function maybeAnnotateMessageFromQuarantinedUser(message) {
  * @param {String} targetMention - mention of the user to quarantine
  * @param {Number} days - number of days to quarantine the user for
  * @param {String} reasonsMsg - reasons for quarantining the user, comma separated
+ * @param {String} userID - id of the user issuing the quarantine
  */
-function quarantineUser(targetMention, days, reasonsMsg) {
+function quarantineUser(targetMention, days, reasonsMsg, userID) {
   if (!Number.isInteger(days) || days < 1 || !isMention(targetMention, c.MENTION_TYPE.user) || reasonsMsg.length === 0) { return; }
 
   const targetID = getIdFromMention(targetMention);
@@ -502,6 +514,11 @@ function quarantineUser(targetMention, days, reasonsMsg) {
   const reasons = reasonsMsg.split(/(?:, |,)+/);
 
   quarantinedUserIDToInfo[targetID] = { endTime, reasons };
+
+  const confirmationDescription = `${mentionUser(targetID)} has been quarantined for ${days} day${maybeGetPlural(days)}. `
+    + `The following misconduct has been reported to Discord's Content Moderation Team:${buildQuarantineReasonsList(targetID)}`;
+
+  sendEmbedMessage('🚨 User Quarantined', confirmationDescription, userID);
 
   exportRestrictedUsers();
 }
@@ -575,6 +592,6 @@ exports.registerCommandHandlers = () => {
 	cmdHandler.registerCommandHandler('quarantine', (message, args) => {
       if (args.length < 4 || !isAdmin(message.member.id)) { return; }
 
-      quarantineUser(args[1], Number(args[2]), args.slice(3).join(' '));
+      quarantineUser(args[1], Number(args[2]), args.slice(3).join(' '), message.member.id);
     });
 };
