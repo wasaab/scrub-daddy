@@ -2,21 +2,27 @@ var { execSync } = require('child_process');
 var backup = require('backup');
 var moment = require('moment');
 var fs = require('fs');
+const { RegExpMatcher, englishDataset, englishRecommendedTransformers } = require('obscenity');
 
 var { logger, DiscordServerTransport } = require('../logger.js');
 var bot = require('../bot.js');
 var c = require('../const.js');
 const cmdHandler = require('../handlers/cmdHandler.js');
 
-const { sendEmbedMessage, sendEmbed, log } = require('./messagingUtil.js');
-const { getNick, exportJson, mentionUser, mentionChannel, getMembers, maybeGetPlural, getRand } = require('./baseUtil.js');
+const { sendEmbedMessage, sendEmbed, log, sendAuthoredMessage, sendWebhookMessage } = require('./messagingUtil.js');
+const { getNick, exportJson, mentionUser, mentionChannel, maybeGetPlural, getRand, isMention, getIdFromMention } = require('./baseUtil.js');
 
-var bannedUserIDToBans = require('../../resources/data/banned.json');
+var { bannedUserIDToBans, quarantinedUserIDToInfo } = require('../../resources/data/restrictedUsers.json');
 var config = require('../../resources/data/config.json');
+const positiveMessages = require('../../resources/data/positiveMessages.json');
 
 var reviewQueue = [];
-var muteAndDeafUserIDToTime = {};
 const backupBasePath = '../jsonBackups/';
+
+const profanityMatcher = new RegExpMatcher({
+  ...englishDataset.build(),
+  ...englishRecommendedTransformers,
+});
 
 /**
  * Bans the user from posting in the provided channel for 2 days.
@@ -39,7 +45,7 @@ function banSpammer(user, channel, days = 2, isMagicWord, isSilent) {
 		days: days
 	});
 	bannedUserIDToBans[user.id] = usersBans;
-	exportBanned();
+	exportRestrictedUsers();
 
 	var msg = `Enjoy the ${days} day ban from ${mentionChannel(channel.id)}, you filthy spammer!`;
 
@@ -111,7 +117,7 @@ function unBanSpammer(userID, channelID) {
 		.then(() => {
 			logger.info(`Un-banning ${getNick(userID)} from ${channel.name} for spamming.`);
 			delete bannedUserIDToBans[userID];
-			exportBanned();
+			exportRestrictedUsers();
 			channel.send(`${mentionUser(userID)} Your ban has been lifted. You may now post in ${mentionChannel(channel.id)} again.`);
 		})
 		.catch((err) => {
@@ -133,68 +139,6 @@ function maybeUnbanSpammers() {
 			}
 		});
 	}
-}
-
-/**
- * Checks if the provided channel is Purgatory or the AFK channel.
- *
- * @param {String} channelID - id of the channel to check
- */
-function isInPurgatoryOrAFK(channelID) {
-	return channelID === c.PURGATORY_CHANNEL_ID || channelID === c.AFK_CHANNEL_ID;
-}
-
-/**
- * Updates the mute and deaf members array.
- *
- * @param {Object[]} channels - the server's channels
- */
-function updateMuteAndDeaf(channels) {
-	channels.forEach(({ id: channelId, type, members }) => {
-		if (type !== "voice" || !members?.size || channelId === c.AFK_IMMUNE_CHANNEL_ID) { return; }
-
-		members.array().forEach((member) => {
-			if (!member.selfMute || !member.selfDeaf) {
-        delete muteAndDeafUserIDToTime[member.id];
-			} else if (!muteAndDeafUserIDToTime[member.id] && !isInPurgatoryOrAFK(channelId)) {
-				muteAndDeafUserIDToTime[member.id] = moment();
-				logger.info(`Adding ${getNick(member.id)} to mute & deaf list.`);
-			}
-		});
-	});
-}
-
-/**
- * Moves mute and deaf members to solitary iff they have been muted and deaf for at least 5 minutes.
- */
-function maybeMoveMuteAndDeaf() {
-	const purgatoryVC = bot.getPurgatory();
-	const now = moment();
-
-	for (var userID in muteAndDeafUserIDToTime) {
-		if (now.diff(muteAndDeafUserIDToTime[userID], 'minutes') < 5) { continue; }
-
-		delete muteAndDeafUserIDToTime[userID];
-		const deafMember = getMembers().find('id', userID);
-
-		if (!deafMember) { continue; }
-
-		deafMember.setVoiceChannel(purgatoryVC)
-			.catch(log);
-		logger.info(`Sending ${getNick(deafMember.id)} to solitary for being mute & deaf.`);
-	}
-}
-
-/**
- * Checks for users who are both mute and deaf and moves them
- * to the solitary confinement channel if they have been that way
- * for at least 5 minutes.
- *
- * @param {Object[]} channels - the server's channels
- */
-function handleMuteAndDeaf(channels) {
-	updateMuteAndDeaf(channels);
-	maybeMoveMuteAndDeaf();
 }
 
 /**
@@ -482,10 +426,91 @@ function addMessageToReviewQueue(message) {
 }
 
 /**
- * exports bans.
+ * Gets a random positive message from a pre-generated list.
+ *
+ * @returns {String} a random positive message
  */
-function exportBanned() {
-	exportJson(bannedUserIDToBans, 'banned');
+function getRandomPositiveMessage() {
+  return positiveMessages[Math.floor(Math.random() * positiveMessages.length)];
+}
+
+/**
+ * Annotates the message from a quarantined user explaining why
+ * their account is restricted.
+ *
+ * @param {Object} message - message sent by user
+ * @param {String} userID - id of the user who sent the message
+ */
+async function annotateMessageFromQuarantinedUser(message, userID) {
+  logger.info(`Quarantining message from ${message.author.tag} in ${message.channel.name}: ${message.content}`);
+
+  if (!profanityMatcher.hasMatch(message.content)) {
+    message.delete();
+    await sendAuthoredMessage(getRandomPositiveMessage(), userID, message.channel.id);
+  }
+
+  const reasons = quarantinedUserIDToInfo[userID].reasons.join('\n• ');
+  const annotationEmbed = {
+    username: 'Community Guard',
+    avatarURL: c.COMMUNITY_GUARD_IMG,
+    embeds: [{
+      title: '⚠️ Account Restricted',
+      description: `${message.author} is under review for:\n\n• ${reasons}`,
+      color: 0xFF6B6B,
+      footer: { text: 'Please maintain a respectful community environment' }
+    }]
+  };
+
+  sendWebhookMessage(message.channel, annotationEmbed);
+}
+
+/**
+ * Annotates the message if it came from a quarantined user.
+ *
+ * @param {Object} message - message sent by user
+ */
+function maybeAnnotateMessageFromQuarantinedUser(message) {
+  const userID = message.author.id;
+  const quarantineEndTime = quarantinedUserIDToInfo[userID]?.endTime;
+
+  if (!quarantineEndTime) { return; }
+
+  if (moment().isAfter(moment(quarantineEndTime))) {
+    delete quarantinedUserIDToInfo[userID];
+    exportRestrictedUsers();
+    return;
+  }
+
+  annotateMessageFromQuarantinedUser(message, userID);
+}
+
+/**
+ * Quarantines a user for the specified number of days.
+ * If they post a message it will be replaced with a randomly selected positive message
+ * from a pre-generated list. An embed explaining the quarantine will follow every positive message.
+ *
+ * @param {String} targetMention - mention of the user to quarantine
+ * @param {Number} days - number of days to quarantine the user for
+ * @param {String} reasonsMsg - reasons for quarantining the user, comma separated
+ */
+function quarantineUser(targetMention, days, reasonsMsg) {
+  if (!Number.isInteger(days) || days < 1 || !isMention(targetMention, c.MENTION_TYPE.user) || reasonsMsg.length === 0) { return; }
+
+  const targetID = getIdFromMention(targetMention);
+  const endTime = moment().add(days, 'days')
+    .valueOf();
+  const reasons = reasonsMsg.split(/(?:, |,)+/);
+
+  quarantinedUserIDToInfo[targetID] = { endTime, reasons };
+
+  exportRestrictedUsers();
+}
+
+/**
+ * Exports restricted user mappings.
+ */
+function exportRestrictedUsers() {
+  exportJson({ bannedUserIDToBans, quarantinedUserIDToInfo }, 'restrictedUsers');
 }
 
 /**
@@ -532,9 +557,9 @@ function toggleServerLogRedirect(message) {
 exports.addMessageToReviewQueue = addMessageToReviewQueue;
 exports.banSpammer = banSpammer;
 exports.enableServerLogRedirect = enableServerLogRedirect;
-exports.handleMuteAndDeaf = handleMuteAndDeaf;
 exports.isAdmin = isAdmin;
 exports.isDevEnv = isDevEnv;
+exports.maybeAnnotateMessageFromQuarantinedUser = maybeAnnotateMessageFromQuarantinedUser;
 exports.maybeBanSpammer = maybeBanSpammer;
 exports.maybeUnbanSpammers = maybeUnbanSpammers;
 exports.registerCommandHandlers = () => {
@@ -547,4 +572,9 @@ exports.registerCommandHandlers = () => {
 	cmdHandler.registerCommandHandler('review-messages', reviewMessages);
 	cmdHandler.registerCommandHandler('update-readme', updateReadme);
 	cmdHandler.registerCommandHandler('restart', restartBot);
+	cmdHandler.registerCommandHandler('quarantine', (message, args) => {
+      if (args.length < 4 || !isAdmin(message.member.id)) { return; }
+
+      quarantineUser(args[1], Number(args[2]), args.slice(3).join(' '));
+    });
 };

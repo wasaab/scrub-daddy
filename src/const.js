@@ -87,6 +87,7 @@ module.exports = {
 		CUSTOM : 'custom'
 	},
 	THUMBS_UP_GIF: 'https://i.imgur.com/CLC53gf.gif',
+  COMMUNITY_GUARD_IMG: 'https://i.imgur.com/U9udurC.png',
 	CLEAN_WIN_IMG: 'https://i.imgur.com/LDSm2sg.png',
 	CLEAN_LOSE_IMG: 'https://i.imgur.com/gynZE1j.png',
 	SCRUB_DADDY_FACT_IMG: 'https://i.imgur.com/FbAwRTj.jpg',
@@ -427,7 +428,7 @@ module.exports = {
 		'magic-word', 'missing-help', 'mute',
 		'opt-in',
 		'ping-ark-server', 'playing', 'portfolio', 'prizes',
-		'quote', 'quotes',
+		'quarantine', 'quote', 'quotes',
 		'race', 'rainbow-role', 'ranks', 'rate', 'ratings', 'rating-info', 'refresh-ratings', 'rejoin-temp', 'remind-me', 'remove-player', 'rename', 'rename-channel', 'rename-hank', 'rename-role', 'rename-user', 'replace-scrubble', 'reserve', 'restart', 'restore', 'review-messages', 'revive', 'rock', 'round-robin',
 		'sb', 'scrub-box', 'sell-shares', 'set-birthday', 'set-fortnite-name', 'set-stream', 'shuffle-scrubs', 'split-group', 'start-lotto', 'stats', 'steal', 'steal-all', 'stocks', 'stop-lotto', 'subscribe-catfacts', 'sunken-sailor',
 		'temp', 'test', 'time', 'tips', 'toggle-streaming', 'trends', 'total-trends',
@@ -550,7 +551,8 @@ module.exports = {
 		'+ cars - `craws car forum and outputs updates as discord embeds.`\n' +
 		'+ admin-help - `lists admin command usage.`\n' +
 		'+ missing-help - `lists commands missing help.`\n' +
-		'+ review-messages - `initiates message review process for quarantined users.`\n',
+		'+ review-messages - `initiates message review process for quarantined users.`\n' +
+    '+ quarantine <`@user`> <`numDays`> <`the reason | first reason, another reason, etc`> - `quarantines a user for the specified number of days.`\n',
 	PRIZE_TO_DESCRIPTION: {
 		'rename-hank': 'Automatically change hanks name to hang for ``.',
 		'rename-user': 'Rename a user for ``.',

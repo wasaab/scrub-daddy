@@ -27,6 +27,7 @@
     "moment": "^2.19.1",
     "natural": "^2.1.5",
     "node-schedule": "^1.2.5",
+    "obscenity": "^0.4.5",
     "opusscript": "0.0.6",
     "request": "^2.83.0",
     "request-promise": "^4.2.2",

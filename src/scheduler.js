@@ -27,7 +27,6 @@ function scheduleRecurringVoiceChannelScan() {
 		prizes.maybeResetNames();
 		games.maybeUpdateChannelNames();
 		games.maybeChangeAudioQuality(channels);
-		util.handleMuteAndDeaf(channels);
     prizes.maybeRemoveMutedRoleFromUsers();
 		setTimeout(scan, 60000);
 	})();

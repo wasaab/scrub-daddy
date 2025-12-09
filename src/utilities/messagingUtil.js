@@ -70,13 +70,40 @@ function sendEmbedFieldsMessage(title, fields, userID, footer, channelID) {
 /**
  * Sends a message with the provided user as the author via a webhook.
  *
+ * @param {Object} channel - channel to send the message to
+ * @param {String|Object} message - message text or embed
+ * @param {Object} messageOptions - options for the message
+ * @returns {Promise<Error>} a promise of any error that occurred
+ */
+async function sendWebhookMessage(channel, message, messageOptions) {
+  let webhook;
+  let error;
+
+	try {
+		webhook = await channel.createWebhook('AuthoredMsg', message?.avatarURL ?? messageOptions?.author?.avatarURL);
+
+		await webhook.send(message, messageOptions);
+	} catch (err) {
+		logger.error(`Unable to send authored msg: ${err}`);
+
+    error = err;
+	} finally {
+    webhook?.delete().catch(log);
+  }
+
+  return error;
+}
+
+/**
+ * Sends a message with the provided user as the author via a webhook.
+ *
  * @param {String} description description of the message
  * @param {String} userID id of authoring user
  * @param {String} channelID id of channel to send the message to
  * @param {Object} file file to attach to the message
  * @returns {Promise<Message|Error>} a promise of the message that was sent
  */
-async function sendAuthoredMessage(description, userID, channelID, file) {
+function sendAuthoredMessage(description, userID, channelID, file) {
 	const channel = channelID ? bot.getServer().channels.find('id', channelID) : bot.getBotSpam();
 	const author = getAuthor(userID, true);
 
@@ -86,25 +113,12 @@ async function sendAuthoredMessage(description, userID, channelID, file) {
 		author.username = `.${author.username}`;
 	}
 
-	let webhook;
+  const msgOptions = {
+    ...author,
+    file
+  };
 
-	try {
-		webhook = await channel.createWebhook('AuthoredMsg', author.avatarURL);
-
-		const msgOptions = {
-			...author,
-			file
-		};
-
-		await webhook.send(description, msgOptions);
-
-		return webhook.delete().catch(log);
-	} catch (err) {
-		logger.error(`Unable to send authored msg: ${err}`);
-		webhook?.delete().catch(log);
-
-		return err;
-	}
+  return sendWebhookMessage(channel, description, msgOptions);
 }
 
 /**
@@ -713,6 +727,7 @@ exports.sendEmbedFieldsMessage = sendEmbedFieldsMessage;
 exports.sendEmbedMessage = sendEmbedMessage;
 exports.sendEmbed = sendEmbed;
 exports.sendEmbedMessageToChannel = sendEmbedMessageToChannel;
+exports.sendWebhookMessage = sendWebhookMessage;
 exports.registerCommandHandlers = () => {
 	cmdHandler.registerCommandHandler('quote', quoteUser);
 	cmdHandler.registerCommandHandler('quotes', getQuotes);

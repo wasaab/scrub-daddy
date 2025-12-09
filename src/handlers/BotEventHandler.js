@@ -44,6 +44,7 @@ module.exports = class BotEventHandler {
                 prizes.checkForMagicWords(message);
                 games.maybeUpdateArkServerStatus(message);
                 util.maybePostExternalMedia(message);
+                util.maybeAnnotateMessageFromQuarantinedUser(message);
             }
         });
 
