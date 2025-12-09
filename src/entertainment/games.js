@@ -897,11 +897,12 @@ exports.toggleStreaming = function(member) {
  * @param {Object} member - the member to determine the game of
  */
 exports.determineActiveGameName = function(member) {
-	const gameName = member.presence?.game?.name;
+  const game = member.presence?.game;
 
-	if (c.CUSTOM_STATUS === gameName) { return; }
+  // type 0 represents a game being played rather than a custom status or streamed game
+  if (!game?.name || game?.type !== 0) { return; }
 
-	return gameName;
+  return game.name;
 };
 
 /**

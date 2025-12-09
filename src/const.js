@@ -661,7 +661,6 @@ module.exports = {
 	SHORT_DATE_FORMAT: 'l',
 	BACKUP_DATE_FORMAT: 'M[-]D[-]YY[@]h[-]mm[-]a',
 	NO_RENAMES_MSG: 'No active renames',
-	CUSTOM_STATUS: 'Custom Status',
 	DAILY_RESERVE_AMOUNT: 10,
 	VOLUME_TO_DB: [-70, -60, -50, -40, -30, -20, -15, -10, -5, 0],
 	TABLE_COL_SEPARATOR: ' ║ '
